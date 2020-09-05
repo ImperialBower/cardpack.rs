@@ -20,3 +20,4 @@ decks of various sizes and suites. Possibilities include:
 * Create a textual representation of a deck that can be serialized and deserialized.
 * Shuffle a deck
 * Verify that a specific card is playable given a set of discards.
+* Determine if two deck types are translatable.
