@@ -1,0 +1,10 @@
+[package]
+name = "spielkarten"
+description = "Generic Deck of Cards"
+version = "0.1.0"
+authors = ["folkengine <gaoler@electronicpanopticon.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
