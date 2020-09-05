@@ -1,3 +1,5 @@
+mod suit;
+
 #[cfg(test)]
 mod tests {
     #[test]
