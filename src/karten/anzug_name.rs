@@ -1,8 +1,8 @@
 use std::fmt;
 
 use fluent_templates::{Loader};
-use crate::fluent::{LOCALES, ToLocaleString, GERMAN, US_ENGLISH};
 use unic_langid::{LanguageIdentifier};
+use crate::fluent::{LOCALES, ToLocaleString, GERMAN, US_ENGLISH};
 
 /// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
 ///
