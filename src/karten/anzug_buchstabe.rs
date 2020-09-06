@@ -12,8 +12,8 @@ impl AnzugBuchstabe {
     // Accepts String or &str
     // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
     pub fn new<S>(name: S) -> AnzugBuchstabe
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         AnzugBuchstabe(name.into())
     }
@@ -58,18 +58,21 @@ mod suite_name_tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(
-            AnzugBuchstabe::new("diamonds").to_string(),
-            "D".to_string()
-        );
+        assert_eq!(AnzugBuchstabe::new("diamonds").to_string(), "D".to_string());
     }
 
     #[test]
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(AnzugBuchstabe("from".to_string()), AnzugBuchstabe::new(from_string));
-        assert_eq!(AnzugBuchstabe("from".to_string()), AnzugBuchstabe::new("from"));
+        assert_eq!(
+            AnzugBuchstabe("from".to_string()),
+            AnzugBuchstabe::new(from_string)
+        );
+        assert_eq!(
+            AnzugBuchstabe("from".to_string()),
+            AnzugBuchstabe::new("from")
+        );
     }
 
     #[test]
