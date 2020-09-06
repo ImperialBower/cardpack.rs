@@ -6,25 +6,23 @@ use std::fmt;
 pub struct AnzugName(String);
 
 impl AnzugName {
-
     // Accepts String or &str
     // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
-    fn new<S>(name: S) -> AnzugName where S: Into<String> {
+    fn new<S>(name: S) -> AnzugName
+    where
+        S: Into<String>,
+    {
         AnzugName(name.into())
     }
 
     fn as_str(&self) -> &str {
-        return self.0.as_str()
+        self.0.as_str()
     }
 }
 
 impl fmt::Display for AnzugName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.0,
-        )
+        write!(f, "{}", self.0,)
     }
 }
 

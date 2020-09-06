@@ -1,4 +1,4 @@
-use fluent_templates::{static_loader};
+use fluent_templates::static_loader;
 
 static_loader! {
     pub static LOCALES = {
