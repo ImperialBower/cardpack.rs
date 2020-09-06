@@ -24,6 +24,7 @@ decks of various sizes and suites. Possibilities include:
 
 ## References
 
+* [Card games in Germany](https://www.pagat.com/national/germany.html)
 * [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
 
 ### Other Rust Deck of Cards Libraries
@@ -31,3 +32,13 @@ decks of various sizes and suites. Possibilities include:
 * [ascclemens/cards](https://github.com/ascclemens/cards)
 * [locka99/deckofcards-rs](https://github.com/locka99/deckofcards-rs)
 * [vsupalov/cards-rs](https://github.com/vsupalov/cards-rs)
+
+## Things to Explore
+
+* [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
+* 
+
+## Dependencies
+
+* [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
+  * [Project Fluent ](https://www.projectfluent.org/)
