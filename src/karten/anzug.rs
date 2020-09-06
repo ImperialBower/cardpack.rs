@@ -40,7 +40,7 @@ impl fmt::Display for Anzug {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod suite_tests {
+mod suit_tests {
     use super::*;
     use crate::fluent::{ToLocaleString, GERMAN};
 

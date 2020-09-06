@@ -11,7 +11,6 @@ pub struct RangName(String);
 
 impl RangName {
     // Accepts String or &str
-    // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
     pub fn new<S>(name: S) -> RangName
     where
         S: Into<String>,
