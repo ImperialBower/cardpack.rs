@@ -6,6 +6,8 @@ use crate::karten::anzug_buchstabe::AnzugBuchstabe;
 use crate::karten::anzug_name::AnzugName;
 use crate::karten::anzug_symbol::AnzugSymbol;
 
+/// Suit (Anzug) struct for a playing card. Made up of the suit's name, letter, and symbol.
+/// Supports internationalization through fluent template files.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Anzug {
     pub name: AnzugName,

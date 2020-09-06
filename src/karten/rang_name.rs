@@ -71,8 +71,17 @@ mod suite_name_tests {
 
     #[test]
     fn to_string_by_locale() {
-        assert_eq!(RangName::new("queen").to_locale_string(&GERMAN), "Dame".to_string());
-        assert_eq!(RangName::new("ace").to_locale_string(&GERMAN), "Ass".to_string());
-        assert_eq!(RangName::new("jack").to_locale_string(&GERMAN), "Bube".to_string());
+        assert_eq!(
+            RangName::new("queen").to_locale_string(&GERMAN),
+            "Dame".to_string()
+        );
+        assert_eq!(
+            RangName::new("ace").to_locale_string(&GERMAN),
+            "Ass".to_string()
+        );
+        assert_eq!(
+            RangName::new("jack").to_locale_string(&GERMAN),
+            "Bube".to_string()
+        );
     }
 }

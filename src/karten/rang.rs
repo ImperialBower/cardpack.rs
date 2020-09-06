@@ -2,8 +2,8 @@ use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, US_ENGLISH};
-use crate::karten::rang_name::RangName;
 use crate::karten::rang_kurz::RangKurz;
+use crate::karten::rang_name::RangName;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Rang {
@@ -13,8 +13,8 @@ pub struct Rang {
 
 impl Rang {
     pub fn new<S: std::clone::Clone>(name: S) -> Rang
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Rang {
             name: RangName::new(name.clone()),
@@ -74,4 +74,3 @@ mod rank_tests {
         assert_eq!(clubs.to_locale_string(&GERMAN), "D".to_string());
     }
 }
-
