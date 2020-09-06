@@ -2,7 +2,7 @@
 Generic Deck of Cards Library in Rust
 
 The goal of this library is to be able to support the creation of card
-decks of various sizes and suites. Possibilities include:
+decks of various sizes and suits. Possibilities include:
 
 * [French Deck](https://en.wikipedia.org/wiki/French_playing_cards)
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
