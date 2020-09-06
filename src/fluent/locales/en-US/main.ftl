@@ -1,14 +1,3 @@
-# French Deck
-spades-name = Spades
-hearts-name = Hearts
-diamonds-name = Diamonds
-clubs-name = Clubs
-
-spades-letter = S
-hearts-letter = H
-diamonds-letter = D
-clubs-letter = C
-
 # Tarot Deck
 major-arcana-name = Major Arcana
 wands-name = Wands
