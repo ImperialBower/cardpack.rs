@@ -21,3 +21,13 @@ decks of various sizes and suites. Possibilities include:
 * Shuffle a deck
 * Verify that a specific card is playable given a set of discards.
 * Determine if two deck types are translatable.
+
+## References
+
+* [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
+
+### Other Rust Deck of Cards Libraries
+
+* [ascclemens/cards](https://github.com/ascclemens/cards)
+* [locka99/deckofcards-rs](https://github.com/locka99/deckofcards-rs)
+* [vsupalov/cards-rs](https://github.com/vsupalov/cards-rs)
