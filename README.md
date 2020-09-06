@@ -12,6 +12,8 @@ decks of various sizes and suits. Possibilities include:
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks)
+  * [Major Arcana](https://en.wikipedia.org/wiki/Major_Arcana)
+  * [Minor Arcana](https://en.wikipedia.org/wiki/Minor_Arcana)
 
 ## Responsibilities
 
@@ -41,4 +43,4 @@ decks of various sizes and suits. Possibilities include:
 ## Dependencies
 
 * [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
-  * [Project Fluent ](https://www.projectfluent.org/)
+  * [Project Fluent](https://www.projectfluent.org/)
