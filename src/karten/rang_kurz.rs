@@ -11,8 +11,8 @@ pub struct RangKurz(String);
 impl RangKurz {
     // Accepts String or &str
     pub fn new<S>(name: S) -> RangKurz
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         RangKurz(name.into())
     }
@@ -44,10 +44,7 @@ mod rank_letter_tests {
 
     #[test]
     fn display() {
-        assert_eq!(
-            "RangKurz: A",
-            format!("RangKurz: {}", RangKurz::new("ace"))
-        );
+        assert_eq!("RangKurz: A", format!("RangKurz: {}", RangKurz::new("ace")));
     }
 
     #[test]
@@ -64,14 +61,8 @@ mod rank_letter_tests {
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(
-            RangKurz("from".to_string()),
-            RangKurz::new(from_string)
-        );
-        assert_eq!(
-            RangKurz("from".to_string()),
-            RangKurz::new("from")
-        );
+        assert_eq!(RangKurz("from".to_string()), RangKurz::new(from_string));
+        assert_eq!(RangKurz("from".to_string()), RangKurz::new("from"));
     }
 
     #[test]
