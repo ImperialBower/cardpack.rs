@@ -1,5 +1,5 @@
 use fluent_templates::static_loader;
-use unic_langid::{LanguageIdentifier, langid};
+use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
 pub const GERMAN: LanguageIdentifier = langid!("de");

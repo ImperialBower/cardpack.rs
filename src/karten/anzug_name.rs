@@ -1,8 +1,7 @@
+use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
+use fluent_templates::Loader;
 use std::fmt;
-
-use fluent_templates::{Loader};
-use unic_langid::{LanguageIdentifier};
-use crate::fluent::{LOCALES, ToLocaleString, GERMAN, US_ENGLISH};
+use unic_langid::LanguageIdentifier;
 
 /// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
 ///
@@ -12,14 +11,14 @@ pub struct AnzugName(String);
 impl AnzugName {
     // Accepts String or &str
     // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
-    fn new<S>(name: S) -> AnzugName
+    pub fn new<S>(name: S) -> AnzugName
     where
         S: Into<String>,
     {
         AnzugName(name.into())
     }
 
-    fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
 }
@@ -42,10 +41,14 @@ impl fmt::Display for AnzugName {
 #[allow(non_snake_case)]
 mod suite_name_tests {
     use super::*;
+    use crate::fluent::{ToLocaleString, GERMAN};
 
     #[test]
     fn display() {
-        assert_eq!("Anzug: Hearts", format!("Anzug: {}", AnzugName::new("hearts")));
+        assert_eq!(
+            "Anzug: Hearts",
+            format!("Anzug: {}", AnzugName::new("hearts"))
+        );
     }
 
     #[test]
@@ -55,7 +58,10 @@ mod suite_name_tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(AnzugName::new("diamonds").to_string(), "Diamonds".to_string());
+        assert_eq!(
+            AnzugName::new("diamonds").to_string(),
+            "Diamonds".to_string()
+        );
     }
 
     #[test]
@@ -64,13 +70,6 @@ mod suite_name_tests {
 
         assert_eq!(AnzugName("from".to_string()), AnzugName::new(from_string));
         assert_eq!(AnzugName("from".to_string()), AnzugName::new("from"));
-    }
-
-    #[test]
-    fn fluent() {
-        let clubs = AnzugName::new("clubs");
-
-        assert_eq!(clubs.to_string(), "Clubs".to_string());
     }
 
     #[test]
