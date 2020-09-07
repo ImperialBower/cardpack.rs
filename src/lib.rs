@@ -5,6 +5,16 @@ mod karten;
 
 use crate::fluent::{LOCALES, US_ENGLISH};
 use fluent_templates::Loader;
+use crate::karten::anzug::Anzug;
+use crate::karten::rang::Rang;
+
+/// Deck of Cards (Kartendeck) that includes rank of suites (anzug_rang) and values (rangfolge).
+#[derive(Clone, Debug, PartialEq)]
+pub struct Kartendeck {
+    pub karten: Vec<Karte>,
+    pub anzug_rang: Vec<Anzug>,
+    pub rangfolge: Vec<Rang>,
+}
 
 #[cfg(test)]
 mod lib_tests {
