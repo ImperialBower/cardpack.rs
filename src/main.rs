@@ -36,6 +36,13 @@ fn demo(deck: spielkartenlib::Kartendeck) {
     for (_, karte) in deck.karten.iter().enumerate() {
         print!("{} ", karte.to_txt_string(&spielkartenlib::fluent::GERMAN));
     }
+
+    println!();
+    print!("   Shuffle Deck:                 ");
+    for (_, karte) in deck.shuffle().iter().enumerate() {
+        print!("{} ", karte.to_locale_string(&spielkartenlib::fluent::US_ENGLISH));
+    }
+
     println!();
     print!("   Long in English and German:\n");
     for (_, karte) in deck.karten.iter().enumerate() {

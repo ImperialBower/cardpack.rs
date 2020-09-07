@@ -5,6 +5,10 @@ pub use karten::*;
 pub mod fluent;
 mod karten;
 
+extern crate rand;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
+
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 #[allow(unused_imports)]
@@ -53,6 +57,13 @@ impl Kartendeck {
         };
         Kartendeck::new(karten, suits, ranks)
     }
+
+    pub fn shuffle(&self) -> Vec<Karte> {
+        let mut c = self.karten.clone();
+        c.shuffle(&mut thread_rng());
+        c
+    }
+
 }
 
 #[cfg(test)]
