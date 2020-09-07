@@ -21,6 +21,15 @@ impl Rang {
             kurz: RangKurz::new(name),
         }
     }
+
+    pub fn to_vec(s: &[&str]) -> Vec<Rang> {
+        let mut v: Vec<Rang>  = Vec::new();
+
+        for (_, &elem) in s.into_iter().enumerate() {
+            v.push(Rang::new(elem));
+        }
+        v
+    }
 }
 
 impl ToLocaleString for Rang {
@@ -72,5 +81,15 @@ mod rank_tests {
         let clubs = Rang::new("queen");
 
         assert_eq!(clubs.to_locale_string(&GERMAN), "D".to_string());
+    }
+
+
+    #[test]
+    fn to_vec() {
+        let mut expected: Vec<Rang>  = Vec::new();
+        expected.push(Rang::new("king"));
+        expected.push(Rang::new("queen"));
+
+        assert_eq!(expected, Rang::to_vec(&["king", "queen"]));
     }
 }

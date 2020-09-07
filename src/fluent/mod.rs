@@ -1,4 +1,4 @@
-use fluent_templates::static_loader;
+use fluent_templates::{static_loader, Loader};
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
@@ -15,4 +15,16 @@ static_loader! {
 
 pub trait ToLocaleString {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String;
+}
+
+#[cfg(test)]
+mod fluent_tests {
+    use super::*;
+
+    #[test]
+    fn doit() {
+        let s = LOCALES.lookup(&US_ENGLISH, "spades-letter");
+
+        assert_eq!("S", s);
+    }
 }

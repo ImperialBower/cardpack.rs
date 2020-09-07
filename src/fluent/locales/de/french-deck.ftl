@@ -9,21 +9,20 @@ hearts-letter = H
 diamonds-letter = D
 clubs-letter = K
 
-
 ## Ranks
 ace-name = Ass
 king-name = König
 queen-name = Dame
 jack-name = Bube
-ten-name = Ten
-nine-name = Nine
-eight-name = Eight
-seven-name = Seven
-six-name = Six
-five-name = Five
-four-name = Four
-three-name = Three
-two-name = Two
+ten-name = Zhen
+nine-name = Neun
+eight-name = Acht
+seven-name = Sieben
+six-name = Sechs
+five-name = Fünf
+four-name = Vier
+three-name = Drei
+two-name = Zwei
 
 ace-short = A
 king-short = K
