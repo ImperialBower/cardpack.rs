@@ -5,6 +5,14 @@ version = "0.1.0"
 authors = ["folkengine <gaoler@electronicpanopticon.com>"]
 edition = "2018"
 
+[lib]
+name = "spielkartenlib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "spielkarten"
+path = "src/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

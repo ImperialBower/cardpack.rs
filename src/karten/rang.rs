@@ -23,12 +23,26 @@ impl Rang {
     }
 
     pub fn to_vec(s: &[&str]) -> Vec<Rang> {
-        let mut v: Vec<Rang>  = Vec::new();
+        let mut v: Vec<Rang> = Vec::new();
 
         for (_, &elem) in s.into_iter().enumerate() {
             v.push(Rang::new(elem));
         }
         v
+    }
+
+    pub fn generate_french_ranks() -> Vec<Rang> {
+        Rang::to_vec(&[
+            "ace", "king", "queen", "jack", "ten", "nine", "eight", "seven", "six", "five", "four",
+            "three", "two",
+        ])
+    }
+
+
+    pub fn generate_pinochle_ranks() -> Vec<Rang> {
+        Rang::to_vec(&[
+            "ace", "ten", "king", "queen", "jack", "nine",
+        ])
     }
 }
 
@@ -83,13 +97,47 @@ mod rank_tests {
         assert_eq!(clubs.to_locale_string(&GERMAN), "D".to_string());
     }
 
-
     #[test]
     fn to_vec() {
-        let mut expected: Vec<Rang>  = Vec::new();
+        let mut expected: Vec<Rang> = Vec::new();
         expected.push(Rang::new("king"));
         expected.push(Rang::new("queen"));
 
         assert_eq!(expected, Rang::to_vec(&["king", "queen"]));
     }
+
+    #[test]
+    fn generate_french_ranks() {
+        let mut expected: Vec<Rang> = Vec::new();
+        expected.push(Rang::new("ace"));
+        expected.push(Rang::new("king"));
+        expected.push(Rang::new("queen"));
+        expected.push(Rang::new("jack"));
+        expected.push(Rang::new("ten"));
+        expected.push(Rang::new("nine"));
+        expected.push(Rang::new("eight"));
+        expected.push(Rang::new("seven"));
+        expected.push(Rang::new("six"));
+        expected.push(Rang::new("five"));
+        expected.push(Rang::new("four"));
+        expected.push(Rang::new("three"));
+        expected.push(Rang::new("two"));
+
+        assert_eq!(expected, Rang::generate_french_ranks());
+    }
+
+    #[test]
+    fn generate_pinochle_ranks() {
+        let mut expected: Vec<Rang> = Vec::new();
+        expected.push(Rang::new("ace"));
+        expected.push(Rang::new("ten"));
+        expected.push(Rang::new("king"));
+        expected.push(Rang::new("queen"));
+        expected.push(Rang::new("jack"));
+        expected.push(Rang::new("nine"));
+
+        assert_eq!(expected, Rang::generate_pinochle_ranks());
+    }
+
+
 }

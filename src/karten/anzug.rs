@@ -28,7 +28,7 @@ impl Anzug {
     }
 
     pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
-        let mut v: Vec<Anzug>  = Vec::new();
+        let mut v: Vec<Anzug> = Vec::new();
 
         for (_, &elem) in s.into_iter().enumerate() {
             v.push(Anzug::new(elem));
@@ -36,7 +36,7 @@ impl Anzug {
         v
     }
 
-    pub fn generate_french_suits() -> Vec<Anzug>{
+    pub fn generate_french_suits() -> Vec<Anzug> {
         Anzug::to_vec(&["spades", "hearts", "diamonds", "clubs"])
     }
 }
@@ -73,10 +73,10 @@ mod suit_tests {
     #[test]
     fn new() {
         let expected = Anzug {
-        name: AnzugName::new("spades"),
-        buchstabe: AnzugBuchstabe::new("spades"),
-        symbol: AnzugSymbol::new("spades"),
-    };
+            name: AnzugName::new("spades"),
+            buchstabe: AnzugBuchstabe::new("spades"),
+            symbol: AnzugSymbol::new("spades"),
+        };
 
         assert_eq!(expected, Anzug::new("spades"));
     }
@@ -95,7 +95,7 @@ mod suit_tests {
 
     #[test]
     fn to_vec() {
-        let mut expected: Vec<Anzug>  = Vec::new();
+        let mut expected: Vec<Anzug> = Vec::new();
         expected.push(Anzug::new("clubs"));
         expected.push(Anzug::new("spades"));
 
@@ -104,7 +104,7 @@ mod suit_tests {
 
     #[test]
     fn generate_french_suits() {
-        let mut expected: Vec<Anzug>  = Vec::new();
+        let mut expected: Vec<Anzug> = Vec::new();
         expected.push(Anzug::new("spades"));
         expected.push(Anzug::new("hearts"));
         expected.push(Anzug::new("diamonds"));
