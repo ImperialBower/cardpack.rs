@@ -1,6 +1,5 @@
 pub use fluent::*;
 pub use karten::anzug::*;
-pub use karten::*;
 
 pub mod fluent;
 mod karten;
@@ -10,6 +9,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use crate::karten::anzug::Anzug;
+use crate::karten::karte::Karte;
 use crate::karten::rang::Rang;
 
 #[allow(unused_imports)]
@@ -57,6 +57,11 @@ impl Kartendeck {
             }
         }
         Kartendeck::new(karten, suits, ranks)
+    }
+
+    pub fn spades_deck() -> Kartendeck {
+        let mut deck = Kartendeck::french_deck();
+        deck
     }
 
     pub fn tarot_deck() -> Kartendeck {

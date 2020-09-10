@@ -10,6 +10,8 @@ diamonds-letter = D
 clubs-letter = C
 
 ## Ranks
+big-joker-name = Full-Color Joker
+little-joker-name = One-Color Joker
 ace-name = Ace
 king-name = King
 queen-name = Queen
@@ -24,6 +26,8 @@ four-name = Four
 three-name = Three
 two-name = Two
 
+big-joker-short = JK
+little-joker-short = jk
 ace-short = A
 king-short = K
 queen-short = Q
