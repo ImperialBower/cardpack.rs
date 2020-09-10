@@ -87,7 +87,10 @@ Other possibilities include:
 ## Things to Explore
 
 * [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
-* 
+* Tarot Libraries
+  * [lawreka/ascii-tarot](https://github.com/lawreka/ascii-tarot)
+  * [pietdaniel/tarot](https://github.com/pietdaniel/tarot)
+  * [jeremytarling/ruby-tarot](https://github.com/jeremytarling/ruby-tarot)
 
 ## Dependencies
 
