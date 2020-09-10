@@ -12,7 +12,7 @@ clubs-light-symbol = ♧
 # Tarot Deck
 major-arcana-symbol = 👑
 wands-symbol = ♣
-coins-symbol = ⛤
+coins-symbol = ☆
 cups-symbol = 🏆
 swords-symbol = ⚔
 

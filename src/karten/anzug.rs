@@ -39,6 +39,14 @@ impl Anzug {
     pub fn generate_french_suits() -> Vec<Anzug> {
         Anzug::to_vec(&["spades", "hearts", "diamonds", "clubs"])
     }
+
+    pub fn generate_major_arcana_suits() -> Vec<Anzug> {
+        Anzug::to_vec(&["major-arcana"])
+    }
+
+    pub fn generate_minor_arcana_suits() -> Vec<Anzug> {
+        Anzug::to_vec(&["wands", "cups", "swords", "pentacles"])
+    }
 }
 
 impl ToLocaleString for Anzug {
@@ -111,5 +119,16 @@ mod suit_tests {
         expected.push(Anzug::new("clubs"));
 
         assert_eq!(expected, Anzug::generate_french_suits());
+    }
+
+    #[test]
+    fn generate_minor_arcana_suits() {
+        let mut expected: Vec<Anzug> = Vec::new();
+        expected.push(Anzug::new("wands"));
+        expected.push(Anzug::new("cups"));
+        expected.push(Anzug::new("swords"));
+        expected.push(Anzug::new("pentacles"));
+
+        assert_eq!(expected, Anzug::generate_minor_arcana_suits());
     }
 }
