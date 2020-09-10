@@ -1,5 +1,6 @@
 pub use fluent::*;
 pub use karten::anzug::*;
+pub use karten::karte::*;
 
 pub mod fluent;
 mod karten;
