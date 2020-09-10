@@ -45,6 +45,9 @@ decks of various sizes and suits. Out of the box, the library supports:
 * [French Deck](https://en.wikipedia.org/wiki/French_playing_cards)
   * [Pinochle](https://en.wikipedia.org/wiki/Pinochle#Deck)
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
+* [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks)
+  * [Major Arcana](https://en.wikipedia.org/wiki/Major_Arcana)
+  * [Minor Arcana](https://en.wikipedia.org/wiki/Minor_Arcana)
 
 The project takes advantage of [Project Fluent](https://www.projectfluent.org/)'s
 [Rust](https://github.com/projectfluent/fluent-rs) support to offer
@@ -59,10 +62,6 @@ Other possibilities include:
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
   * [Spades](https://en.wikipedia.org/wiki/Spades_(card_game)#General_overview) with [Jokers](https://en.wikipedia.org/wiki/Joker_(playing_card))
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
-* [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks)
-  * [Major Arcana](https://en.wikipedia.org/wiki/Major_Arcana)
-  * [Minor Arcana](https://en.wikipedia.org/wiki/Minor_Arcana)
-
 
 ## Responsibilities
 

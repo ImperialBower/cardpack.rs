@@ -11,6 +11,7 @@ use rand::thread_rng;
 
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
+
 #[allow(unused_imports)]
 use fluent_templates::Loader;
 

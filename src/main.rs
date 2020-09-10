@@ -12,7 +12,6 @@ fn main() {
     println!("Pinochle Deck:");
     demo(pinochle_deck);
 
-    println!("Tarot Deck");
     demo_tarot_deck();
 }
 
@@ -82,8 +81,17 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 }
 
 fn demo_tarot_deck() {
+    println!("Tarot Deck");
     let deck = spielkartenlib::Kartendeck::tarot_deck();
+    display_tarot(&deck.karten);
+
+    println!();
+    println!("Tarot Deck Shuffled");
     let cards = deck.shuffle();
+    display_tarot(&cards);
+}
+
+fn display_tarot(cards: &Vec<spielkartenlib::Karte>) {
     for (_, karte) in cards.iter().enumerate() {
         let suitname = karte
             .anzug
