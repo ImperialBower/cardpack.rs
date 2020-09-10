@@ -31,10 +31,7 @@ impl Karte {
     }
 
     pub fn new_from_structs(rang: Rang, anzug: Anzug) -> Karte {
-        Karte {
-            rang,
-            anzug,
-        }
+        Karte { rang, anzug }
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
@@ -81,7 +78,10 @@ mod card_tests {
             anzug: Anzug::new("spades"),
         };
 
-        assert_eq!(expected, Karte::new_from_structs(Rang::new("ace"), Anzug::new("spades")));
+        assert_eq!(
+            expected,
+            Karte::new_from_structs(Rang::new("ace"), Anzug::new("spades"))
+        );
     }
 
     #[test]
@@ -90,7 +90,6 @@ mod card_tests {
 
         assert_eq!(karte.to_locale_string(&GERMAN), "D♣".to_string());
     }
-
 
     #[test]
     fn to_txt_string() {

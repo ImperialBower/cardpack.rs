@@ -6,8 +6,8 @@ pub mod fluent;
 mod karten;
 
 extern crate rand;
-use rand::thread_rng;
 use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
@@ -40,7 +40,7 @@ impl Kartendeck {
             for (_, rank) in ranks.iter().enumerate() {
                 karten.push(Karte::new_from_structs(rank.clone(), suit.clone()));
             }
-        };
+        }
         Kartendeck::new(karten, suits, ranks)
     }
 
@@ -54,7 +54,33 @@ impl Kartendeck {
                 karten.push(Karte::new_from_structs(rank.clone(), suit.clone()));
                 karten.push(Karte::new_from_structs(rank.clone(), suit.clone()));
             }
-        };
+        }
+        Kartendeck::new(karten, suits, ranks)
+    }
+
+    pub fn tarot_deck() -> Kartendeck {
+        let major_arcana_suits = Anzug::generate_major_arcana_suits();
+        let minor_arcana_suits = Anzug::generate_minor_arcana_suits();
+        let major_arcana_ranks = Rang::generate_major_arcana_ranks();
+        let minor_arcana_ranks = Rang::generate_minor_arcana_ranks();
+
+        let mut karten: Vec<Karte> = Vec::new();
+
+        // Generate Major Arcana
+        for (_, suit) in major_arcana_suits.iter().enumerate() {
+            for (_, rank) in major_arcana_ranks.iter().enumerate() {
+                karten.push(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+
+        // Generate Minor Arcana
+        for (_, suit) in minor_arcana_suits.iter().enumerate() {
+            for (_, rank) in minor_arcana_ranks.iter().enumerate() {
+                karten.push(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        let suits = [&major_arcana_suits[..], &minor_arcana_suits[..]].concat();
+        let ranks = [&major_arcana_ranks[..], &minor_arcana_ranks[..]].concat();
         Kartendeck::new(karten, suits, ranks)
     }
 
@@ -63,7 +89,6 @@ impl Kartendeck {
         c.shuffle(&mut thread_rng());
         c
     }
-
 }
 
 #[cfg(test)]

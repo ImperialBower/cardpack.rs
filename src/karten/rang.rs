@@ -38,10 +38,41 @@ impl Rang {
         ])
     }
 
-
     pub fn generate_pinochle_ranks() -> Vec<Rang> {
+        Rang::to_vec(&["ace", "ten", "king", "queen", "jack", "nine"])
+    }
+
+    pub fn generate_major_arcana_ranks() -> Vec<Rang> {
         Rang::to_vec(&[
-            "ace", "ten", "king", "queen", "jack", "nine",
+            "fool",
+            "magician",
+            "priestess",
+            "empress",
+            "emperor",
+            "hierophant",
+            "lovers",
+            "chariot",
+            "strength",
+            "hermit",
+            "fortune",
+            "justice",
+            "hanged",
+            "death",
+            "temperance",
+            "devil",
+            "tower",
+            "star",
+            "moon",
+            "sun",
+            "judgement",
+            "world",
+        ])
+    }
+
+    pub fn generate_minor_arcana_ranks() -> Vec<Rang> {
+        Rang::to_vec(&[
+            "king", "queen", "knight", "page", "ten", "nine", "eight", "seven", "six", "five",
+            "four", "three", "two", "ace",
         ])
     }
 }
@@ -139,5 +170,20 @@ mod rank_tests {
         assert_eq!(expected, Rang::generate_pinochle_ranks());
     }
 
+    #[test]
+    fn generate_major_arcana_ranks() {
+        let major = Rang::generate_major_arcana_ranks();
 
+        assert_eq!(22, major.len());
+    }
+
+    #[test]
+    fn generate_minor_arcana_ranks() {
+        let ex: Vec<Rang> = Rang::to_vec(&[
+            "king", "queen", "knight", "page", "ten", "nine", "eight", "seven", "six", "five",
+            "four", "three", "two", "ace",
+        ]);
+
+        assert_eq!(ex, Rang::generate_minor_arcana_ranks());
+    }
 }
