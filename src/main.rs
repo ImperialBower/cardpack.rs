@@ -1,4 +1,4 @@
-use spielkartenlib::ToLocaleString;
+use spielkartenlib::{ToLocaleString, karten};
 
 fn main() {
     println!("spielkarten.rs demo\n");
@@ -91,7 +91,7 @@ fn demo_tarot_deck() {
     display_tarot(&cards);
 }
 
-fn display_tarot(cards: &Vec<spielkartenlib::Karte>) {
+fn display_tarot(cards: &Vec<spielkartenlib::karten::Karte>) {
     for (_, karte) in cards.iter().enumerate() {
         let suitname = karte
             .anzug
