@@ -5,6 +5,7 @@ fn main() {
 
     let french_deck = spielkartenlib::Kartendeck::french_deck();
     let pinochle_deck = spielkartenlib::Kartendeck::pinochle_deck();
+    let spades_deck = spielkartenlib::Kartendeck::spades_deck();
 
     println!("French Deck:");
     demo(french_deck);
@@ -12,18 +13,21 @@ fn main() {
     println!("Pinochle Deck:");
     demo(pinochle_deck);
 
+    println!("Spades Deck:");
+    demo(spades_deck);
+
     demo_tarot_deck();
 }
 
 fn demo(deck: spielkartenlib::Kartendeck) {
     print!("   Short With Symbols:           ");
-    for (_, karte) in deck.karten.iter().enumerate() {
+    for karte in deck.karten.values() {
         print!("{} ", karte);
     }
 
     println!();
     print!("   Short With Symbols in German: ");
-    for (_, karte) in deck.karten.iter().enumerate() {
+    for karte in deck.karten.values() {
         print!(
             "{} ",
             karte.to_locale_string(&spielkartenlib::fluent::GERMAN)
@@ -32,7 +36,7 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 
     println!();
     print!("   Short With Letters:           ");
-    for (_, karte) in deck.karten.iter().enumerate() {
+    for karte in deck.karten.values() {
         print!(
             "{} ",
             karte.to_txt_string(&spielkartenlib::fluent::US_ENGLISH)
@@ -41,13 +45,13 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 
     println!();
     print!("   Short With Letters in German: ");
-    for (_, karte) in deck.karten.iter().enumerate() {
+    for karte in deck.karten.values() {
         print!("{} ", karte.to_txt_string(&spielkartenlib::fluent::GERMAN));
     }
 
     println!();
     print!("   Shuffle Deck:                 ");
-    for (_, karte) in deck.shuffle().iter().enumerate() {
+    for karte in deck.shuffle().values() {
         print!(
             "{} ",
             karte.to_locale_string(&spielkartenlib::fluent::US_ENGLISH)
@@ -56,7 +60,7 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 
     println!();
     print!("   Long in English and German:\n");
-    for (_, karte) in deck.karten.iter().enumerate() {
+    for karte in deck.karten.values() {
         let anzugname = karte
             .anzug
             .name
@@ -91,8 +95,8 @@ fn demo_tarot_deck() {
     display_tarot(&cards);
 }
 
-fn display_tarot(cards: &Vec<spielkartenlib::Karte>) {
-    for (_, karte) in cards.iter().enumerate() {
+fn display_tarot(cards: &spielkartenlib::karten::Karten) {
+    for karte in cards.values() {
         let suitname = karte
             .anzug
             .name

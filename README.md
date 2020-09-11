@@ -44,6 +44,7 @@ decks of various sizes and suits. Out of the box, the library supports:
 
 * [French Deck](https://en.wikipedia.org/wiki/French_playing_cards)
   * [Pinochle](https://en.wikipedia.org/wiki/Pinochle#Deck)
+  * [Spades](https://en.wikipedia.org/wiki/Spades_(card_game)#General_overview) with [Jokers](https://en.wikipedia.org/wiki/Joker_(playing_card))
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks)
   * [Major Arcana](https://en.wikipedia.org/wiki/Major_Arcana)
@@ -60,7 +61,6 @@ Other possibilities include:
 * [French Deck](https://en.wikipedia.org/wiki/French_playing_cards)
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
-  * [Spades](https://en.wikipedia.org/wiki/Spades_(card_game)#General_overview) with [Jokers](https://en.wikipedia.org/wiki/Joker_(playing_card))
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 
 ## Responsibilities

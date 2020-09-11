@@ -75,6 +75,27 @@ impl Rang {
             "four", "three", "two", "ace",
         ])
     }
+
+    pub fn generate_spades_ranks() -> Vec<Rang> {
+        Rang::to_vec(&[
+            "big-joker",
+            "little-joker",
+            "ace",
+            "king",
+            "queen",
+            "knight",
+            "page",
+            "ten",
+            "nine",
+            "eight",
+            "seven",
+            "six",
+            "five",
+            "four",
+            "three",
+            "two",
+        ])
+    }
 }
 
 impl ToLocaleString for Rang {
@@ -185,5 +206,10 @@ mod rank_tests {
         ]);
 
         assert_eq!(ex, Rang::generate_minor_arcana_ranks());
+    }
+
+    #[test]
+    fn generate_spades_ranks() {
+        assert_eq!(16, Rang::generate_spades_ranks().len());
     }
 }
