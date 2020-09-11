@@ -90,9 +90,9 @@ impl Kartendeck {
         Kartendeck::new(karten, suits, ranks)
     }
 
-    pub fn shuffle(&self) -> Vec<karten::Karte> {
+    pub fn shuffle(&self) -> Karten {
         let mut c = self.karten.clone();
-        c.shuffle(&mut thread_rng());
+        c.shuffle();
         c
     }
 }

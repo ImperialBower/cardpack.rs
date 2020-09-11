@@ -9,6 +9,7 @@ mod rang_name;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::fmt;
+use std::iter;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, US_ENGLISH};
@@ -187,10 +188,23 @@ impl Karten {
         }
     }
 
-    pub fn suffle(&self) -> Karten {
+    pub fn shuffle(&self) -> Karten {
         let mut shuffled = self.clone();
         shuffled.0.shuffle(&mut thread_rng());
         shuffled
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &Karte> {
+        self.0.iter()
+    }
+}
+
+impl IntoIterator for Karten {
+    type Item = Karte;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
