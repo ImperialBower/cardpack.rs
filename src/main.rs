@@ -1,16 +1,20 @@
-use spielkartenlib::{ToLocaleString, karten};
+use spielkartenlib::ToLocaleString;
 
 fn main() {
     println!("spielkarten.rs demo\n");
 
     let french_deck = spielkartenlib::Kartendeck::french_deck();
     let pinochle_deck = spielkartenlib::Kartendeck::pinochle_deck();
+    let spades_deck = spielkartenlib::Kartendeck::spades_deck();
 
     println!("French Deck:");
     demo(french_deck);
 
     println!("Pinochle Deck:");
     demo(pinochle_deck);
+
+    println!("Spades Deck:");
+    demo(spades_deck);
 
     demo_tarot_deck();
 }

@@ -26,8 +26,8 @@ four-name = Four
 three-name = Three
 two-name = Two
 
-big-joker-short = JK
-little-joker-short = jk
+big-joker-short = JB
+little-joker-short = JL
 ace-short = A
 king-short = K
 queen-short = Q

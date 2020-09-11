@@ -23,8 +23,8 @@ pub struct Karte {
 
 impl Karte {
     pub fn new<S: std::clone::Clone>(rang: S, anzug: S) -> Karte
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Karte {
             rang: Rang::new(rang),
@@ -209,6 +209,12 @@ impl Karten {
     pub fn values(&self) -> impl Iterator<Item = &Karte> {
         self.0.iter()
     }
+
+    pub fn jokers() -> Karten {
+        let big_joker = Karte::new("big-joker", "spades");
+        let little_joker = Karte::new("little-joker", "spades");
+        Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()])
+    }
 }
 
 impl IntoIterator for Karten {
@@ -245,7 +251,7 @@ mod karten_tests {
         let big_joker = Karte::new("big-joker", "spades");
         let little_joker = Karte::new("little-joker", "spades");
         let mut to_deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
-        let from_deck = Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
+        let from_deck = Karten::jokers();
         let expected = Karten::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
 
         to_deck.append(&from_deck);
@@ -334,7 +340,7 @@ mod karten_tests {
     fn get() {
         let qclubs = Karte::new("queen", "clubs");
         let qhearts = Karte::new("queen", "hearts");
-        let mut deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let gotten = deck.get(1);
 

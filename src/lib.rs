@@ -6,9 +6,9 @@ pub mod karten;
 
 extern crate rand;
 
-use crate::karten::Karten;
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
+use crate::karten::Karten;
 
 #[allow(unused_imports)]
 use fluent_templates::Loader;
@@ -59,10 +59,9 @@ impl Kartendeck {
 
     pub fn spades_deck() -> Kartendeck {
         let mut deck = Kartendeck::french_deck();
-        let big_joker = karten::Karte::new("big-joker", "spades");
-        let little_joker = karten::Karte::new("little-joker", "spades");
-        let mut _spades_deck = Karten::new_from_vector(vec![big_joker, little_joker]);
-        // spades_deck.
+        let jokers = Karten::jokers();
+
+        deck.karten.prepend(&jokers);
         deck
     }
 
@@ -93,7 +92,7 @@ impl Kartendeck {
     }
 
     pub fn shuffle(&self) -> Karten {
-        let mut c = self.karten.clone();
+        let c = self.karten.clone();
         c.shuffle();
         c
     }
