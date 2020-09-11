@@ -51,7 +51,7 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 
     println!();
     print!("   Shuffle Deck:                 ");
-    for karte in deck.karten.shuffle().values() {
+    for karte in deck.shuffle().values() {
         print!(
             "{} ",
             karte.to_locale_string(&spielkartenlib::fluent::US_ENGLISH)

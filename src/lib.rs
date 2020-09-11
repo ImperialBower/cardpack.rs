@@ -92,9 +92,7 @@ impl Kartendeck {
     }
 
     pub fn shuffle(&self) -> Karten {
-        let c = self.karten.clone();
-        c.shuffle();
-        c
+        self.karten.shuffle()
     }
 }
 
