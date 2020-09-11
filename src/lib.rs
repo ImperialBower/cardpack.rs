@@ -5,8 +5,6 @@ pub mod fluent;
 pub mod karten;
 
 extern crate rand;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 
 use crate::karten::Karten;
 use crate::karten::anzug::Anzug;
@@ -61,6 +59,10 @@ impl Kartendeck {
 
     pub fn spades_deck() -> Kartendeck {
         let mut deck = Kartendeck::french_deck();
+        let big_joker = karten::Karte::new("big-joker", "spades");
+        let little_joker = karten::Karte::new("little-joker", "spades");
+        let mut _spades_deck = Karten::new_from_vector(vec![big_joker, little_joker]);
+        // spades_deck.
         deck
     }
 

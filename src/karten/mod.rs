@@ -9,7 +9,6 @@ mod rang_name;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::fmt;
-use std::iter;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, US_ENGLISH};
@@ -122,6 +121,19 @@ impl Karten {
         &self.0
     }
 
+    // Appends a clone of the passed in Karten struct.
+    pub fn append(&mut self, other: &Karten) {
+        self.0.append(&mut other.0.clone());
+    }
+
+    // Takes a reference to the prepended entity, clones it, appends the original to the passed in
+    // entity, and replaces the original with the new one.
+    pub fn prepend(&mut self, other: &Karten) {
+        let mut product = other.0.clone();
+        product.append(&mut self.0);
+        self.0 = product;
+    }
+
     pub fn contains(&self, karte: &Karte) -> bool {
         self.0.contains(karte)
     }
@@ -224,6 +236,36 @@ mod karten_tests {
         let actual = Karten::new_from_vector(vec![qclubs, qhearts]);
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn append() {
+        let qclubs = Karte::new("queen", "clubs");
+        let qhearts = Karte::new("queen", "hearts");
+        let big_joker = Karte::new("big-joker", "spades");
+        let little_joker = Karte::new("little-joker", "spades");
+        let mut to_deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let from_deck = Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
+        let expected = Karten::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
+
+        to_deck.append(&from_deck);
+
+        assert_eq!(expected, to_deck);
+    }
+
+    #[test]
+    fn prepend() {
+        let qclubs = Karte::new("queen", "clubs");
+        let qhearts = Karte::new("queen", "hearts");
+        let big_joker = Karte::new("big-joker", "spades");
+        let little_joker = Karte::new("little-joker", "spades");
+        let mut to_deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let from_deck = Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
+        let expected = Karten::new_from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
+
+        to_deck.prepend(&from_deck);
+
+        assert_eq!(expected, to_deck);
     }
 
     #[test]
