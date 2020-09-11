@@ -83,7 +83,7 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 fn demo_tarot_deck() {
     println!("Tarot Deck");
     let deck = spielkartenlib::Kartendeck::tarot_deck();
-    display_tarot(&deck.karten);
+    display_tarot(&karten);
 
     println!();
     println!("Tarot Deck Shuffled");

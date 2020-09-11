@@ -7,6 +7,7 @@ mod rang_kurz;
 mod rang_name;
 
 use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -184,6 +185,12 @@ impl Karten {
             None => None,
             _ => Some(self.0.remove(position.unwrap())),
         }
+    }
+
+    pub fn suffle(&self) -> Karten {
+        let mut shuffled = self.clone();
+        shuffled.0.shuffle(&mut thread_rng());
+        shuffled
     }
 }
 
