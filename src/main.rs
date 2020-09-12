@@ -51,7 +51,7 @@ fn demo(deck: spielkartenlib::Kartendeck) {
 
     println!();
     print!("   Shuffle Deck:                 ");
-    for karte in deck.shuffle().values() {
+    for karte in deck.mischen().values() {
         print!(
             "{} ",
             karte.to_locale_string(&spielkartenlib::fluent::US_ENGLISH)
@@ -91,7 +91,7 @@ fn demo_tarot_deck() {
 
     println!();
     println!("Tarot Deck Shuffled");
-    let cards = deck.shuffle();
+    let cards = deck.mischen();
     display_tarot(&cards);
 }
 

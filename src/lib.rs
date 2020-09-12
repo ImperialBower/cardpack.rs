@@ -34,7 +34,7 @@ impl Kartendeck {
         let suits = Anzug::generate_french_suits();
         let ranks = Rang::generate_french_ranks();
 
-        let mut karten: Karten = Karten::new();
+        let mut karten: Karten = Karten::neu();
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
                 karten.add(karten::Karte::new_from_structs(rank.clone(), suit.clone()));
@@ -47,7 +47,7 @@ impl Kartendeck {
         let suits = Anzug::generate_french_suits();
         let ranks = Rang::generate_pinochle_ranks();
 
-        let mut karten: Karten = Karten::new();
+        let mut karten: Karten = Karten::neu();
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
                 karten.add(karten::Karte::new_from_structs(rank.clone(), suit.clone()));
@@ -59,8 +59,8 @@ impl Kartendeck {
 
     pub fn spades_deck() -> Kartendeck {
         let mut deck = Kartendeck::french_deck();
-        deck.karten.remove_karte(&Karte::new("two", "clubs"));
-        deck.karten.remove_karte(&Karte::new("two", "diamonds"));
+        deck.karten.remove_karte(&Karte::neu("two", "clubs"));
+        deck.karten.remove_karte(&Karte::neu("two", "diamonds"));
         let jokers = Karten::jokers();
 
         deck.karten.prepend(&jokers);
@@ -73,7 +73,7 @@ impl Kartendeck {
         let major_arcana_ranks = Rang::generate_major_arcana_ranks();
         let minor_arcana_ranks = Rang::generate_minor_arcana_ranks();
 
-        let mut karten: Karten = Karten::new();
+        let mut karten: Karten = Karten::neu();
 
         // Generate Major Arcana
         for (_, suit) in major_arcana_suits.iter().enumerate() {
@@ -93,8 +93,14 @@ impl Kartendeck {
         Kartendeck::new(karten, suits, ranks)
     }
 
-    pub fn shuffle(&self) -> Karten {
-        self.karten.shuffle()
+    pub fn mischen(&self) -> Karten {
+        self.karten.mischen()
+    }
+
+    pub fn sortieren(&self, karten: Karten) -> Karten {
+        let mut sortiert = Karten::neu();
+
+        sortiert
     }
 }
 
@@ -113,8 +119,8 @@ mod lib_tests {
     fn spades_deck() {
         let deck = Kartendeck::spades_deck();
 
-        assert!(!deck.karten.contains(&Karte::new("two", "clubs")));
-        assert!(!deck.karten.contains(&Karte::new("two", "diamonds")));
-        assert!(deck.karten.contains(&Karte::new("two", "spades")));
+        assert!(!deck.karten.contains(&Karte::neu("two", "clubs")));
+        assert!(!deck.karten.contains(&Karte::neu("two", "diamonds")));
+        assert!(deck.karten.contains(&Karte::neu("two", "spades")));
     }
 }
