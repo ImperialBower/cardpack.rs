@@ -27,8 +27,8 @@ pub trait Valuable {
 
 pub fn get_value(name: &str) -> String {
     let var = "-value";
-    let id = format!("{}{}", name, var).as_str();
-    LOCALES.lookup(&US_ENGLISH, id)
+    let id = format!("{}{}", name, var);
+    LOCALES.lookup(&US_ENGLISH, id.as_str())
 }
 
 pub fn get_value_u8(name: &str) -> u8 {

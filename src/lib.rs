@@ -68,29 +68,29 @@ impl Kartendeck {
     }
 
     pub fn tarot_deck() -> Kartendeck {
-        let major_arcana_suits = Anzug::generate_major_arcana_suits();
-        let minor_arcana_suits = Anzug::generate_minor_arcana_suits();
+        let arcana_suits = Anzug::generate_arcana_suits();
+        let mut arcana_suits_enumerator = arcana_suits.iter().enumerate();
         let major_arcana_ranks = Rang::generate_major_arcana_ranks();
         let minor_arcana_ranks = Rang::generate_minor_arcana_ranks();
 
         let mut karten: Karten = Karten::neu();
 
+        let (_, major_arcana_suit) = arcana_suits_enumerator.next().unwrap();
+
         // Generate Major Arcana
-        for (_, suit) in major_arcana_suits.iter().enumerate() {
-            for (_, rank) in major_arcana_ranks.iter().enumerate() {
-                karten.add(karten::Karte::new_from_structs(rank.clone(), suit.clone()));
-            }
+        for (_, rank) in major_arcana_ranks.iter().enumerate() {
+            karten.add(karten::Karte::new_from_structs(rank.clone(), major_arcana_suit.clone()));
         }
 
         // Generate Minor Arcana
-        for (_, suit) in minor_arcana_suits.iter().enumerate() {
+        for (_, suit) in arcana_suits_enumerator {
             for (_, rank) in minor_arcana_ranks.iter().enumerate() {
                 karten.add(karten::Karte::new_from_structs(rank.clone(), suit.clone()));
             }
         }
-        let suits = [&major_arcana_suits[..], &minor_arcana_suits[..]].concat();
+
         let ranks = [&major_arcana_ranks[..], &minor_arcana_ranks[..]].concat();
-        Kartendeck::new(karten, suits, ranks)
+        Kartendeck::new(karten, arcana_suits, ranks)
     }
 
     pub fn mischen(&self) -> Karten {

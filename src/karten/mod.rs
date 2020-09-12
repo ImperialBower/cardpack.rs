@@ -5,7 +5,6 @@ mod anzug_symbol;
 pub(crate) mod rang;
 mod rang_kurz;
 mod rang_name;
-mod valuable;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
