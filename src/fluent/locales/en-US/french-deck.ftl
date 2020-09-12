@@ -4,6 +4,11 @@ hearts-name = Hearts
 diamonds-name = Diamonds
 clubs-name = Clubs
 
+spades-value = 4
+hearts-value = 3
+diamonds-value = 2
+clubs-value = 1
+
 spades-letter = S
 hearts-letter = H
 diamonds-letter = D

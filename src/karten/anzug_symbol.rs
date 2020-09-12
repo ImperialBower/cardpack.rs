@@ -5,7 +5,7 @@ use unic_langid::LanguageIdentifier;
 
 /// Karten Anzug Symbol (Card Suit Symbol) - Single field struct representing the symbol of a card suit.
 ///
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct AnzugSymbol(String);
 
 impl AnzugSymbol {

@@ -6,7 +6,7 @@ use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
 
 /// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
 ///
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct AnzugName(String);
 
 impl AnzugName {

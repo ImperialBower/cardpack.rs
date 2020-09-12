@@ -19,6 +19,23 @@ pub trait ToLocaleString {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String;
 }
 
+pub trait Valuable {
+    fn revise_value(&mut self, new_value: u8);
+
+    fn get_value(&self) -> u8;
+}
+
+pub fn get_value(name: &str) -> String {
+    let var = "-value";
+    let id = format!("{}{}", name, var).as_str();
+    LOCALES.lookup(&US_ENGLISH, id)
+}
+
+pub fn get_value_u8(name: &str) -> u8 {
+    let s = get_value(name);
+    s.parse().unwrap_or(0)
+}
+
 #[cfg(test)]
 mod fluent_tests {
     use super::*;

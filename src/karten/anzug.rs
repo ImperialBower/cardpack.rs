@@ -1,15 +1,17 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::*;
 use crate::karten::anzug_buchstabe::AnzugBuchstabe;
 use crate::karten::anzug_name::AnzugName;
 use crate::karten::anzug_symbol::AnzugSymbol;
+use crate::karten::valuable::Valuable;
 
 /// Suit (Anzug) struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Anzug {
+    pub wert: u8,
     pub name: AnzugName,
     pub buchstabe: AnzugBuchstabe,
     pub symbol: AnzugSymbol,
@@ -20,7 +22,16 @@ impl Anzug {
     where
         S: Into<String>,
     {
+        let wert = get_value_u8(name.into().as_str());
+        Anzug::new_with_value(name.clone(), wert)
+    }
+
+    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: u8) -> Anzug
+        where
+            S: Into<String>,
+    {
         Anzug {
+            wert,
             name: AnzugName::new(name.clone()),
             buchstabe: AnzugBuchstabe::new(name.clone()),
             symbol: AnzugSymbol::new(name),
@@ -30,8 +41,9 @@ impl Anzug {
     pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
         let mut v: Vec<Anzug> = Vec::new();
 
-        for (_, &elem) in s.into_iter().enumerate() {
-            v.push(Anzug::new(elem));
+        for (i, &elem) in s.into_iter().enumerate() {
+            let wert = s.len() - i;
+            v.push(Anzug::new_with_value(elem, wert as u8));
         }
         v
     }
@@ -61,6 +73,16 @@ impl fmt::Display for Anzug {
     }
 }
 
+impl Valuable for Anzug {
+    fn revise_value(&mut self, new_value: u8) {
+        self.wert = new_value
+    }
+
+    fn get_value(&self) -> u8 {
+        self.wert
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod suit_tests {
@@ -81,12 +103,25 @@ mod suit_tests {
     #[test]
     fn new() {
         let expected = Anzug {
+            wert: 0,
             name: AnzugName::new("spades"),
             buchstabe: AnzugBuchstabe::new("spades"),
             symbol: AnzugSymbol::new("spades"),
         };
 
         assert_eq!(expected, Anzug::new("spades"));
+    }
+
+    #[test]
+    fn new_with_value() {
+        let expected = Anzug {
+            wert: 4,
+            name: AnzugName::new("spades"),
+            buchstabe: AnzugBuchstabe::new("spades"),
+            symbol: AnzugSymbol::new("spades"),
+        };
+
+        assert_eq!(expected, Anzug::new_with_value("spades", 4));
     }
 
     #[test]
@@ -104,8 +139,8 @@ mod suit_tests {
     #[test]
     fn to_vec() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("clubs"));
-        expected.push(Anzug::new("spades"));
+        expected.push(Anzug::new_with_value("clubs", 2));
+        expected.push(Anzug::new_with_value("spades", 1));
 
         assert_eq!(expected, Anzug::to_vec(&["clubs", "spades"]));
     }
@@ -113,10 +148,10 @@ mod suit_tests {
     #[test]
     fn generate_french_suits() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("spades"));
-        expected.push(Anzug::new("hearts"));
-        expected.push(Anzug::new("diamonds"));
-        expected.push(Anzug::new("clubs"));
+        expected.push(Anzug::new_with_value("spades", 4));
+        expected.push(Anzug::new_with_value("hearts", 3));
+        expected.push(Anzug::new_with_value("diamonds", 2));
+        expected.push(Anzug::new_with_value("clubs", 1));
 
         assert_eq!(expected, Anzug::generate_french_suits());
     }
@@ -124,11 +159,21 @@ mod suit_tests {
     #[test]
     fn generate_minor_arcana_suits() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("wands"));
-        expected.push(Anzug::new("cups"));
-        expected.push(Anzug::new("swords"));
-        expected.push(Anzug::new("pentacles"));
+        expected.push(Anzug::new_with_value("wands", 4));
+        expected.push(Anzug::new_with_value("cups", 3));
+        expected.push(Anzug::new_with_value("swords", 2));
+        expected.push(Anzug::new_with_value("pentacles", 1));
 
         assert_eq!(expected, Anzug::generate_minor_arcana_suits());
+    }
+
+    #[test]
+    fn revise_value() {
+        let mut wands = Anzug::new("wands");
+        assert_eq!(0, wands.get_value());
+
+        wands.revise_value(3);
+
+        assert_eq!(3, wands.get_value());
     }
 }
