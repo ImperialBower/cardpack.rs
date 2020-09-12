@@ -8,7 +8,7 @@ extern crate rand;
 
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
-use crate::karten::Karten;
+use crate::karten::{Karte, Karten};
 
 #[allow(unused_imports)]
 use fluent_templates::Loader;
@@ -59,6 +59,8 @@ impl Kartendeck {
 
     pub fn spades_deck() -> Kartendeck {
         let mut deck = Kartendeck::french_deck();
+        deck.karten.remove_karte(&Karte::new("two", "clubs"));
+        deck.karten.remove_karte(&Karte::new("two", "diamonds"));
         let jokers = Karten::jokers();
 
         deck.karten.prepend(&jokers);
@@ -105,5 +107,14 @@ mod lib_tests {
     fn it_works() {
         assert_eq!("♠", LOCALES.lookup(&US_ENGLISH, "spades-symbol"));
         assert_eq!("♤", LOCALES.lookup(&US_ENGLISH, "spades-light-symbol"));
+    }
+
+    #[test]
+    fn spades_deck() {
+        let deck = Kartendeck::spades_deck();
+
+        assert!(!deck.karten.contains(&Karte::new("two", "clubs")));
+        assert!(!deck.karten.contains(&Karte::new("two", "diamonds")));
+        assert!(deck.karten.contains(&Karte::new("two", "spades")));
     }
 }

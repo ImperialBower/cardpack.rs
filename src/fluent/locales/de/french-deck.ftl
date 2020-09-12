@@ -10,6 +10,8 @@ diamonds-letter = D
 clubs-letter = K
 
 ## Ranks
+big-joker-name = Großer Joker
+little-joker-name = Kleiner Joker
 ace-name = Ass
 king-name = König
 queen-name = Dame
@@ -24,6 +26,8 @@ four-name = Vier
 three-name = Drei
 two-name = Zwei
 
+big-joker-short = JG
+little-joker-short = JK
 ace-short = A
 king-short = K
 queen-short = D

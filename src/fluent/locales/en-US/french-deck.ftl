@@ -24,7 +24,7 @@ six-name = Six
 five-name = Five
 four-name = Four
 three-name = Three
-two-name = Two
+two-name = Deuce
 
 big-joker-short = JB
 little-joker-short = JL
