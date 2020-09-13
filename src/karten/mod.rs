@@ -15,7 +15,7 @@ use crate::fluent::{ToLocaleString, US_ENGLISH};
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Karte {
     pub rang: Rang,
     pub anzug: Anzug,

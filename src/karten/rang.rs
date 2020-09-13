@@ -5,7 +5,7 @@ use crate::fluent::*;
 use crate::karten::rang_kurz::RangKurz;
 use crate::karten::rang_name::RangName;
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rang {
     pub wert: isize,
     pub name: RangName,
@@ -152,6 +152,12 @@ mod rank_tests {
         };
 
         assert_eq!(expected, Rang::new("nine"));
+    }
+
+    #[test]
+    fn partial_eq() {
+        assert_ne!(Rang::new_with_value("nine", 3), Rang::new_with_value("nine", 4));
+        assert_ne!(Rang::new_with_value("ten", 4), Rang::new_with_value("nine", 4));
     }
 
     #[test]

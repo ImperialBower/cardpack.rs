@@ -38,14 +38,30 @@ impl Anzug {
         }
     }
 
-    pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
+    fn bottom_up_value(_len: usize, i: usize) -> isize {
+        (i + 1) as isize
+    }
+
+    fn top_down_value(len: usize, i: usize) -> isize {
+        (len - i) as isize
+    }
+
+    fn to_vec_gen(s: &[&str], f: impl Fn(usize, usize) -> isize) -> Vec<Anzug> {
         let mut v: Vec<Anzug> = Vec::new();
 
         for (i, &elem) in s.into_iter().enumerate() {
-            let wert = s.len() - i;
-            v.push(Anzug::new_with_value(elem, wert as isize));
+            let wert = f(s.len(), i);
+            v.push(Anzug::new_with_value(elem, wert));
         }
         v
+    }
+
+    pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
+        Anzug::to_vec_gen(s, Anzug::top_down_value)
+    }
+
+    pub fn to_vec_bottom_up(s: &[&str]) -> Vec<Anzug> {
+        Anzug::to_vec_gen(s, Anzug::bottom_up_value)
     }
 
     pub fn generate_french_suits() -> Vec<Anzug> {
@@ -121,6 +137,12 @@ mod suit_tests {
     }
 
     #[test]
+    fn partial_eq() {
+        assert_ne!(Anzug::new_with_value("spades", 3), Anzug::new_with_value("spades", 4));
+        assert_ne!(Anzug::new_with_value("hearts", 4), Anzug::new_with_value("spades", 4));
+    }
+
+    #[test]
     fn to_string() {
         assert_eq!(Anzug::new("clubs").to_string(), "♣".to_string());
     }
@@ -139,6 +161,16 @@ mod suit_tests {
         expected.push(Anzug::new_with_value("spades", 1));
 
         assert_eq!(expected, Anzug::to_vec(&["clubs", "spades"]));
+    }
+
+
+    #[test]
+    fn to_vec_bottom_up() {
+        let mut expected: Vec<Anzug> = Vec::new();
+        expected.push(Anzug::new_with_value("clubs", 1));
+        expected.push(Anzug::new_with_value("spades", 2));
+
+        assert_eq!(expected, Anzug::to_vec_bottom_up(&["clubs", "spades"]));
     }
 
     #[test]

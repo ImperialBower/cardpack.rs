@@ -5,7 +5,7 @@ use unic_langid::LanguageIdentifier;
 
 /// Karten Anzug Name (Card Suit Letter) - Single field struct representing the letter of a card suit.
 ///
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct RangKurz(String);
 
 impl RangKurz {
