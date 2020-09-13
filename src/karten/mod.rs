@@ -12,12 +12,13 @@ use std::cmp::Ordering;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::{ToLocaleString, US_ENGLISH, GERMAN};
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Karte {
+    pub wert: isize,
     pub rang: Rang,
     pub anzug: Anzug,
 }
@@ -27,14 +28,23 @@ impl Karte {
     where
         S: Into<String>,
     {
+        let a = Anzug::new(anzug);
+        let r = Rang::new(rang);
+        let wert = Karte::wert_werden(&a, &r);
         Karte {
-            anzug: Anzug::new(anzug),
-            rang: Rang::new(rang),
+            wert,
+            anzug: a,
+            rang: r,
         }
     }
 
     pub fn new_from_structs(rang: Rang, anzug: Anzug) -> Karte {
-        Karte { rang, anzug }
+        let wert = Karte::wert_werden(&anzug, &rang);
+        Karte { wert, rang, anzug }
+    }
+
+    fn wert_werden(anzug: &Anzug, rang: &Rang) -> isize {
+        (anzug.wert * 100) + rang.wert
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
@@ -67,12 +77,12 @@ impl fmt::Display for Karte {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
 }
-
-impl Ord for Karte {
-    fn cmp(&self, other: &Karte) -> Ordering {
-        self.cmp_anmzug_dann_rang(other)
-    }
-}
+//
+// impl Ord for Karte {
+//     fn cmp(&self, other: &Karte) -> Ordering {
+//         self.cmp_anmzug_dann_rang(other)
+//     }
+// }
 
 impl ToLocaleString for Karte {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
@@ -91,6 +101,7 @@ mod card_tests {
     #[test]
     fn new() {
         let expected = Karte {
+            wert: 414,
             rang: Rang::new("ace"),
             anzug: Anzug::new("spades"),
         };
@@ -101,6 +112,7 @@ mod card_tests {
     #[test]
     fn new_from_structs() {
         let expected = Karte {
+            wert: 414,
             rang: Rang::new("ace"),
             anzug: Anzug::new("spades"),
         };
@@ -161,6 +173,71 @@ impl Karten {
 
     pub fn contains(&self, karte: &Karte) -> bool {
         self.0.contains(karte)
+    }
+
+    pub fn demo(&self) {
+        print!("   Short With Symbols:           ");
+        for karte in self.values() {
+            print!("{} ", karte);
+        }
+
+        println!();
+        print!("   Short With Symbols in German: ");
+        for karte in self.values() {
+            print!(
+                "{} ",
+                karte.to_locale_string(&GERMAN)
+            );
+        }
+
+        println!();
+        print!("   Short With Letters:           ");
+        for karte in self.values() {
+            print!(
+                "{} ",
+                karte.to_txt_string(&US_ENGLISH)
+            );
+        }
+
+        println!();
+        print!("   Short With Letters in German: ");
+        for karte in self.values() {
+            print!("{} ", karte.to_txt_string(&GERMAN));
+        }
+
+        println!();
+        print!("   Shuffle Deck:                 ");
+        for karte in self.mischen().values() {
+            print!(
+                "{} ",
+                karte.to_locale_string(&US_ENGLISH)
+            );
+        }
+
+        println!();
+        print!("   Long in English and German:\n");
+        for karte in self.values() {
+            let anzugname = karte
+                .anzug
+                .name
+                .to_locale_string(&GERMAN);
+            let suitname = karte
+                .anzug
+                .name
+                .to_locale_string(&US_ENGLISH);
+            let rangname = karte
+                .rang
+                .name
+                .to_locale_string(&GERMAN);
+            let rankname = karte
+                .rang
+                .name
+                .to_locale_string(&US_ENGLISH);
+            println!("      {} of {} ", rankname, suitname);
+            println!("      {} von {} ", rangname, anzugname);
+        }
+
+        println!();
     }
 
     pub fn draw(&mut self, x: usize) -> Option<Karten> {
