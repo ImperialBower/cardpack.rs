@@ -207,7 +207,8 @@ impl Karten {
     }
 
     pub fn sort(&mut self) {
-        self.0.sort()
+        self.0.sort();
+        self.0.reverse();
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Karte> {
@@ -218,6 +219,19 @@ impl Karten {
         let big_joker = Karte::neu("big-joker", "spades");
         let little_joker = Karte::neu("little-joker", "spades");
         Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()])
+    }
+
+    pub fn french_deck() -> Karten {
+        let suits = Anzug::generate_french_suits();
+        let ranks = Rang::generate_french_ranks();
+
+        let mut karten: Karten = Karten::neu();
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        karten
     }
 }
 
@@ -420,6 +434,11 @@ mod karten_tests {
 
     #[test]
     fn sort() {
+        let french_deck = Karten::french_deck();
 
+        let mut shuffled = french_deck.mischen();
+        shuffled.sort();
+
+        assert_eq!(french_deck, shuffled);
     }
 }
