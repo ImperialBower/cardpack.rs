@@ -8,6 +8,7 @@ mod rang_name;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::cmp::Ordering;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -15,7 +16,7 @@ use crate::fluent::{ToLocaleString, US_ENGLISH};
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
 pub struct Karte {
     pub rang: Rang,
     pub anzug: Anzug,
@@ -41,6 +42,36 @@ impl Karte {
         let anzug = self.anzug.buchstabe.to_locale_string(&lid);
         format!("{}{}", rang, anzug)
     }
+
+    pub fn cmp_anmzug_dann_rang(&self, other: &Karte) -> Ordering {
+        let result: Ordering = self.anzug.cmp(&other.anzug);
+
+        if result == Ordering::Equal {
+            return self.rang.cmp(&other.rang);
+        }
+        result
+    }
+
+    pub fn cmp_rang_dann_anmzug(&self, other: &Karte) -> Ordering {
+        let result: Ordering = self.rang.cmp(&other.rang);
+        println!("{} to {}", self, other);
+        if result == Ordering::Equal {
+            return self.anzug.cmp(&other.anzug);
+        }
+        result
+    }
+}
+
+impl fmt::Display for Karte {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
+    }
+}
+
+impl Ord for Karte {
+    fn cmp(&self, other: &Karte) -> Ordering {
+        self.cmp_anmzug_dann_rang(other)
+    }
 }
 
 impl ToLocaleString for Karte {
@@ -48,12 +79,6 @@ impl ToLocaleString for Karte {
         let rang = self.rang.to_locale_string(&lid);
         let anzug = self.anzug.to_locale_string(&lid);
         format!("{}{}", rang, anzug)
-    }
-}
-
-impl fmt::Display for Karte {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
 }
 
