@@ -27,8 +27,8 @@ impl Karte {
         S: Into<String>,
     {
         Karte {
-            rang: Rang::new(rang),
             anzug: Anzug::new(anzug),
+            rang: Rang::new(rang),
         }
     }
 
@@ -204,6 +204,10 @@ impl Karten {
         let mut mischte = self.clone();
         mischte.0.shuffle(&mut thread_rng());
         mischte
+    }
+
+    pub fn sort(&mut self) {
+        self.0.sort()
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Karte> {
@@ -412,5 +416,10 @@ mod karten_tests {
         assert_eq!(removed.unwrap(), qclubs);
         assert!(deck.contains(&qhearts));
         assert!(!deck.contains(&qclubs));
+    }
+
+    #[test]
+    fn sort() {
+
     }
 }

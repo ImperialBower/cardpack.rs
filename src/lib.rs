@@ -96,12 +96,6 @@ impl Kartendeck {
     pub fn mischen(&self) -> Karten {
         self.karten.mischen()
     }
-
-    pub fn sortieren(&self, karten: Karten) -> Karten {
-        let mut sortiert = Karten::neu();
-
-        sortiert
-    }
 }
 
 #[cfg(test)]
