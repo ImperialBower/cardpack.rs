@@ -10,7 +10,7 @@ use crate::karten::anzug_symbol::AnzugSymbol;
 /// Supports internationalization through fluent template files.
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Anzug {
-    pub wert: u8,
+    pub wert: isize,
     pub name: AnzugName,
     pub buchstabe: AnzugBuchstabe,
     pub symbol: AnzugSymbol,
@@ -22,11 +22,11 @@ impl Anzug {
         S: Into<String>,
     {
         let n = name.into();
-        let wert = get_value_u8(n.clone().as_str());
+        let wert = get_value_isize(n.clone().as_str());
         Anzug::new_with_value(n, wert)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: u8) -> Anzug
+    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Anzug
         where
             S: Into<String>,
     {
@@ -43,7 +43,7 @@ impl Anzug {
 
         for (i, &elem) in s.into_iter().enumerate() {
             let wert = s.len() - i;
-            v.push(Anzug::new_with_value(elem, wert as u8));
+            v.push(Anzug::new_with_value(elem, wert as isize));
         }
         v
     }
@@ -70,11 +70,11 @@ impl fmt::Display for Anzug {
 }
 
 impl Valuable for Anzug {
-    fn revise_value(&mut self, new_value: u8) {
+    fn revise_value(&mut self, new_value: isize) {
         self.wert = new_value
     }
 
-    fn get_value(&self) -> u8 {
+    fn get_value(&self) -> isize {
         self.wert
     }
 }

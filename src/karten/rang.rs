@@ -1,12 +1,13 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::*;
 use crate::karten::rang_kurz::RangKurz;
 use crate::karten::rang_name::RangName;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Rang {
+    pub wert: isize,
     pub name: RangName,
     pub kurz: RangKurz,
 }
@@ -16,7 +17,17 @@ impl Rang {
     where
         S: Into<String>,
     {
+        let n = name.into();
+        let wert = get_value_isize(n.clone().as_str());
+        Rang::new_with_value(n, wert)
+    }
+
+    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Rang
+        where
+            S: Into<String>,
+    {
         Rang {
+            wert: wert,
             name: RangName::new(name.clone()),
             kurz: RangKurz::new(name),
         }
@@ -135,6 +146,7 @@ mod rank_tests {
     #[test]
     fn new() {
         let expected = Rang {
+            wert: 9,
             name: RangName::new("nine"),
             kurz: RangKurz::new("nine"),
         };

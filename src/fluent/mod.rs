@@ -20,9 +20,9 @@ pub trait ToLocaleString {
 }
 
 pub trait Valuable {
-    fn revise_value(&mut self, new_value: u8);
+    fn revise_value(&mut self, new_value: isize);
 
-    fn get_value(&self) -> u8;
+    fn get_value(&self) -> isize;
 }
 
 pub fn get_value(name: &str) -> String {
@@ -31,7 +31,7 @@ pub fn get_value(name: &str) -> String {
     LOCALES.lookup(&US_ENGLISH, id.as_str())
 }
 
-pub fn get_value_u8(name: &str) -> u8 {
+pub fn get_value_isize(name: &str) -> isize {
     let s = get_value(name);
     s.parse().unwrap_or(0)
 }
