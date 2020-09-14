@@ -1,11 +1,10 @@
-pub use fluent::*;
 pub use deck::suit::*;
+pub use fluent::*;
 
-pub mod fluent;
 pub mod deck;
+pub mod fluent;
 
 mod card_deck;
 pub use card_deck::CardDeck;
 
 extern crate rand;
-

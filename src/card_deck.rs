@@ -1,9 +1,9 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-use crate::deck::Card;
 use crate::deck::rank::Rank;
 use crate::deck::suit::Suit;
+use crate::deck::Card;
 use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
 
 #[derive(Clone, Debug, PartialEq)]

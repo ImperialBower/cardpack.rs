@@ -1,17 +1,17 @@
+pub(crate) mod rank;
+mod rank_name;
+mod rank_short;
 pub(crate) mod suit;
 mod suit_letter;
 mod suit_name;
 mod suit_symbol;
-pub(crate) mod rank;
-mod rank_short;
-mod rank_name;
 
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
-use crate::deck::suit::Suit;
 use crate::deck::rank::Rank;
+use crate::deck::suit::Suit;
+use crate::fluent::{ToLocaleString, US_ENGLISH};
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {

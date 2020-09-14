@@ -65,14 +65,8 @@ mod suit_letter_tests {
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(
-            SuitLetter("from".to_string()),
-            SuitLetter::new(from_string)
-        );
-        assert_eq!(
-            SuitLetter("from".to_string()),
-            SuitLetter::new("from")
-        );
+        assert_eq!(SuitLetter("from".to_string()), SuitLetter::new(from_string));
+        assert_eq!(SuitLetter("from".to_string()), SuitLetter::new("from"));
     }
 
     #[test]

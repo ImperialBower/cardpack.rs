@@ -61,10 +61,7 @@ mod suite_symbol_tests {
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(
-            SuitSymbol("from".to_string()),
-            SuitSymbol::new(from_string)
-        );
+        assert_eq!(SuitSymbol("from".to_string()), SuitSymbol::new(from_string));
         assert_eq!(SuitSymbol("from".to_string()), SuitSymbol::new("from"));
     }
 

@@ -44,7 +44,10 @@ mod rank_letter_tests {
 
     #[test]
     fn display() {
-        assert_eq!("RangKurz: A", format!("RangKurz: {}", RankShort::new("ace")));
+        assert_eq!(
+            "RangKurz: A",
+            format!("RangKurz: {}", RankShort::new("ace"))
+        );
     }
 
     #[test]
