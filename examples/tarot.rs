@@ -1,5 +1,5 @@
 fn main() {
-    let deck = spielkartenlib::karten::Deck::tarot_deck();
+    let deck = spielkartenlib::deck::Deck::tarot_deck();
 
     println!("Tarot Deck");
     display(&deck);
@@ -9,7 +9,7 @@ fn main() {
     display(&deck.mischen());
 }
 
-fn display(deck: &spielkartenlib::karten::Deck) {
+fn display(deck: &spielkartenlib::deck::Deck) {
     for karte in deck.values() {
         let suitname = karte.suit.name.to_string();
 

@@ -12,8 +12,8 @@ use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
-use crate::karten::suit::Suit;
-use crate::karten::rank::Rank;
+use crate::deck::suit::Suit;
+use crate::deck::rank::Rank;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {

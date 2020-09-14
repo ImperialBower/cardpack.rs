@@ -1,7 +1,7 @@
 pub use fluent::*;
-pub use karten::suit::*;
+pub use deck::suit::*;
 
 pub mod fluent;
-pub mod karten;
+pub mod deck;
 
 extern crate rand;

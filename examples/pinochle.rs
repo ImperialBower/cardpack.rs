@@ -1,4 +1,4 @@
 fn main() {
-    let deck = spielkartenlib::karten::Deck::pinochle_deck();
+    let deck = spielkartenlib::deck::Deck::pinochle_deck();
     deck.demo();
 }
