@@ -1,5 +1,5 @@
 fn main() {
-    let deck = spielkartenlib::deck::Deck::tarot_deck();
+    let deck = spielkartenlib::CardDeck::tarot_deck();
 
     println!("Tarot Deck");
     display(&deck);
@@ -15,7 +15,7 @@ fn main() {
     display(&shuffled);
 }
 
-fn display(deck: &spielkartenlib::deck::Deck) {
+fn display(deck: &spielkartenlib::deck::CardDeck) {
     for karte in deck.values() {
         let suitname = karte.suit.name.to_string();
 
