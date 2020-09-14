@@ -112,6 +112,10 @@ impl Rank {
 }
 
 impl ToLocaleString for Rank {
+    fn get_fluent_key(&self) -> String {
+        unimplemented!()
+    }
+
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         self.short.to_locale_string(lid)
     }

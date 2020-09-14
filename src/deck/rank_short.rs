@@ -1,7 +1,5 @@
-use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
-use fluent_templates::Loader;
+use crate::fluent::{ToLocaleString, US_ENGLISH};
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
 /// Card Rank Short - Single field struct representing the short string of a card rank.
 ///
@@ -23,10 +21,8 @@ impl RankShort {
 }
 
 impl ToLocaleString for RankShort {
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let var = "-short";
-        let id = format!("{}{}", &self.0, var);
-        LOCALES.lookup(lid, id.as_str())
+    fn get_fluent_key(&self) -> String {
+        self.0.to_owned() + &*"-short".to_owned()
     }
 }
 

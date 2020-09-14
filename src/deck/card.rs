@@ -52,6 +52,10 @@ impl fmt::Display for Card {
 }
 
 impl ToLocaleString for Card {
+    fn get_fluent_key(&self) -> String {
+        unimplemented!()
+    }
+
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.to_locale_string(&lid);
         let suit = self.suit.to_locale_string(&lid);

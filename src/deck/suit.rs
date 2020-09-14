@@ -75,6 +75,10 @@ impl Suit {
 }
 
 impl ToLocaleString for Suit {
+    fn get_fluent_key(&self) -> String {
+        unimplemented!()
+    }
+
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         self.symbol.to_locale_string(lid)
     }

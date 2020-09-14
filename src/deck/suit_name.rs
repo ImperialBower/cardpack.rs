@@ -1,8 +1,6 @@
-use fluent_templates::Loader;
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
+use crate::fluent::{ToLocaleString, US_ENGLISH};
 
 /// Card Suit Name - Single field struct representing the name of a card suit.
 ///
@@ -25,10 +23,8 @@ impl SuitName {
 }
 
 impl ToLocaleString for SuitName {
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let var = "-name";
-        let id = format!("{}{}", &self.0, var);
-        LOCALES.lookup(lid, id.as_str())
+    fn get_fluent_key(&self) -> String {
+        self.0.to_owned() + &*"-name".to_owned()
     }
 }
 

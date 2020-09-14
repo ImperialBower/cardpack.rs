@@ -1,7 +1,5 @@
-use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
-use fluent_templates::Loader;
+use crate::fluent::{ToLocaleString, US_ENGLISH};
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
 /// Card Suit Symbol - Single field struct representing the symbol of a card suit.
 ///
@@ -19,10 +17,8 @@ impl SuitSymbol {
 }
 
 impl ToLocaleString for SuitSymbol {
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let var = "-symbol";
-        let id = format!("{}{}", &self.0, var);
-        LOCALES.lookup(lid, id.as_str())
+    fn get_fluent_key(&self) -> String {
+        self.0.to_owned() + &*"-symbol".to_owned()
     }
 }
 
