@@ -187,7 +187,7 @@ impl Deck {
 
         println!();
         print!("   Shuffle Deck:                 ");
-        let mut mische = self.mischen();
+        let mut mische = self.shuffle();
         for karte in mische.values() {
             print!("{} ", karte.to_locale_string(&US_ENGLISH));
         }
@@ -268,10 +268,10 @@ impl Deck {
         }
     }
 
-    pub fn mischen(&self) -> Deck {
-        let mut mischte = self.clone();
-        mischte.0.shuffle(&mut thread_rng());
-        mischte
+    pub fn shuffle(&self) -> Deck {
+        let mut shuffled = self.clone();
+        shuffled.0.shuffle(&mut thread_rng());
+        shuffled
     }
 
     pub fn sort(&mut self) {
@@ -556,7 +556,7 @@ mod karten_tests {
     fn sort() {
         let french_deck = Deck::french_deck();
 
-        let mut shuffled = french_deck.mischen();
+        let mut shuffled = french_deck.shuffle();
         shuffled.sort();
 
         assert_eq!(french_deck, shuffled);

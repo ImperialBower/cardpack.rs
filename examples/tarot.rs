@@ -6,7 +6,13 @@ fn main() {
 
     println!();
     println!("Tarot Deck Shuffled");
-    display(&deck.mischen());
+    let mut shuffled = deck.shuffle();
+    display(&shuffled);
+
+    println!();
+    println!("Tarot Deck Sorted");
+    shuffled.sort();
+    display(&shuffled);
 }
 
 fn display(deck: &spielkartenlib::deck::Deck) {
