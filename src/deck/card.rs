@@ -5,6 +5,8 @@ use crate::deck::rank::Rank;
 use crate::deck::suit::Suit;
 use crate::fluent::{ToLocaleString, US_ENGLISH};
 
+/// `Card` is the core struct in the library.
+///
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     pub value: isize,
@@ -19,9 +21,9 @@ impl Card {
     {
         let a = Suit::new(anzug);
         let r = Rank::new(rang);
-        let wert = Card::determine_value(&a, &r);
+        let value = Card::determine_value(&a, &r);
         Card {
-            value: wert,
+            value,
             suit: a,
             rank: r,
         }
@@ -32,14 +34,14 @@ impl Card {
         Card { value, rank, suit }
     }
 
-    fn determine_value(anzug: &Suit, rang: &Rank) -> isize {
-        (anzug.value * 100) + rang.value
+    fn determine_value(suit: &Suit, rang: &Rank) -> isize {
+        (suit.value * 1000) + rang.value
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rang = self.rank.to_locale_string(&lid);
-        let anzug = self.suit.letter.to_locale_string(&lid);
-        format!("{}{}", rang, anzug)
+        let rank = self.rank.to_locale_string(&lid);
+        let suit = self.suit.letter.to_locale_string(&lid);
+        format!("{}{}", rank, suit)
     }
 }
 
@@ -51,9 +53,9 @@ impl fmt::Display for Card {
 
 impl ToLocaleString for Card {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let rang = self.rank.to_locale_string(&lid);
-        let anzug = self.suit.to_locale_string(&lid);
-        format!("{}{}", rang, anzug)
+        let rank = self.rank.to_locale_string(&lid);
+        let suit = self.suit.to_locale_string(&lid);
+        format!("{}{}", rank, suit)
     }
 }
 
@@ -66,7 +68,7 @@ mod card_tests {
     #[test]
     fn new() {
         let expected = Card {
-            value: 414,
+            value: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -77,7 +79,7 @@ mod card_tests {
     #[test]
     fn new_from_structs() {
         let expected = Card {
-            value: 414,
+            value: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -90,9 +92,9 @@ mod card_tests {
 
     #[test]
     fn to_string_by_locale() {
-        let karte = Card::new("queen", "clubs");
+        let card = Card::new("queen", "clubs");
 
-        assert_eq!(karte.to_locale_string(&GERMAN), "D♣".to_string());
+        assert_eq!(card.to_locale_string(&GERMAN), "D♣".to_string());
     }
 
     #[test]

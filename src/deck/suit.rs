@@ -51,8 +51,8 @@ impl Suit {
 
         #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
-            let wert = f(s.len(), i);
-            v.push(Suit::new_with_value(elem, wert));
+            let value = f(s.len(), i);
+            v.push(Suit::new_with_value(elem, value));
         }
         v
     }

@@ -74,22 +74,22 @@ impl CardDeck {
 
         println!();
         print!("   Short With Letters in German: ");
-        for karte in self.values() {
-            print!("{} ", karte.to_txt_string(&GERMAN));
+        for card in self.values() {
+            print!("{} ", card.to_txt_string(&GERMAN));
         }
 
         println!();
         print!("   Shuffle Deck:                 ");
-        let mut mische = self.shuffle();
-        for karte in mische.values() {
-            print!("{} ", karte.to_locale_string(&US_ENGLISH));
+        let mut shuffled = self.shuffle();
+        for card in shuffled.values() {
+            print!("{} ", card.to_locale_string(&US_ENGLISH));
         }
 
         println!();
         print!("   Sort Deck:                    ");
-        mische.sort();
-        for karte in mische.values() {
-            print!("{} ", karte.to_locale_string(&US_ENGLISH));
+        shuffled.sort();
+        for card in shuffled.values() {
+            print!("{} ", card.to_locale_string(&US_ENGLISH));
         }
 
         println!();
@@ -99,11 +99,11 @@ impl CardDeck {
         if x > self.len() {
             None
         } else {
-            let mut karten = CardDeck::new();
+            let mut cards = CardDeck::new();
             for _ in 0..x {
-                karten.add(self.draw_first().unwrap());
+                cards.add(self.draw_first().unwrap());
             }
-            Some(karten)
+            Some(cards)
         }
     }
 
