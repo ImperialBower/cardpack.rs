@@ -22,16 +22,16 @@ impl Suit {
         S: Into<String>,
     {
         let n = name.into();
-        let wert = get_value_isize(n.clone().as_str());
-        Suit::new_with_value(n, wert)
+        let value = get_value_isize(n.as_str());
+        Suit::new_with_value(n, value)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Suit
+    pub fn new_with_value<S: std::clone::Clone>(name: S, value: isize) -> Suit
     where
         S: Into<String>,
     {
         Suit {
-            value: wert,
+            value,
             name: SuitName::new(name.clone()),
             letter: SuitLetter::new(name.clone()),
             symbol: SuitSymbol::new(name),

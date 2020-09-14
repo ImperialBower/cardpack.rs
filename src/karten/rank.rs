@@ -18,16 +18,16 @@ impl Rank {
         S: Into<String>,
     {
         let n = name.into();
-        let wert = get_value_isize(n.clone().as_str());
-        Rank::new_with_value(n, wert)
+        let value = get_value_isize(n.as_str());
+        Rank::new_with_value(n, value)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Rank
+    pub fn new_with_value<S: std::clone::Clone>(name: S, value: isize) -> Rank
     where
         S: Into<String>,
     {
         Rank {
-            value: wert,
+            value,
             name: RankName::new(name.clone()),
             short: RankShort::new(name),
         }

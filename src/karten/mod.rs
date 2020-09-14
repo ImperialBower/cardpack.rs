@@ -240,6 +240,10 @@ impl Deck {
         self.0.choose(&mut rand::thread_rng())
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     pub fn last(&self) -> Option<&Card> {
         self.0.last()
     }
@@ -282,7 +286,7 @@ impl Deck {
     pub fn jokers() -> Deck {
         let big_joker = Card::new("big-joker", "spades");
         let little_joker = Card::new("little-joker", "spades");
-        Deck::new_from_vector(vec![big_joker.clone(), little_joker.clone()])
+        Deck::new_from_vector(vec![big_joker, little_joker])
     }
 
     pub fn french_deck() -> Deck {
