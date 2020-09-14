@@ -15,7 +15,7 @@ fn main() {
     display(&shuffled);
 }
 
-fn display(deck: &spielkartenlib::deck::CardDeck) {
+fn display(deck: &spielkartenlib::CardDeck) {
     for karte in deck.values() {
         let suitname = karte.suit.name.to_string();
 
