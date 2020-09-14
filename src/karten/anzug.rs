@@ -1,15 +1,16 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::*;
 use crate::karten::anzug_buchstabe::AnzugBuchstabe;
 use crate::karten::anzug_name::AnzugName;
 use crate::karten::anzug_symbol::AnzugSymbol;
 
 /// Suit (Anzug) struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Anzug {
+    pub wert: isize,
     pub name: AnzugName,
     pub buchstabe: AnzugBuchstabe,
     pub symbol: AnzugSymbol,
@@ -20,32 +21,55 @@ impl Anzug {
     where
         S: Into<String>,
     {
+        let n = name.into();
+        let wert = get_value_isize(n.clone().as_str());
+        Anzug::new_with_value(n, wert)
+    }
+
+    pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Anzug
+    where
+        S: Into<String>,
+    {
         Anzug {
+            wert,
             name: AnzugName::new(name.clone()),
             buchstabe: AnzugBuchstabe::new(name.clone()),
             symbol: AnzugSymbol::new(name),
         }
     }
 
-    pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
+    fn bottom_up_value(_len: usize, i: usize) -> isize {
+        (i + 1) as isize
+    }
+
+    fn top_down_value(len: usize, i: usize) -> isize {
+        (len - i) as isize
+    }
+
+    fn to_vec_gen(s: &[&str], f: impl Fn(usize, usize) -> isize) -> Vec<Anzug> {
         let mut v: Vec<Anzug> = Vec::new();
 
-        for (_, &elem) in s.into_iter().enumerate() {
-            v.push(Anzug::new(elem));
+        for (i, &elem) in s.into_iter().enumerate() {
+            let wert = f(s.len(), i);
+            v.push(Anzug::new_with_value(elem, wert));
         }
         v
+    }
+
+    pub fn to_vec(s: &[&str]) -> Vec<Anzug> {
+        Anzug::to_vec_gen(s, Anzug::top_down_value)
+    }
+
+    pub fn to_vec_bottom_up(s: &[&str]) -> Vec<Anzug> {
+        Anzug::to_vec_gen(s, Anzug::bottom_up_value)
     }
 
     pub fn generate_french_suits() -> Vec<Anzug> {
         Anzug::to_vec(&["spades", "hearts", "diamonds", "clubs"])
     }
 
-    pub fn generate_major_arcana_suits() -> Vec<Anzug> {
-        Anzug::to_vec(&["major-arcana"])
-    }
-
-    pub fn generate_minor_arcana_suits() -> Vec<Anzug> {
-        Anzug::to_vec(&["wands", "cups", "swords", "pentacles"])
+    pub fn generate_arcana_suits() -> Vec<Anzug> {
+        Anzug::to_vec(&["major-arcana", "wands", "cups", "swords", "pentacles"])
     }
 }
 
@@ -58,6 +82,16 @@ impl ToLocaleString for Anzug {
 impl fmt::Display for Anzug {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.symbol.to_locale_string(&US_ENGLISH))
+    }
+}
+
+impl Valuable for Anzug {
+    fn revise_value(&mut self, new_value: isize) {
+        self.wert = new_value
+    }
+
+    fn get_value(&self) -> isize {
+        self.wert
     }
 }
 
@@ -81,12 +115,37 @@ mod suit_tests {
     #[test]
     fn new() {
         let expected = Anzug {
+            wert: 4,
             name: AnzugName::new("spades"),
             buchstabe: AnzugBuchstabe::new("spades"),
             symbol: AnzugSymbol::new("spades"),
         };
 
         assert_eq!(expected, Anzug::new("spades"));
+    }
+
+    #[test]
+    fn new_with_value() {
+        let expected = Anzug {
+            wert: 4,
+            name: AnzugName::new("spades"),
+            buchstabe: AnzugBuchstabe::new("spades"),
+            symbol: AnzugSymbol::new("spades"),
+        };
+
+        assert_eq!(expected, Anzug::new_with_value("spades", 4));
+    }
+
+    #[test]
+    fn partial_eq() {
+        assert_ne!(
+            Anzug::new_with_value("spades", 3),
+            Anzug::new_with_value("spades", 4)
+        );
+        assert_ne!(
+            Anzug::new_with_value("hearts", 4),
+            Anzug::new_with_value("spades", 4)
+        );
     }
 
     #[test]
@@ -104,31 +163,51 @@ mod suit_tests {
     #[test]
     fn to_vec() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("clubs"));
-        expected.push(Anzug::new("spades"));
+        expected.push(Anzug::new_with_value("clubs", 2));
+        expected.push(Anzug::new_with_value("spades", 1));
 
         assert_eq!(expected, Anzug::to_vec(&["clubs", "spades"]));
     }
 
     #[test]
+    fn to_vec_bottom_up() {
+        let mut expected: Vec<Anzug> = Vec::new();
+        expected.push(Anzug::new_with_value("clubs", 1));
+        expected.push(Anzug::new_with_value("spades", 2));
+
+        assert_eq!(expected, Anzug::to_vec_bottom_up(&["clubs", "spades"]));
+    }
+
+    #[test]
     fn generate_french_suits() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("spades"));
-        expected.push(Anzug::new("hearts"));
-        expected.push(Anzug::new("diamonds"));
-        expected.push(Anzug::new("clubs"));
+        expected.push(Anzug::new_with_value("spades", 4));
+        expected.push(Anzug::new_with_value("hearts", 3));
+        expected.push(Anzug::new_with_value("diamonds", 2));
+        expected.push(Anzug::new_with_value("clubs", 1));
 
         assert_eq!(expected, Anzug::generate_french_suits());
     }
 
     #[test]
-    fn generate_minor_arcana_suits() {
+    fn generate_arcana_suits() {
         let mut expected: Vec<Anzug> = Vec::new();
-        expected.push(Anzug::new("wands"));
-        expected.push(Anzug::new("cups"));
-        expected.push(Anzug::new("swords"));
-        expected.push(Anzug::new("pentacles"));
+        expected.push(Anzug::new_with_value("major-arcana", 5));
+        expected.push(Anzug::new_with_value("wands", 4));
+        expected.push(Anzug::new_with_value("cups", 3));
+        expected.push(Anzug::new_with_value("swords", 2));
+        expected.push(Anzug::new_with_value("pentacles", 1));
 
-        assert_eq!(expected, Anzug::generate_minor_arcana_suits());
+        assert_eq!(expected, Anzug::generate_arcana_suits());
+    }
+
+    #[test]
+    fn revise_value() {
+        let mut wands = Anzug::new("wands");
+        assert_eq!(4, wands.get_value());
+
+        wands.revise_value(3);
+
+        assert_eq!(3, wands.get_value());
     }
 }

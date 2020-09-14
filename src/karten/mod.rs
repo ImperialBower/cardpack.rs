@@ -11,29 +11,39 @@ use rand::thread_rng;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Karte {
+    pub wert: isize,
     pub rang: Rang,
     pub anzug: Anzug,
 }
 
 impl Karte {
-    pub fn new<S: std::clone::Clone>(rang: S, anzug: S) -> Karte
+    pub fn neu<S: std::clone::Clone>(rang: S, anzug: S) -> Karte
     where
         S: Into<String>,
     {
+        let a = Anzug::new(anzug);
+        let r = Rang::new(rang);
+        let wert = Karte::wert_werden(&a, &r);
         Karte {
-            rang: Rang::new(rang),
-            anzug: Anzug::new(anzug),
+            wert,
+            anzug: a,
+            rang: r,
         }
     }
 
     pub fn new_from_structs(rang: Rang, anzug: Anzug) -> Karte {
-        Karte { rang, anzug }
+        let wert = Karte::wert_werden(&anzug, &rang);
+        Karte { wert, rang, anzug }
+    }
+
+    fn wert_werden(anzug: &Anzug, rang: &Rang) -> isize {
+        (anzug.wert * 100) + rang.wert
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
@@ -43,17 +53,17 @@ impl Karte {
     }
 }
 
+impl fmt::Display for Karte {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
+    }
+}
+
 impl ToLocaleString for Karte {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let rang = self.rang.to_locale_string(&lid);
         let anzug = self.anzug.to_locale_string(&lid);
         format!("{}{}", rang, anzug)
-    }
-}
-
-impl fmt::Display for Karte {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
 }
 
@@ -66,16 +76,18 @@ mod card_tests {
     #[test]
     fn new() {
         let expected = Karte {
+            wert: 414,
             rang: Rang::new("ace"),
             anzug: Anzug::new("spades"),
         };
 
-        assert_eq!(expected, Karte::new("ace", "spades"));
+        assert_eq!(expected, Karte::neu("ace", "spades"));
     }
 
     #[test]
     fn new_from_structs() {
         let expected = Karte {
+            wert: 414,
             rang: Rang::new("ace"),
             anzug: Anzug::new("spades"),
         };
@@ -88,14 +100,14 @@ mod card_tests {
 
     #[test]
     fn to_string_by_locale() {
-        let karte = Karte::new("queen", "clubs");
+        let karte = Karte::neu("queen", "clubs");
 
         assert_eq!(karte.to_locale_string(&GERMAN), "D♣".to_string());
     }
 
     #[test]
     fn to_txt_string() {
-        let karte = Karte::new("queen", "clubs");
+        let karte = Karte::neu("queen", "clubs");
 
         assert_eq!(karte.to_txt_string(&GERMAN), "DK".to_string());
     }
@@ -105,7 +117,7 @@ mod card_tests {
 pub struct Karten(Vec<Karte>);
 
 impl Karten {
-    pub fn new() -> Karten {
+    pub fn neu() -> Karten {
         Karten::new_from_vector(Vec::new())
     }
 
@@ -138,11 +150,63 @@ impl Karten {
         self.0.contains(karte)
     }
 
+    pub fn demo(&self) {
+        print!("   Long in English and German:\n");
+        for karte in self.values() {
+            let anzugname = karte.anzug.name.to_locale_string(&GERMAN);
+            let suitname = karte.anzug.name.to_locale_string(&US_ENGLISH);
+            let rangname = karte.rang.name.to_locale_string(&GERMAN);
+            let rankname = karte.rang.name.to_locale_string(&US_ENGLISH);
+            println!("      {} of {} ", rankname, suitname);
+            println!("      {} von {} ", rangname, anzugname);
+        }
+
+        println!();
+        print!("   Short With Symbols:           ");
+        for karte in self.values() {
+            print!("{} ", karte);
+        }
+
+        println!();
+        print!("   Short With Symbols in German: ");
+        for karte in self.values() {
+            print!("{} ", karte.to_locale_string(&GERMAN));
+        }
+
+        println!();
+        print!("   Short With Letters:           ");
+        for karte in self.values() {
+            print!("{} ", karte.to_txt_string(&US_ENGLISH));
+        }
+
+        println!();
+        print!("   Short With Letters in German: ");
+        for karte in self.values() {
+            print!("{} ", karte.to_txt_string(&GERMAN));
+        }
+
+        println!();
+        print!("   Shuffle Deck:                 ");
+        let mut mische = self.mischen();
+        for karte in mische.values() {
+            print!("{} ", karte.to_locale_string(&US_ENGLISH));
+        }
+
+        println!();
+        print!("   Sort Deck:                    ");
+        mische.sort();
+        for karte in mische.values() {
+            print!("{} ", karte.to_locale_string(&US_ENGLISH));
+        }
+
+        println!();
+    }
+
     pub fn draw(&mut self, x: usize) -> Option<Karten> {
         if x > self.len() {
             None
         } else {
-            let mut karten = Karten::new();
+            let mut karten = Karten::neu();
             for _ in 0..x {
                 karten.add(self.draw_first().unwrap());
             }
@@ -200,10 +264,15 @@ impl Karten {
         }
     }
 
-    pub fn shuffle(&self) -> Karten {
-        let mut shuffled = self.clone();
-        shuffled.0.shuffle(&mut thread_rng());
-        shuffled
+    pub fn mischen(&self) -> Karten {
+        let mut mischte = self.clone();
+        mischte.0.shuffle(&mut thread_rng());
+        mischte
+    }
+
+    pub fn sort(&mut self) {
+        self.0.sort();
+        self.0.reverse();
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Karte> {
@@ -211,9 +280,74 @@ impl Karten {
     }
 
     pub fn jokers() -> Karten {
-        let big_joker = Karte::new("big-joker", "spades");
-        let little_joker = Karte::new("little-joker", "spades");
+        let big_joker = Karte::neu("big-joker", "spades");
+        let little_joker = Karte::neu("little-joker", "spades");
         Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()])
+    }
+
+    pub fn french_deck() -> Karten {
+        let suits = Anzug::generate_french_suits();
+        let ranks = Rang::generate_french_ranks();
+
+        let mut karten: Karten = Karten::neu();
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        karten
+    }
+
+    pub fn pinochle_deck() -> Karten {
+        let suits = Anzug::generate_french_suits();
+        let ranks = Rang::generate_pinochle_ranks();
+
+        let mut karten: Karten = Karten::neu();
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        karten
+    }
+
+    pub fn spades_deck() -> Karten {
+        let mut deck = Karten::french_deck();
+        deck.remove_karte(&Karte::neu("two", "clubs"));
+        deck.remove_karte(&Karte::neu("two", "diamonds"));
+        let jokers = Karten::jokers();
+
+        deck.prepend(&jokers);
+        deck
+    }
+
+    pub fn tarot_deck() -> Karten {
+        let arcana_suits = Anzug::generate_arcana_suits();
+        let mut arcana_suits_enumerator = arcana_suits.iter().enumerate();
+        let major_arcana_ranks = Rang::generate_major_arcana_ranks();
+        let minor_arcana_ranks = Rang::generate_minor_arcana_ranks();
+
+        let mut karten: Karten = Karten::neu();
+
+        let (_, major_arcana_suit) = arcana_suits_enumerator.next().unwrap();
+
+        // Generate Major Arcana
+        for (_, rank) in major_arcana_ranks.iter().enumerate() {
+            karten.add(Karte::new_from_structs(
+                rank.clone(),
+                major_arcana_suit.clone(),
+            ));
+        }
+
+        // Generate Minor Arcana
+        for (_, suit) in arcana_suits_enumerator {
+            for (_, rank) in minor_arcana_ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+
+        karten
     }
 }
 
@@ -233,9 +367,9 @@ mod karten_tests {
 
     #[test]
     fn new_all_add_new_from_vector() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
-        let mut expected = Karten::new();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
+        let mut expected = Karten::neu();
         expected.add(qclubs.clone());
         expected.add(qhearts.clone());
 
@@ -246,10 +380,10 @@ mod karten_tests {
 
     #[test]
     fn append() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
-        let big_joker = Karte::new("big-joker", "spades");
-        let little_joker = Karte::new("little-joker", "spades");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
+        let big_joker = Karte::neu("big-joker", "spades");
+        let little_joker = Karte::neu("little-joker", "spades");
         let mut to_deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
         let from_deck = Karten::jokers();
         let expected = Karten::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
@@ -261,10 +395,10 @@ mod karten_tests {
 
     #[test]
     fn prepend() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
-        let big_joker = Karte::new("big-joker", "spades");
-        let little_joker = Karte::new("little-joker", "spades");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
+        let big_joker = Karte::neu("big-joker", "spades");
+        let little_joker = Karte::neu("little-joker", "spades");
         let mut to_deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
         let from_deck = Karten::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
         let expected = Karten::new_from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
@@ -276,8 +410,8 @@ mod karten_tests {
 
     #[test]
     fn contains() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(deck.contains(&qclubs));
@@ -286,10 +420,10 @@ mod karten_tests {
 
     #[test]
     fn draw() {
-        let mut zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
-        let qspades = Karte::new("queen", "spades");
+        let mut zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
+        let qspades = Karte::neu("queen", "spades");
         let mut deck =
             Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone(), qspades.clone()]);
 
@@ -303,9 +437,9 @@ mod karten_tests {
 
     #[test]
     fn draw_first() {
-        let mut zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let mut zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let mut deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(zero.draw_first().is_none());
@@ -315,9 +449,9 @@ mod karten_tests {
 
     #[test]
     fn draw_last() {
-        let mut zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let mut zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let mut deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(zero.draw_last().is_none());
@@ -327,9 +461,9 @@ mod karten_tests {
 
     #[test]
     fn first() {
-        let zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(zero.first().is_none());
@@ -338,8 +472,8 @@ mod karten_tests {
 
     #[test]
     fn get() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let gotten = deck.get(1);
@@ -349,7 +483,7 @@ mod karten_tests {
 
     #[test]
     fn get_random() {
-        let qhearts = Karte::new("queen", "hearts");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qhearts.clone()]);
 
         let gotten = deck.get_random();
@@ -359,9 +493,9 @@ mod karten_tests {
 
     #[test]
     fn last() {
-        let zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(zero.last().is_none());
@@ -370,9 +504,9 @@ mod karten_tests {
 
     #[test]
     fn len() {
-        let zero = Karten::new();
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let zero = Karten::neu();
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(zero.len(), 0);
@@ -381,8 +515,8 @@ mod karten_tests {
 
     #[test]
     fn position() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(0, deck.position(&qclubs).unwrap());
@@ -391,8 +525,8 @@ mod karten_tests {
 
     #[test]
     fn remove() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let mut deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let removed = deck.remove(0);
@@ -403,8 +537,8 @@ mod karten_tests {
 
     #[test]
     fn remove_karte() {
-        let qclubs = Karte::new("queen", "clubs");
-        let qhearts = Karte::new("queen", "hearts");
+        let qclubs = Karte::neu("queen", "clubs");
+        let qhearts = Karte::neu("queen", "hearts");
         let mut deck = Karten::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let removed = deck.remove_karte(&qclubs);
@@ -412,5 +546,24 @@ mod karten_tests {
         assert_eq!(removed.unwrap(), qclubs);
         assert!(deck.contains(&qhearts));
         assert!(!deck.contains(&qclubs));
+    }
+
+    #[test]
+    fn sort() {
+        let french_deck = Karten::french_deck();
+
+        let mut shuffled = french_deck.mischen();
+        shuffled.sort();
+
+        assert_eq!(french_deck, shuffled);
+    }
+
+    #[test]
+    fn spades_deck() {
+        let deck = Karten::spades_deck();
+
+        assert!(!deck.contains(&Karte::neu("two", "clubs")));
+        assert!(!deck.contains(&Karte::neu("two", "diamonds")));
+        assert!(deck.contains(&Karte::neu("two", "spades")));
     }
 }
