@@ -151,7 +151,7 @@ impl Deck {
     }
 
     pub fn demo(&self) {
-        print!("   Long in English and German:\n");
+        println!("   Long in English and German:");
         for karte in self.values() {
             let anzugname = karte.suit.name.to_locale_string(&GERMAN);
             let suitname = karte.suit.name.to_locale_string(&US_ENGLISH);
@@ -352,6 +352,12 @@ impl Deck {
         }
 
         karten
+    }
+}
+
+impl Default for Deck {
+    fn default() -> Self {
+        Deck::new()
     }
 }
 

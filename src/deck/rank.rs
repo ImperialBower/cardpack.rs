@@ -33,9 +33,10 @@ impl Rank {
         }
     }
 
-    pub fn to_vec(s: &[&str]) -> Vec<Rank> {
+    pub fn from_array(s: &[&str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
+        #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let value = (s.len() + 1) - i;
             v.push(Rank::new_with_value(elem, value as isize));
@@ -44,18 +45,18 @@ impl Rank {
     }
 
     pub fn generate_french_ranks() -> Vec<Rank> {
-        Rank::to_vec(&[
+        Rank::from_array(&[
             "ace", "king", "queen", "jack", "ten", "nine", "eight", "seven", "six", "five", "four",
             "three", "two",
         ])
     }
 
     pub fn generate_pinochle_ranks() -> Vec<Rank> {
-        Rank::to_vec(&["ace", "ten", "king", "queen", "jack", "nine"])
+        Rank::from_array(&["ace", "ten", "king", "queen", "jack", "nine"])
     }
 
     pub fn generate_major_arcana_ranks() -> Vec<Rank> {
-        Rank::to_vec(&[
+        Rank::from_array(&[
             "fool",
             "magician",
             "priestess",
@@ -82,14 +83,14 @@ impl Rank {
     }
 
     pub fn generate_minor_arcana_ranks() -> Vec<Rank> {
-        Rank::to_vec(&[
+        Rank::from_array(&[
             "king", "queen", "knight", "page", "ten", "nine", "eight", "seven", "six", "five",
             "four", "three", "two", "ace",
         ])
     }
 
     pub fn generate_spades_ranks() -> Vec<Rank> {
-        Rank::to_vec(&[
+        Rank::from_array(&[
             "big-joker",
             "little-joker",
             "ace",
@@ -180,7 +181,7 @@ mod rank_tests {
         expected.push(Rank::new_with_value("king", 3));
         expected.push(Rank::new_with_value("queen", 2));
 
-        assert_eq!(expected, Rank::to_vec(&["king", "queen"]));
+        assert_eq!(expected, Rank::from_array(&["king", "queen"]));
     }
 
     #[test]
@@ -225,7 +226,7 @@ mod rank_tests {
 
     #[test]
     fn generate_minor_arcana_ranks() {
-        let ex: Vec<Rank> = Rank::to_vec(&[
+        let ex: Vec<Rank> = Rank::from_array(&[
             "king", "queen", "knight", "page", "ten", "nine", "eight", "seven", "six", "five",
             "four", "three", "two", "ace",
         ]);

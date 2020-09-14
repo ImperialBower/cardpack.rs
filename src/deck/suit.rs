@@ -46,9 +46,10 @@ impl Suit {
         (len - i) as isize
     }
 
-    fn to_vec_gen(s: &[&str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
+    fn from_array_gen(s: &[&str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
         let mut v: Vec<Suit> = Vec::new();
 
+        #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let wert = f(s.len(), i);
             v.push(Suit::new_with_value(elem, wert));
@@ -56,20 +57,20 @@ impl Suit {
         v
     }
 
-    pub fn to_vec(s: &[&str]) -> Vec<Suit> {
-        Suit::to_vec_gen(s, Suit::top_down_value)
+    pub fn from_array(s: &[&str]) -> Vec<Suit> {
+        Suit::from_array_gen(s, Suit::top_down_value)
     }
 
-    pub fn to_vec_bottom_up(s: &[&str]) -> Vec<Suit> {
-        Suit::to_vec_gen(s, Suit::bottom_up_value)
+    pub fn from_array_bottom_up(s: &[&str]) -> Vec<Suit> {
+        Suit::from_array_gen(s, Suit::bottom_up_value)
     }
 
     pub fn generate_french_suits() -> Vec<Suit> {
-        Suit::to_vec(&["spades", "hearts", "diamonds", "clubs"])
+        Suit::from_array(&["spades", "hearts", "diamonds", "clubs"])
     }
 
     pub fn generate_arcana_suits() -> Vec<Suit> {
-        Suit::to_vec(&["major-arcana", "wands", "cups", "swords", "pentacles"])
+        Suit::from_array(&["major-arcana", "wands", "cups", "swords", "pentacles"])
     }
 }
 
@@ -166,7 +167,7 @@ mod suit_tests {
         expected.push(Suit::new_with_value("clubs", 2));
         expected.push(Suit::new_with_value("spades", 1));
 
-        assert_eq!(expected, Suit::to_vec(&["clubs", "spades"]));
+        assert_eq!(expected, Suit::from_array(&["clubs", "spades"]));
     }
 
     #[test]
@@ -175,7 +176,7 @@ mod suit_tests {
         expected.push(Suit::new_with_value("clubs", 1));
         expected.push(Suit::new_with_value("spades", 2));
 
-        assert_eq!(expected, Suit::to_vec_bottom_up(&["clubs", "spades"]));
+        assert_eq!(expected, Suit::from_array_bottom_up(&["clubs", "spades"]));
     }
 
     #[test]
