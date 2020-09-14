@@ -6,15 +6,16 @@ use unic_langid::LanguageIdentifier;
 /// Karten Anzug Name (Card Suit Letter) - Single field struct representing the letter of a card suit.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RangKurz(String);
+pub struct SuitLetter(String);
 
-impl RangKurz {
+impl SuitLetter {
     // Accepts String or &str
-    pub fn new<S>(name: S) -> RangKurz
+    // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
+    pub fn new<S>(name: S) -> SuitLetter
     where
         S: Into<String>,
     {
-        RangKurz(name.into())
+        SuitLetter(name.into())
     }
 
     pub fn as_str(&self) -> &str {
@@ -22,15 +23,15 @@ impl RangKurz {
     }
 }
 
-impl ToLocaleString for RangKurz {
+impl ToLocaleString for SuitLetter {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let var = "-short";
+        let var = "-letter";
         let id = format!("{}{}", &self.0, var);
         LOCALES.lookup(lid, id.as_str())
     }
 }
 
-impl fmt::Display for RangKurz {
+impl fmt::Display for SuitLetter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
@@ -38,37 +39,46 @@ impl fmt::Display for RangKurz {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod rank_letter_tests {
+mod suit_letter_tests {
     use super::*;
     use crate::fluent::{ToLocaleString, GERMAN};
 
     #[test]
     fn display() {
-        assert_eq!("RangKurz: A", format!("RangKurz: {}", RangKurz::new("ace")));
+        assert_eq!(
+            "AnzugBuchstabe: H",
+            format!("AnzugBuchstabe: {}", SuitLetter::new("hearts"))
+        );
     }
 
     #[test]
     fn as_str() {
-        assert_eq!(RangKurz::new("bar").as_str(), "bar");
+        assert_eq!(SuitLetter::new("bar").as_str(), "bar");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(RangKurz::new("king").to_string(), "K".to_string());
+        assert_eq!(SuitLetter::new("diamonds").to_string(), "D".to_string());
     }
 
     #[test]
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(RangKurz("from".to_string()), RangKurz::new(from_string));
-        assert_eq!(RangKurz("from".to_string()), RangKurz::new("from"));
+        assert_eq!(
+            SuitLetter("from".to_string()),
+            SuitLetter::new(from_string)
+        );
+        assert_eq!(
+            SuitLetter("from".to_string()),
+            SuitLetter::new("from")
+        );
     }
 
     #[test]
     fn to_string_by_locale() {
-        let clubs = RangKurz::new("ten");
+        let clubs = SuitLetter::new("clubs");
 
-        assert_eq!(clubs.to_locale_string(&GERMAN), "10".to_string());
+        assert_eq!(clubs.to_locale_string(&GERMAN), "K".to_string());
     }
 }

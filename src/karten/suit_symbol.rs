@@ -6,19 +6,19 @@ use unic_langid::LanguageIdentifier;
 /// Karten Anzug Symbol (Card Suit Symbol) - Single field struct representing the symbol of a card suit.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct AnzugSymbol(String);
+pub struct SuitSymbol(String);
 
-impl AnzugSymbol {
+impl SuitSymbol {
     // Accepts String or &str
-    pub fn new<S>(name: S) -> AnzugSymbol
+    pub fn new<S>(name: S) -> SuitSymbol
     where
         S: Into<String>,
     {
-        AnzugSymbol(name.into())
+        SuitSymbol(name.into())
     }
 }
 
-impl ToLocaleString for AnzugSymbol {
+impl ToLocaleString for SuitSymbol {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let var = "-symbol";
         let id = format!("{}{}", &self.0, var);
@@ -26,7 +26,7 @@ impl ToLocaleString for AnzugSymbol {
     }
 }
 
-impl fmt::Display for AnzugSymbol {
+impl fmt::Display for SuitSymbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
@@ -42,19 +42,19 @@ mod suite_symbol_tests {
     fn display() {
         assert_eq!(
             "AnzugSymbol: ♥",
-            format!("AnzugSymbol: {}", AnzugSymbol::new("hearts"))
+            format!("AnzugSymbol: {}", SuitSymbol::new("hearts"))
         );
     }
 
     #[test]
     fn as_str() {
-        assert_eq!(AnzugSymbol::new("diamonds").to_string().as_str(), "♦");
-        assert_eq!(AnzugSymbol::new("spades").to_string().as_str(), "♠");
+        assert_eq!(SuitSymbol::new("diamonds").to_string().as_str(), "♦");
+        assert_eq!(SuitSymbol::new("spades").to_string().as_str(), "♠");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(AnzugSymbol::new("clubs").to_string(), "♣".to_string());
+        assert_eq!(SuitSymbol::new("clubs").to_string(), "♣".to_string());
     }
 
     #[test]
@@ -62,15 +62,15 @@ mod suite_symbol_tests {
         let from_string = "from".to_string();
 
         assert_eq!(
-            AnzugSymbol("from".to_string()),
-            AnzugSymbol::new(from_string)
+            SuitSymbol("from".to_string()),
+            SuitSymbol::new(from_string)
         );
-        assert_eq!(AnzugSymbol("from".to_string()), AnzugSymbol::new("from"));
+        assert_eq!(SuitSymbol("from".to_string()), SuitSymbol::new("from"));
     }
 
     #[test]
     fn to_string_by_locale() {
-        let clubs = AnzugSymbol::new("clubs");
+        let clubs = SuitSymbol::new("clubs");
 
         assert_eq!(clubs.to_locale_string(&GERMAN), "♣".to_string());
     }

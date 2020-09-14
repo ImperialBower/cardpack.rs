@@ -7,15 +7,15 @@ use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
 /// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RangName(String);
+pub struct RankName(String);
 
-impl RangName {
+impl RankName {
     // Accepts String or &str
-    pub fn new<S>(name: S) -> RangName
+    pub fn new<S>(name: S) -> RankName
     where
         S: Into<String>,
     {
-        RangName(name.into())
+        RankName(name.into())
     }
 
     pub fn as_str(&self) -> &str {
@@ -23,7 +23,7 @@ impl RangName {
     }
 }
 
-impl ToLocaleString for RangName {
+impl ToLocaleString for RankName {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let var = "-name";
         let id = format!("{}{}", &self.0, var);
@@ -31,7 +31,7 @@ impl ToLocaleString for RangName {
     }
 }
 
-impl fmt::Display for RangName {
+impl fmt::Display for RankName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
@@ -47,40 +47,40 @@ mod suite_name_tests {
     fn display() {
         assert_eq!(
             "RangName: Jack",
-            format!("RangName: {}", RangName::new("jack"))
+            format!("RangName: {}", RankName::new("jack"))
         );
     }
 
     #[test]
     fn as_str() {
-        assert_eq!(RangName::new("bar").as_str(), "bar");
+        assert_eq!(RankName::new("bar").as_str(), "bar");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(RangName::new("ace").to_string(), "Ace".to_string());
+        assert_eq!(RankName::new("ace").to_string(), "Ace".to_string());
     }
 
     #[test]
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(RangName("from".to_string()), RangName::new(from_string));
-        assert_eq!(RangName("from".to_string()), RangName::new("from"));
+        assert_eq!(RankName("from".to_string()), RankName::new(from_string));
+        assert_eq!(RankName("from".to_string()), RankName::new("from"));
     }
 
     #[test]
     fn to_string_by_locale() {
         assert_eq!(
-            RangName::new("queen").to_locale_string(&GERMAN),
+            RankName::new("queen").to_locale_string(&GERMAN),
             "Dame".to_string()
         );
         assert_eq!(
-            RangName::new("ace").to_locale_string(&GERMAN),
+            RankName::new("ace").to_locale_string(&GERMAN),
             "Ass".to_string()
         );
         assert_eq!(
-            RangName::new("jack").to_locale_string(&GERMAN),
+            RankName::new("jack").to_locale_string(&GERMAN),
             "Bube".to_string()
         );
     }

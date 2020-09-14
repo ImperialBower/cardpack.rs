@@ -7,16 +7,16 @@ use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
 /// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct AnzugName(String);
+pub struct SuitName(String);
 
-impl AnzugName {
+impl SuitName {
     // Accepts String or &str
     // https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html#another-way-to-write-personnew
-    pub fn new<S>(name: S) -> AnzugName
+    pub fn new<S>(name: S) -> SuitName
     where
         S: Into<String>,
     {
-        AnzugName(name.into())
+        SuitName(name.into())
     }
 
     pub fn as_str(&self) -> &str {
@@ -24,7 +24,7 @@ impl AnzugName {
     }
 }
 
-impl ToLocaleString for AnzugName {
+impl ToLocaleString for SuitName {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let var = "-name";
         let id = format!("{}{}", &self.0, var);
@@ -32,7 +32,7 @@ impl ToLocaleString for AnzugName {
     }
 }
 
-impl fmt::Display for AnzugName {
+impl fmt::Display for SuitName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
@@ -48,19 +48,19 @@ mod suite_name_tests {
     fn display() {
         assert_eq!(
             "Anzug: Hearts",
-            format!("Anzug: {}", AnzugName::new("hearts"))
+            format!("Anzug: {}", SuitName::new("hearts"))
         );
     }
 
     #[test]
     fn as_str() {
-        assert_eq!(AnzugName::new("bar").as_str(), "bar");
+        assert_eq!(SuitName::new("bar").as_str(), "bar");
     }
 
     #[test]
     fn to_string() {
         assert_eq!(
-            AnzugName::new("diamonds").to_string(),
+            SuitName::new("diamonds").to_string(),
             "Diamonds".to_string()
         );
     }
@@ -69,13 +69,13 @@ mod suite_name_tests {
     fn new() {
         let from_string = "from".to_string();
 
-        assert_eq!(AnzugName("from".to_string()), AnzugName::new(from_string));
-        assert_eq!(AnzugName("from".to_string()), AnzugName::new("from"));
+        assert_eq!(SuitName("from".to_string()), SuitName::new(from_string));
+        assert_eq!(SuitName("from".to_string()), SuitName::new("from"));
     }
 
     #[test]
     fn to_string_by_locale() {
-        let clubs = AnzugName::new("clubs");
+        let clubs = SuitName::new("clubs");
 
         assert_eq!(clubs.to_locale_string(&GERMAN), "Klee".to_string());
     }
