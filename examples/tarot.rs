@@ -16,10 +16,10 @@ fn main() {
 }
 
 fn display(deck: &spielkartenlib::CardDeck) {
-    for karte in deck.values() {
-        let suitname = karte.suit.name.to_string();
+    for card in deck.values() {
+        let suitname = card.suit.name.to_string();
 
-        let rankname = karte.rank.name.to_string();
+        let rankname = card.rank.name.to_string();
         if suitname == "Major Arcana".to_string() {
             println!("      {}", rankname);
         } else {

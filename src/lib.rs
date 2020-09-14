@@ -5,6 +5,7 @@ pub mod deck;
 pub mod fluent;
 
 mod card;
+pub use card::Card;
 
 mod card_deck;
 pub use card_deck::CardDeck;
