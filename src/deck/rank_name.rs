@@ -4,7 +4,7 @@ use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, LOCALES, US_ENGLISH};
 
-/// Karten Anzug Name (Card Suit Name) - Single field struct representing the name of a card suit.
+/// Card Rank Name - Single field struct representing the name of a card rank.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct RankName(String);

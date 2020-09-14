@@ -3,7 +3,7 @@ use fluent_templates::Loader;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-/// Karten Anzug Name (Card Suit Letter) - Single field struct representing the letter of a card suit.
+/// Card Rank Short - Single field struct representing the short string of a card rank.
 ///
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct RankShort(String);

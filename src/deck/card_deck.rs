@@ -265,7 +265,7 @@ impl IntoIterator for CardDeck {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod karten_tests {
+mod card_deck_tests {
     use super::*;
 
     #[test]
