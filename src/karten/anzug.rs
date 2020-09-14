@@ -27,8 +27,8 @@ impl Anzug {
     }
 
     pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Anzug
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Anzug {
             wert,
@@ -138,8 +138,14 @@ mod suit_tests {
 
     #[test]
     fn partial_eq() {
-        assert_ne!(Anzug::new_with_value("spades", 3), Anzug::new_with_value("spades", 4));
-        assert_ne!(Anzug::new_with_value("hearts", 4), Anzug::new_with_value("spades", 4));
+        assert_ne!(
+            Anzug::new_with_value("spades", 3),
+            Anzug::new_with_value("spades", 4)
+        );
+        assert_ne!(
+            Anzug::new_with_value("hearts", 4),
+            Anzug::new_with_value("spades", 4)
+        );
     }
 
     #[test]
@@ -162,7 +168,6 @@ mod suit_tests {
 
         assert_eq!(expected, Anzug::to_vec(&["clubs", "spades"]));
     }
-
 
     #[test]
     fn to_vec_bottom_up() {

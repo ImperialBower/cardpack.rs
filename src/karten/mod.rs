@@ -8,11 +8,10 @@ mod rang_name;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use std::cmp::Ordering;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::{ToLocaleString, US_ENGLISH, GERMAN};
+use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
 use crate::karten::anzug::Anzug;
 use crate::karten::rang::Rang;
 
@@ -52,24 +51,6 @@ impl Karte {
         let anzug = self.anzug.buchstabe.to_locale_string(&lid);
         format!("{}{}", rang, anzug)
     }
-
-    pub fn cmp_anmzug_dann_rang(&self, other: &Karte) -> Ordering {
-        let result: Ordering = self.anzug.cmp(&other.anzug);
-
-        if result == Ordering::Equal {
-            return self.rang.cmp(&other.rang);
-        }
-        result
-    }
-
-    pub fn cmp_rang_dann_anmzug(&self, other: &Karte) -> Ordering {
-        let result: Ordering = self.rang.cmp(&other.rang);
-        println!("{} to {}", self, other);
-        if result == Ordering::Equal {
-            return self.anzug.cmp(&other.anzug);
-        }
-        result
-    }
 }
 
 impl fmt::Display for Karte {
@@ -77,12 +58,6 @@ impl fmt::Display for Karte {
         write!(f, "{}", self.to_locale_string(&US_ENGLISH))
     }
 }
-//
-// impl Ord for Karte {
-//     fn cmp(&self, other: &Karte) -> Ordering {
-//         self.cmp_anmzug_dann_rang(other)
-//     }
-// }
 
 impl ToLocaleString for Karte {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
@@ -176,6 +151,17 @@ impl Karten {
     }
 
     pub fn demo(&self) {
+        print!("   Long in English and German:\n");
+        for karte in self.values() {
+            let anzugname = karte.anzug.name.to_locale_string(&GERMAN);
+            let suitname = karte.anzug.name.to_locale_string(&US_ENGLISH);
+            let rangname = karte.rang.name.to_locale_string(&GERMAN);
+            let rankname = karte.rang.name.to_locale_string(&US_ENGLISH);
+            println!("      {} of {} ", rankname, suitname);
+            println!("      {} von {} ", rangname, anzugname);
+        }
+
+        println!();
         print!("   Short With Symbols:           ");
         for karte in self.values() {
             print!("{} ", karte);
@@ -184,19 +170,13 @@ impl Karten {
         println!();
         print!("   Short With Symbols in German: ");
         for karte in self.values() {
-            print!(
-                "{} ",
-                karte.to_locale_string(&GERMAN)
-            );
+            print!("{} ", karte.to_locale_string(&GERMAN));
         }
 
         println!();
         print!("   Short With Letters:           ");
         for karte in self.values() {
-            print!(
-                "{} ",
-                karte.to_txt_string(&US_ENGLISH)
-            );
+            print!("{} ", karte.to_txt_string(&US_ENGLISH));
         }
 
         println!();
@@ -207,34 +187,16 @@ impl Karten {
 
         println!();
         print!("   Shuffle Deck:                 ");
-        for karte in self.mischen().values() {
-            print!(
-                "{} ",
-                karte.to_locale_string(&US_ENGLISH)
-            );
+        let mut mische = self.mischen();
+        for karte in mische.values() {
+            print!("{} ", karte.to_locale_string(&US_ENGLISH));
         }
 
         println!();
-        print!("   Long in English and German:\n");
-        for karte in self.values() {
-            let anzugname = karte
-                .anzug
-                .name
-                .to_locale_string(&GERMAN);
-            let suitname = karte
-                .anzug
-                .name
-                .to_locale_string(&US_ENGLISH);
-            let rangname = karte
-                .rang
-                .name
-                .to_locale_string(&GERMAN);
-            let rankname = karte
-                .rang
-                .name
-                .to_locale_string(&US_ENGLISH);
-            println!("      {} of {} ", rankname, suitname);
-            println!("      {} von {} ", rangname, anzugname);
+        print!("   Sort Deck:                    ");
+        mische.sort();
+        for karte in mische.values() {
+            print!("{} ", karte.to_locale_string(&US_ENGLISH));
         }
 
         println!();
@@ -333,6 +295,58 @@ impl Karten {
                 karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
             }
         }
+        karten
+    }
+
+    pub fn pinochle_deck() -> Karten {
+        let suits = Anzug::generate_french_suits();
+        let ranks = Rang::generate_pinochle_ranks();
+
+        let mut karten: Karten = Karten::neu();
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        karten
+    }
+
+    pub fn spades_deck() -> Karten {
+        let mut deck = Karten::french_deck();
+        deck.remove_karte(&Karte::neu("two", "clubs"));
+        deck.remove_karte(&Karte::neu("two", "diamonds"));
+        let jokers = Karten::jokers();
+
+        deck.prepend(&jokers);
+        deck
+    }
+
+    pub fn tarot_deck() -> Karten {
+        let arcana_suits = Anzug::generate_arcana_suits();
+        let mut arcana_suits_enumerator = arcana_suits.iter().enumerate();
+        let major_arcana_ranks = Rang::generate_major_arcana_ranks();
+        let minor_arcana_ranks = Rang::generate_minor_arcana_ranks();
+
+        let mut karten: Karten = Karten::neu();
+
+        let (_, major_arcana_suit) = arcana_suits_enumerator.next().unwrap();
+
+        // Generate Major Arcana
+        for (_, rank) in major_arcana_ranks.iter().enumerate() {
+            karten.add(Karte::new_from_structs(
+                rank.clone(),
+                major_arcana_suit.clone(),
+            ));
+        }
+
+        // Generate Minor Arcana
+        for (_, suit) in arcana_suits_enumerator {
+            for (_, rank) in minor_arcana_ranks.iter().enumerate() {
+                karten.add(Karte::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+
         karten
     }
 }
@@ -542,5 +556,14 @@ mod karten_tests {
         shuffled.sort();
 
         assert_eq!(french_deck, shuffled);
+    }
+
+    #[test]
+    fn spades_deck() {
+        let deck = Karten::spades_deck();
+
+        assert!(!deck.contains(&Karte::neu("two", "clubs")));
+        assert!(!deck.contains(&Karte::neu("two", "diamonds")));
+        assert!(deck.contains(&Karte::neu("two", "spades")));
     }
 }

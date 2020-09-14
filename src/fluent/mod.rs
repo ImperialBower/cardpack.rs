@@ -25,7 +25,7 @@ pub trait Valuable {
     fn get_value(&self) -> isize;
 }
 
-pub fn get_value(name: &str) -> String {
+fn get_value(name: &str) -> String {
     let var = "-value";
     let id = format!("{}{}", name, var);
     LOCALES.lookup(&US_ENGLISH, id.as_str())

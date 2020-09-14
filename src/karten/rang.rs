@@ -23,8 +23,8 @@ impl Rang {
     }
 
     pub fn new_with_value<S: std::clone::Clone>(name: S, wert: isize) -> Rang
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Rang {
             wert: wert,
@@ -156,8 +156,14 @@ mod rank_tests {
 
     #[test]
     fn partial_eq() {
-        assert_ne!(Rang::new_with_value("nine", 3), Rang::new_with_value("nine", 4));
-        assert_ne!(Rang::new_with_value("ten", 4), Rang::new_with_value("nine", 4));
+        assert_ne!(
+            Rang::new_with_value("nine", 3),
+            Rang::new_with_value("nine", 4)
+        );
+        assert_ne!(
+            Rang::new_with_value("ten", 4),
+            Rang::new_with_value("nine", 4)
+        );
     }
 
     #[test]
