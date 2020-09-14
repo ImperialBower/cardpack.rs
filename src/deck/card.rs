@@ -14,8 +14,8 @@ pub struct Card {
 
 impl Card {
     pub fn new<S: std::clone::Clone>(rang: S, anzug: S) -> Card
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         let a = Suit::new(anzug);
         let r = Rank::new(rang);
@@ -102,4 +102,3 @@ mod card_tests {
         assert_eq!(karte.to_txt_string(&GERMAN), "DK".to_string());
     }
 }
-

@@ -1,13 +1,17 @@
-pub use deck::suit::*;
 pub use fluent::*;
 
-pub mod deck;
 pub mod fluent;
 
-mod card;
-pub use card::Card;
+mod deck;
 
-mod card_deck;
-pub use card_deck::CardDeck;
+pub use deck::card::Card;
+pub use deck::card_deck::CardDeck;
+pub use deck::rank::Rank;
+pub use deck::rank_name::RankName;
+pub use deck::rank_short::RankShort;
+pub use deck::suit::Suit;
+pub use deck::suit_letter::SuitLetter;
+pub use deck::suit_name::SuitName;
+pub use deck::suit_symbol::SuitSymbol;
 
 extern crate rand;
