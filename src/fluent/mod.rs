@@ -1,9 +1,7 @@
-#[allow(unused_imports)]
 use fluent_templates::{static_loader, Loader};
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
-#[allow(dead_code)]
 pub const GERMAN: LanguageIdentifier = langid!("de");
 
 static_loader! {
