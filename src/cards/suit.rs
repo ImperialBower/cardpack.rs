@@ -1,9 +1,9 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::deck::suit_letter::SuitLetter;
-use crate::deck::suit_name::SuitName;
-use crate::deck::suit_symbol::SuitSymbol;
+use crate::cards::suit_letter::SuitLetter;
+use crate::cards::suit_name::SuitName;
+use crate::cards::suit_symbol::SuitSymbol;
 use crate::fluent::*;
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
@@ -82,6 +82,10 @@ impl ToLocaleString for Suit {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         self.symbol.to_locale_string(lid)
     }
+
+    fn get_raw_name(&self) -> &str {
+        self.name.get_raw_name()
+    }
 }
 
 impl fmt::Display for Suit {
@@ -114,7 +118,7 @@ mod suit_tests {
 
     #[test]
     fn display() {
-        assert_eq!("Anzug: ♥", format!("Anzug: {}", Suit::new("hearts")));
+        assert_eq!("Suit: ♥", format!("Suit: {}", Suit::new("hearts")));
     }
 
     #[test]

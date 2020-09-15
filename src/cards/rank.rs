@@ -1,8 +1,8 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::deck::rank_name::RankName;
-use crate::deck::rank_short::RankShort;
+use crate::cards::rank_name::RankName;
+use crate::cards::rank_short::RankShort;
 use crate::fluent::*;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
@@ -119,11 +119,25 @@ impl ToLocaleString for Rank {
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         self.short.to_locale_string(lid)
     }
+
+    fn get_raw_name(&self) -> &str {
+        self.name.get_raw_name()
+    }
 }
 
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.short.to_locale_string(&US_ENGLISH))
+    }
+}
+
+impl Valuable for Rank {
+    fn revise_value(&mut self, new_value: isize) {
+        self.value = new_value
+    }
+
+    fn get_value(&self) -> isize {
+        self.value
     }
 }
 
@@ -241,5 +255,15 @@ mod rank_tests {
     #[test]
     fn generate_spades_ranks() {
         assert_eq!(16, Rank::generate_spades_ranks().len());
+    }
+
+    #[test]
+    fn revise_value() {
+        let mut ace = Rank::new("ace");
+        assert_eq!(14, ace.get_value());
+
+        ace.revise_value(3);
+
+        assert_eq!(3, ace.get_value());
     }
 }

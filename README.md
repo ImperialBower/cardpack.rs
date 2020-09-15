@@ -1,5 +1,10 @@
-# spielkarten.rs
-Generic Deck of Cards Library in Rust
+# cardpack.rs
+Generic pack of cards library written in Rust. The goals of the library include:
+
+* Various types of decks of cards.
+* Internationalization support.
+* Ability to create custom sorts for a specific pack of cards.
+
 
 ## Demo
 

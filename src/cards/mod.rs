@@ -1,5 +1,5 @@
 pub mod card;
-pub mod card_deck;
+pub mod pack;
 pub mod rank;
 pub mod rank_name;
 pub mod rank_short;

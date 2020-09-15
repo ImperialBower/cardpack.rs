@@ -16,6 +16,8 @@ static_loader! {
 pub trait ToLocaleString {
     fn get_fluent_key(&self) -> String;
 
+    fn get_raw_name(&self) -> &str;
+
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         LOCALES.lookup(lid, self.get_fluent_key().as_str())
     }
