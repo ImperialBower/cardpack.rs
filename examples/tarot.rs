@@ -1,19 +1,25 @@
 fn main() {
-    let deck = spielkartenlib::karten::Karten::tarot_deck();
+    let deck = spielkartenlib::CardDeck::tarot_deck();
 
     println!("Tarot Deck");
     display(&deck);
 
     println!();
     println!("Tarot Deck Shuffled");
-    display(&deck.mischen());
+    let mut shuffled = deck.shuffle();
+    display(&shuffled);
+
+    println!();
+    println!("Tarot Deck Sorted");
+    shuffled.sort();
+    display(&shuffled);
 }
 
-fn display(deck: &spielkartenlib::karten::Karten) {
-    for karte in deck.values() {
-        let suitname = karte.anzug.name.to_string();
+fn display(deck: &spielkartenlib::CardDeck) {
+    for card in deck.values() {
+        let suitname = card.suit.name.to_string();
 
-        let rankname = karte.rang.name.to_string();
+        let rankname = card.rank.name.to_string();
         if suitname == "Major Arcana".to_string() {
             println!("      {}", rankname);
         } else {

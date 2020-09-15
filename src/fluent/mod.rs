@@ -1,9 +1,7 @@
-#[allow(unused_imports)]
 use fluent_templates::{static_loader, Loader};
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
-#[allow(dead_code)]
 pub const GERMAN: LanguageIdentifier = langid!("de");
 
 static_loader! {
@@ -16,7 +14,11 @@ static_loader! {
 }
 
 pub trait ToLocaleString {
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String;
+    fn get_fluent_key(&self) -> String;
+
+    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
+        LOCALES.lookup(lid, self.get_fluent_key().as_str())
+    }
 }
 
 pub trait Valuable {
