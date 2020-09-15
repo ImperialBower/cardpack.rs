@@ -1,9 +1,6 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::suit_letter::SuitLetter;
-use crate::cards::suit_name::SuitName;
-use crate::cards::suit_symbol::SuitSymbol;
 use crate::fluent::*;
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
@@ -11,9 +8,7 @@ use crate::fluent::*;
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub value: isize,
-    pub name: SuitName,
-    pub letter: SuitLetter,
-    pub symbol: SuitSymbol,
+    pub raw: String,
 }
 
 impl Suit {
@@ -32,10 +27,27 @@ impl Suit {
     {
         Suit {
             value,
-            name: SuitName::new(name.clone()),
-            letter: SuitLetter::new(name.clone()),
-            symbol: SuitSymbol::new(name),
+            raw: name.into(),
         }
+    }
+
+    pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-letter", self.raw);
+        get_value_by_key(key.as_str(), lid)
+    }
+
+    pub fn get_default_long(&self) -> String {
+        self.get_long(&US_ENGLISH)
+    }
+
+    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-name", self.raw);
+        get_value_by_key(key.as_str(), lid)
+    }
+
+    pub fn get_symbol(&self) -> String {
+        let key = format!("{}-symbol", self.raw);
+        get_value_by_key(key.as_str(), &US_ENGLISH)
     }
 
     fn bottom_up_value(_len: usize, i: usize) -> isize {
@@ -72,25 +84,15 @@ impl Suit {
     pub fn generate_arcana_suits() -> Vec<Suit> {
         Suit::from_array(&["major-arcana", "wands", "cups", "swords", "pentacles"])
     }
-}
 
-impl ToLocaleString for Suit {
-    fn get_fluent_key(&self) -> String {
-        unimplemented!()
-    }
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.symbol.to_locale_string(lid)
-    }
-
-    fn get_raw_name(&self) -> &str {
-        self.name.get_raw_name()
+    pub fn generate_skat_suits() -> Vec<Suit> {
+        Suit::from_array(&["eichel", "laub", "herz", "schellen"])
     }
 }
 
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.symbol.to_locale_string(&US_ENGLISH))
+        write!(f, "{}", self.get_symbol())
     }
 }
 
@@ -108,13 +110,7 @@ impl Valuable for Suit {
 #[allow(non_snake_case)]
 mod suit_tests {
     use super::*;
-    use crate::fluent::{ToLocaleString, GERMAN};
-
-    #[test]
-    fn as_str() {
-        assert_eq!(Suit::new("diamonds").to_string().as_str(), "♦");
-        assert_eq!(Suit::new("spades").to_string().as_str(), "♠");
-    }
+    use crate::fluent::GERMAN;
 
     #[test]
     fn display() {
@@ -125,9 +121,7 @@ mod suit_tests {
     fn new() {
         let expected = Suit {
             value: 4,
-            name: SuitName::new("spades"),
-            letter: SuitLetter::new("spades"),
-            symbol: SuitSymbol::new("spades"),
+            raw: "spades".to_string(),
         };
 
         assert_eq!(expected, Suit::new("spades"));
@@ -137,9 +131,7 @@ mod suit_tests {
     fn new_with_value() {
         let expected = Suit {
             value: 4,
-            name: SuitName::new("spades"),
-            letter: SuitLetter::new("spades"),
-            symbol: SuitSymbol::new("spades"),
+            raw: "spades".to_string(),
         };
 
         assert_eq!(expected, Suit::new_with_value("spades", 4));
@@ -158,6 +150,29 @@ mod suit_tests {
     }
 
     #[test]
+    fn get_short() {
+        let clubs = Suit::new("clubs");
+
+        assert_eq!("C".to_string(), clubs.get_short(&US_ENGLISH));
+        assert_eq!("K".to_string(), clubs.get_short(&GERMAN));
+    }
+
+    #[test]
+    fn get_symbol() {
+        let clubs = Suit::new("clubs");
+
+        assert_eq!("♣".to_string(), clubs.get_symbol());
+    }
+
+    #[test]
+    fn get_long() {
+        let clubs = Suit::new("clubs");
+
+        assert_eq!("Clubs".to_string(), clubs.get_long(&US_ENGLISH));
+        assert_eq!("Klee".to_string(), clubs.get_long(&GERMAN));
+    }
+
+    #[test]
     fn to_string() {
         assert_eq!(Suit::new("clubs").to_string(), "♣".to_string());
     }
@@ -166,7 +181,7 @@ mod suit_tests {
     fn to_string_by_locale() {
         let clubs = Suit::new("clubs");
 
-        assert_eq!(clubs.to_locale_string(&GERMAN), "♣".to_string());
+        assert_eq!(clubs.get_short(&GERMAN), "K".to_string());
     }
 
     #[test]

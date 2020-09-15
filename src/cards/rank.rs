@@ -1,15 +1,12 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::rank_name::RankName;
-use crate::cards::rank_short::RankShort;
 use crate::fluent::*;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     pub value: isize,
-    pub name: RankName,
-    pub short: RankShort,
+    pub raw: String,
 }
 
 impl Rank {
@@ -28,8 +25,7 @@ impl Rank {
     {
         Rank {
             value,
-            name: RankName::new(name.clone()),
-            short: RankShort::new(name),
+            raw: name.into(),
         }
     }
 
@@ -42,6 +38,20 @@ impl Rank {
             v.push(Rank::new_with_value(elem, value as isize));
         }
         v
+    }
+
+    pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-short", self.raw);
+        get_value_by_key(key.as_str(), lid)
+    }
+
+    pub fn get_default_long(&self) -> String {
+        self.get_long(&US_ENGLISH)
+    }
+
+    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-name", self.raw);
+        get_value_by_key(key.as_str(), lid)
     }
 
     pub fn generate_french_ranks() -> Vec<Rank> {
@@ -109,25 +119,17 @@ impl Rank {
             "two",
         ])
     }
-}
 
-impl ToLocaleString for Rank {
-    fn get_fluent_key(&self) -> String {
-        unimplemented!()
-    }
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.short.to_locale_string(lid)
-    }
-
-    fn get_raw_name(&self) -> &str {
-        self.name.get_raw_name()
+    pub fn generate_skat_ranks() -> Vec<Rank> {
+        Rank::from_array(&[
+            "daus", "king", "ober", "unter", "ten", "nine", "eight", "seven",
+        ])
     }
 }
 
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.short.to_locale_string(&US_ENGLISH))
+        write!(f, "{}", self.get_short(&US_ENGLISH))
     }
 }
 
@@ -145,7 +147,7 @@ impl Valuable for Rank {
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::fluent::{ToLocaleString, GERMAN};
+    use crate::fluent::GERMAN;
 
     #[test]
     fn display() {
@@ -153,9 +155,19 @@ mod rank_tests {
     }
 
     #[test]
-    fn as_str() {
-        assert_eq!(Rank::new("ace").to_string().as_str(), "A");
-        assert_eq!(Rank::new("two").to_string().as_str(), "2");
+    fn get_short() {
+        let queen = Rank::new("queen");
+
+        assert_eq!("Q".to_string(), queen.get_short(&US_ENGLISH));
+        assert_eq!("D".to_string(), queen.get_short(&GERMAN));
+    }
+
+    #[test]
+    fn get_long() {
+        let ace = Rank::new("ace");
+
+        assert_eq!("Ace".to_string(), ace.get_long(&US_ENGLISH));
+        assert_eq!("Ass".to_string(), ace.get_long(&GERMAN));
     }
 
     #[test]
@@ -167,8 +179,7 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             value: 9,
-            name: RankName::new("nine"),
-            short: RankShort::new("nine"),
+            raw: "nine".to_string(),
         };
 
         assert_eq!(expected, Rank::new("nine"));
@@ -184,13 +195,6 @@ mod rank_tests {
             Rank::new_with_value("ten", 4),
             Rank::new_with_value("nine", 4)
         );
-    }
-
-    #[test]
-    fn to_string_by_locale() {
-        let clubs = Rank::new("queen");
-
-        assert_eq!(clubs.to_locale_string(&GERMAN), "D".to_string());
     }
 
     #[test]

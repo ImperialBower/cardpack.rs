@@ -46,10 +46,10 @@ impl Pack {
     pub fn demo(&self) {
         println!("   Long in English and German:");
         for card in self.values() {
-            let anzugname = card.suit.name.to_locale_string(&GERMAN);
-            let suitname = card.suit.name.to_locale_string(&US_ENGLISH);
-            let rangname = card.rank.name.to_locale_string(&GERMAN);
-            let rankname = card.rank.name.to_locale_string(&US_ENGLISH);
+            let anzugname = card.suit.get_long(&GERMAN);
+            let suitname = card.suit.get_long(&US_ENGLISH);
+            let rangname = card.rank.get_long(&GERMAN);
+            let rankname = card.rank.get_long(&US_ENGLISH);
             println!("      {} of {} ", rankname, suitname);
             println!("      {} von {} ", rangname, anzugname);
         }
@@ -182,16 +182,20 @@ impl Pack {
         Pack::new_from_vector(vec![big_joker, little_joker])
     }
 
+    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+    }
+
     pub fn french_deck() -> Pack {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
 
         let mut cards: Pack = Pack::new();
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
-            }
-        }
+        cards.fold_in(suits, ranks);
         cards
     }
 
@@ -207,6 +211,15 @@ impl Pack {
             }
         }
         karten
+    }
+
+    pub fn skat_deck() -> Pack {
+        let suits = Suit::generate_skat_suits();
+        let ranks = Rank::generate_skat_ranks();
+
+        let mut cards: Pack = Pack::new();
+        cards.fold_in(suits, ranks);
+        cards
     }
 
     pub fn spades_deck() -> Pack {
