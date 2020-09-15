@@ -1,4 +1,4 @@
 fn main() {
-    let deck = spielkartenlib::Pack::spades_deck();
+    let deck = cardpack::Pack::spades_deck();
     deck.demo();
 }

@@ -1,12 +1,12 @@
 [package]
-name = "spielkarten"
+name = "cardpack"
 description = "Generic Deck of Cards"
 version = "0.1.0"
 authors = ["folkengine <gaoler@electronicpanopticon.com>"]
 edition = "2018"
 
 [lib]
-name = "spielkartenlib"
+name = "cardpack"
 path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

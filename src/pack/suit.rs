@@ -114,7 +114,7 @@ mod suit_tests {
 
     #[test]
     fn display() {
-        assert_eq!("Anzug: ♥", format!("Anzug: {}", Suit::new("hearts")));
+        assert_eq!("Suit: ♥", format!("Suit: {}", Suit::new("hearts")));
     }
 
     #[test]
