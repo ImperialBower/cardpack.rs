@@ -2,9 +2,9 @@ use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::*;
-use crate::pack::suit_letter::SuitLetter;
-use crate::pack::suit_name::SuitName;
-use crate::pack::suit_symbol::SuitSymbol;
+use crate::cards::suit_letter::SuitLetter;
+use crate::cards::suit_name::SuitName;
+use crate::cards::suit_symbol::SuitSymbol;
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
@@ -81,6 +81,10 @@ impl ToLocaleString for Suit {
 
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         self.symbol.to_locale_string(lid)
+    }
+
+    fn get_raw_name(&self) -> &str {
+        self.name.get_raw_name()
     }
 }
 

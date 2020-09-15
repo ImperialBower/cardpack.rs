@@ -2,16 +2,16 @@ pub use fluent::*;
 
 pub mod fluent;
 
-mod pack;
+mod cards;
 
-pub use pack::card::Card;
-pub use pack::pack::Pack;
-pub use pack::rank::Rank;
-pub use pack::rank_name::RankName;
-pub use pack::rank_short::RankShort;
-pub use pack::suit::Suit;
-pub use pack::suit_letter::SuitLetter;
-pub use pack::suit_name::SuitName;
-pub use pack::suit_symbol::SuitSymbol;
+pub use cards::card::Card;
+pub use cards::pack::Pack;
+pub use cards::rank::Rank;
+pub use cards::rank_name::RankName;
+pub use cards::rank_short::RankShort;
+pub use cards::suit::Suit;
+pub use cards::suit_letter::SuitLetter;
+pub use cards::suit_name::SuitName;
+pub use cards::suit_symbol::SuitSymbol;
 
 extern crate rand;

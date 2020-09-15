@@ -25,6 +25,10 @@ impl ToLocaleString for RankName {
     fn get_fluent_key(&self) -> String {
         self.0.to_owned() + &*"-name".to_owned()
     }
+
+    fn get_raw_name(&self) -> &str {
+        self.0.as_str()
+    }
 }
 
 impl fmt::Display for RankName {

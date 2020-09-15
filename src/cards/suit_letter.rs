@@ -17,13 +17,17 @@ impl SuitLetter {
     }
 
     pub fn as_str(&self) -> &str {
-        self.0.as_str()
+        self.get_raw_name()
     }
 }
 
 impl ToLocaleString for SuitLetter {
     fn get_fluent_key(&self) -> String {
         self.0.to_owned() + &*"-letter".to_owned()
+    }
+
+    fn get_raw_name(&self) -> &str {
+        self.0.as_str()
     }
 }
 

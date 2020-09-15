@@ -2,9 +2,9 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
-use crate::pack::card::Card;
-use crate::pack::rank::Rank;
-use crate::pack::suit::Suit;
+use crate::cards::card::Card;
+use crate::cards::rank::Rank;
+use crate::cards::suit::Suit;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pack(Vec<Card>);

@@ -2,8 +2,8 @@ use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::fluent::{ToLocaleString, US_ENGLISH};
-use crate::pack::rank::Rank;
-use crate::pack::suit::Suit;
+use crate::cards::rank::Rank;
+use crate::cards::suit::Suit;
 
 /// `Card` is the core struct in the library.
 ///
@@ -60,6 +60,11 @@ impl ToLocaleString for Card {
         let rank = self.rank.to_locale_string(&lid);
         let suit = self.suit.to_locale_string(&lid);
         format!("{}{}", rank, suit)
+    }
+
+    // TODO make this work
+    fn get_raw_name(&self) -> &str {
+        "TODO"
     }
 }
 
