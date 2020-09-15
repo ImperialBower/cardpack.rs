@@ -29,6 +29,10 @@ pub trait Valuable {
     fn get_value(&self) -> isize;
 }
 
+pub fn get_value_by_key(key: &str, lid: &LanguageIdentifier) -> String {
+    LOCALES.lookup(lid, key)
+}
+
 fn get_value(name: &str) -> String {
     let var = "-value";
     let id = format!("{}{}", name, var);

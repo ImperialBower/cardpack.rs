@@ -59,7 +59,7 @@ impl ToLocaleString for Card {
     fn get_raw_name(&self) -> String {
         format!(
             "{}{}",
-            self.rank.short.to_locale_string(&US_ENGLISH),
+            self.rank.get_rank_short(&US_ENGLISH),
             self.suit.letter.to_locale_string(&US_ENGLISH)
         )
     }

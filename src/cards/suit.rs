@@ -11,6 +11,7 @@ use crate::fluent::*;
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub value: isize,
+    pub raw: String,
     pub name: SuitName,
     pub letter: SuitLetter,
     pub symbol: SuitSymbol,
@@ -32,6 +33,7 @@ impl Suit {
     {
         Suit {
             value,
+            raw: name.clone().into(),
             name: SuitName::new(name.clone()),
             letter: SuitLetter::new(name.clone()),
             symbol: SuitSymbol::new(name),
@@ -129,6 +131,7 @@ mod suit_tests {
     fn new() {
         let expected = Suit {
             value: 4,
+            raw: "spades".to_string(),
             name: SuitName::new("spades"),
             letter: SuitLetter::new("spades"),
             symbol: SuitSymbol::new("spades"),
@@ -141,6 +144,7 @@ mod suit_tests {
     fn new_with_value() {
         let expected = Suit {
             value: 4,
+            raw: "spades".to_string(),
             name: SuitName::new("spades"),
             letter: SuitLetter::new("spades"),
             symbol: SuitSymbol::new("spades"),

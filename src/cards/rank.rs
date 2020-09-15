@@ -1,15 +1,12 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::rank_name::RankName;
-use crate::cards::rank_short::RankShort;
 use crate::fluent::*;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     pub value: isize,
-    pub name: RankName,
-    pub short: RankShort,
+    pub raw: String,
 }
 
 impl Rank {
@@ -28,8 +25,7 @@ impl Rank {
     {
         Rank {
             value,
-            name: RankName::new(name.clone()),
-            short: RankShort::new(name),
+            raw: name.clone().into(),
         }
     }
 
@@ -42,6 +38,20 @@ impl Rank {
             v.push(Rank::new_with_value(elem, value as isize));
         }
         v
+    }
+
+    pub fn get_rank_short(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-short", self.raw);
+        get_value_by_key(key.as_str(), lid)
+    }
+
+    pub fn get_default_rank_long(&self) -> String {
+        self.get_rank_long(&US_ENGLISH)
+    }
+
+    pub fn get_rank_long(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-name", self.raw);
+        get_value_by_key(key.as_str(), lid)
     }
 
     pub fn generate_french_ranks() -> Vec<Rank> {
@@ -123,17 +133,17 @@ impl ToLocaleString for Rank {
     }
 
     fn get_raw_name(&self) -> String {
-        self.name.get_raw_name()
+        self.raw.clone()
     }
 
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.short.to_locale_string(lid)
+        self.get_rank_short(lid)
     }
 }
 
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.short.to_locale_string(&US_ENGLISH))
+        write!(f, "{}", self.get_rank_short(&US_ENGLISH))
     }
 }
 
@@ -159,9 +169,19 @@ mod rank_tests {
     }
 
     #[test]
-    fn as_str() {
-        assert_eq!(Rank::new("ace").to_string().as_str(), "A");
-        assert_eq!(Rank::new("two").to_string().as_str(), "2");
+    fn get_rank_short() {
+        let queen = Rank::new("queen");
+
+        assert_eq!("Q".to_string(), queen.get_rank_short(&US_ENGLISH));
+        assert_eq!("D".to_string(), queen.get_rank_short(&GERMAN));
+    }
+
+    #[test]
+    fn get_rank_long() {
+        let ace = Rank::new("ace");
+
+        assert_eq!("Ace".to_string(), ace.get_rank_long(&US_ENGLISH));
+        assert_eq!("Ass".to_string(), ace.get_rank_long(&GERMAN));
     }
 
     #[test]
@@ -173,8 +193,7 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             value: 9,
-            name: RankName::new("nine"),
-            short: RankShort::new("nine"),
+            raw: "nine".to_string(),
         };
 
         assert_eq!(expected, Rank::new("nine"));

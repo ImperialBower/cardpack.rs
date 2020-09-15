@@ -19,7 +19,7 @@ fn display(deck: &cardpack::Pack) {
     for card in deck.values() {
         let suitname = card.suit.name.to_string();
 
-        let rankname = card.rank.name.to_string();
+        let rankname = card.rank.get_default_rank_long();
         if suitname == "Major Arcana".to_string() {
             println!("      {}", rankname);
         } else {

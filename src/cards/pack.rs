@@ -48,8 +48,8 @@ impl Pack {
         for card in self.values() {
             let anzugname = card.suit.name.to_locale_string(&GERMAN);
             let suitname = card.suit.name.to_locale_string(&US_ENGLISH);
-            let rangname = card.rank.name.to_locale_string(&GERMAN);
-            let rankname = card.rank.name.to_locale_string(&US_ENGLISH);
+            let rangname = card.rank.get_rank_long(&GERMAN);
+            let rankname = card.rank.get_rank_long(&US_ENGLISH);
             println!("      {} of {} ", rankname, suitname);
             println!("      {} von {} ", rangname, anzugname);
         }
