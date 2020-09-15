@@ -46,10 +46,7 @@ mod suite_name_tests {
 
     #[test]
     fn display() {
-        assert_eq!(
-            "Suit: Hearts",
-            format!("Suit: {}", SuitName::new("hearts"))
-        );
+        assert_eq!("Suit: Hearts", format!("Suit: {}", SuitName::new("hearts")));
     }
 
     #[test]

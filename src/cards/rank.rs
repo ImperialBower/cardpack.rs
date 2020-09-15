@@ -1,9 +1,9 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::*;
 use crate::cards::rank_name::RankName;
 use crate::cards::rank_short::RankShort;
+use crate::fluent::*;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rank {

@@ -1,10 +1,10 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
 use crate::cards::card::Card;
 use crate::cards::rank::Rank;
 use crate::cards::suit::Suit;
+use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pack(Vec<Card>);
