@@ -83,7 +83,7 @@ impl ToLocaleString for Suit {
         unimplemented!()
     }
 
-    fn get_raw_name(&self) -> &str {
+    fn get_raw_name(&self) -> String {
         self.name.get_raw_name()
     }
 

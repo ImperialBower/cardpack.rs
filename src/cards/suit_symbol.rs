@@ -21,8 +21,8 @@ impl ToLocaleString for SuitSymbol {
         self.0.to_owned() + &*"-symbol".to_owned()
     }
 
-    fn get_raw_name(&self) -> &str {
-        self.0.as_str()
+    fn get_raw_name(&self) -> String {
+        self.0.clone()
     }
 }
 

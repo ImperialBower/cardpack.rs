@@ -15,10 +15,6 @@ impl SuitLetter {
     {
         SuitLetter(name.into())
     }
-
-    pub fn as_str(&self) -> &str {
-        self.get_raw_name()
-    }
 }
 
 impl ToLocaleString for SuitLetter {
@@ -26,8 +22,8 @@ impl ToLocaleString for SuitLetter {
         self.0.to_owned() + &*"-letter".to_owned()
     }
 
-    fn get_raw_name(&self) -> &str {
-        self.0.as_str()
+    fn get_raw_name(&self) -> String {
+        self.0.clone()
     }
 }
 
@@ -49,11 +45,6 @@ mod suit_letter_tests {
             "AnzugBuchstabe: H",
             format!("AnzugBuchstabe: {}", SuitLetter::new("hearts"))
         );
-    }
-
-    #[test]
-    fn as_str() {
-        assert_eq!(SuitLetter::new("bar").as_str(), "bar");
     }
 
     #[test]

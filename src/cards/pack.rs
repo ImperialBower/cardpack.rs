@@ -182,16 +182,20 @@ impl Pack {
         Pack::new_from_vector(vec![big_joker, little_joker])
     }
 
+    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+    }
+
     pub fn french_deck() -> Pack {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
 
         let mut cards: Pack = Pack::new();
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
-            }
-        }
+        cards.fold_in(suits, ranks);
         cards
     }
 
@@ -214,11 +218,7 @@ impl Pack {
         let ranks = Rank::generate_skat_ranks();
 
         let mut cards: Pack = Pack::new();
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
-            }
-        }
+        cards.fold_in(suits, ranks);
         cards
     }
 

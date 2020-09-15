@@ -56,9 +56,12 @@ impl ToLocaleString for Card {
         unimplemented!()
     }
 
-    // TODO make this work
-    fn get_raw_name(&self) -> &str {
-        "TODO"
+    fn get_raw_name(&self) -> String {
+        format!(
+            "{}{}",
+            self.rank.short.to_locale_string(&US_ENGLISH),
+            self.suit.letter.to_locale_string(&US_ENGLISH)
+        )
     }
 
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
@@ -108,8 +111,15 @@ mod card_tests {
 
     #[test]
     fn to_txt_string() {
-        let karte = Card::new("queen", "clubs");
+        let card = Card::new("queen", "clubs");
 
-        assert_eq!(karte.to_txt_string(&GERMAN), "DK".to_string());
+        assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
+    }
+
+    #[test]
+    fn get_raw_name() {
+        let card = Card::new("king", "diamonds");
+
+        assert_eq!(card.get_raw_name(), "KD".to_string());
     }
 }

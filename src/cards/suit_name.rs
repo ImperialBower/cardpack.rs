@@ -16,10 +16,6 @@ impl SuitName {
     {
         SuitName(name.into())
     }
-
-    pub fn as_str(&self) -> &str {
-        self.get_raw_name()
-    }
 }
 
 impl ToLocaleString for SuitName {
@@ -27,8 +23,8 @@ impl ToLocaleString for SuitName {
         self.0.to_owned() + &*"-name".to_owned()
     }
 
-    fn get_raw_name(&self) -> &str {
-        self.0.as_str()
+    fn get_raw_name(&self) -> String {
+        self.0.clone()
     }
 }
 
@@ -47,11 +43,6 @@ mod suite_name_tests {
     #[test]
     fn display() {
         assert_eq!("Suit: Hearts", format!("Suit: {}", SuitName::new("hearts")));
-    }
-
-    #[test]
-    fn as_str() {
-        assert_eq!(SuitName::new("bar").as_str(), "bar");
     }
 
     #[test]
