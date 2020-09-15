@@ -1,10 +1,10 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::deck::suit_letter::SuitLetter;
-use crate::deck::suit_name::SuitName;
-use crate::deck::suit_symbol::SuitSymbol;
 use crate::fluent::*;
+use crate::pack::suit_letter::SuitLetter;
+use crate::pack::suit_name::SuitName;
+use crate::pack::suit_symbol::SuitSymbol;
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.

@@ -1,4 +1,4 @@
 fn main() {
-    let deck = spielkartenlib::CardDeck::french_deck();
+    let deck = spielkartenlib::Pack::french_deck();
     deck.demo();
 }

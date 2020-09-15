@@ -1,9 +1,9 @@
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::deck::rank::Rank;
-use crate::deck::suit::Suit;
 use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::pack::rank::Rank;
+use crate::pack::suit::Suit;
 
 /// `Card` is the core struct in the library.
 ///
