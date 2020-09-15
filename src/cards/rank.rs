@@ -25,7 +25,7 @@ impl Rank {
     {
         Rank {
             value,
-            raw: name.clone().into(),
+            raw: name.into(),
         }
     }
 
@@ -40,16 +40,16 @@ impl Rank {
         v
     }
 
-    pub fn get_rank_short(&self, lid: &LanguageIdentifier) -> String {
+    pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
         let key = format!("{}-short", self.raw);
         get_value_by_key(key.as_str(), lid)
     }
 
-    pub fn get_default_rank_long(&self) -> String {
-        self.get_rank_long(&US_ENGLISH)
+    pub fn get_default_long(&self) -> String {
+        self.get_long(&US_ENGLISH)
     }
 
-    pub fn get_rank_long(&self, lid: &LanguageIdentifier) -> String {
+    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
         let key = format!("{}-name", self.raw);
         get_value_by_key(key.as_str(), lid)
     }
@@ -127,23 +127,9 @@ impl Rank {
     }
 }
 
-impl ToLocaleString for Rank {
-    fn get_fluent_key(&self) -> String {
-        unimplemented!()
-    }
-
-    fn get_raw_name(&self) -> String {
-        self.raw.clone()
-    }
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.get_rank_short(lid)
-    }
-}
-
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get_rank_short(&US_ENGLISH))
+        write!(f, "{}", self.get_short(&US_ENGLISH))
     }
 }
 
@@ -161,7 +147,7 @@ impl Valuable for Rank {
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::fluent::{ToLocaleString, GERMAN};
+    use crate::fluent::GERMAN;
 
     #[test]
     fn display() {
@@ -169,19 +155,19 @@ mod rank_tests {
     }
 
     #[test]
-    fn get_rank_short() {
+    fn get_short() {
         let queen = Rank::new("queen");
 
-        assert_eq!("Q".to_string(), queen.get_rank_short(&US_ENGLISH));
-        assert_eq!("D".to_string(), queen.get_rank_short(&GERMAN));
+        assert_eq!("Q".to_string(), queen.get_short(&US_ENGLISH));
+        assert_eq!("D".to_string(), queen.get_short(&GERMAN));
     }
 
     #[test]
-    fn get_rank_long() {
+    fn get_long() {
         let ace = Rank::new("ace");
 
-        assert_eq!("Ace".to_string(), ace.get_rank_long(&US_ENGLISH));
-        assert_eq!("Ass".to_string(), ace.get_rank_long(&GERMAN));
+        assert_eq!("Ace".to_string(), ace.get_long(&US_ENGLISH));
+        assert_eq!("Ass".to_string(), ace.get_long(&GERMAN));
     }
 
     #[test]
@@ -209,13 +195,6 @@ mod rank_tests {
             Rank::new_with_value("ten", 4),
             Rank::new_with_value("nine", 4)
         );
-    }
-
-    #[test]
-    fn to_string_by_locale() {
-        let clubs = Rank::new("queen");
-
-        assert_eq!(clubs.to_locale_string(&GERMAN), "D".to_string());
     }
 
     #[test]

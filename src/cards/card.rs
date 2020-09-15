@@ -39,8 +39,8 @@ impl Card {
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.to_locale_string(&lid);
-        let suit = self.suit.letter.to_locale_string(&lid);
+        let rank = self.rank.get_short(&lid);
+        let suit = self.suit.get_short(&lid);
         format!("{}{}", rank, suit)
     }
 }
@@ -57,17 +57,11 @@ impl ToLocaleString for Card {
     }
 
     fn get_raw_name(&self) -> String {
-        format!(
-            "{}{}",
-            self.rank.get_rank_short(&US_ENGLISH),
-            self.suit.letter.to_locale_string(&US_ENGLISH)
-        )
+        self.to_locale_string(&US_ENGLISH)
     }
 
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.to_locale_string(&lid);
-        let suit = self.suit.to_locale_string(&lid);
-        format!("{}{}", rank, suit)
+        format!("{}{}", self.rank.get_short(lid), self.suit.get_symbol(),)
     }
 }
 
@@ -120,6 +114,6 @@ mod card_tests {
     fn get_raw_name() {
         let card = Card::new("king", "diamonds");
 
-        assert_eq!(card.get_raw_name(), "KD".to_string());
+        assert_eq!(card.get_raw_name(), "K♦".to_string());
     }
 }
