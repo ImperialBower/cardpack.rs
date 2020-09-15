@@ -72,6 +72,10 @@ impl Suit {
     pub fn generate_arcana_suits() -> Vec<Suit> {
         Suit::from_array(&["major-arcana", "wands", "cups", "swords", "pentacles"])
     }
+
+    pub fn generate_skat_suits() -> Vec<Suit> {
+        Suit::from_array(&["eichel", "laub", "herz", "schellen"])
+    }
 }
 
 impl ToLocaleString for Suit {
@@ -79,12 +83,12 @@ impl ToLocaleString for Suit {
         unimplemented!()
     }
 
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.symbol.to_locale_string(lid)
-    }
-
     fn get_raw_name(&self) -> &str {
         self.name.get_raw_name()
+    }
+
+    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
+        self.symbol.to_locale_string(lid)
     }
 }
 

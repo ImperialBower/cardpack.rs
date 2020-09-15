@@ -30,6 +30,12 @@ four-value = 4
 three-value = 3
 two-value = 2
 
+# Skat Deck
+eichel-symbol = ♣
+laub-symbol = 🙒
+herz-symbol = ♥
+schellen-symbol = 🔔
+
 # Tarot Deck
 major-arcana-symbol = 👑
 wands-symbol = ♣

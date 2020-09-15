@@ -30,7 +30,7 @@ Long in English and German:
    Sort Deck:                    A♠ K♠ Q♠ J♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
 ```
 
-Also included are example programs for `spades`, `pinochle` and `tarot`.
+Also included are example programs for `spades`, `pinochle`, `skat`, and `tarot`.
 
 ## Details
 
@@ -41,9 +41,8 @@ decks of various sizes and suits. Out of the box, the library supports:
   * [Pinochle](https://en.wikipedia.org/wiki/Pinochle#Deck)
   * [Spades](https://en.wikipedia.org/wiki/Spades_(card_game)#General_overview) with [Jokers](https://en.wikipedia.org/wiki/Joker_(playing_card))
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
-* [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks)
-  * [Major Arcana](https://en.wikipedia.org/wiki/Major_Arcana)
-  * [Minor Arcana](https://en.wikipedia.org/wiki/Minor_Arcana)
+* [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
+* [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks) with [Major](https://en.wikipedia.org/wiki/Major_Arcana) and [Minor](https://en.wikipedia.org/wiki/Minor_Arcana) Arcana
 
 The project takes advantage of [Project Fluent](https://www.projectfluent.org/)'s
 [Rust](https://github.com/projectfluent/fluent-rs) support to offer
@@ -53,10 +52,9 @@ internationalization. Current languages supported are
 
 Other possibilities include:
 
-* [French Deck](https://en.wikipedia.org/wiki/French_playing_cards)
+* French Deck
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
-* [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 
 ## Responsibilities
 

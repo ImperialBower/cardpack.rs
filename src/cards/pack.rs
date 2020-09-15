@@ -209,6 +209,19 @@ impl Pack {
         karten
     }
 
+    pub fn skat_deck() -> Pack {
+        let suits = Suit::generate_skat_suits();
+        let ranks = Rank::generate_skat_ranks();
+
+        let mut cards: Pack = Pack::new();
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+        cards
+    }
+
     pub fn spades_deck() -> Pack {
         let mut deck = Pack::french_deck();
         deck.remove_karte(&Card::new("two", "clubs"));

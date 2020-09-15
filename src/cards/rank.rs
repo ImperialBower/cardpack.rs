@@ -109,6 +109,10 @@ impl Rank {
             "two",
         ])
     }
+
+    pub fn generate_skat_ranks() -> Vec<Rank> {
+        Rank::from_array(&["daus", "king", "ober", "unter", "ten", "nine", "eight", "seven"])
+    }
 }
 
 impl ToLocaleString for Rank {
@@ -116,12 +120,12 @@ impl ToLocaleString for Rank {
         unimplemented!()
     }
 
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        self.short.to_locale_string(lid)
-    }
-
     fn get_raw_name(&self) -> &str {
         self.name.get_raw_name()
+    }
+
+    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
+        self.short.to_locale_string(lid)
     }
 }
 

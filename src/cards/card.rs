@@ -56,15 +56,15 @@ impl ToLocaleString for Card {
         unimplemented!()
     }
 
+    // TODO make this work
+    fn get_raw_name(&self) -> &str {
+        "TODO"
+    }
+
     fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.to_locale_string(&lid);
         let suit = self.suit.to_locale_string(&lid);
         format!("{}{}", rank, suit)
-    }
-
-    // TODO make this work
-    fn get_raw_name(&self) -> &str {
-        "TODO"
     }
 }
 
