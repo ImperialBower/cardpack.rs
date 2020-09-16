@@ -70,9 +70,7 @@ impl Pile {
 
         println!();
         print!("   Short With Letters:           ");
-        for card in self.values() {
-            print!("{} ", card.to_txt_string(&US_ENGLISH));
-        }
+        print!("{}", self.to_string());
 
         println!();
         print!("   Short With Letters in German: ");
@@ -83,16 +81,12 @@ impl Pile {
         println!();
         print!("   Shuffle Deck:                 ");
         let mut shuffled = self.shuffle();
-        for card in shuffled.values() {
-            print!("{} ", card.to_txt_string(&US_ENGLISH));
-        }
+        print!("{}", shuffled.to_string());
 
         println!();
         print!("   Sort Deck:                    ");
         shuffled.sort();
-        for card in shuffled.values() {
-            print!("{} ", card.to_txt_string(&US_ENGLISH));
-        }
+        print!("{}", shuffled.to_string());
 
         println!();
     }
