@@ -25,8 +25,8 @@ impl Pile {
         self.0.push(elem);
     }
 
-    pub fn all(&self) -> &Vec<Card> {
-        &self.0
+    pub fn all(&self, pile: &Pile) -> bool {
+        pile.cards().iter().all(|c| self.contains(c))
     }
 
     // Appends a clone of the passed in Karten struct.
@@ -34,12 +34,8 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
-    // Takes a reference to the prepended entity, clones it, appends the original to the passed in
-    // entity, and replaces the original with the new one.
-    pub fn prepend(&mut self, other: &Pile) {
-        let mut product = other.0.clone();
-        product.append(&mut self.0);
-        self.0 = product;
+    pub fn cards(&self) -> &Vec<Card> {
+        &self.0
     }
 
     pub fn contains(&self, card: &Card) -> bool {
@@ -59,11 +55,11 @@ impl Pile {
 
         println!();
         print!("   Short With Symbols:           ");
-        print!("{}", self.symbol_index_sig());
+        print!("{}", self.sig_symbol_index());
 
         println!();
         print!("   Short With Symbols in German: ");
-        print!("{}", self.symbol_index_sig_locale(&GERMAN));
+        print!("{}", self.sig_symbol_index_locale(&GERMAN));
 
         println!();
         print!("   Short With Letters:           ");
@@ -71,8 +67,7 @@ impl Pile {
 
         println!();
         print!("   Short With Letters in German: ");
-        print!("{}", self.index_sig_locale(&GERMAN));
-
+        print!("{}", self.sig_index_locale(&GERMAN));
 
         println!();
         print!("   Shuffle Deck:                 ");
@@ -139,6 +134,14 @@ impl Pile {
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
         self.0.iter().position(|k| k == karte)
+    }
+
+    // Takes a reference to the prepended entity, clones it, appends the original to the passed in
+    // entity, and replaces the original with the new one.
+    pub fn prepend(&mut self, other: &Pile) {
+        let mut product = other.0.clone();
+        product.append(&mut self.0);
+        self.0 = product;
     }
 
     pub fn remove(&mut self, index: usize) -> Card {
@@ -260,23 +263,23 @@ impl Pile {
         self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
     }
 
-    pub fn index_sig(&self) -> String {
-        self.index_sig_locale(&US_ENGLISH)
+    pub fn sig_index(&self) -> String {
+        self.sig_index_locale(&US_ENGLISH)
     }
 
-    pub fn index_sig_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::generate_sig(&self.collect_index(lid))
+    pub fn sig_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_index(lid))
     }
 
-    pub fn symbol_index_sig(&self) -> String {
-        self.symbol_index_sig_locale(&US_ENGLISH)
+    pub fn sig_symbol_index(&self) -> String {
+        self.sig_symbol_index_locale(&US_ENGLISH)
     }
 
-    pub fn symbol_index_sig_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::generate_sig(&self.collect_symbol_index(lid))
+    pub fn sig_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
-    pub fn generate_sig(strings: &[String]) -> String {
+    pub fn sig_generate_from_strings(strings: &[String]) -> String {
         strings
             .iter()
             .map(|s| format!("{} ", s))
@@ -294,7 +297,7 @@ impl Default for Pile {
 
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sig = self.index_sig();
+        let sig = self.sig_index();
         write!(f, "{}", sig)
     }
 }
@@ -314,44 +317,6 @@ mod card_deck_tests {
     use super::*;
 
     #[test]
-    fn generate_sig() {
-        let deck = Pile::french_deck().draw(4).unwrap();
-
-        let sig_english = Pile::generate_sig(&deck.collect_index(&US_ENGLISH));
-        let sig_german = Pile::generate_sig(&deck.collect_index(&GERMAN));
-
-        assert_eq!("AS KS QS JS".to_string(), sig_english);
-        assert_eq!("AS KS DS BS".to_string(), sig_german);
-    }
-
-    #[test]
-    fn index_sig() {
-        let deck = Pile::spades_deck().draw(4).unwrap();
-
-        let sig = deck.index_sig();
-
-        assert_eq!("JBS JLS AS KS".to_string(), sig);
-    }
-
-    #[test]
-    fn symbol_index_sig() {
-        let deck = Pile::spades_deck().draw(4).unwrap();
-
-        let sig = deck.symbol_index_sig();
-
-        assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
-    }
-
-    #[test]
-    fn to_string() {
-        let deck = Pile::french_deck().draw(4);
-
-        let sig = deck.unwrap().to_string();
-
-        assert_eq!("AS KS QS JS".to_string(), sig);
-    }
-
-    #[test]
     fn new_all_add_new_from_vector() {
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
@@ -365,6 +330,22 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn all() {
+        let deck = Pile::spades_deck();
+        let hand = Pile::spades_deck().shuffle().draw(4).unwrap();
+
+        assert!(deck.all(&hand));
+    }
+
+    #[test]
+    fn all_ne() {
+        let deck = Pile::spades_deck();
+        let hand = Pile::skat_deck().shuffle().draw(4).unwrap();
+
+        assert!(!deck.all(&hand));
+    }
+
+    #[test]
     fn append() {
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
@@ -375,21 +356,6 @@ mod card_deck_tests {
         let expected = Pile::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
 
         to_deck.append(&from_deck);
-
-        assert_eq!(expected, to_deck);
-    }
-
-    #[test]
-    fn prepend() {
-        let qclubs = Card::new("queen", "clubs");
-        let qhearts = Card::new("queen", "hearts");
-        let big_joker = Card::new("big-joker", "spades");
-        let little_joker = Card::new("little-joker", "spades");
-        let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
-        let from_deck = Pile::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
-        let expected = Pile::new_from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
-
-        to_deck.prepend(&from_deck);
 
         assert_eq!(expected, to_deck);
     }
@@ -510,6 +476,21 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn prepend() {
+        let qclubs = Card::new("queen", "clubs");
+        let qhearts = Card::new("queen", "hearts");
+        let big_joker = Card::new("big-joker", "spades");
+        let little_joker = Card::new("little-joker", "spades");
+        let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let from_deck = Pile::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
+        let expected = Pile::new_from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
+
+        to_deck.prepend(&from_deck);
+
+        assert_eq!(expected, to_deck);
+    }
+
+    #[test]
     fn remove() {
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
@@ -532,6 +513,48 @@ mod card_deck_tests {
         assert_eq!(removed.unwrap(), qclubs);
         assert!(deck.contains(&qhearts));
         assert!(!deck.contains(&qclubs));
+    }
+
+    // Signature methods
+
+    #[test]
+    fn sig_generate_from_strings() {
+        let deck = Pile::french_deck().draw(4).unwrap();
+
+        let sig_english = Pile::sig_generate_from_strings(&deck.collect_index(&US_ENGLISH));
+        let sig_german = Pile::sig_generate_from_strings(&deck.collect_index(&GERMAN));
+
+        assert_eq!("AS KS QS JS".to_string(), sig_english);
+        assert_eq!("AS KS DS BS".to_string(), sig_german);
+    }
+
+    #[test]
+    fn sig_index() {
+        let deck = Pile::spades_deck().draw(4).unwrap();
+
+        let sig_english = deck.sig_index();
+        let sig_german = deck.sig_index_locale(&GERMAN);
+
+        assert_eq!("JBS JLS AS KS".to_string(), sig_english);
+        assert_eq!("JGS JKS AS KS".to_string(), sig_german);
+    }
+
+    #[test]
+    fn sig_symbol_index() {
+        let deck = Pile::spades_deck().draw(4).unwrap();
+
+        let sig = deck.sig_symbol_index();
+
+        assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
+    }
+
+    #[test]
+    fn to_string() {
+        let deck = Pile::french_deck().draw(4);
+
+        let sig = deck.unwrap().to_string();
+
+        assert_eq!("AS KS QS JS".to_string(), sig);
     }
 
     #[test]
