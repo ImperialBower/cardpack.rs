@@ -1,6 +1,7 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::fmt;
+use unic_langid::LanguageIdentifier;
 
 use crate::cards::card::Card;
 use crate::cards::rank::Rank;
@@ -256,16 +257,17 @@ impl Pile {
         cards
     }
 
-    pub fn collect_index(&self) -> Vec<String> {
-        self.0.iter().map(|s| s.to_string()).collect()
+    pub fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
     }
 
     pub fn generate_sig(strings: &[String]) -> String {
-        let s = strings
+        strings
             .iter()
             .map(|s| format!("{} ", s))
-            .collect::<String>();
-        s.trim_end().to_string()
+            .collect::<String>()
+            .trim_end()
+            .to_string()
     }
 }
 
@@ -277,7 +279,7 @@ impl Default for Pile {
 
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sig = Pile::generate_sig(&self.collect_index());
+        let sig = Pile::generate_sig(&self.collect_index(&US_ENGLISH));
         write!(f, "{}", sig)
     }
 }
