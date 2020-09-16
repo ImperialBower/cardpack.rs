@@ -260,9 +260,12 @@ impl Pile {
         self.0.iter().map(|s| s.to_string()).collect()
     }
 
-    pub fn generate_sig(strings: &Vec<String>) -> String {
-        let s = strings.iter().map(|s| format!("{} ", s)).collect::<String>();
-        format!("{}", s.trim_end())
+    pub fn generate_sig(strings: &[String]) -> String {
+        let s = strings
+            .iter()
+            .map(|s| format!("{} ", s))
+            .collect::<String>();
+        s.trim_end().to_string()
     }
 }
 
