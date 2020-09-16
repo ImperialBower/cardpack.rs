@@ -35,11 +35,11 @@ impl Card {
     }
 
     fn determine_weight(suit: &Suit, rang: &Rank) -> isize {
-        (suit.value * 1000) + rang.weight
+        (suit.weight * 1000) + rang.weight
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_short(&lid);
+        let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_short(&lid);
         format!("{}{}", rank, suit)
     }

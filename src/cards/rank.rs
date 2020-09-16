@@ -40,8 +40,14 @@ impl Rank {
         v
     }
 
-    pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-short", self.raw);
+    pub fn get_default_index(&self) -> String {
+        self.get_index(&US_ENGLISH)
+    }
+
+    /// "The number or letter printed in the corner of a playing card,
+    /// so that it may be read when held in a fan." -- Wikipedia
+    pub fn get_index(&self, lid: &LanguageIdentifier) -> String {
+        let key = format!("{}-index", self.raw);
         get_value_by_key(key.as_str(), lid)
     }
 
@@ -125,11 +131,16 @@ impl Rank {
             "daus", "king", "ober", "unter", "ten", "nine", "eight", "seven",
         ])
     }
+
+    /// Returns the number of pips on the cards.
+    pub fn pip(&self) -> u8 {
+        self.get_default_index().parse().unwrap_or(0)
+    }
 }
 
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get_short(&US_ENGLISH))
+        write!(f, "{}", self.get_index(&US_ENGLISH))
     }
 }
 
@@ -155,11 +166,11 @@ mod rank_tests {
     }
 
     #[test]
-    fn get_short() {
+    fn get_index() {
         let queen = Rank::new("queen");
 
-        assert_eq!("Q".to_string(), queen.get_short(&US_ENGLISH));
-        assert_eq!("D".to_string(), queen.get_short(&GERMAN));
+        assert_eq!("Q".to_string(), queen.get_default_index());
+        assert_eq!("D".to_string(), queen.get_index(&GERMAN));
     }
 
     #[test]
@@ -183,6 +194,12 @@ mod rank_tests {
         };
 
         assert_eq!(expected, Rank::new("nine"));
+    }
+
+    #[test]
+    fn pip() {
+        assert_eq!(Rank::new("king").pip(), 0);
+        assert_eq!(Rank::new("nine").pip(), 9);
     }
 
     #[test]
