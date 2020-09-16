@@ -9,14 +9,20 @@ use crate::cards::suit::Suit;
 use crate::fluent::{GERMAN, US_ENGLISH};
 
 /// A Pile is a sortable collection of Cards.
+///
+/// # Usage:
+/// ```
+/// let mut pile = cardpack::Pile::default();
+/// let ace_of_spades = cardpack::Card::new("ace", "spades");
+/// let ace_of_hearts = cardpack::Card::new("ace", "hearts");
+/// pile.add(ace_of_spades);
+/// pile.add(ace_of_hearts);
+/// pile.shuffle();
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pile(Vec<Card>);
 
 impl Pile {
-    pub fn new() -> Pile {
-        Pile::new_from_vector(Vec::new())
-    }
-
     pub fn new_from_vector(v: Vec<Card>) -> Pile {
         Pile(v)
     }
@@ -25,23 +31,27 @@ impl Pile {
         self.0.push(elem);
     }
 
-    pub fn all(&self, pile: &Pile) -> bool {
-        pile.cards().iter().all(|c| self.contains(c))
-    }
-
-    // Appends a clone of the passed in Karten struct.
+    /// Appends a clone of the passed in Pile of Cards to the existing Pile.
     pub fn append(&mut self, other: &Pile) {
         self.0.append(&mut other.0.clone());
     }
 
+    /// Returns a reference to the Vector containing all the cards.
     pub fn cards(&self) -> &Vec<Card> {
         &self.0
     }
 
+    /// Tests if a card is in the Pile.
     pub fn contains(&self, card: &Card) -> bool {
         self.0.contains(card)
     }
 
+    /// Tests if every element is inside the Pile.
+    pub fn contains_all(&self, pile: &Pile) -> bool {
+        pile.cards().iter().all(|c| self.contains(c))
+    }
+
+    /// This function is designed to demonstrate the capabilities of the library.
     pub fn demo(&self) {
         println!("   Long in English and German:");
         for card in self.values() {
@@ -52,30 +62,31 @@ impl Pile {
             println!("      {} of {} ", rankname, suitname);
             println!("      {} von {} ", rangname, anzugname);
         }
+        self.demo_short()
+    }
+
+    pub fn demo_short(&self) {
+        let langs = &[US_ENGLISH, GERMAN];
+
+        for lang in langs {
+            println!();
+            print!("   Short Symbols in {:<5}: ", format!("{}", lang));
+            print!("{}", self.sig_symbol_index_locale(lang));
+        }
+
+        for lang in langs {
+            println!();
+            print!("   Short Letters in {:<5}: ", format!("{}", lang));
+            print!("{}", self.sig_index_locale(lang));
+        }
 
         println!();
-        print!("   Short With Symbols:           ");
-        print!("{}", self.sig_symbol_index());
-
-        println!();
-        print!("   Short With Symbols in German: ");
-        print!("{}", self.sig_symbol_index_locale(&GERMAN));
-
-        println!();
-        print!("   Short With Letters:           ");
-        print!("{}", self.to_string());
-
-        println!();
-        print!("   Short With Letters in German: ");
-        print!("{}", self.sig_index_locale(&GERMAN));
-
-        println!();
-        print!("   Shuffle Deck:                 ");
+        print!("   Shuffle Deck:           ");
         let mut shuffled = self.shuffle();
         print!("{}", shuffled.to_string());
 
         println!();
-        print!("   Sort Deck:                    ");
+        print!("   Sort Deck:              ");
         shuffled.sort();
         print!("{}", shuffled.to_string());
 
@@ -86,7 +97,7 @@ impl Pile {
         if x > self.len() {
             None
         } else {
-            let mut cards = Pile::new();
+            let mut cards = Pile::default();
             for _ in 0..x {
                 cards.add(self.draw_first().unwrap());
             }
@@ -158,8 +169,12 @@ impl Pile {
 
     pub fn shuffle(&self) -> Pile {
         let mut shuffled = self.clone();
-        shuffled.0.shuffle(&mut thread_rng());
+        shuffled.shuffle_in_place();
         shuffled
+    }
+
+    pub fn shuffle_in_place(&mut self) {
+        self.0.shuffle(&mut thread_rng());
     }
 
     pub fn sort(&mut self) {
@@ -189,7 +204,7 @@ impl Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
 
-        let mut cards: Pile = Pile::new();
+        let mut cards: Pile = Pile::default();
         cards.fold_in(suits, ranks);
         cards
     }
@@ -198,7 +213,7 @@ impl Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_pinochle_ranks();
 
-        let mut cards: Pile = Pile::new();
+        let mut cards: Pile = Pile::default();
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
                 cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
@@ -212,7 +227,7 @@ impl Pile {
         let suits = Suit::generate_skat_suits();
         let ranks = Rank::generate_skat_ranks();
 
-        let mut cards: Pile = Pile::new();
+        let mut cards: Pile = Pile::default();
         cards.fold_in(suits, ranks);
         cards
     }
@@ -233,7 +248,7 @@ impl Pile {
         let major_arcana_ranks = Rank::generate_major_arcana_ranks();
         let minor_arcana_ranks = Rank::generate_minor_arcana_ranks();
 
-        let mut cards: Pile = Pile::new();
+        let mut cards: Pile = Pile::default();
 
         let (_, major_arcana_suit) = arcana_suits_enumerator.next().unwrap();
 
@@ -291,10 +306,11 @@ impl Pile {
 
 impl Default for Pile {
     fn default() -> Self {
-        Pile::new()
+        Pile::new_from_vector(Vec::new())
     }
 }
 
+/// Sets the to_string() function for a Pile to return the default index signature for the Pile.
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.sig_index();
@@ -320,29 +336,13 @@ mod card_deck_tests {
     fn new_all_add_new_from_vector() {
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
-        let mut expected = Pile::new();
+        let mut expected = Pile::default();
         expected.add(qclubs.clone());
         expected.add(qhearts.clone());
 
         let actual = Pile::new_from_vector(vec![qclubs, qhearts]);
 
         assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn all() {
-        let deck = Pile::spades_deck();
-        let hand = Pile::spades_deck().shuffle().draw(4).unwrap();
-
-        assert!(deck.all(&hand));
-    }
-
-    #[test]
-    fn all_ne() {
-        let deck = Pile::spades_deck();
-        let hand = Pile::skat_deck().shuffle().draw(4).unwrap();
-
-        assert!(!deck.all(&hand));
     }
 
     #[test]
@@ -371,8 +371,24 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn contains_all() {
+        let deck = Pile::spades_deck();
+        let hand = Pile::spades_deck().shuffle().draw(4).unwrap();
+
+        assert!(deck.contains_all(&hand));
+    }
+
+    #[test]
+    fn contains_all_ne() {
+        let deck = Pile::spades_deck();
+        let hand = Pile::skat_deck().shuffle().draw(4).unwrap();
+
+        assert!(!deck.contains_all(&hand));
+    }
+
+    #[test]
     fn draw() {
-        let mut zero = Pile::new();
+        let mut zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let qspades = Card::new("queen", "spades");
@@ -389,7 +405,7 @@ mod card_deck_tests {
 
     #[test]
     fn draw_first() {
-        let mut zero = Pile::new();
+        let mut zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
@@ -401,7 +417,7 @@ mod card_deck_tests {
 
     #[test]
     fn draw_last() {
-        let mut zero = Pile::new();
+        let mut zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
@@ -413,7 +429,7 @@ mod card_deck_tests {
 
     #[test]
     fn first() {
-        let zero = Pile::new();
+        let zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
@@ -445,7 +461,7 @@ mod card_deck_tests {
 
     #[test]
     fn last() {
-        let zero = Pile::new();
+        let zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
@@ -456,7 +472,7 @@ mod card_deck_tests {
 
     #[test]
     fn len() {
-        let zero = Pile::new();
+        let zero = Pile::default();
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
         let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
@@ -526,6 +542,30 @@ mod card_deck_tests {
 
         assert_eq!("AS KS QS JS".to_string(), sig_english);
         assert_eq!("AS KS DS BS".to_string(), sig_german);
+    }
+
+    #[test]
+    fn shuffle() {
+        let pile = Pile::french_deck();
+
+        let mut shuffled = pile.shuffle();
+
+        assert_ne!(pile, shuffled);
+        shuffled.sort();
+        assert_eq!(pile, shuffled);
+    }
+
+    #[test]
+    fn shuffle_in_place() {
+        let actual = Pile::pinochle_deck();
+        let mut shuffled = Pile::pinochle_deck();
+        assert_eq!(actual, shuffled);
+
+        shuffled.shuffle_in_place();
+        assert_ne!(actual, shuffled);
+
+        shuffled.sort();
+        assert_eq!(actual, shuffled);
     }
 
     #[test]

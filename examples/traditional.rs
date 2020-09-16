@@ -1,4 +1,6 @@
 fn main() {
-    let deck = cardpack::Pile::french_deck();
-    deck.demo();
+    let deck = cardpack::Pack::french_deck();
+
+    let cards = deck.cards().clone();
+    cards.demo();
 }

@@ -5,7 +5,11 @@ use crate::cards::rank::Rank;
 use crate::cards::suit::Suit;
 use crate::fluent::US_ENGLISH;
 
-/// `Card` is the core struct in the library.
+/// `Card` is the core struct in the library. A Card is made up of a Rank,
+/// a Suit and weight, which is an integer that controls how a card is sorted
+/// in a Pile or as a part of a Vector.
+///
+///
 ///
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {
@@ -15,12 +19,15 @@ pub struct Card {
 }
 
 impl Card {
-    pub fn new<S: std::clone::Clone>(rang: S, anzug: S) -> Card
+
+    /// Instantiates a new Card with the default weight as defined in the fluent
+    /// templates.
+    pub fn new<S: std::clone::Clone>(rank: S, suit: S) -> Card
     where
         S: Into<String>,
     {
-        let a = Suit::new(anzug);
-        let r = Rank::new(rang);
+        let a = Suit::new(suit);
+        let r = Rank::new(rank);
         let weight = Card::determine_weight(&a, &r);
         Card {
             weight,
@@ -29,11 +36,14 @@ impl Card {
         }
     }
 
+    /// Instantiates a Card with the weight determined by the passed in Rank and
+    /// Suit.
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
         let weight = Card::determine_weight(&suit, &rank);
         Card { weight, rank, suit }
     }
 
+    /// Prioritizes sorting by Suit and then by Rank.
     fn determine_weight(suit: &Suit, rang: &Rank) -> isize {
         (suit.weight * 1000) + rang.weight
     }
