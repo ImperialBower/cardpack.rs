@@ -17,7 +17,7 @@ impl Suit {
         S: Into<String>,
     {
         let n = name.into();
-        let value = get_value_isize(n.as_str());
+        let value = get_weight_isize(n.as_str());
         Suit::new_with_value(n, value)
     }
 
@@ -96,12 +96,12 @@ impl fmt::Display for Suit {
     }
 }
 
-impl Valuable for Suit {
-    fn revise_value(&mut self, new_value: isize) {
+impl Weighty for Suit {
+    fn revise_weight(&mut self, new_value: isize) {
         self.value = new_value
     }
 
-    fn get_value(&self) -> isize {
+    fn get_weight(&self) -> isize {
         self.value
     }
 }
@@ -228,10 +228,10 @@ mod suit_tests {
     #[test]
     fn revise_value() {
         let mut wands = Suit::new("wands");
-        assert_eq!(4, wands.get_value());
+        assert_eq!(4, wands.get_weight());
 
-        wands.revise_value(3);
+        wands.revise_weight(3);
 
-        assert_eq!(3, wands.get_value());
+        assert_eq!(3, wands.get_weight());
     }
 }

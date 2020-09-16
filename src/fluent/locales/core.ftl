@@ -9,32 +9,36 @@ hearts-light-symbol = ♡
 diamonds-light-symbol = ♢
 clubs-light-symbol = ♧
 
-spades-value = 4
-hearts-value = 3
-diamonds-value = 2
-clubs-value = 1
+spades-weight = 4
+hearts-weight = 3
+diamonds-weight = 2
+clubs-weight = 1
 
-big-joker-value = 16
-little-joker-value = 15
-ace-value = 14
-king-value = 13
-queen-value = 12
-jack-value = 11
-ten-value = 10
-nine-value = 9
-eight-value = 8
-seven-value = 7
-six-value = 6
-five-value = 5
-four-value = 4
-three-value = 3
-two-value = 2
+big-joker-weight = 16
+little-joker-weight = 15
+ace-weight = 14
+king-weight = 13
+queen-weight = 12
+jack-weight = 11
+ten-weight = 10
+nine-weight = 9
+eight-weight = 8
+seven-weight = 7
+six-weight = 6
+five-weight = 5
+four-weight = 4
+three-weight = 3
+two-weight = 2
 
 # Skat Deck
 eichel-symbol = ♣
-laub-symbol = 🙒
+laub-symbol = ♠
 herz-symbol = ♥
 schellen-symbol = 🔔
+
+daus-weight = 13
+ober-weight = 12
+unter-weight = 11
 
 # Tarot Deck
 major-arcana-symbol = 👑
@@ -43,8 +47,8 @@ cups-symbol = 🏆
 swords-symbol = ⚔
 pentacles-symbol = ☆
 
-major-arcana-value = 5
-wands-value = 4
-cups-value = 3
-swords-value = 2
-pentacles-value = 1
+major-arcana-weight = 5
+wands-weight = 4
+cups-weight = 3
+swords-weight = 2
+pentacles-weight = 1

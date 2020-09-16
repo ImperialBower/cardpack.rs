@@ -3,13 +3,13 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::Rank;
 use crate::cards::suit::Suit;
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::US_ENGLISH;
 
 /// `Card` is the core struct in the library.
 ///
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {
-    pub value: isize,
+    pub weight: isize,
     pub suit: Suit,
     pub rank: Rank,
 }
@@ -21,21 +21,21 @@ impl Card {
     {
         let a = Suit::new(anzug);
         let r = Rank::new(rang);
-        let value = Card::determine_value(&a, &r);
+        let weight = Card::determine_weight(&a, &r);
         Card {
-            value,
+            weight,
             suit: a,
             rank: r,
         }
     }
 
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
-        let value = Card::determine_value(&suit, &rank);
-        Card { value, rank, suit }
+        let weight = Card::determine_weight(&suit, &rank);
+        Card { weight, rank, suit }
     }
 
-    fn determine_value(suit: &Suit, rang: &Rank) -> isize {
-        (suit.value * 1000) + rang.value
+    fn determine_weight(suit: &Suit, rang: &Rank) -> isize {
+        (suit.value * 1000) + rang.weight
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
@@ -47,21 +47,7 @@ impl Card {
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
-    }
-}
-
-impl ToLocaleString for Card {
-    fn get_fluent_key(&self) -> String {
-        unimplemented!()
-    }
-
-    fn get_raw_name(&self) -> String {
-        self.to_locale_string(&US_ENGLISH)
-    }
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        format!("{}{}", self.rank.get_short(lid), self.suit.get_symbol(),)
+        write!(f, "{}", self.to_txt_string(&US_ENGLISH))
     }
 }
 
@@ -69,12 +55,12 @@ impl ToLocaleString for Card {
 #[allow(non_snake_case)]
 mod card_tests {
     use super::*;
-    use crate::fluent::{ToLocaleString, GERMAN};
+    use crate::fluent::GERMAN;
 
     #[test]
     fn new() {
         let expected = Card {
-            value: 4014,
+            weight: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -85,7 +71,7 @@ mod card_tests {
     #[test]
     fn new_from_structs() {
         let expected = Card {
-            value: 4014,
+            weight: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -97,23 +83,9 @@ mod card_tests {
     }
 
     #[test]
-    fn to_string_by_locale() {
-        let card = Card::new("queen", "clubs");
-
-        assert_eq!(card.to_locale_string(&GERMAN), "D♣".to_string());
-    }
-
-    #[test]
     fn to_txt_string() {
         let card = Card::new("queen", "clubs");
 
         assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
-    }
-
-    #[test]
-    fn get_raw_name() {
-        let card = Card::new("king", "diamonds");
-
-        assert_eq!(card.get_raw_name(), "K♦".to_string());
     }
 }

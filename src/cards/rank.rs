@@ -5,7 +5,7 @@ use crate::fluent::*;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
-    pub value: isize,
+    pub weight: isize,
     pub raw: String,
 }
 
@@ -15,16 +15,16 @@ impl Rank {
         S: Into<String>,
     {
         let n = name.into();
-        let value = get_value_isize(n.as_str());
-        Rank::new_with_value(n, value)
+        let weight = get_weight_isize(n.as_str());
+        Rank::new_with_value(n, weight)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, value: isize) -> Rank
+    pub fn new_with_value<S: std::clone::Clone>(name: S, weight: isize) -> Rank
     where
         S: Into<String>,
     {
         Rank {
-            value,
+            weight,
             raw: name.into(),
         }
     }
@@ -34,8 +34,8 @@ impl Rank {
 
         #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
-            let value = (s.len() + 1) - i;
-            v.push(Rank::new_with_value(elem, value as isize));
+            let weight = (s.len() + 1) - i;
+            v.push(Rank::new_with_value(elem, weight as isize));
         }
         v
     }
@@ -133,13 +133,13 @@ impl fmt::Display for Rank {
     }
 }
 
-impl Valuable for Rank {
-    fn revise_value(&mut self, new_value: isize) {
-        self.value = new_value
+impl Weighty for Rank {
+    fn revise_weight(&mut self, new_value: isize) {
+        self.weight = new_value
     }
 
-    fn get_value(&self) -> isize {
-        self.value
+    fn get_weight(&self) -> isize {
+        self.weight
     }
 }
 
@@ -178,7 +178,7 @@ mod rank_tests {
     #[test]
     fn new() {
         let expected = Rank {
-            value: 9,
+            weight: 9,
             raw: "nine".to_string(),
         };
 
@@ -264,10 +264,10 @@ mod rank_tests {
     #[test]
     fn revise_value() {
         let mut ace = Rank::new("ace");
-        assert_eq!(14, ace.get_value());
+        assert_eq!(14, ace.get_weight());
 
-        ace.revise_value(3);
+        ace.revise_weight(3);
 
-        assert_eq!(3, ace.get_value());
+        assert_eq!(3, ace.get_weight());
     }
 }

@@ -4,7 +4,7 @@ use rand::thread_rng;
 use crate::cards::card::Card;
 use crate::cards::rank::Rank;
 use crate::cards::suit::Suit;
-use crate::fluent::{ToLocaleString, GERMAN, US_ENGLISH};
+use crate::fluent::{GERMAN, US_ENGLISH};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pack(Vec<Card>);
@@ -63,7 +63,7 @@ impl Pack {
         println!();
         print!("   Short With Symbols in German: ");
         for card in self.values() {
-            print!("{} ", card.to_locale_string(&GERMAN));
+            print!("{} ", card.to_txt_string(&GERMAN));
         }
 
         println!();
@@ -82,14 +82,14 @@ impl Pack {
         print!("   Shuffle Deck:                 ");
         let mut shuffled = self.shuffle();
         for card in shuffled.values() {
-            print!("{} ", card.to_locale_string(&US_ENGLISH));
+            print!("{} ", card.to_txt_string(&US_ENGLISH));
         }
 
         println!();
         print!("   Sort Deck:                    ");
         shuffled.sort();
         for card in shuffled.values() {
-            print!("{} ", card.to_locale_string(&US_ENGLISH));
+            print!("{} ", card.to_txt_string(&US_ENGLISH));
         }
 
         println!();
