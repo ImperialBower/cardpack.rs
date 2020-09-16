@@ -59,15 +59,11 @@ impl Pile {
 
         println!();
         print!("   Short With Symbols:           ");
-        for card in self.values() {
-            print!("{} ", card);
-        }
+        print!("{}", self.symbol_index_sig());
 
         println!();
         print!("   Short With Symbols in German: ");
-        for card in self.values() {
-            print!("{} ", card.to_txt_string(&GERMAN));
-        }
+        print!("{}", self.symbol_index_sig_locale(&GERMAN));
 
         println!();
         print!("   Short With Letters:           ");
@@ -75,9 +71,8 @@ impl Pile {
 
         println!();
         print!("   Short With Letters in German: ");
-        for card in self.values() {
-            print!("{} ", card.to_txt_string(&GERMAN));
-        }
+        print!("{}", self.index_sig_locale(&GERMAN));
+
 
         println!();
         print!("   Shuffle Deck:                 ");
@@ -257,8 +252,28 @@ impl Pile {
         cards
     }
 
-    pub fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+    fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
         self.0.iter().map(|s| s.to_txt_string(lid)).collect()
+    }
+
+    fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
+    }
+
+    pub fn index_sig(&self) -> String {
+        self.index_sig_locale(&US_ENGLISH)
+    }
+
+    pub fn index_sig_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::generate_sig(&self.collect_index(lid))
+    }
+
+    pub fn symbol_index_sig(&self) -> String {
+        self.symbol_index_sig_locale(&US_ENGLISH)
+    }
+
+    pub fn symbol_index_sig_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::generate_sig(&self.collect_symbol_index(lid))
     }
 
     pub fn generate_sig(strings: &[String]) -> String {
@@ -279,7 +294,7 @@ impl Default for Pile {
 
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sig = Pile::generate_sig(&self.collect_index(&US_ENGLISH));
+        let sig = self.index_sig();
         write!(f, "{}", sig)
     }
 }
@@ -297,6 +312,35 @@ impl IntoIterator for Pile {
 #[allow(non_snake_case)]
 mod card_deck_tests {
     use super::*;
+
+    #[test]
+    fn generate_sig() {
+        let deck = Pile::french_deck().draw(4).unwrap();
+
+        let sig_english = Pile::generate_sig(&deck.collect_index(&US_ENGLISH));
+        let sig_german = Pile::generate_sig(&deck.collect_index(&GERMAN));
+
+        assert_eq!("AS KS QS JS".to_string(), sig_english);
+        assert_eq!("AS KS DS BS".to_string(), sig_german);
+    }
+
+    #[test]
+    fn index_sig() {
+        let deck = Pile::spades_deck().draw(4).unwrap();
+
+        let sig = deck.index_sig();
+
+        assert_eq!("JBS JLS AS KS".to_string(), sig);
+    }
+
+    #[test]
+    fn symbol_index_sig() {
+        let deck = Pile::spades_deck().draw(4).unwrap();
+
+        let sig = deck.symbol_index_sig();
+
+        assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
+    }
 
     #[test]
     fn to_string() {

@@ -38,6 +38,12 @@ impl Card {
         (suit.weight * 1000) + rang.weight
     }
 
+    pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.get_index(&lid);
+        let suit = self.suit.get_symbol();
+        format!("{}{}", rank, suit)
+    }
+
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_short(&lid);
@@ -87,5 +93,12 @@ mod card_tests {
         let card = Card::new("queen", "clubs");
 
         assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
+    }
+
+    #[test]
+    fn to_symbol_string() {
+        let card = Card::new("queen", "hearts");
+
+        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
     }
 }
