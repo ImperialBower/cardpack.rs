@@ -1,9 +1,5 @@
 use crate::cards::pile::Pile;
 
-pub struct Pack {
-    cards: Pile,
-}
-
 /// A Pack is an immutable pile of cards. Packs available are for a traditional
 /// 52 card French Deck, pinochle, spades, skat and tarot.
 ///
@@ -25,6 +21,11 @@ pub struct Pack {
 ///
 /// ```
 ///
+
+pub struct Pack {
+    cards: Pile,
+}
+
 impl Pack {
     fn new(cards: Pile) -> Pack {
         Pack { cards }
