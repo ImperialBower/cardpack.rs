@@ -38,7 +38,10 @@ fn to_pile(deck: &cardpack::Pile, s: &str) -> cardpack::Pile {
     v.append(&mut splice_suit_in(&rawsuits.get(2).unwrap(), 'D'));
     v.append(&mut splice_suit_in(&rawsuits.get(3).unwrap(), 'C'));
 
-    let coll: Vec<cardpack::Card> = v.iter().map(|s| deck.card_by_index(s.as_str()).unwrap().clone()).collect();
+    let coll: Vec<cardpack::Card> = v
+        .iter()
+        .map(|s| deck.card_by_index(s.as_str()).unwrap().clone())
+        .collect();
 
     cardpack::Pile::new_from_vector(coll)
 }
@@ -60,10 +63,30 @@ impl std::fmt::Display for Direction {
 fn compass(c: char) -> Vec<Direction> {
     // let points = ['S', 'W', 'N', 'E'];
     match c {
-        'S' => vec![Direction::South, Direction::West, Direction::North, Direction::East],
-        'W' => vec![Direction::West, Direction::North, Direction::East, Direction::South],
-        'N' => vec![Direction::North, Direction::East, Direction::South, Direction::West],
-        _ => vec![Direction::East, Direction::South, Direction::West, Direction::North],
+        'S' => vec![
+            Direction::South,
+            Direction::West,
+            Direction::North,
+            Direction::East,
+        ],
+        'W' => vec![
+            Direction::West,
+            Direction::North,
+            Direction::East,
+            Direction::South,
+        ],
+        'N' => vec![
+            Direction::North,
+            Direction::East,
+            Direction::South,
+            Direction::West,
+        ],
+        _ => vec![
+            Direction::East,
+            Direction::South,
+            Direction::West,
+            Direction::North,
+        ],
     }
 }
 
@@ -83,7 +106,15 @@ mod card_deck_tests {
 
     #[test]
     fn test_compass() {
-        assert_eq!(vec![Direction::North, Direction::East, Direction::South, Direction::West], compass('N'))
+        assert_eq!(
+            vec![
+                Direction::North,
+                Direction::East,
+                Direction::South,
+                Direction::West
+            ],
+            compass('N')
+        )
     }
 
     #[test]
