@@ -375,6 +375,15 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn card_by_index_ne() {
+        let deck = Pile::spades_deck();
+        let fool_index = Card::new("fool", "major-arcana").index;
+
+        // Verifies that the index for a card in the tarot deck isn't in a spades deck.
+        assert!(deck.card_by_index(fool_index.as_str()).is_none());
+    }
+
+    #[test]
     fn contains() {
         let qclubs = Card::new("queen", "clubs");
         let qhearts = Card::new("queen", "hearts");
