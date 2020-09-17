@@ -19,7 +19,6 @@ pub struct Card {
 }
 
 impl Card {
-
     /// Instantiates a new Card with the default weight as defined in the fluent
     /// templates.
     pub fn new<S: std::clone::Clone>(rank: S, suit: S) -> Card

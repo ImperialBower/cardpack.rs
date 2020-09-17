@@ -27,9 +27,7 @@ pub struct Pack {
 ///
 impl Pack {
     fn new(cards: Pile) -> Pack {
-        Pack {
-            cards,
-        }
+        Pack { cards }
     }
 
     /// Returns a reference to the cards in the Pack.
