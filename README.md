@@ -92,15 +92,11 @@ Other possibilities include:
 * [Card games in Germany](https://www.pagat.com/national/germany.html)
 * [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
 
-### Other Rust Deck of Cards Libraries
+### Other Deck of Cards Libraries
 
 * [ascclemens/cards](https://github.com/ascclemens/cards)
 * [locka99/deckofcards-rs](https://github.com/locka99/deckofcards-rs)
 * [vsupalov/cards-rs](https://github.com/vsupalov/cards-rs)
-
-## Things to Explore
-
-* [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
 * Tarot Libraries
   * [lawreka/ascii-tarot](https://github.com/lawreka/ascii-tarot)
   * [pietdaniel/tarot](https://github.com/pietdaniel/tarot)
