@@ -1,7 +1,9 @@
 use crate::cards::pile::Pile;
 
-/// A Pack is an immutable pile of cards. Packs available are for a traditional
-/// 52 card French Deck, pinochle, spades, skat and tarot.
+/// A Pack is an immutable pile of cards. Packs are designed to be a flexible representation of
+/// a deck, a stack, a discard pile, or a hand.
+///
+/// Packs available are for a traditional 52 card French Deck, pinochle, spades, skat and tarot.
 ///
 /// # Usage:
 /// ```

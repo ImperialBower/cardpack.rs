@@ -6,15 +6,12 @@ fn main() {
 
     println!();
     println!("Tarot Deck Shuffled");
-    let mut shuffled = deck.shuffle();
+    let shuffled = deck.shuffle();
     display(&shuffled);
 
     println!();
-    println!("Tarot Deck Sorted");
-    shuffled.sort();
-    display(&shuffled);
 
-    deck.demo();
+    deck.demo_short();
 }
 
 fn display(deck: &cardpack::Pile) {

@@ -36,6 +36,10 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
+    pub fn card_by_index(&self, index: &str) -> Option<&Card> {
+        self.0.iter().find(|c| c.index == index)
+    }
+
     /// Returns a reference to the Vector containing all the cards.
     pub fn cards(&self) -> &Vec<Card> {
         &self.0
@@ -358,6 +362,25 @@ mod card_deck_tests {
         to_deck.append(&from_deck);
 
         assert_eq!(expected, to_deck);
+    }
+
+    #[test]
+    fn card_by_index() {
+        let deck = Pile::spades_deck();
+        let expected = Card::new("little-joker", "spades");
+
+        let card = deck.card_by_index("JLS").unwrap();
+
+        assert_eq!(&expected, card);
+    }
+
+    #[test]
+    fn card_by_index_ne() {
+        let deck = Pile::spades_deck();
+        let fool_index = Card::new("fool", "major-arcana").index;
+
+        // Verifies that the index for a card in the tarot deck isn't in a spades deck.
+        assert!(deck.card_by_index(fool_index.as_str()).is_none());
     }
 
     #[test]

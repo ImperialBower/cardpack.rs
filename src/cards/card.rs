@@ -14,6 +14,7 @@ use crate::fluent::US_ENGLISH;
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     pub weight: isize,
+    pub index: String,
     pub suit: Suit,
     pub rank: Rank,
 }
@@ -28,8 +29,10 @@ impl Card {
         let a = Suit::new(suit);
         let r = Rank::new(rank);
         let weight = Card::determine_weight(&a, &r);
+        let index = Card::determine_index(&a, &r);
         Card {
             weight,
+            index,
             suit: a,
             rank: r,
         }
@@ -39,12 +42,24 @@ impl Card {
     /// Suit.
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
         let weight = Card::determine_weight(&suit, &rank);
-        Card { weight, rank, suit }
+        let index = Card::determine_index(&suit, &rank);
+        Card {
+            weight,
+            index,
+            rank,
+            suit,
+        }
+    }
+
+    fn determine_index(suit: &Suit, rank: &Rank) -> String {
+        let rank = rank.get_index(&US_ENGLISH);
+        let suit = suit.get_short(&US_ENGLISH);
+        format!("{}{}", rank, suit)
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rang: &Rank) -> isize {
-        (suit.weight * 1000) + rang.weight
+    fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
+        (suit.weight * 1000) + rank.weight
     }
 
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
@@ -62,7 +77,7 @@ impl Card {
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_txt_string(&US_ENGLISH))
+        write!(f, "{}", self.index)
     }
 }
 
@@ -76,6 +91,7 @@ mod card_tests {
     fn new() {
         let expected = Card {
             weight: 4014,
+            index: "AS".to_string(),
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -87,6 +103,7 @@ mod card_tests {
     fn new_from_structs() {
         let expected = Card {
             weight: 4014,
+            index: "AS".to_string(),
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
