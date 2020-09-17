@@ -1,4 +1,5 @@
 fn main() {
-    let deck = cardpack::Pack::french_deck();
-    deck.demo();
+    let pack = cardpack::Pack::french_deck();
+
+    pack.cards().demo()
 }

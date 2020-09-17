@@ -1,4 +1,4 @@
 fn main() {
-    let deck = cardpack::Pack::skat_deck();
+    let deck = cardpack::Pile::skat_deck();
     deck.demo();
 }

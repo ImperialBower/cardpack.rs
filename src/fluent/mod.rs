@@ -13,34 +13,24 @@ static_loader! {
     };
 }
 
-pub trait ToLocaleString {
-    fn get_fluent_key(&self) -> String;
+pub trait Weighty {
+    fn revise_weight(&mut self, new_value: isize);
 
-    fn get_raw_name(&self) -> String;
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        LOCALES.lookup(lid, self.get_fluent_key().as_str())
-    }
-}
-
-pub trait Valuable {
-    fn revise_value(&mut self, new_value: isize);
-
-    fn get_value(&self) -> isize;
+    fn get_weight(&self) -> isize;
 }
 
 pub fn get_value_by_key(key: &str, lid: &LanguageIdentifier) -> String {
     LOCALES.lookup(lid, key)
 }
 
-fn get_value(name: &str) -> String {
-    let var = "-value";
+fn get_weight(name: &str) -> String {
+    let var = "-weight";
     let id = format!("{}{}", name, var);
     LOCALES.lookup(&US_ENGLISH, id.as_str())
 }
 
-pub fn get_value_isize(name: &str) -> isize {
-    let s = get_value(name);
+pub fn get_weight_isize(name: &str) -> isize {
+    let s = get_weight(name);
     s.parse().unwrap_or(0)
 }
 

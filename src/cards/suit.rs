@@ -7,7 +7,7 @@ use crate::fluent::*;
 /// Supports internationalization through fluent template files.
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
-    pub value: isize,
+    pub weight: isize,
     pub raw: String,
 }
 
@@ -17,18 +17,22 @@ impl Suit {
         S: Into<String>,
     {
         let n = name.into();
-        let value = get_value_isize(n.as_str());
-        Suit::new_with_value(n, value)
+        let weight = get_weight_isize(n.as_str());
+        Suit::new_with_weight(n, weight)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, value: isize) -> Suit
+    pub fn new_with_weight<S: std::clone::Clone>(name: S, value: isize) -> Suit
     where
         S: Into<String>,
     {
         Suit {
-            value,
+            weight: value,
             raw: name.into(),
         }
+    }
+
+    pub fn get_default_short(&self) -> String {
+        self.get_short(&US_ENGLISH)
     }
 
     pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
@@ -50,10 +54,6 @@ impl Suit {
         get_value_by_key(key.as_str(), &US_ENGLISH)
     }
 
-    fn bottom_up_value(_len: usize, i: usize) -> isize {
-        (i + 1) as isize
-    }
-
     fn top_down_value(len: usize, i: usize) -> isize {
         (len - i) as isize
     }
@@ -64,17 +64,13 @@ impl Suit {
         #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let value = f(s.len(), i);
-            v.push(Suit::new_with_value(elem, value));
+            v.push(Suit::new_with_weight(elem, value));
         }
         v
     }
 
     pub fn from_array(s: &[&str]) -> Vec<Suit> {
         Suit::from_array_gen(s, Suit::top_down_value)
-    }
-
-    pub fn from_array_bottom_up(s: &[&str]) -> Vec<Suit> {
-        Suit::from_array_gen(s, Suit::bottom_up_value)
     }
 
     pub fn generate_french_suits() -> Vec<Suit> {
@@ -96,13 +92,13 @@ impl fmt::Display for Suit {
     }
 }
 
-impl Valuable for Suit {
-    fn revise_value(&mut self, new_value: isize) {
-        self.value = new_value
+impl Weighty for Suit {
+    fn revise_weight(&mut self, new_value: isize) {
+        self.weight = new_value
     }
 
-    fn get_value(&self) -> isize {
-        self.value
+    fn get_weight(&self) -> isize {
+        self.weight
     }
 }
 
@@ -120,7 +116,7 @@ mod suit_tests {
     #[test]
     fn new() {
         let expected = Suit {
-            value: 4,
+            weight: 4,
             raw: "spades".to_string(),
         };
 
@@ -130,22 +126,22 @@ mod suit_tests {
     #[test]
     fn new_with_value() {
         let expected = Suit {
-            value: 4,
+            weight: 4,
             raw: "spades".to_string(),
         };
 
-        assert_eq!(expected, Suit::new_with_value("spades", 4));
+        assert_eq!(expected, Suit::new_with_weight("spades", 4));
     }
 
     #[test]
     fn partial_eq() {
         assert_ne!(
-            Suit::new_with_value("spades", 3),
-            Suit::new_with_value("spades", 4)
+            Suit::new_with_weight("spades", 3),
+            Suit::new_with_weight("spades", 4)
         );
         assert_ne!(
-            Suit::new_with_value("hearts", 4),
-            Suit::new_with_value("spades", 4)
+            Suit::new_with_weight("hearts", 4),
+            Suit::new_with_weight("spades", 4)
         );
     }
 
@@ -153,7 +149,7 @@ mod suit_tests {
     fn get_short() {
         let clubs = Suit::new("clubs");
 
-        assert_eq!("C".to_string(), clubs.get_short(&US_ENGLISH));
+        assert_eq!("C".to_string(), clubs.get_default_short());
         assert_eq!("K".to_string(), clubs.get_short(&GERMAN));
     }
 
@@ -187,28 +183,19 @@ mod suit_tests {
     #[test]
     fn to_vec() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_value("clubs", 2));
-        expected.push(Suit::new_with_value("spades", 1));
+        expected.push(Suit::new_with_weight("clubs", 2));
+        expected.push(Suit::new_with_weight("spades", 1));
 
         assert_eq!(expected, Suit::from_array(&["clubs", "spades"]));
     }
 
     #[test]
-    fn to_vec_bottom_up() {
-        let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_value("clubs", 1));
-        expected.push(Suit::new_with_value("spades", 2));
-
-        assert_eq!(expected, Suit::from_array_bottom_up(&["clubs", "spades"]));
-    }
-
-    #[test]
     fn generate_french_suits() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_value("spades", 4));
-        expected.push(Suit::new_with_value("hearts", 3));
-        expected.push(Suit::new_with_value("diamonds", 2));
-        expected.push(Suit::new_with_value("clubs", 1));
+        expected.push(Suit::new_with_weight("spades", 4));
+        expected.push(Suit::new_with_weight("hearts", 3));
+        expected.push(Suit::new_with_weight("diamonds", 2));
+        expected.push(Suit::new_with_weight("clubs", 1));
 
         assert_eq!(expected, Suit::generate_french_suits());
     }
@@ -216,11 +203,11 @@ mod suit_tests {
     #[test]
     fn generate_arcana_suits() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_value("major-arcana", 5));
-        expected.push(Suit::new_with_value("wands", 4));
-        expected.push(Suit::new_with_value("cups", 3));
-        expected.push(Suit::new_with_value("swords", 2));
-        expected.push(Suit::new_with_value("pentacles", 1));
+        expected.push(Suit::new_with_weight("major-arcana", 5));
+        expected.push(Suit::new_with_weight("wands", 4));
+        expected.push(Suit::new_with_weight("cups", 3));
+        expected.push(Suit::new_with_weight("swords", 2));
+        expected.push(Suit::new_with_weight("pentacles", 1));
 
         assert_eq!(expected, Suit::generate_arcana_suits());
     }
@@ -228,10 +215,10 @@ mod suit_tests {
     #[test]
     fn revise_value() {
         let mut wands = Suit::new("wands");
-        assert_eq!(4, wands.get_value());
+        assert_eq!(4, wands.get_weight());
 
-        wands.revise_value(3);
+        wands.revise_weight(3);
 
-        assert_eq!(3, wands.get_value());
+        assert_eq!(3, wands.get_weight());
     }
 }

@@ -3,43 +3,58 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::Rank;
 use crate::cards::suit::Suit;
-use crate::fluent::{ToLocaleString, US_ENGLISH};
+use crate::fluent::US_ENGLISH;
 
-/// `Card` is the core struct in the library.
+/// `Card` is the core struct in the library. A Card is made up of a Rank,
+/// a Suit and weight, which is an integer that controls how a card is sorted
+/// in a Pile or as a part of a Vector.
+///
+///
 ///
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Card {
-    pub value: isize,
+    pub weight: isize,
     pub suit: Suit,
     pub rank: Rank,
 }
 
 impl Card {
-    pub fn new<S: std::clone::Clone>(rang: S, anzug: S) -> Card
+    /// Instantiates a new Card with the default weight as defined in the fluent
+    /// templates.
+    pub fn new<S: std::clone::Clone>(rank: S, suit: S) -> Card
     where
         S: Into<String>,
     {
-        let a = Suit::new(anzug);
-        let r = Rank::new(rang);
-        let value = Card::determine_value(&a, &r);
+        let a = Suit::new(suit);
+        let r = Rank::new(rank);
+        let weight = Card::determine_weight(&a, &r);
         Card {
-            value,
+            weight,
             suit: a,
             rank: r,
         }
     }
 
+    /// Instantiates a Card with the weight determined by the passed in Rank and
+    /// Suit.
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
-        let value = Card::determine_value(&suit, &rank);
-        Card { value, rank, suit }
+        let weight = Card::determine_weight(&suit, &rank);
+        Card { weight, rank, suit }
     }
 
-    fn determine_value(suit: &Suit, rang: &Rank) -> isize {
-        (suit.value * 1000) + rang.value
+    /// Prioritizes sorting by Suit and then by Rank.
+    fn determine_weight(suit: &Suit, rang: &Rank) -> isize {
+        (suit.weight * 1000) + rang.weight
+    }
+
+    pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.get_index(&lid);
+        let suit = self.suit.get_symbol();
+        format!("{}{}", rank, suit)
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_short(&lid);
+        let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_short(&lid);
         format!("{}{}", rank, suit)
     }
@@ -47,21 +62,7 @@ impl Card {
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_locale_string(&US_ENGLISH))
-    }
-}
-
-impl ToLocaleString for Card {
-    fn get_fluent_key(&self) -> String {
-        unimplemented!()
-    }
-
-    fn get_raw_name(&self) -> String {
-        self.to_locale_string(&US_ENGLISH)
-    }
-
-    fn to_locale_string(&self, lid: &LanguageIdentifier) -> String {
-        format!("{}{}", self.rank.get_short(lid), self.suit.get_symbol(),)
+        write!(f, "{}", self.to_txt_string(&US_ENGLISH))
     }
 }
 
@@ -69,12 +70,12 @@ impl ToLocaleString for Card {
 #[allow(non_snake_case)]
 mod card_tests {
     use super::*;
-    use crate::fluent::{ToLocaleString, GERMAN};
+    use crate::fluent::GERMAN;
 
     #[test]
     fn new() {
         let expected = Card {
-            value: 4014,
+            weight: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -85,7 +86,7 @@ mod card_tests {
     #[test]
     fn new_from_structs() {
         let expected = Card {
-            value: 4014,
+            weight: 4014,
             rank: Rank::new("ace"),
             suit: Suit::new("spades"),
         };
@@ -97,13 +98,6 @@ mod card_tests {
     }
 
     #[test]
-    fn to_string_by_locale() {
-        let card = Card::new("queen", "clubs");
-
-        assert_eq!(card.to_locale_string(&GERMAN), "D♣".to_string());
-    }
-
-    #[test]
     fn to_txt_string() {
         let card = Card::new("queen", "clubs");
 
@@ -111,9 +105,9 @@ mod card_tests {
     }
 
     #[test]
-    fn get_raw_name() {
-        let card = Card::new("king", "diamonds");
+    fn to_symbol_string() {
+        let card = Card::new("queen", "hearts");
 
-        assert_eq!(card.get_raw_name(), "K♦".to_string());
+        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
     }
 }

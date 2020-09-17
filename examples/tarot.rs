@@ -1,5 +1,5 @@
 fn main() {
-    let deck = cardpack::Pack::tarot_deck();
+    let deck = cardpack::Pile::tarot_deck();
 
     println!("Tarot Deck");
     display(&deck);
@@ -13,9 +13,11 @@ fn main() {
     println!("Tarot Deck Sorted");
     shuffled.sort();
     display(&shuffled);
+
+    deck.demo();
 }
 
-fn display(deck: &cardpack::Pack) {
+fn display(deck: &cardpack::Pile) {
     for card in deck.values() {
         let suitname = card.suit.get_default_long();
 

@@ -14,6 +14,6 @@ daus-name = Daus
 ober-name = Ober
 unter-name = Unter
 
-daus-short = D
-ober-short = O
-unter-short = U
+daus-index = D
+ober-index = O
+unter-index = U
