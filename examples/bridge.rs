@@ -1,3 +1,4 @@
+/// This is a complex example, and gives an idea of some of the work planned around Bridge.
 fn main() {
     let pack = cardpack::Pack::french_deck();
 
