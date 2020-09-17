@@ -44,12 +44,12 @@ Long in English and German:
       Queen of Spades
       Dame von Spaten
 ...
-   Short With Symbols:           A♠ K♠ Q♠ J♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
-   Short With Symbols in German: A♠ K♠ D♠ B♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ D♥ B♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ D♦ B♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ D♣ B♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
-   Short With Letters:           AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
-   Short With Letters in German: AS KS DS BS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH DH BH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD DD BD 10D 9D 8D 7D 6D 5D 4D 3D 2D AK KK DK BK 10K 9K 8K 7K 6K 5K 4K 3K 2K
-   Shuffle Deck:                 J♠ 10♥ 8♣ 7♠ 4♣ K♠ 7♦ Q♠ 6♠ 3♠ 7♥ 4♥ Q♥ J♦ 5♠ 9♠ A♦ 3♦ 10♠ 5♦ 6♥ Q♣ 6♦ 8♥ 5♣ 3♣ A♥ 10♣ 8♠ J♥ 5♥ 2♦ 6♣ 9♦ K♦ Q♦ 2♥ A♠ 7♣ K♣ J♣ 2♠ 4♠ 3♥ 9♣ 2♣ 4♦ K♥ A♣ 9♥ 8♦ 10♦
-   Sort Deck:                    A♠ K♠ Q♠ J♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
+   Short Symbols in en-US: A♠ K♠ Q♠ J♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
+   Short Symbols in de   : A♠ K♠ D♠ B♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ D♥ B♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ D♦ B♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ D♣ B♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
+   Short Letters in en-US: AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
+   Short Letters in de   : AS KS DS BS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH DH BH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD DD BD 10D 9D 8D 7D 6D 5D 4D 3D 2D AK KK DK BK 10K 9K 8K 7K 6K 5K 4K 3K 2K
+   Shuffle Deck:           8C 2H QC 9D 4S 10D 8D 6D 5H JS 5D KS 6C 9H 6H JC KC 3H 7C 3C 8H 7H 4H 5C 5S 4C AC 4D AH QH QS JD 9S 2S 3S 2C 10S JH 9C KH 10H 7D 10C KD 8S 6S 7S QD AD 2D 3D AS
+   Sort Deck:              AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
 ```
 
 Also included are example programs for `spades`, `pinochle`, `skat`, and `tarot` as well as an example `poker` hand.
