@@ -71,13 +71,13 @@ impl Pile {
         for lang in langs {
             println!();
             print!("   Short Symbols in {:<5}: ", format!("{}", lang));
-            print!("{}", self.sig_symbol_index_locale(lang));
+            print!("{}", self.by_symbol_index_locale(lang));
         }
 
         for lang in langs {
             println!();
             print!("   Short Letters in {:<5}: ", format!("{}", lang));
-            print!("{}", self.sig_index_locale(lang));
+            print!("{}", self.by_index_locale(lang));
         }
 
         println!();
@@ -278,19 +278,19 @@ impl Pile {
         self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
     }
 
-    pub fn sig_index(&self) -> String {
-        self.sig_index_locale(&US_ENGLISH)
+    pub fn by_index(&self) -> String {
+        self.by_index_locale(&US_ENGLISH)
     }
 
-    pub fn sig_index_locale(&self, lid: &LanguageIdentifier) -> String {
+    pub fn by_index_locale(&self, lid: &LanguageIdentifier) -> String {
         Pile::sig_generate_from_strings(&self.collect_index(lid))
     }
 
-    pub fn sig_symbol_index(&self) -> String {
-        self.sig_symbol_index_locale(&US_ENGLISH)
+    pub fn by_symbol_index(&self) -> String {
+        self.by_symbol_index_locale(&US_ENGLISH)
     }
 
-    pub fn sig_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
+    pub fn by_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
         Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
@@ -313,7 +313,7 @@ impl Default for Pile {
 /// Sets the to_string() function for a Pile to return the default index signature for the Pile.
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sig = self.sig_index();
+        let sig = self.by_index();
         write!(f, "{}", sig)
     }
 }
@@ -572,8 +572,8 @@ mod card_deck_tests {
     fn sig_index() {
         let deck = Pile::spades_deck().draw(4).unwrap();
 
-        let sig_english = deck.sig_index();
-        let sig_german = deck.sig_index_locale(&GERMAN);
+        let sig_english = deck.by_index();
+        let sig_german = deck.by_index_locale(&GERMAN);
 
         assert_eq!("JBS JLS AS KS".to_string(), sig_english);
         assert_eq!("JGS JKS AS KS".to_string(), sig_german);
@@ -583,7 +583,7 @@ mod card_deck_tests {
     fn sig_symbol_index() {
         let deck = Pile::spades_deck().draw(4).unwrap();
 
-        let sig = deck.sig_symbol_index();
+        let sig = deck.by_symbol_index();
 
         assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
     }
