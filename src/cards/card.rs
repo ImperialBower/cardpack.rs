@@ -18,7 +18,7 @@ use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
-use crate::cards::suit::Suit;
+use crate::cards::suit::*;
 use crate::fluent::US_ENGLISH;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
@@ -109,10 +109,10 @@ mod card_tests {
             weight: 4014,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
-            suit: Suit::new("spades"),
+            suit: Suit::new(SPADES),
         };
 
-        assert_eq!(expected, Card::new(ACE, "spades"));
+        assert_eq!(expected, Card::new(ACE, SPADES));
     }
 
     #[test]
@@ -121,25 +121,25 @@ mod card_tests {
             weight: 4014,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
-            suit: Suit::new("spades"),
+            suit: Suit::new(SPADES),
         };
 
         assert_eq!(
             expected,
-            Card::new_from_structs(Rank::new(ACE), Suit::new("spades"))
+            Card::new_from_structs(Rank::new(ACE), Suit::new(SPADES))
         );
     }
 
     #[test]
     fn to_txt_string() {
-        let card = Card::new(QUEEN, "clubs");
+        let card = Card::new(QUEEN, CLUBS);
 
         assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
     }
 
     #[test]
     fn to_symbol_string() {
-        let card = Card::new(QUEEN, "hearts");
+        let card = Card::new(QUEEN, HEARTS);
 
         assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
     }

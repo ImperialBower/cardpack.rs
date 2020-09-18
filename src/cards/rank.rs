@@ -142,8 +142,7 @@ impl Rank {
 
     pub fn generate_french_ranks() -> Vec<Rank> {
         Rank::from_array(&[
-            ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR,
-            THREE, TWO,
+            ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO,
         ])
     }
 
@@ -153,42 +152,20 @@ impl Rank {
 
     pub fn generate_major_arcana_ranks() -> Vec<Rank> {
         Rank::from_array(&[
-            FOOL,
-            MAGICIAN,
-            PRIESTESS,
-            EMPRESS,
-            EMPEROR,
-            HIEROPHANT,
-            LOVERS,
-            CHARIOT,
-            STRENGTH,
-            HERMIT,
-            FORTUNE,
-            JUSTICE,
-            HANGED,
-            DEATH,
-            TEMPERANCE,
-            DEVIL,
-            TOWER,
-            STAR,
-            MOON,
-            SUN,
-            JUDGEMENT,
-            WORLD,
+            FOOL, MAGICIAN, PRIESTESS, EMPRESS, EMPEROR, HIEROPHANT, LOVERS, CHARIOT, STRENGTH,
+            HERMIT, FORTUNE, JUSTICE, HANGED, DEATH, TEMPERANCE, DEVIL, TOWER, STAR, MOON, SUN,
+            JUDGEMENT, WORLD,
         ])
     }
 
     pub fn generate_minor_arcana_ranks() -> Vec<Rank> {
         Rank::from_array(&[
-            KING, QUEEN, KNIGHT, PAGE, TEN, NINE, EIGHT, SEVEN, SIX, FIVE,
-            FOUR, THREE, TWO, ACE,
+            KING, QUEEN, KNIGHT, PAGE, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO, ACE,
         ])
     }
 
     pub fn generate_skat_ranks() -> Vec<Rank> {
-        Rank::from_array(&[
-            DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN,
-        ])
+        Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
     }
 
     /// Returns the number of pips on the cards.
@@ -263,14 +240,8 @@ mod rank_tests {
 
     #[test]
     fn partial_eq() {
-        assert_ne!(
-            Rank::new_with_value(NINE, 3),
-            Rank::new_with_value(NINE, 4)
-        );
-        assert_ne!(
-            Rank::new_with_value(TEN, 4),
-            Rank::new_with_value(NINE, 4)
-        );
+        assert_ne!(Rank::new_with_value(NINE, 3), Rank::new_with_value(NINE, 4));
+        assert_ne!(Rank::new_with_value(TEN, 4), Rank::new_with_value(NINE, 4));
     }
 
     #[test]
@@ -325,8 +296,7 @@ mod rank_tests {
     #[test]
     fn generate_minor_arcana_ranks() {
         let ex: Vec<Rank> = Rank::from_array(&[
-            KING, QUEEN, KNIGHT, PAGE, TEN, NINE, EIGHT, SEVEN, SIX, FIVE,
-            FOUR, THREE, TWO, ACE,
+            KING, QUEEN, KNIGHT, PAGE, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO, ACE,
         ]);
 
         assert_eq!(ex, Rank::generate_minor_arcana_ranks());

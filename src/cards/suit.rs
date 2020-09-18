@@ -216,7 +216,7 @@ mod suit_tests {
     #[test]
     fn to_vec() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_weight("clubs", 2));
+        expected.push(Suit::new_with_weight(CLUBS, 2));
         expected.push(Suit::new_with_weight(SPADES, 1));
 
         assert_eq!(expected, Suit::from_array(&[CLUBS, SPADES]));
