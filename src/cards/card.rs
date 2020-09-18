@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::rank::Rank;
+use crate::cards::rank::*;
 use crate::cards::suit::Suit;
 use crate::fluent::US_ENGLISH;
 
@@ -108,11 +108,11 @@ mod card_tests {
         let expected = Card {
             weight: 4014,
             index: "AS".to_string(),
-            rank: Rank::new("ace"),
+            rank: Rank::new(ACE),
             suit: Suit::new("spades"),
         };
 
-        assert_eq!(expected, Card::new("ace", "spades"));
+        assert_eq!(expected, Card::new(ACE, "spades"));
     }
 
     #[test]
@@ -120,26 +120,26 @@ mod card_tests {
         let expected = Card {
             weight: 4014,
             index: "AS".to_string(),
-            rank: Rank::new("ace"),
+            rank: Rank::new(ACE),
             suit: Suit::new("spades"),
         };
 
         assert_eq!(
             expected,
-            Card::new_from_structs(Rank::new("ace"), Suit::new("spades"))
+            Card::new_from_structs(Rank::new(ACE), Suit::new("spades"))
         );
     }
 
     #[test]
     fn to_txt_string() {
-        let card = Card::new("queen", "clubs");
+        let card = Card::new(QUEEN, "clubs");
 
         assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
     }
 
     #[test]
     fn to_symbol_string() {
-        let card = Card::new("queen", "hearts");
+        let card = Card::new(QUEEN, "hearts");
 
         assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
     }
