@@ -43,6 +43,7 @@ impl Pile {
         Pile(v)
     }
 
+    /// Places the Card at the bottom (end) of the Pile.
     pub fn add(&mut self, elem: Card) {
         self.0.push(elem);
     }
