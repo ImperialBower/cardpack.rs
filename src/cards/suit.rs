@@ -19,6 +19,23 @@ use unic_langid::LanguageIdentifier;
 
 use crate::fluent::*;
 
+// French Deck Suit Fluent Identifiers
+pub const SPADES: &str = "spades";
+pub const HEARTS: &str = "hearts";
+pub const DIAMONDS: &str = "diamonds";
+pub const CLUBS: &str = "clubs";
+// Tarot Deck Suit Fluent Identifiers
+pub const MAJOR_ARCANA: &str = "major-arcana";
+pub const WANDS: &str = "wands";
+pub const CUPS: &str = "cups";
+pub const SWORDS: &str = "swords";
+pub const PENTACLES: &str = "pentacles";
+// Skat Suit Fluent Identifiers
+pub const EICHEL: &str = "eichel"; // Acorns
+pub const LAUB: &str = "laub"; // Leaves
+pub const HERZ: &str = "herz"; // Hearts
+pub const SHELLEN: &str = "schellen"; // Bells
+
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
@@ -90,15 +107,15 @@ impl Suit {
     }
 
     pub fn generate_french_suits() -> Vec<Suit> {
-        Suit::from_array(&["spades", "hearts", "diamonds", "clubs"])
+        Suit::from_array(&[SPADES, HEARTS, DIAMONDS, CLUBS])
     }
 
     pub fn generate_arcana_suits() -> Vec<Suit> {
-        Suit::from_array(&["major-arcana", "wands", "cups", "swords", "pentacles"])
+        Suit::from_array(&[MAJOR_ARCANA, WANDS, CUPS, SWORDS, PENTACLES])
     }
 
     pub fn generate_skat_suits() -> Vec<Suit> {
-        Suit::from_array(&["eichel", "laub", "herz", "schellen"])
+        Suit::from_array(&[EICHEL, LAUB, HERZ, SHELLEN])
     }
 }
 
@@ -126,44 +143,44 @@ mod suit_tests {
 
     #[test]
     fn display() {
-        assert_eq!("Suit: ♥", format!("Suit: {}", Suit::new("hearts")));
+        assert_eq!("Suit: ♥", format!("Suit: {}", Suit::new(HEARTS)));
     }
 
     #[test]
     fn new() {
         let expected = Suit {
             weight: 4,
-            raw: "spades".to_string(),
+            raw: SPADES.to_string(),
         };
 
-        assert_eq!(expected, Suit::new("spades"));
+        assert_eq!(expected, Suit::new(SPADES));
     }
 
     #[test]
     fn new_with_value() {
         let expected = Suit {
             weight: 4,
-            raw: "spades".to_string(),
+            raw: SPADES.to_string(),
         };
 
-        assert_eq!(expected, Suit::new_with_weight("spades", 4));
+        assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
     }
 
     #[test]
     fn partial_eq() {
         assert_ne!(
-            Suit::new_with_weight("spades", 3),
-            Suit::new_with_weight("spades", 4)
+            Suit::new_with_weight(SPADES, 3),
+            Suit::new_with_weight(SPADES, 4)
         );
         assert_ne!(
-            Suit::new_with_weight("hearts", 4),
-            Suit::new_with_weight("spades", 4)
+            Suit::new_with_weight(HEARTS, 4),
+            Suit::new_with_weight(SPADES, 4)
         );
     }
 
     #[test]
     fn get_short() {
-        let clubs = Suit::new("clubs");
+        let clubs = Suit::new(CLUBS);
 
         assert_eq!("C".to_string(), clubs.get_default_short());
         assert_eq!("K".to_string(), clubs.get_short(&GERMAN));
@@ -171,7 +188,7 @@ mod suit_tests {
 
     #[test]
     fn get_symbol() {
-        let clubs = Suit::new("clubs");
+        let clubs = Suit::new(CLUBS);
 
         assert_eq!("♣".to_string(), clubs.get_symbol());
     }
@@ -186,7 +203,7 @@ mod suit_tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(Suit::new("clubs").to_string(), "♣".to_string());
+        assert_eq!(Suit::new(CLUBS).to_string(), "♣".to_string());
     }
 
     #[test]
@@ -200,18 +217,18 @@ mod suit_tests {
     fn to_vec() {
         let mut expected: Vec<Suit> = Vec::new();
         expected.push(Suit::new_with_weight("clubs", 2));
-        expected.push(Suit::new_with_weight("spades", 1));
+        expected.push(Suit::new_with_weight(SPADES, 1));
 
-        assert_eq!(expected, Suit::from_array(&["clubs", "spades"]));
+        assert_eq!(expected, Suit::from_array(&[CLUBS, SPADES]));
     }
 
     #[test]
     fn generate_french_suits() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_weight("spades", 4));
-        expected.push(Suit::new_with_weight("hearts", 3));
-        expected.push(Suit::new_with_weight("diamonds", 2));
-        expected.push(Suit::new_with_weight("clubs", 1));
+        expected.push(Suit::new_with_weight(SPADES, 4));
+        expected.push(Suit::new_with_weight(HEARTS, 3));
+        expected.push(Suit::new_with_weight(DIAMONDS, 2));
+        expected.push(Suit::new_with_weight(CLUBS, 1));
 
         assert_eq!(expected, Suit::generate_french_suits());
     }
@@ -219,18 +236,18 @@ mod suit_tests {
     #[test]
     fn generate_arcana_suits() {
         let mut expected: Vec<Suit> = Vec::new();
-        expected.push(Suit::new_with_weight("major-arcana", 5));
-        expected.push(Suit::new_with_weight("wands", 4));
-        expected.push(Suit::new_with_weight("cups", 3));
-        expected.push(Suit::new_with_weight("swords", 2));
-        expected.push(Suit::new_with_weight("pentacles", 1));
+        expected.push(Suit::new_with_weight(MAJOR_ARCANA, 5));
+        expected.push(Suit::new_with_weight(WANDS, 4));
+        expected.push(Suit::new_with_weight(CUPS, 3));
+        expected.push(Suit::new_with_weight(SWORDS, 2));
+        expected.push(Suit::new_with_weight(PENTACLES, 1));
 
         assert_eq!(expected, Suit::generate_arcana_suits());
     }
 
     #[test]
     fn revise_value() {
-        let mut wands = Suit::new("wands");
+        let mut wands = Suit::new(WANDS);
         assert_eq!(4, wands.get_weight());
 
         wands.revise_weight(3);
