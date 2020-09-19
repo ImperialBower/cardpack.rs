@@ -62,6 +62,18 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
+    pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
+        let mut pile = Pile::default();
+        for index in indexes {
+            let card = self.card_by_index(index);
+            match card {
+                Some(c) => pile.add(c.clone()),
+                _ => return None,
+            }
+        }
+        Some(pile)
+    }
+
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
         self.0.iter().find(|c| c.index == index)
     }
@@ -538,6 +550,28 @@ mod card_deck_tests {
 
         assert_eq!(zero.len(), 0);
         assert_eq!(deck.len(), 2);
+    }
+
+    #[test]
+    fn pile_by_index() {
+        let deck = Pile::french_deck();
+        let qclubs = Card::new(QUEEN, CLUBS);
+        let qhearts = Card::new(QUEEN, HEARTS);
+        let expected = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+
+        let actual = deck.pile_by_index(&["QC", "QH"]);
+
+        assert_eq!(expected, actual.unwrap())
+    }
+
+    #[test]
+    fn pile_by_index_ne() {
+        let deck = Pile::french_deck();
+
+        // Try with indexes from other types of decks.
+        let actual = deck.pile_by_index(&["UA", "2MA"]);
+
+        assert_eq!(None, actual)
     }
 
     #[test]
