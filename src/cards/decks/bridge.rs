@@ -15,3 +15,54 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use crate::cards::pack::Pack;
+use crate::cards::pile::Pile;
+
+pub struct BridgeDeck {
+    pack: Pack,
+    pub south: Pile,
+    pub west: Pile,
+    pub north: Pile,
+    pub east: Pile,
+}
+
+impl BridgeDeck {
+    pub fn get_pack(&self) -> &Pack {
+        return &self.pack
+    }
+
+    pub fn is_valid(&self) -> bool {
+        let piles = &[self.south.clone(), self.west.clone(), self.north.clone(), self.east.clone()];
+        let pile = Pile::pile_on(piles);
+        self.pack.is_complete(&[pile])
+    }
+}
+
+impl Default for BridgeDeck {
+    fn default() -> Self {
+        BridgeDeck {
+            pack: Pack::french_deck(),
+            south: Pile::default(),
+            west: Pile::default(),
+            north: Pile::default(),
+            east: Pile::default(),
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod card_deck_tests {
+    use super::*;
+
+    #[test]
+    fn is_valid() {
+        let mut deck = BridgeDeck::default();
+        let mut cards = deck.pack.cards().shuffle();
+        deck.south = cards.draw(13).unwrap();
+        deck.west = cards.draw(13).unwrap();
+        deck.north = cards.draw(13).unwrap();
+        deck.east = cards.draw(13).unwrap();
+
+        assert!(deck.is_valid())
+    }
+}
