@@ -19,6 +19,7 @@ use rand::thread_rng;
 use std::collections::HashSet;
 use std::collections::HashMap;
 use std::fmt;
+use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::card::Card;
@@ -269,8 +270,13 @@ impl Pile {
         self.0.reverse();
     }
 
-    pub fn suits(&self) -> HashSet<Suit> {
-        self.0.iter().map(|c| c.suit.clone()).collect()
+    /// Returns a sorted collection of the unique Suits in a Pile.
+    pub fn suits(&self) -> Vec<Suit> {
+        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit.clone()).collect();
+        let mut suits: Vec<Suit> = Vec::from_iter(hashset);
+        suits.sort();
+        suits.reverse();
+        suits
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Card> {
@@ -708,6 +714,16 @@ mod card_deck_tests {
         let sig = deck.by_symbol_index();
 
         assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
+    }
+
+    #[test]
+    fn suits() {
+        let deck = Pile::french_deck();
+        let expected: Vec<Suit> = vec![Suit::new(SPADES), Suit::new(HEARTS), Suit::new(DIAMONDS), Suit::new(CLUBS)];
+
+        let suits = deck.suits();
+
+        assert_eq!(expected, suits);
     }
 
     #[test]
