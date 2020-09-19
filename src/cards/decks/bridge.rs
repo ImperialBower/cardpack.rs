@@ -18,7 +18,9 @@ use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
 
-pub struct BridgeDeck {
+/// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
+/// of a Bridge hand.
+pub struct BridgeBoard {
     pack: Pack,
     pub south: Pile,
     pub west: Pile,
@@ -26,18 +28,27 @@ pub struct BridgeDeck {
     pub east: Pile,
 }
 
-impl BridgeDeck {
-    pub fn from_pbn_deal(deal: &str) -> BridgeDeck {
-        let (_, pbn) = BridgeDeck::split_on_direction(deal);
+impl BridgeBoard {
+    /// Parses a Portable Bridge Notation deal string and converts it into a
+    /// BridgeBoard struct.
+    pub fn from_pbn_deal(deal: &str) -> BridgeBoard {
+        let (_, pbn) = BridgeBoard::split_on_direction(deal);
         let mut dir_iter = pbn.split_whitespace();
 
-        let mut board = BridgeDeck::default();
+        let mut board = BridgeBoard::default();
         board.south = board.to_pile(dir_iter.next().unwrap());
         board.west = board.to_pile(dir_iter.next().unwrap());
         board.north = board.to_pile(dir_iter.next().unwrap());
         board.east = board.to_pile(dir_iter.next().unwrap());
 
         board
+    }
+
+    pub fn demo(&self) {
+        println!("S: {}", self.south.by_symbol_index());
+        println!("W: {}", self.west.by_symbol_index());
+        println!("N: {}", self.north.by_symbol_index());
+        println!("E: {}", self.east.by_symbol_index());
     }
 
     pub fn get_pack(&self) -> &Pack {
@@ -59,19 +70,19 @@ impl BridgeDeck {
         let rawsuits: Vec<&str> = s.split('.').collect();
 
         let mut v: Vec<String> = Vec::new();
-        v.append(&mut BridgeDeck::splice_suit_in(
+        v.append(&mut BridgeBoard::splice_suit_in(
             &rawsuits.get(0).unwrap(),
             'S',
         ));
-        v.append(&mut BridgeDeck::splice_suit_in(
+        v.append(&mut BridgeBoard::splice_suit_in(
             &rawsuits.get(1).unwrap(),
             'H',
         ));
-        v.append(&mut BridgeDeck::splice_suit_in(
+        v.append(&mut BridgeBoard::splice_suit_in(
             &rawsuits.get(2).unwrap(),
             'D',
         ));
-        v.append(&mut BridgeDeck::splice_suit_in(
+        v.append(&mut BridgeBoard::splice_suit_in(
             &rawsuits.get(3).unwrap(),
             'C',
         ));
@@ -101,9 +112,9 @@ impl BridgeDeck {
     }
 }
 
-impl Default for BridgeDeck {
+impl Default for BridgeBoard {
     fn default() -> Self {
-        BridgeDeck {
+        BridgeBoard {
             pack: Pack::french_deck(),
             south: Pile::default(),
             west: Pile::default(),
@@ -115,7 +126,7 @@ impl Default for BridgeDeck {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod card_deck_tests {
+mod bridge_board_tests {
     use super::*;
 
     const PBN_TEST_STRING: &str =
@@ -137,7 +148,7 @@ mod card_deck_tests {
             "KS", "6S", "3S", "KH", "8H", "4H", "8D", "7D", "KC", "JC", "9C", "8C", "2C",
         ]);
 
-        let deal = BridgeDeck::from_pbn_deal(PBN_TEST_STRING);
+        let deal = BridgeBoard::from_pbn_deal(PBN_TEST_STRING);
 
         assert_eq!(south.unwrap().by_index(), deal.south.by_index());
         assert_eq!(west.unwrap().by_index(), deal.west.by_index());
@@ -147,7 +158,7 @@ mod card_deck_tests {
 
     #[test]
     fn is_valid() {
-        let mut deck = BridgeDeck::default();
+        let mut deck = BridgeBoard::default();
         let mut cards = deck.pack.cards().shuffle();
         deck.south = cards.draw(13).unwrap();
         deck.west = cards.draw(13).unwrap();
@@ -159,7 +170,7 @@ mod card_deck_tests {
 
     #[test]
     fn is_valid_ne() {
-        let mut deck = BridgeDeck::default();
+        let mut deck = BridgeBoard::default();
         let mut cards = deck.pack.cards().shuffle();
         deck.south = cards.draw(13).unwrap();
         deck.west = cards.draw(13).unwrap();
@@ -173,7 +184,7 @@ mod card_deck_tests {
     fn splice_suit_in() {
         let expected = vec!["QS".to_string(), "4S".to_string()];
 
-        let actual = BridgeDeck::splice_suit_in("Q4", 'S');
+        let actual = BridgeBoard::splice_suit_in("Q4", 'S');
 
         assert_eq!(expected, actual)
     }
@@ -183,7 +194,7 @@ mod card_deck_tests {
         let expected_remainder =
             "Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
 
-        let (char, remainder) = BridgeDeck::split_on_direction(PBN_TEST_STRING);
+        let (char, remainder) = BridgeBoard::split_on_direction(PBN_TEST_STRING);
 
         assert_eq!('S', char);
         assert_eq!(expected_remainder, remainder);
