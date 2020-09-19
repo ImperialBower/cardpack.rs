@@ -2,7 +2,12 @@ use cardpack::BridgeBoard;
 
 /// This is a complex example, and gives an idea of some of the work planned around Bridge.
 fn main() {
-    println!("Take a PBN Deal String and convert it into Bridge hands (packs):");
+    println!("First, let's deal out a Bridge hand:");
+    let board = BridgeBoard::deal();
+    board.demo();
+
+    println!();
+    println!("Now, let's take a PBN Deal String and convert it into Bridge hands (packs):");
 
     // This is a deal string from a Portable Bridge Notation document.
     let deal = "S:Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";

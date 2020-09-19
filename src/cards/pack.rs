@@ -52,7 +52,7 @@ impl Pack {
     /// Returns true of the combined Cards from the passed in Vector match the Cards in the Pack.
     pub fn is_complete(&self, piles: &[Pile]) -> bool {
         let mut pile = Pile::pile_on(piles);
-        pile.sort();
+        pile.sort_in_place();
         pile == self.cards
     }
 

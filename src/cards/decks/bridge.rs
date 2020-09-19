@@ -44,11 +44,21 @@ impl BridgeBoard {
         board
     }
 
+    pub fn deal() -> BridgeBoard {
+        let mut board = BridgeBoard::default();
+        let mut cards = board.pack.cards().shuffle();
+        board.south = cards.draw(13).unwrap();
+        board.west = cards.draw(13).unwrap();
+        board.north = cards.draw(13).unwrap();
+        board.east = cards.draw(13).unwrap();
+        board
+    }
+
     pub fn demo(&self) {
-        println!("S: {}", self.south.by_symbol_index());
-        println!("W: {}", self.west.by_symbol_index());
-        println!("N: {}", self.north.by_symbol_index());
-        println!("E: {}", self.east.by_symbol_index());
+        println!("S: {}", self.south.sort().by_symbol_index());
+        println!("W: {}", self.west.sort().by_symbol_index());
+        println!("N: {}", self.north.sort().by_symbol_index());
+        println!("E: {}", self.east.sort().by_symbol_index());
     }
 
     pub fn get_pack(&self) -> &Pack {
@@ -163,12 +173,7 @@ mod bridge_board_tests {
 
     #[test]
     fn is_valid() {
-        let mut deck = BridgeBoard::default();
-        let mut cards = deck.pack.cards().shuffle();
-        deck.south = cards.draw(13).unwrap();
-        deck.west = cards.draw(13).unwrap();
-        deck.north = cards.draw(13).unwrap();
-        deck.east = cards.draw(13).unwrap();
+        let deck = BridgeBoard::deal();
 
         assert!(deck.is_valid())
     }

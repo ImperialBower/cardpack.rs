@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::collections::HashSet;
 use std::collections::HashMap;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
@@ -137,7 +138,7 @@ impl Pile {
 
         println!();
         print!("   Shuffle Deck:           ");
-        let mut shuffled = self.shuffle();
+        let shuffled = self.shuffle();
         print!("{}", shuffled.to_string());
 
         println!();
@@ -257,14 +258,19 @@ impl Pile {
         self.0.shuffle(&mut thread_rng());
     }
 
-    /// Returns a vector of all the suits in a Pile.
-    pub fn suits(&self) -> Vec<Suit> {
-        Vec::new()
+    pub fn sort(&self) -> Pile {
+        let mut pile = self.clone();
+        pile.sort_in_place();
+        pile
     }
 
-    pub fn sort(&mut self) {
+    pub fn sort_in_place(&mut self) {
         self.0.sort();
         self.0.reverse();
+    }
+
+    pub fn suits(&self) -> HashSet<Suit> {
+        self.0.iter().map(|c| c.suit.clone()).collect()
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Card> {
@@ -668,7 +674,7 @@ mod card_deck_tests {
         let mut shuffled = pile.shuffle();
 
         assert_ne!(pile, shuffled);
-        shuffled.sort();
+        shuffled.sort_in_place();
         assert_eq!(pile, shuffled);
     }
 
@@ -681,8 +687,7 @@ mod card_deck_tests {
         shuffled.shuffle_in_place();
         assert_ne!(actual, shuffled);
 
-        shuffled.sort();
-        assert_eq!(actual, shuffled);
+        assert_eq!(actual, shuffled.sort());
     }
 
     #[test]
@@ -724,11 +729,9 @@ mod card_deck_tests {
         ];
 
         for deck in decks {
-            let mut shuffled = deck.shuffle();
+            let shuffled = deck.shuffle();
             assert_ne!(deck, shuffled);
-            shuffled.sort();
-
-            assert_eq!(deck, shuffled);
+            assert_eq!(deck, shuffled.sort());
         }
     }
 
