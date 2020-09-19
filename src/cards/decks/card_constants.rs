@@ -13,6 +13,13 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+//
+// use lazy_static::lazy_static;
+//
+// use crate::cards::card::Card;
+// use crate::cards::rank::Rank;
+// use crate::cards::suit::Suit;
 
-pub mod bridge;
-mod card_constants;
+// lazy_static! {
+//     static pub ref ACE_SPADES =
+// }

@@ -14,6 +14,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
 
@@ -26,6 +27,19 @@ pub struct BridgeDeck {
 }
 
 impl BridgeDeck {
+    pub fn from_pbn_deal(deal: &str) -> BridgeDeck {
+        let (_, pbn) = BridgeDeck::split_on_direction(deal);
+        let mut dir_iter = pbn.split_whitespace();
+
+        let mut board = BridgeDeck::default();
+        board.south = board.to_pile(dir_iter.next().unwrap());
+        board.west = board.to_pile(dir_iter.next().unwrap());
+        board.north = board.to_pile(dir_iter.next().unwrap());
+        board.east = board.to_pile(dir_iter.next().unwrap());
+
+        board
+    }
+
     pub fn get_pack(&self) -> &Pack {
         return &self.pack
     }
@@ -34,6 +48,39 @@ impl BridgeDeck {
         let piles = &[self.south.clone(), self.west.clone(), self.north.clone(), self.east.clone()];
         let pile = Pile::pile_on(piles);
         self.pack.is_complete(&[pile])
+    }
+
+    fn to_pile(&self, s: &str) -> Pile {
+        let rawsuits: Vec<&str> = s.split(".").collect();
+
+        let mut v: Vec<String> = Vec::new();
+        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(0).unwrap(), 'S'));
+        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(1).unwrap(), 'H'));
+        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(2).unwrap(), 'D'));
+        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(3).unwrap(), 'C'));
+
+        let coll: Vec<Card> = v
+            .iter()
+            .map(|s| self.pack.cards().card_by_index(s.as_str()).unwrap().clone())
+            .collect();
+
+        Pile::new_from_vector(coll)
+    }
+
+    fn splice_suit_in(s: &str, suit: char) -> Vec<String> {
+        let mut v: Vec<String> = Vec::new();
+
+        for c in s.chars() {
+            v.push(format!("{}{}", c, suit));
+        }
+        v
+    }
+
+    fn split_on_direction(deal: &str) -> (char, &str) {
+        let direction = deal.chars().next().unwrap();
+        let remainder = &deal[2..];
+
+        (direction, remainder)
     }
 }
 
@@ -53,6 +100,24 @@ impl Default for BridgeDeck {
 #[allow(non_snake_case)]
 mod card_deck_tests {
     use super::*;
+
+    const PBN_TEST_STRING: &str = "S:Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
+
+    #[test]
+    fn from_pbn_deal() {
+        let deck = Pile::french_deck();
+        let south = deck.pile_by_index(&["QS", "4S", "2S", "QH", "5H", "2H", "AD", "QD", "TD", "9D", "4D", "3D", "QC"]);
+        let west = deck.pile_by_index(&["9S", "7S", "AH", "TH", "9H", "3H", "6D", "5D", "2D", "TC", "7C", "4C", "3C"]);
+        let north = deck.pile_by_index(&["AS", "JS", "TS", "8S", "5S", "JH", "7H", "6H", "KD", "JD", "AC", "6C", "5C"]);
+        let east = deck.pile_by_index(&["KS", "6S", "3S", "KH", "8H", "4H", "8D", "7D", "KC", "JC", "9C", "8C", "2C"]);
+
+        let deal = BridgeDeck::from_pbn_deal(PBN_TEST_STRING);
+
+        assert_eq!(south.unwrap().by_index(), deal.south.by_index());
+        assert_eq!(west.unwrap().by_index(), deal.west.by_index());
+        assert_eq!(north.unwrap().by_index(), deal.north.by_index());
+        assert_eq!(east.unwrap().by_index(), deal.east.by_index());
+    }
 
     #[test]
     fn is_valid() {
@@ -76,5 +141,24 @@ mod card_deck_tests {
         deck.east = cards.draw(12).unwrap();
 
         assert!(!deck.is_valid())
+    }
+
+    #[test]
+    fn splice_suit_in() {
+        let expected = vec!["QS".to_string(), "4S".to_string()];
+
+        let actual = BridgeDeck::splice_suit_in("Q4", 'S');
+
+        assert_eq!(expected, actual)
+    }
+
+    #[test]
+    fn split_on_direction() {
+        let expected_remainder = "Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
+
+        let (char, remainder) = BridgeDeck::split_on_direction(PBN_TEST_STRING);
+
+        assert_eq!('S', char);
+        assert_eq!(expected_remainder, remainder);
     }
 }
