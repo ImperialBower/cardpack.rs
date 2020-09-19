@@ -27,7 +27,7 @@ use crate::fluent::US_ENGLISH;
 ///
 ///
 ///
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     pub weight: isize,
     pub index: String,

@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::collections::HashMap;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -35,7 +36,7 @@ use crate::fluent::{GERMAN, US_ENGLISH};
 /// pile.add(ace_of_hearts);
 /// pile.shuffle();
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Pile(Vec<Card>);
 
 impl Pile {
@@ -62,7 +63,6 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
-
     pub fn by_index(&self) -> String {
         self.by_index_locale(&US_ENGLISH)
     }
@@ -86,6 +86,14 @@ impl Pile {
     /// Returns a reference to the Vector containing all the cards.
     pub fn cards(&self) -> &Vec<Card> {
         &self.0
+    }
+
+    fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
+    }
+
+    fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
     }
 
     /// Tests if a card is in the Pile.
@@ -198,6 +206,11 @@ impl Pile {
         self.0.len()
     }
 
+    pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
+        // self.0.iter().
+        HashMap::new()
+    }
+
     pub fn position(&self, karte: &Card) -> Option<usize> {
         self.0.iter().position(|k| k == karte)
     }
@@ -242,6 +255,11 @@ impl Pile {
 
     pub fn shuffle_in_place(&mut self) {
         self.0.shuffle(&mut thread_rng());
+    }
+
+    /// Returns a vector of all the suits in a Pile.
+    pub fn suits(&self) -> Vec<Suit> {
+        Vec::new()
     }
 
     pub fn sort(&mut self) {
@@ -327,14 +345,6 @@ impl Pile {
         }
 
         cards
-    }
-
-    fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
-    }
-
-    fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
     }
 
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
@@ -551,6 +561,19 @@ mod card_deck_tests {
 
         assert_eq!(zero.len(), 0);
         assert_eq!(deck.len(), 2);
+    }
+
+    #[test]
+    fn map_by_suit() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["QS", "QC", "QH", "QD"])
+            .unwrap();
+        let qs = pile.first().unwrap().clone();
+        let spades = Suit::new(SPADES);
+
+        let mappie = pile.map_by_suit();
+
+        assert_eq!(&qs, mappie.get(&spades).unwrap().first().unwrap());
     }
 
     #[test]

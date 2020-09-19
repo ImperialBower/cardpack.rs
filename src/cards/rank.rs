@@ -83,7 +83,7 @@ pub const PAGE: &str = "page";
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
 /// at the and of a Suit (unless there are any Cards with negative weights).
 ///
-#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     pub weight: isize,
     pub raw: String,

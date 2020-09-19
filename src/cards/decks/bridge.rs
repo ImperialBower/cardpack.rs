@@ -207,6 +207,9 @@ mod bridge_board_tests {
 
     #[test]
     fn to_pbn_deal() {
-        assert_eq!(PBN_TEST_STRING.to_string(), BridgeBoard::from_pbn_deal(PBN_TEST_STRING).to_pbn_deal())
+        assert_eq!(
+            PBN_TEST_STRING.to_string(),
+            BridgeBoard::from_pbn_deal(PBN_TEST_STRING).to_pbn_deal()
+        )
     }
 }
