@@ -65,4 +65,16 @@ mod card_deck_tests {
 
         assert!(deck.is_valid())
     }
+
+    #[test]
+    fn is_valid_ne() {
+        let mut deck = BridgeDeck::default();
+        let mut cards = deck.pack.cards().shuffle();
+        deck.south = cards.draw(13).unwrap();
+        deck.west = cards.draw(13).unwrap();
+        deck.north = cards.draw(13).unwrap();
+        deck.east = cards.draw(12).unwrap();
+
+        assert!(!deck.is_valid())
+    }
 }
