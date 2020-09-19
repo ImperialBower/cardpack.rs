@@ -66,6 +66,10 @@ impl BridgeBoard {
         self.pack.is_complete(&[pile])
     }
 
+    pub fn to_pbn_deal(&self) -> String {
+        "".to_string()
+    }
+
     fn to_pile(&self, s: &str) -> Pile {
         let rawsuits: Vec<&str> = s.split('.').collect();
 
@@ -154,6 +158,7 @@ mod bridge_board_tests {
         assert_eq!(west.unwrap().by_index(), deal.west.by_index());
         assert_eq!(north.unwrap().by_index(), deal.north.by_index());
         assert_eq!(east.unwrap().by_index(), deal.east.by_index());
+        assert!(deal.is_valid())
     }
 
     #[test]
@@ -198,5 +203,10 @@ mod bridge_board_tests {
 
         assert_eq!('S', char);
         assert_eq!(expected_remainder, remainder);
+    }
+
+    #[test]
+    fn to_pbn_deal() {
+        assert_eq!(PBN_TEST_STRING.to_string(), BridgeBoard::from_pbn_deal(PBN_TEST_STRING).to_pbn_deal())
     }
 }

@@ -62,16 +62,21 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
-    pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
-        let mut pile = Pile::default();
-        for index in indexes {
-            let card = self.card_by_index(index);
-            match card {
-                Some(c) => pile.add(c.clone()),
-                _ => return None,
-            }
-        }
-        Some(pile)
+
+    pub fn by_index(&self) -> String {
+        self.by_index_locale(&US_ENGLISH)
+    }
+
+    pub fn by_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_index(lid))
+    }
+
+    pub fn by_symbol_index(&self) -> String {
+        self.by_symbol_index_locale(&US_ENGLISH)
+    }
+
+    pub fn by_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
@@ -165,6 +170,14 @@ impl Pile {
         self.0.first()
     }
 
+    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+    }
+
     pub fn get(&self, index: usize) -> Option<&Card> {
         self.0.get(index)
     }
@@ -187,6 +200,18 @@ impl Pile {
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
         self.0.iter().position(|k| k == karte)
+    }
+
+    pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
+        let mut pile = Pile::default();
+        for index in indexes {
+            let card = self.card_by_index(index);
+            match card {
+                Some(c) => pile.add(c.clone()),
+                _ => return None,
+            }
+        }
+        Some(pile)
     }
 
     // Takes a reference to the prepended entity, clones it, appends the original to the passed in
@@ -232,14 +257,6 @@ impl Pile {
         let big_joker = Card::new(BIG_JOKER, SPADES);
         let little_joker = Card::new(LITTLE_JOKER, SPADES);
         Pile::new_from_vector(vec![big_joker, little_joker])
-    }
-
-    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
-            }
-        }
     }
 
     pub fn french_deck() -> Pile {
@@ -318,22 +335,6 @@ impl Pile {
 
     fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
         self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
-    }
-
-    pub fn by_index(&self) -> String {
-        self.by_index_locale(&US_ENGLISH)
-    }
-
-    pub fn by_index_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::sig_generate_from_strings(&self.collect_index(lid))
-    }
-
-    pub fn by_symbol_index(&self) -> String {
-        self.by_symbol_index_locale(&US_ENGLISH)
-    }
-
-    pub fn by_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
