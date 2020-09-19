@@ -43,6 +43,14 @@ impl Pile {
         Pile(v)
     }
 
+    pub fn pile_on(piles: &[Pile]) -> Pile {
+        let mut pile = Pile::default();
+        for cards in piles.iter() {
+            pile.append(cards);
+        }
+        pile
+    }
+
     /// Places the Card at the bottom (end) of the Pile.
     pub fn add(&mut self, elem: Card) {
         self.0.push(elem);
@@ -364,6 +372,16 @@ mod card_deck_tests {
         let actual = Pile::new_from_vector(vec![qclubs, qhearts]);
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn pile_on() {
+        let mut deck = Pile::french_deck();
+        let half = deck.draw(26).unwrap();
+
+        let actual = Pile::pile_on(&vec![half, deck]);
+
+        assert_eq!(Pile::french_deck(), actual);
     }
 
     #[test]
