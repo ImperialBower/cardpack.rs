@@ -72,7 +72,7 @@ impl BridgeBoard {
             self.north.clone(),
             self.east.clone(),
         ];
-        let pile = Pile::pile_on(piles);
+        let pile = Pile::pile_on(piles.to_vec());
         self.pack.is_complete(&[pile])
     }
 

@@ -16,8 +16,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use std::collections::HashSet;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
@@ -47,12 +47,8 @@ impl Pile {
     }
 
     /// Takes a reference to an Array of Piles and consolidates them into a single Pile of Cards.
-    pub fn pile_on(piles: &[Pile]) -> Pile {
-        let mut pile = Pile::default();
-        for cards in piles.iter() {
-            pile.append(cards);
-        }
-        pile
+    pub fn pile_on(piles: Vec<Pile>) -> Pile {
+        piles.into_iter().flatten().collect()
     }
 
     /// Places the Card at the bottom (end) of the Pile.
@@ -383,6 +379,16 @@ impl fmt::Display for Pile {
     }
 }
 
+impl FromIterator<Card> for Pile {
+    fn from_iter<T: IntoIterator<Item = Card>>(iter: T) -> Self {
+        let mut c = Pile::default();
+        for i in iter {
+            c.add(i);
+        }
+        c
+    }
+}
+
 impl IntoIterator for Pile {
     type Item = Card;
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -415,7 +421,7 @@ mod card_deck_tests {
         let mut deck = Pile::french_deck();
         let half = deck.draw(26).unwrap();
 
-        let actual = Pile::pile_on(&vec![half, deck]);
+        let actual = Pile::pile_on(vec![half, deck]);
 
         assert_eq!(Pile::french_deck(), actual);
     }
@@ -719,7 +725,12 @@ mod card_deck_tests {
     #[test]
     fn suits() {
         let deck = Pile::french_deck();
-        let expected: Vec<Suit> = vec![Suit::new(SPADES), Suit::new(HEARTS), Suit::new(DIAMONDS), Suit::new(CLUBS)];
+        let expected: Vec<Suit> = vec![
+            Suit::new(SPADES),
+            Suit::new(HEARTS),
+            Suit::new(DIAMONDS),
+            Suit::new(CLUBS),
+        ];
 
         let suits = deck.suits();
 

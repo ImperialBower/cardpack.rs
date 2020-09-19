@@ -51,7 +51,7 @@ impl Pack {
 
     /// Returns true of the combined Cards from the passed in Vector match the Cards in the Pack.
     pub fn is_complete(&self, piles: &[Pile]) -> bool {
-        let mut pile = Pile::pile_on(piles);
+        let mut pile = Pile::pile_on(piles.to_vec());
         pile.sort_in_place();
         pile == self.cards
     }
@@ -94,7 +94,7 @@ mod card_deck_tests {
         let east = cards.draw(13).unwrap();
         let v = vec![south, west, north, east];
 
-        let pile = Pile::pile_on(&v);
+        let pile = Pile::pile_on(v.to_vec());
 
         assert_eq!(52, pile.len());
         assert!(deck.is_complete(&v));
@@ -110,7 +110,7 @@ mod card_deck_tests {
         let east = cards.draw(12).unwrap();
         let v = vec![south, west, north, east];
 
-        let pile = Pile::pile_on(&v);
+        let pile = Pile::pile_on(v.clone());
 
         assert_eq!(51, pile.len());
         assert!(!deck.is_complete(&v));
