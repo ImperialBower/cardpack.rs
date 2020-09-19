@@ -205,8 +205,12 @@ impl Pile {
     }
 
     pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
-        // self.0.iter().
-        HashMap::new()
+        let mut mappie: HashMap<Suit, Pile> = HashMap::new();
+        for suit in self.suits() {
+            let pile = self.0.clone().into_iter().filter(|c| c.suit == suit).collect();
+            mappie.insert(suit, pile);
+        }
+        mappie
     }
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
@@ -584,14 +588,17 @@ mod card_deck_tests {
     #[test]
     fn map_by_suit() {
         let pile = Pile::french_deck()
-            .pile_by_index(&["QS", "QC", "QH", "QD"])
+            .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
             .unwrap();
-        let qs = pile.first().unwrap().clone();
+        let qs = pile.get(0).unwrap();
+        let qc = pile.get(1).unwrap();
         let spades = Suit::new(SPADES);
+        let clubs = Suit::new(CLUBS);
 
         let mappie = pile.map_by_suit();
 
-        assert_eq!(&qs, mappie.get(&spades).unwrap().first().unwrap());
+        assert_eq!(qs, mappie.get(&spades).unwrap().first().unwrap());
+        assert_eq!(qc, mappie.get(&clubs).unwrap().first().unwrap());
     }
 
     #[test]
