@@ -204,6 +204,8 @@ impl Pile {
         self.0.len()
     }
 
+    /// Takes a pile and returns a HashMap with the key as each Suit in the Pile with the values
+    /// as a Pile of the cards for that Suit.
     pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
         let mut mappie: HashMap<Suit, Pile> = HashMap::new();
         for suit in self.suits() {
