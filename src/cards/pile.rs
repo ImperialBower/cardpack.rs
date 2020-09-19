@@ -43,6 +43,7 @@ impl Pile {
         Pile(v)
     }
 
+    /// Takes a reference to an Array of Piles and consolidates them into a single Pile of Cards.
     pub fn pile_on(piles: &[Pile]) -> Pile {
         let mut pile = Pile::default();
         for cards in piles.iter() {
