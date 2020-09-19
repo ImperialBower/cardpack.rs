@@ -41,23 +41,40 @@ impl BridgeDeck {
     }
 
     pub fn get_pack(&self) -> &Pack {
-        return &self.pack
+        &self.pack
     }
 
     pub fn is_valid(&self) -> bool {
-        let piles = &[self.south.clone(), self.west.clone(), self.north.clone(), self.east.clone()];
+        let piles = &[
+            self.south.clone(),
+            self.west.clone(),
+            self.north.clone(),
+            self.east.clone(),
+        ];
         let pile = Pile::pile_on(piles);
         self.pack.is_complete(&[pile])
     }
 
     fn to_pile(&self, s: &str) -> Pile {
-        let rawsuits: Vec<&str> = s.split(".").collect();
+        let rawsuits: Vec<&str> = s.split('.').collect();
 
         let mut v: Vec<String> = Vec::new();
-        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(0).unwrap(), 'S'));
-        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(1).unwrap(), 'H'));
-        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(2).unwrap(), 'D'));
-        v.append(&mut BridgeDeck::splice_suit_in(&rawsuits.get(3).unwrap(), 'C'));
+        v.append(&mut BridgeDeck::splice_suit_in(
+            &rawsuits.get(0).unwrap(),
+            'S',
+        ));
+        v.append(&mut BridgeDeck::splice_suit_in(
+            &rawsuits.get(1).unwrap(),
+            'H',
+        ));
+        v.append(&mut BridgeDeck::splice_suit_in(
+            &rawsuits.get(2).unwrap(),
+            'D',
+        ));
+        v.append(&mut BridgeDeck::splice_suit_in(
+            &rawsuits.get(3).unwrap(),
+            'C',
+        ));
 
         let coll: Vec<Card> = v
             .iter()
@@ -101,15 +118,24 @@ impl Default for BridgeDeck {
 mod card_deck_tests {
     use super::*;
 
-    const PBN_TEST_STRING: &str = "S:Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
+    const PBN_TEST_STRING: &str =
+        "S:Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
 
     #[test]
     fn from_pbn_deal() {
         let deck = Pile::french_deck();
-        let south = deck.pile_by_index(&["QS", "4S", "2S", "QH", "5H", "2H", "AD", "QD", "TD", "9D", "4D", "3D", "QC"]);
-        let west = deck.pile_by_index(&["9S", "7S", "AH", "TH", "9H", "3H", "6D", "5D", "2D", "TC", "7C", "4C", "3C"]);
-        let north = deck.pile_by_index(&["AS", "JS", "TS", "8S", "5S", "JH", "7H", "6H", "KD", "JD", "AC", "6C", "5C"]);
-        let east = deck.pile_by_index(&["KS", "6S", "3S", "KH", "8H", "4H", "8D", "7D", "KC", "JC", "9C", "8C", "2C"]);
+        let south = deck.pile_by_index(&[
+            "QS", "4S", "2S", "QH", "5H", "2H", "AD", "QD", "TD", "9D", "4D", "3D", "QC",
+        ]);
+        let west = deck.pile_by_index(&[
+            "9S", "7S", "AH", "TH", "9H", "3H", "6D", "5D", "2D", "TC", "7C", "4C", "3C",
+        ]);
+        let north = deck.pile_by_index(&[
+            "AS", "JS", "TS", "8S", "5S", "JH", "7H", "6H", "KD", "JD", "AC", "6C", "5C",
+        ]);
+        let east = deck.pile_by_index(&[
+            "KS", "6S", "3S", "KH", "8H", "4H", "8D", "7D", "KC", "JC", "9C", "8C", "2C",
+        ]);
 
         let deal = BridgeDeck::from_pbn_deal(PBN_TEST_STRING);
 
@@ -154,7 +180,8 @@ mod card_deck_tests {
 
     #[test]
     fn split_on_direction() {
-        let expected_remainder = "Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
+        let expected_remainder =
+            "Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
 
         let (char, remainder) = BridgeDeck::split_on_direction(PBN_TEST_STRING);
 
