@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
+use crate::cards::suit::*;
 
 /// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
 /// of a Bridge hand.
@@ -76,8 +77,23 @@ impl BridgeBoard {
         self.pack.is_complete(&[pile])
     }
 
+    /// Returns a Portable Bridge Notation deal string from a Bridge Board.
     pub fn to_pbn_deal(&self) -> String {
-        "".to_string()
+        let south = BridgeBoard::hand_to_pbn_deal_segment(&self.south);
+        let west = BridgeBoard::hand_to_pbn_deal_segment(&self.west);
+        let north = BridgeBoard::hand_to_pbn_deal_segment(&self.north);
+        let east = BridgeBoard::hand_to_pbn_deal_segment(&self.east);
+        format!("S:{} {} {} {}", south, west, north, east)
+    }
+
+    fn hand_to_pbn_deal_segment(hand: &Pile) -> String {
+        let mappie = hand.map_by_suit();
+        let spades = mappie.get(&Suit::new(SPADES)).unwrap().rank_indexes();
+        let hearts = mappie.get(&Suit::new(HEARTS)).unwrap().rank_indexes();
+        let diamonds = mappie.get(&Suit::new(DIAMONDS)).unwrap().rank_indexes();
+        let clubs = mappie.get(&Suit::new(CLUBS)).unwrap().rank_indexes();
+
+        format!("{}.{}.{}.{}", spades, hearts, diamonds, clubs)
     }
 
     fn to_pile(&self, s: &str) -> Pile {
@@ -216,5 +232,22 @@ mod bridge_board_tests {
             PBN_TEST_STRING.to_string(),
             BridgeBoard::from_pbn_deal(PBN_TEST_STRING).to_pbn_deal()
         )
+    }
+
+    #[test]
+    fn to_pbn_deal_segment() {
+        let deal = BridgeBoard::from_pbn_deal(PBN_TEST_STRING);
+        let hand = deal
+            .pack
+            .cards()
+            .pile_by_index(&[
+                "QS", "4S", "2S", "QH", "5H", "2H", "AD", "QD", "TD", "9D", "4D", "3D", "QC",
+            ])
+            .unwrap();
+        let expected = "Q42.Q52.AQT943.Q";
+
+        let actual = BridgeBoard::hand_to_pbn_deal_segment(&hand);
+
+        assert_eq!(expected, actual);
     }
 }

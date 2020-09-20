@@ -1,4 +1,5 @@
 fn main() {
+    println!("Let's deal out a heads up hand of Texas Holdem:\n");
     let pack = cardpack::Pack::french_deck();
 
     let mut shuffled = pack.cards().shuffle();

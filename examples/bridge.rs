@@ -5,6 +5,10 @@ fn main() {
     println!("First, let's deal out a Bridge hand:");
     let board = BridgeBoard::deal();
     board.demo();
+    println!();
+
+    println!("We can also take the board and convert it to a Portable Bridge Notation Deal String:");
+    println!("[Deal \"{}\"]\n", board.to_pbn_deal());
 
     println!();
     println!("Now, let's take a PBN Deal String and convert it into Bridge hands (packs):");

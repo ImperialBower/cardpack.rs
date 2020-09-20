@@ -244,6 +244,14 @@ impl Pile {
         self.0 = product;
     }
 
+    /// Returns a String of all of the Rank Index Characters for a Pile.
+    pub fn rank_indexes(&self) -> String {
+        self.cards()
+            .iter()
+            .map(|c| c.rank.get_default_index())
+            .collect::<String>()
+    }
+
     pub fn remove(&mut self, index: usize) -> Card {
         self.0.remove(index)
     }
@@ -604,7 +612,10 @@ mod card_deck_tests {
 
         let mappie = pile.map_by_suit();
 
-        assert_eq!(qs.index, mappie.get(&spades).unwrap().first().unwrap().index);
+        assert_eq!(
+            qs.index,
+            mappie.get(&spades).unwrap().first().unwrap().index
+        );
         assert_eq!(qc.index, mappie.get(&clubs).unwrap().first().unwrap().index);
     }
 
@@ -653,6 +664,16 @@ mod card_deck_tests {
         to_deck.prepend(&from_deck);
 
         assert_eq!(expected, to_deck);
+    }
+
+    #[test]
+    fn rank_indexes() {
+        let mut deck = Pile::french_deck();
+        let expected = "AKQJT".to_string();
+
+        let actual = deck.draw(5).unwrap().rank_indexes();
+
+        assert_eq!(expected, actual);
     }
 
     #[test]
