@@ -83,6 +83,26 @@ pub const PAGE: &str = "page";
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
 /// at the and of a Suit (unless there are any Cards with negative weights).
 ///
+/// # Rank::new() with a value string
+/// ```
+/// let king = cardpack::Rank::new(cardpack::KING);
+/// ```
+/// This sets the weight for the Rank based upon the default value as set in its fluent template
+/// entry.
+///
+/// # Rank::new_with_weight()
+/// ```
+/// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+/// ```
+/// Overrides the default weight for a Rank.
+///
+/// # Rank::from_array()
+/// ```
+/// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[cardpack::ACE, cardpack::TEN,]);
+/// ```
+/// Returns a Vector of Ranks with their weights determined by the order their passed in, high to
+/// low. This facilitates the easy creation of custom decks, such as pinochle.
+///
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     pub weight: isize,
@@ -96,10 +116,10 @@ impl Rank {
     {
         let n = name.into();
         let weight = get_weight_isize(n.as_str());
-        Rank::new_with_value(n, weight)
+        Rank::new_with_weight(n, weight)
     }
 
-    pub fn new_with_value<S: std::clone::Clone>(name: S, weight: isize) -> Rank
+    pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Rank
     where
         S: Into<String>,
     {
@@ -115,7 +135,7 @@ impl Rank {
         #[allow(clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let weight = (s.len() + 1) - i;
-            v.push(Rank::new_with_value(elem, weight as isize));
+            v.push(Rank::new_with_weight(elem, weight as isize));
         }
         v
     }
@@ -240,15 +260,21 @@ mod rank_tests {
 
     #[test]
     fn partial_eq() {
-        assert_ne!(Rank::new_with_value(NINE, 3), Rank::new_with_value(NINE, 4));
-        assert_ne!(Rank::new_with_value(TEN, 4), Rank::new_with_value(NINE, 4));
+        assert_ne!(
+            Rank::new_with_weight(NINE, 3),
+            Rank::new_with_weight(NINE, 4)
+        );
+        assert_ne!(
+            Rank::new_with_weight(TEN, 4),
+            Rank::new_with_weight(NINE, 4)
+        );
     }
 
     #[test]
     fn to_vec() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_value(KING, 3));
-        expected.push(Rank::new_with_value(QUEEN, 2));
+        expected.push(Rank::new_with_weight(KING, 3));
+        expected.push(Rank::new_with_weight(QUEEN, 2));
 
         assert_eq!(expected, Rank::from_array(&[KING, QUEEN]));
     }
@@ -276,12 +302,12 @@ mod rank_tests {
     #[test]
     fn generate_pinochle_ranks() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_value(ACE, 7));
-        expected.push(Rank::new_with_value(TEN, 6));
-        expected.push(Rank::new_with_value(KING, 5));
-        expected.push(Rank::new_with_value(QUEEN, 4));
-        expected.push(Rank::new_with_value(JACK, 3));
-        expected.push(Rank::new_with_value(NINE, 2));
+        expected.push(Rank::new_with_weight(ACE, 7));
+        expected.push(Rank::new_with_weight(TEN, 6));
+        expected.push(Rank::new_with_weight(KING, 5));
+        expected.push(Rank::new_with_weight(QUEEN, 4));
+        expected.push(Rank::new_with_weight(JACK, 3));
+        expected.push(Rank::new_with_weight(NINE, 2));
 
         assert_eq!(expected, Rank::generate_pinochle_ranks());
     }
