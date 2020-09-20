@@ -14,6 +14,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+use colored::*;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -81,7 +82,14 @@ impl Card {
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_symbol();
-        format!("{}{}", rank, suit)
+        match &self.suit.raw[..] {
+            "hearts" => format!("{}{}", rank, suit).red().to_string(),
+            "diamonds" => format!("{}{}", rank, suit).red().to_string(),
+            "laub" => format!("{}{}", rank, suit).green().to_string(),
+            "herz" => format!("{}{}", rank, suit).red().to_string(),
+            "schellen" => format!("{}{}", rank, suit).yellow().to_string(),
+            _ => format!("{}{}", rank, suit),
+        }
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
@@ -141,6 +149,6 @@ mod card_tests {
     fn to_symbol_string() {
         let card = Card::new(QUEEN, HEARTS);
 
-        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
+        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".red().to_string());
     }
 }
