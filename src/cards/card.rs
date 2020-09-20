@@ -83,10 +83,11 @@ impl Card {
         let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_symbol();
         match &self.suit.raw[..] {
-            "hearts" => format!("{}{}", rank.red(), suit.red()),
-            "diamonds" => format!("{}{}", rank.red(), suit.red()),
-            "laub" => format!("{}{}", rank.green(), suit.green()),
-            "schellen" => format!("{}{}", rank.yellow(), suit.yellow()),
+            "hearts" => format!("{}{}", rank, suit).red().to_string(),
+            "diamonds" => format!("{}{}", rank, suit).red().to_string(),
+            "laub" => format!("{}{}", rank, suit).green().to_string(),
+            "herz" => format!("{}{}", rank, suit).red().to_string(),
+            "schellen" => format!("{}{}", rank, suit).yellow().to_string(),
             _ => format!("{}{}", rank, suit),
         }
     }
@@ -148,6 +149,6 @@ mod card_tests {
     fn to_symbol_string() {
         let card = Card::new(QUEEN, HEARTS);
 
-        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".to_string());
+        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".red().to_string());
     }
 }
