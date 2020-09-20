@@ -16,7 +16,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
+use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::card::Card;
@@ -35,7 +38,7 @@ use crate::fluent::{GERMAN, US_ENGLISH};
 /// pile.add(ace_of_hearts);
 /// pile.shuffle();
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Pile(Vec<Card>);
 
 impl Pile {
@@ -44,12 +47,8 @@ impl Pile {
     }
 
     /// Takes a reference to an Array of Piles and consolidates them into a single Pile of Cards.
-    pub fn pile_on(piles: &[Pile]) -> Pile {
-        let mut pile = Pile::default();
-        for cards in piles.iter() {
-            pile.append(cards);
-        }
-        pile
+    pub fn pile_on(piles: Vec<Pile>) -> Pile {
+        piles.into_iter().flatten().collect()
     }
 
     /// Places the Card at the bottom (end) of the Pile.
@@ -62,16 +61,20 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
-    pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
-        let mut pile = Pile::default();
-        for index in indexes {
-            let card = self.card_by_index(index);
-            match card {
-                Some(c) => pile.add(c.clone()),
-                _ => return None,
-            }
-        }
-        Some(pile)
+    pub fn by_index(&self) -> String {
+        self.by_index_locale(&US_ENGLISH)
+    }
+
+    pub fn by_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_index(lid))
+    }
+
+    pub fn by_symbol_index(&self) -> String {
+        self.by_symbol_index_locale(&US_ENGLISH)
+    }
+
+    pub fn by_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
+        Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
@@ -81,6 +84,14 @@ impl Pile {
     /// Returns a reference to the Vector containing all the cards.
     pub fn cards(&self) -> &Vec<Card> {
         &self.0
+    }
+
+    fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
+    }
+
+    fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
+        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
     }
 
     /// Tests if a card is in the Pile.
@@ -124,7 +135,7 @@ impl Pile {
 
         println!();
         print!("   Shuffle Deck:           ");
-        let mut shuffled = self.shuffle();
+        let shuffled = self.shuffle();
         print!("{}", shuffled.to_string());
 
         println!();
@@ -165,6 +176,14 @@ impl Pile {
         self.0.first()
     }
 
+    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
+        for (_, suit) in suits.iter().enumerate() {
+            for (_, rank) in ranks.iter().enumerate() {
+                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+            }
+        }
+    }
+
     pub fn get(&self, index: usize) -> Option<&Card> {
         self.0.get(index)
     }
@@ -185,8 +204,36 @@ impl Pile {
         self.0.len()
     }
 
+    /// Takes a pile and returns a HashMap with the key as each Suit in the Pile with the values
+    /// as a Pile of the cards for that Suit.
+    pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
+        let mut mappie: HashMap<Suit, Pile> = HashMap::new();
+        for suit in self.suits() {
+            let pile = self
+                .0
+                .clone()
+                .into_iter()
+                .filter(|c| c.suit == suit)
+                .collect();
+            mappie.insert(suit, pile);
+        }
+        mappie
+    }
+
     pub fn position(&self, karte: &Card) -> Option<usize> {
         self.0.iter().position(|k| k == karte)
+    }
+
+    pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
+        let mut pile = Pile::default();
+        for index in indexes {
+            let card = self.card_by_index(index);
+            match card {
+                Some(c) => pile.add(c.clone()),
+                _ => return None,
+            }
+        }
+        Some(pile)
     }
 
     // Takes a reference to the prepended entity, clones it, appends the original to the passed in
@@ -195,6 +242,14 @@ impl Pile {
         let mut product = other.0.clone();
         product.append(&mut self.0);
         self.0 = product;
+    }
+
+    /// Returns a String of all of the Rank Index Characters for a Pile.
+    pub fn rank_indexes(&self) -> String {
+        self.cards()
+            .iter()
+            .map(|c| c.rank.get_default_index())
+            .collect::<String>()
     }
 
     pub fn remove(&mut self, index: usize) -> Card {
@@ -219,9 +274,24 @@ impl Pile {
         self.0.shuffle(&mut thread_rng());
     }
 
-    pub fn sort(&mut self) {
+    pub fn sort(&self) -> Pile {
+        let mut pile = self.clone();
+        pile.sort_in_place();
+        pile
+    }
+
+    pub fn sort_in_place(&mut self) {
         self.0.sort();
         self.0.reverse();
+    }
+
+    /// Returns a sorted collection of the unique Suits in a Pile.
+    pub fn suits(&self) -> Vec<Suit> {
+        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit.clone()).collect();
+        let mut suits: Vec<Suit> = Vec::from_iter(hashset);
+        suits.sort();
+        suits.reverse();
+        suits
     }
 
     pub fn values(&self) -> impl Iterator<Item = &Card> {
@@ -232,14 +302,6 @@ impl Pile {
         let big_joker = Card::new(BIG_JOKER, SPADES);
         let little_joker = Card::new(LITTLE_JOKER, SPADES);
         Pile::new_from_vector(vec![big_joker, little_joker])
-    }
-
-    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
-            }
-        }
     }
 
     pub fn french_deck() -> Pile {
@@ -312,30 +374,6 @@ impl Pile {
         cards
     }
 
-    fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
-    }
-
-    fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
-    }
-
-    pub fn by_index(&self) -> String {
-        self.by_index_locale(&US_ENGLISH)
-    }
-
-    pub fn by_index_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::sig_generate_from_strings(&self.collect_index(lid))
-    }
-
-    pub fn by_symbol_index(&self) -> String {
-        self.by_symbol_index_locale(&US_ENGLISH)
-    }
-
-    pub fn by_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
-        Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
-    }
-
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
         strings
             .iter()
@@ -357,6 +395,16 @@ impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.by_index();
         write!(f, "{}", sig)
+    }
+}
+
+impl FromIterator<Card> for Pile {
+    fn from_iter<T: IntoIterator<Item = Card>>(iter: T) -> Self {
+        let mut c = Pile::default();
+        for i in iter {
+            c.add(i);
+        }
+        c
     }
 }
 
@@ -392,7 +440,7 @@ mod card_deck_tests {
         let mut deck = Pile::french_deck();
         let half = deck.draw(26).unwrap();
 
-        let actual = Pile::pile_on(&vec![half, deck]);
+        let actual = Pile::pile_on(vec![half, deck]);
 
         assert_eq!(Pile::french_deck(), actual);
     }
@@ -553,6 +601,25 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn map_by_suit() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
+            .unwrap();
+        let qs = pile.get(0).unwrap();
+        let qc = pile.get(2).unwrap();
+        let spades = Suit::new(SPADES);
+        let clubs = Suit::new(CLUBS);
+
+        let mappie = pile.map_by_suit();
+
+        assert_eq!(
+            qs.index,
+            mappie.get(&spades).unwrap().first().unwrap().index
+        );
+        assert_eq!(qc.index, mappie.get(&clubs).unwrap().first().unwrap().index);
+    }
+
+    #[test]
     fn pile_by_index() {
         let deck = Pile::french_deck();
         let qclubs = Card::new(QUEEN, CLUBS);
@@ -600,6 +667,16 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn rank_indexes() {
+        let mut deck = Pile::french_deck();
+        let expected = "AKQJT".to_string();
+
+        let actual = deck.draw(5).unwrap().rank_indexes();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
     fn remove() {
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
@@ -644,7 +721,7 @@ mod card_deck_tests {
         let mut shuffled = pile.shuffle();
 
         assert_ne!(pile, shuffled);
-        shuffled.sort();
+        shuffled.sort_in_place();
         assert_eq!(pile, shuffled);
     }
 
@@ -657,8 +734,7 @@ mod card_deck_tests {
         shuffled.shuffle_in_place();
         assert_ne!(actual, shuffled);
 
-        shuffled.sort();
-        assert_eq!(actual, shuffled);
+        assert_eq!(actual, shuffled.sort());
     }
 
     #[test]
@@ -682,6 +758,21 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn suits() {
+        let deck = Pile::french_deck();
+        let expected: Vec<Suit> = vec![
+            Suit::new(SPADES),
+            Suit::new(HEARTS),
+            Suit::new(DIAMONDS),
+            Suit::new(CLUBS),
+        ];
+
+        let suits = deck.suits();
+
+        assert_eq!(expected, suits);
+    }
+
+    #[test]
     fn to_string() {
         let deck = Pile::french_deck().draw(4);
 
@@ -700,11 +791,9 @@ mod card_deck_tests {
         ];
 
         for deck in decks {
-            let mut shuffled = deck.shuffle();
+            let shuffled = deck.shuffle();
             assert_ne!(deck, shuffled);
-            shuffled.sort();
-
-            assert_eq!(deck, shuffled);
+            assert_eq!(deck, shuffled.sort());
         }
     }
 

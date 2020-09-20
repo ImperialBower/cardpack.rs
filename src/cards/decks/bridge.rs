@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
+use crate::cards::suit::*;
 
 /// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
 /// of a Bridge hand.
@@ -44,11 +45,21 @@ impl BridgeBoard {
         board
     }
 
+    pub fn deal() -> BridgeBoard {
+        let mut board = BridgeBoard::default();
+        let mut cards = board.pack.cards().shuffle();
+        board.south = cards.draw(13).unwrap();
+        board.west = cards.draw(13).unwrap();
+        board.north = cards.draw(13).unwrap();
+        board.east = cards.draw(13).unwrap();
+        board
+    }
+
     pub fn demo(&self) {
-        println!("S: {}", self.south.by_symbol_index());
-        println!("W: {}", self.west.by_symbol_index());
-        println!("N: {}", self.north.by_symbol_index());
-        println!("E: {}", self.east.by_symbol_index());
+        println!("S: {}", self.south.sort().by_symbol_index());
+        println!("W: {}", self.west.sort().by_symbol_index());
+        println!("N: {}", self.north.sort().by_symbol_index());
+        println!("E: {}", self.east.sort().by_symbol_index());
     }
 
     pub fn get_pack(&self) -> &Pack {
@@ -62,8 +73,27 @@ impl BridgeBoard {
             self.north.clone(),
             self.east.clone(),
         ];
-        let pile = Pile::pile_on(piles);
+        let pile = Pile::pile_on(piles.to_vec());
         self.pack.is_complete(&[pile])
+    }
+
+    /// Returns a Portable Bridge Notation deal string from a Bridge Board.
+    pub fn to_pbn_deal(&self) -> String {
+        let south = BridgeBoard::hand_to_pbn_deal_segment(&self.south);
+        let west = BridgeBoard::hand_to_pbn_deal_segment(&self.west);
+        let north = BridgeBoard::hand_to_pbn_deal_segment(&self.north);
+        let east = BridgeBoard::hand_to_pbn_deal_segment(&self.east);
+        format!("S:{} {} {} {}", south, west, north, east)
+    }
+
+    fn hand_to_pbn_deal_segment(hand: &Pile) -> String {
+        let mappie = hand.map_by_suit();
+        let spades = mappie.get(&Suit::new(SPADES)).unwrap().rank_indexes();
+        let hearts = mappie.get(&Suit::new(HEARTS)).unwrap().rank_indexes();
+        let diamonds = mappie.get(&Suit::new(DIAMONDS)).unwrap().rank_indexes();
+        let clubs = mappie.get(&Suit::new(CLUBS)).unwrap().rank_indexes();
+
+        format!("{}.{}.{}.{}", spades, hearts, diamonds, clubs)
     }
 
     fn to_pile(&self, s: &str) -> Pile {
@@ -154,16 +184,12 @@ mod bridge_board_tests {
         assert_eq!(west.unwrap().by_index(), deal.west.by_index());
         assert_eq!(north.unwrap().by_index(), deal.north.by_index());
         assert_eq!(east.unwrap().by_index(), deal.east.by_index());
+        assert!(deal.is_valid())
     }
 
     #[test]
     fn is_valid() {
-        let mut deck = BridgeBoard::default();
-        let mut cards = deck.pack.cards().shuffle();
-        deck.south = cards.draw(13).unwrap();
-        deck.west = cards.draw(13).unwrap();
-        deck.north = cards.draw(13).unwrap();
-        deck.east = cards.draw(13).unwrap();
+        let deck = BridgeBoard::deal();
 
         assert!(deck.is_valid())
     }
@@ -198,5 +224,30 @@ mod bridge_board_tests {
 
         assert_eq!('S', char);
         assert_eq!(expected_remainder, remainder);
+    }
+
+    #[test]
+    fn to_pbn_deal() {
+        assert_eq!(
+            PBN_TEST_STRING.to_string(),
+            BridgeBoard::from_pbn_deal(PBN_TEST_STRING).to_pbn_deal()
+        )
+    }
+
+    #[test]
+    fn to_pbn_deal_segment() {
+        let deal = BridgeBoard::from_pbn_deal(PBN_TEST_STRING);
+        let hand = deal
+            .pack
+            .cards()
+            .pile_by_index(&[
+                "QS", "4S", "2S", "QH", "5H", "2H", "AD", "QD", "TD", "9D", "4D", "3D", "QC",
+            ])
+            .unwrap();
+        let expected = "Q42.Q52.AQT943.Q";
+
+        let actual = BridgeBoard::hand_to_pbn_deal_segment(&hand);
+
+        assert_eq!(expected, actual);
     }
 }
