@@ -34,7 +34,7 @@ two-weight = 2
 eichel-symbol = ♣
 laub-symbol = ♠
 herz-symbol = ♥
-schellen-symbol = 🔔
+schellen-symbol = ♦
 
 daus-weight = 13
 ober-weight = 12
