@@ -209,7 +209,12 @@ impl Pile {
     pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
         let mut mappie: HashMap<Suit, Pile> = HashMap::new();
         for suit in self.suits() {
-            let pile = self.0.clone().into_iter().filter(|c| c.suit == suit).collect();
+            let pile = self
+                .0
+                .clone()
+                .into_iter()
+                .filter(|c| c.suit == suit)
+                .collect();
             mappie.insert(suit, pile);
         }
         mappie
