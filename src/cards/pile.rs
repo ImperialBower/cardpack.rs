@@ -598,14 +598,14 @@ mod card_deck_tests {
             .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
             .unwrap();
         let qs = pile.get(0).unwrap();
-        let qc = pile.get(1).unwrap();
+        let qc = pile.get(2).unwrap();
         let spades = Suit::new(SPADES);
         let clubs = Suit::new(CLUBS);
 
         let mappie = pile.map_by_suit();
 
-        assert_eq!(qs, mappie.get(&spades).unwrap().first().unwrap());
-        assert_eq!(qc, mappie.get(&clubs).unwrap().first().unwrap());
+        assert_eq!(qs.index, mappie.get(&spades).unwrap().first().unwrap().index);
+        assert_eq!(qc.index, mappie.get(&clubs).unwrap().first().unwrap().index);
     }
 
     #[test]
