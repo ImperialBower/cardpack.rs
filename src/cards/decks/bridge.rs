@@ -19,6 +19,41 @@ use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
 use crate::cards::suit::*;
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum BridgeDirection {
+    N,
+    E,
+    S,
+    W,
+    UNKNOWN,
+}
+
+impl BridgeDirection {
+    pub fn to(c: char) -> BridgeDirection {
+        match c {
+            'S' => BridgeDirection::S,
+            's' => BridgeDirection::S,
+            'N' => BridgeDirection::N,
+            'n' => BridgeDirection::N,
+            'E' => BridgeDirection::E,
+            'e' => BridgeDirection::E,
+            'W' => BridgeDirection::W,
+            'w' => BridgeDirection::W,
+            _ => BridgeDirection::UNKNOWN,
+        }
+    }
+
+    fn next(&self) -> BridgeDirection {
+        match self {
+            BridgeDirection::S => BridgeDirection::W,
+            BridgeDirection::W => BridgeDirection::N,
+            BridgeDirection::N => BridgeDirection::E,
+            BridgeDirection::E => BridgeDirection::S,
+            BridgeDirection::UNKNOWN => BridgeDirection::UNKNOWN,
+        }
+    }
+}
+
 /// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
 /// of a Bridge hand.
 pub struct BridgeBoard {
@@ -33,16 +68,33 @@ impl BridgeBoard {
     /// Parses a Portable Bridge Notation deal string and converts it into a
     /// BridgeBoard struct.
     pub fn from_pbn_deal(deal: &str) -> BridgeBoard {
-        let (_, pbn) = BridgeBoard::split_on_direction(deal);
+        let (direction, pbn) = BridgeBoard::split_on_direction(deal);
+
         let mut dir_iter = pbn.split_whitespace();
 
         let mut board = BridgeBoard::default();
-        board.south = board.to_pile(dir_iter.next().unwrap());
-        board.west = board.to_pile(dir_iter.next().unwrap());
-        board.north = board.to_pile(dir_iter.next().unwrap());
-        board.east = board.to_pile(dir_iter.next().unwrap());
+        board.fold_in(&direction, board.to_pile(dir_iter.next().unwrap()));
+        board.fold_in(&direction.next(), board.to_pile(dir_iter.next().unwrap()));
+        board.fold_in(
+            &direction.next().next(),
+            board.to_pile(dir_iter.next().unwrap()),
+        );
+        board.fold_in(
+            &direction.next().next().next(),
+            board.to_pile(dir_iter.next().unwrap()),
+        );
 
         board
+    }
+
+    fn fold_in(&mut self, direction: &BridgeDirection, hand: Pile) {
+        match direction {
+            BridgeDirection::S => self.south = hand,
+            BridgeDirection::W => self.west = hand,
+            BridgeDirection::N => self.north = hand,
+            BridgeDirection::E => self.east = hand,
+            BridgeDirection::UNKNOWN => self.east = hand,
+        }
     }
 
     pub fn deal() -> BridgeBoard {
@@ -134,8 +186,8 @@ impl BridgeBoard {
         v
     }
 
-    fn split_on_direction(deal: &str) -> (char, &str) {
-        let direction = deal.chars().next().unwrap();
+    fn split_on_direction(deal: &str) -> (BridgeDirection, &str) {
+        let direction = BridgeDirection::to(deal.chars().next().unwrap());
         let remainder = &deal[2..];
 
         (direction, remainder)
@@ -156,7 +208,7 @@ impl Default for BridgeBoard {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod bridge_board_tests {
+mod bridge_tests {
     use super::*;
 
     const PBN_TEST_STRING: &str =
@@ -184,6 +236,20 @@ mod bridge_board_tests {
         assert_eq!(west.unwrap().by_index(), deal.west.by_index());
         assert_eq!(north.unwrap().by_index(), deal.north.by_index());
         assert_eq!(east.unwrap().by_index(), deal.east.by_index());
+        assert!(deal.is_valid())
+    }
+
+    #[test]
+    fn from_pbn_deal__west() {
+        let deck = Pile::french_deck();
+        let pbn = "W:A94.K2.T876.QT53 Q75.AQJT976.9.42 KT62.3.AK2.AK986 J83.854.QJ543.J7";
+        let west = deck.pile_by_index(&[
+            "AS", "9S", "4S", "KH", "2H", "TD", "8D", "7D", "6D", "QC", "TC", "5C", "3C",
+        ]);
+
+        let deal = BridgeBoard::from_pbn_deal(pbn);
+
+        assert_eq!(west.unwrap().by_index(), deal.west.by_index());
         assert!(deal.is_valid())
     }
 
@@ -222,7 +288,7 @@ mod bridge_board_tests {
 
         let (char, remainder) = BridgeBoard::split_on_direction(PBN_TEST_STRING);
 
-        assert_eq!('S', char);
+        assert_eq!(BridgeDirection::S, char);
         assert_eq!(expected_remainder, remainder);
     }
 
@@ -249,5 +315,42 @@ mod bridge_board_tests {
         let actual = BridgeBoard::hand_to_pbn_deal_segment(&hand);
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn to() {
+        assert_eq!(BridgeDirection::S, BridgeDirection::to('S'));
+        assert_eq!(BridgeDirection::S, BridgeDirection::to('s'));
+        assert_eq!(BridgeDirection::E, BridgeDirection::to('E'));
+        assert_eq!(BridgeDirection::E, BridgeDirection::to('e'));
+        assert_eq!(BridgeDirection::N, BridgeDirection::to('N'));
+        assert_eq!(BridgeDirection::N, BridgeDirection::to('n'));
+        assert_eq!(BridgeDirection::W, BridgeDirection::to('W'));
+        assert_eq!(BridgeDirection::W, BridgeDirection::to('w'));
+        assert_eq!(BridgeDirection::UNKNOWN, BridgeDirection::to(' '));
+    }
+
+    #[test]
+    fn next() {
+        assert_eq!(
+            BridgeDirection::W,
+            BridgeDirection::next(&BridgeDirection::S)
+        );
+        assert_eq!(
+            BridgeDirection::N,
+            BridgeDirection::next(&BridgeDirection::W)
+        );
+        assert_eq!(
+            BridgeDirection::E,
+            BridgeDirection::next(&BridgeDirection::N)
+        );
+        assert_eq!(
+            BridgeDirection::S,
+            BridgeDirection::next(&BridgeDirection::E)
+        );
+        assert_eq!(
+            BridgeDirection::UNKNOWN,
+            BridgeDirection::next(&BridgeDirection::UNKNOWN)
+        );
     }
 }
