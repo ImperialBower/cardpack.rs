@@ -20,7 +20,7 @@ use crate::cards::pile::Pile;
 use crate::cards::suit::*;
 
 #[derive(Clone, Debug, PartialEq)]
-enum BridgeDirection {
+pub enum BridgeDirection {
     N,
     E,
     S,
@@ -29,7 +29,7 @@ enum BridgeDirection {
 }
 
 impl BridgeDirection {
-    fn to(c: char) -> BridgeDirection {
+    pub fn to(c: char) -> BridgeDirection {
         match c {
             'S' => BridgeDirection::S,
             's' => BridgeDirection::S,
@@ -50,7 +50,6 @@ impl BridgeDirection {
             BridgeDirection::N => BridgeDirection::E,
             BridgeDirection::E => BridgeDirection::S,
             BridgeDirection::UNKNOWN => BridgeDirection::UNKNOWN,
-
         }
     }
 }
@@ -76,8 +75,14 @@ impl BridgeBoard {
         let mut board = BridgeBoard::default();
         board.fold_in(&direction, board.to_pile(dir_iter.next().unwrap()));
         board.fold_in(&direction.next(), board.to_pile(dir_iter.next().unwrap()));
-        board.fold_in(&direction.next().next(), board.to_pile(dir_iter.next().unwrap()));
-        board.fold_in(&direction.next().next().next(), board.to_pile(dir_iter.next().unwrap()));
+        board.fold_in(
+            &direction.next().next(),
+            board.to_pile(dir_iter.next().unwrap()),
+        );
+        board.fold_in(
+            &direction.next().next().next(),
+            board.to_pile(dir_iter.next().unwrap()),
+        );
 
         board
     }
@@ -327,10 +332,25 @@ mod bridge_tests {
 
     #[test]
     fn next() {
-        assert_eq!(BridgeDirection::W, BridgeDirection::next(&BridgeDirection::S));
-        assert_eq!(BridgeDirection::N, BridgeDirection::next(&BridgeDirection::W));
-        assert_eq!(BridgeDirection::E, BridgeDirection::next(&BridgeDirection::N));
-        assert_eq!(BridgeDirection::S, BridgeDirection::next(&BridgeDirection::E));
-        assert_eq!(BridgeDirection::UNKNOWN, BridgeDirection::next(&BridgeDirection::UNKNOWN));
+        assert_eq!(
+            BridgeDirection::W,
+            BridgeDirection::next(&BridgeDirection::S)
+        );
+        assert_eq!(
+            BridgeDirection::N,
+            BridgeDirection::next(&BridgeDirection::W)
+        );
+        assert_eq!(
+            BridgeDirection::E,
+            BridgeDirection::next(&BridgeDirection::N)
+        );
+        assert_eq!(
+            BridgeDirection::S,
+            BridgeDirection::next(&BridgeDirection::E)
+        );
+        assert_eq!(
+            BridgeDirection::UNKNOWN,
+            BridgeDirection::next(&BridgeDirection::UNKNOWN)
+        );
     }
 }
