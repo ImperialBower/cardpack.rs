@@ -41,7 +41,7 @@ pub const SHELLEN: &str = "schellen"; // Bells
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub weight: isize,
-    pub raw: String,
+    pub name: String,
 }
 
 impl Suit {
@@ -60,7 +60,7 @@ impl Suit {
     {
         Suit {
             weight: value,
-            raw: name.into(),
+            name: name.into(),
         }
     }
 
@@ -69,7 +69,7 @@ impl Suit {
     }
 
     pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-letter", self.raw);
+        let key = format!("{}-letter", self.name);
         get_value_by_key(key.as_str(), lid)
     }
 
@@ -78,12 +78,12 @@ impl Suit {
     }
 
     pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-name", self.raw);
+        let key = format!("{}-name", self.name);
         get_value_by_key(key.as_str(), lid)
     }
 
     pub fn get_symbol(&self) -> String {
-        let key = format!("{}-symbol", self.raw);
+        let key = format!("{}-symbol", self.name);
         get_value_by_key(key.as_str(), &US_ENGLISH)
     }
 
@@ -150,7 +150,7 @@ mod suit_tests {
     fn new() {
         let expected = Suit {
             weight: 4,
-            raw: SPADES.to_string(),
+            name: SPADES.to_string(),
         };
 
         assert_eq!(expected, Suit::new(SPADES));
@@ -160,7 +160,7 @@ mod suit_tests {
     fn new_with_value() {
         let expected = Suit {
             weight: 4,
-            raw: SPADES.to_string(),
+            name: SPADES.to_string(),
         };
 
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));

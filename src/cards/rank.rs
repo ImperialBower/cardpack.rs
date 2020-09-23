@@ -77,7 +77,7 @@ pub const PAGE: &str = "page";
 /// ```
 /// let ace = cardpack::Rank {
 ///     weight: 1,
-///     raw: cardpack::ACE.to_string(),
+///     name: cardpack::ACE.to_string(),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
@@ -100,13 +100,13 @@ pub const PAGE: &str = "page";
 /// ```
 /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[cardpack::ACE, cardpack::TEN,]);
 /// ```
-/// Returns a Vector of Ranks with their weights determined by the order their passed in, high to
+/// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
 ///
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     pub weight: isize,
-    pub raw: String,
+    pub name: String,
 }
 
 impl Rank {
@@ -125,7 +125,7 @@ impl Rank {
     {
         Rank {
             weight,
-            raw: name.into(),
+            name: name.into(),
         }
     }
 
@@ -147,7 +147,7 @@ impl Rank {
     /// "The number or letter printed in the corner of a playing card,
     /// so that it may be read when held in a fan." -- Wikipedia
     pub fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-index", self.raw);
+        let key = format!("{}-index", self.name);
         get_value_by_key(key.as_str(), lid)
     }
 
@@ -156,7 +156,7 @@ impl Rank {
     }
 
     pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-name", self.raw);
+        let key = format!("{}-name", self.name);
         get_value_by_key(key.as_str(), lid)
     }
 
@@ -246,7 +246,7 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             weight: 9,
-            raw: "nine".to_string(),
+            name: "nine".to_string(),
         };
 
         assert_eq!(expected, Rank::new(NINE));

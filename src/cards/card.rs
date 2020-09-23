@@ -82,7 +82,7 @@ impl Card {
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.get_index(&lid);
         let suit = self.suit.get_symbol();
-        match &self.suit.raw[..] {
+        match &self.suit.name[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
