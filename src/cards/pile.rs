@@ -140,8 +140,7 @@ impl Pile {
 
         println!();
         print!("   Sort Deck:              ");
-        shuffled.sort();
-        print!("{}", shuffled.to_string());
+        print!("{}", shuffled.sort().to_string());
 
         println!();
     }
@@ -795,6 +794,17 @@ mod card_deck_tests {
             assert_ne!(deck, shuffled);
             assert_eq!(deck, shuffled.sort());
         }
+    }
+
+    #[test]
+    fn sort__tarot() {
+        let deck = Pile::tarot_deck();
+
+        let shuffled = deck.shuffle();
+        let sorted = shuffled.sort();
+
+        assert_ne!(deck, shuffled);
+        assert_eq!(deck, sorted);
     }
 
     #[test]
