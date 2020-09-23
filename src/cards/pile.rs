@@ -797,17 +797,6 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn sort__tarot() {
-        let deck = Pile::tarot_deck();
-
-        let shuffled = deck.shuffle();
-        let sorted = shuffled.sort();
-
-        assert_ne!(deck, shuffled);
-        assert_eq!(deck, sorted);
-    }
-
-    #[test]
     fn spades_deck() {
         let deck = Pile::spades_deck();
 
