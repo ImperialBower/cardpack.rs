@@ -26,6 +26,7 @@ use crate::cards::card::Card;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::fluent::{GERMAN, US_ENGLISH};
+use crate::FluentCard;
 
 /// A Pile is a sortable collection of Cards.
 ///

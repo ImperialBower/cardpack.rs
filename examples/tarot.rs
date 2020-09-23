@@ -1,3 +1,5 @@
+use cardpack::FluentCard;
+
 fn main() {
     let deck = cardpack::Pile::tarot_deck();
 

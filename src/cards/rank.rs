@@ -15,7 +15,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
 use crate::fluent::*;
 
@@ -169,38 +168,6 @@ impl Rank {
         v
     }
 
-    /// Returns the default, US_ENGLISH value of the Rank's index as set in the fluent templates.
-    pub fn get_default_index(&self) -> String {
-        self.get_index(&US_ENGLISH)
-    }
-
-    /// "The number or letter printed in the corner of a playing card,
-    /// so that it may be read when held in a fan." -- Wikipedia
-    pub fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-index", self.name);
-        get_value_by_key(key.as_str(), lid)
-    }
-
-    /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
-    pub fn get_default_long(&self) -> String {
-        self.get_long(&US_ENGLISH)
-    }
-
-    /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
-    /// templates for that language.
-    ///
-    /// ## Usage
-    /// ```
-    /// use cardpack::GERMAN;
-    /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
-    /// println!("{}", queen.get_long(&GERMAN));
-    /// ```
-    /// Prints out `Dame`.
-    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-name", self.name);
-        get_value_by_key(key.as_str(), lid)
-    }
-
     pub fn generate_french_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO,
@@ -236,7 +203,11 @@ impl fmt::Display for Rank {
     }
 }
 
-impl Weighty for Rank {
+impl FluentCard for Rank {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+
     fn revise_weight(&mut self, new_value: isize) {
         self.weight = new_value
     }

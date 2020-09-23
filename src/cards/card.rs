@@ -20,7 +20,7 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
 use crate::cards::suit::*;
-use crate::fluent::US_ENGLISH;
+use crate::FluentCard;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
@@ -69,8 +69,8 @@ impl Card {
     }
 
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        let rank = rank.get_index(&US_ENGLISH);
-        let suit = suit.get_short(&US_ENGLISH);
+        let rank = rank.get_default_index();
+        let suit = suit.get_default_index();
         format!("{}{}", rank, suit)
     }
 
@@ -94,7 +94,7 @@ impl Card {
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.get_index(&lid);
-        let suit = self.suit.get_short(&lid);
+        let suit = self.suit.get_index(&lid);
         format!("{}{}", rank, suit)
     }
 }

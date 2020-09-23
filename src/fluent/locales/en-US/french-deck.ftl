@@ -1,30 +1,30 @@
 # French Deck
-spades-name = Spades
-hearts-name = Hearts
-diamonds-name = Diamonds
-clubs-name = Clubs
+spades-long = Spades
+hearts-long = Hearts
+diamonds-long = Diamonds
+clubs-long = Clubs
 
-spades-letter = S
-hearts-letter = H
-diamonds-letter = D
-clubs-letter = C
+spades-index = S
+hearts-index = H
+diamonds-index = D
+clubs-index = C
 
 ## Ranks
-big-joker-name = Full-Color Joker
-little-joker-name = One-Color Joker
-ace-name = Ace
-king-name = King
-queen-name = Queen
-jack-name = Jack
-ten-name = Ten
-nine-name = Nine
-eight-name = Eight
-seven-name = Seven
-six-name = Six
-five-name = Five
-four-name = Four
-three-name = Three
-two-name = Deuce
+big-joker-long = Full-Color Joker
+little-joker-long = One-Color Joker
+ace-long = Ace
+king-long = King
+queen-long = Queen
+jack-long = Jack
+ten-long = Ten
+nine-long = Nine
+eight-long = Eight
+seven-long = Seven
+six-long = Six
+five-long = Five
+four-long = Four
+three-long = Three
+two-long = Deuce
 
 big-joker-index = JB
 little-joker-index = JL
