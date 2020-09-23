@@ -120,7 +120,7 @@ impl Rank {
     /// that the default weight for an Ace is 14. This will mean that when a pile of cards is sorted
     /// that it will be at the top of a standard French Deck where the Ace is high.
     ///
-    /// Usage
+    /// ## Usage
     /// ```
     /// let king = cardpack::Rank::new(cardpack::HERMIT);
     /// ```
@@ -133,6 +133,13 @@ impl Rank {
         Rank::new_with_weight(n, weight)
     }
 
+    /// Returns a Rank instance with the passed in name and weight, overriding the default value
+    /// set in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+    /// ```
     pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Rank
     where
         S: Into<String>,
@@ -143,6 +150,14 @@ impl Rank {
         }
     }
 
+    /// ## Usage
+    /// ```
+    /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[
+    ///     cardpack::ACE, cardpack::TEN, cardpack::KING,
+    ///     cardpack::QUEEN, cardpack::JACK, cardpack::NINE]);
+    /// ```
+    /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
+    /// low. This facilitates the easy creation of custom decks, such as for pinochle.
     pub fn from_array(s: &[&str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
@@ -154,6 +169,7 @@ impl Rank {
         v
     }
 
+    /// Returns the default, US_ENGLISH value of the Rank's index as set in the fluent templates.
     pub fn get_default_index(&self) -> String {
         self.get_index(&US_ENGLISH)
     }
@@ -165,10 +181,21 @@ impl Rank {
         get_value_by_key(key.as_str(), lid)
     }
 
+    /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
     pub fn get_default_long(&self) -> String {
         self.get_long(&US_ENGLISH)
     }
 
+    /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
+    /// templates for that language.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::GERMAN;
+    /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+    /// println!("{}", queen.get_long(&GERMAN));
+    /// ```
+    /// Prints out `Dame`.
     pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
         let key = format!("{}-name", self.name);
         get_value_by_key(key.as_str(), lid)
@@ -200,11 +227,6 @@ impl Rank {
 
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
-    }
-
-    /// Returns the number of pips on the cards.
-    pub fn pip(&self) -> u8 {
-        self.get_default_index().parse().unwrap_or(0)
     }
 }
 
@@ -271,12 +293,6 @@ mod rank_tests {
         let hermit = Rank::new(HERMIT);
 
         assert_eq!(Rank::new(HERMIT), hermit)
-    }
-
-    #[test]
-    fn pip() {
-        assert_eq!(Rank::new(KING).pip(), 0);
-        assert_eq!(Rank::new(NINE).pip(), 9);
     }
 
     #[test]
