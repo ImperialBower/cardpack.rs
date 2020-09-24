@@ -42,7 +42,6 @@ pub trait FluentCard {
         get_value_by_key(key.as_str(), lid)
     }
 
-
     /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
     fn get_default_long(&self) -> String {
         self.get_long(&US_ENGLISH)

@@ -39,7 +39,7 @@ use crate::cards::pile::Pile;
 ///
 /// ```
 ///
-
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Pack {
     cards: Pile,
 }
