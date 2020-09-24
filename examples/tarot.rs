@@ -1,5 +1,3 @@
-use cardpack::FluentCard;
-
 fn main() {
     let deck = cardpack::Pile::tarot_deck();
 
@@ -18,9 +16,9 @@ fn main() {
 
 fn display(deck: &cardpack::Pile) {
     for card in deck.values() {
-        let suitname = card.suit.get_default_long();
+        let suitname = card.suit.name.long_default();
 
-        let rankname = card.rank.get_default_long();
+        let rankname = card.rank.name.long_default();
         if suitname == "Major Arcana".to_string() {
             println!("      {}", rankname);
         } else {

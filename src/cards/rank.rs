@@ -1,19 +1,3 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
-
 use std::fmt;
 
 use crate::fluent::*;
@@ -74,9 +58,10 @@ pub const PAGE: &str = "page";
 ///
 /// # As an *instance* variable
 /// ```
+/// use cardpack::{FluentName, ACE};
 /// let ace = cardpack::Rank {
 ///     weight: 1,
-///     name: cardpack::ACE.to_string(),
+///     name: FluentName::new(ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
@@ -106,11 +91,7 @@ pub const PAGE: &str = "page";
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: isize,
-    /// Represents the fluent template key for the Rank, which in turn determines the Rank's
-    /// long name in any represented language, the short letter used to display a Card's index,
-    /// and the default weight for the Rank if it is instantiated via `Rank::new()`. A Rank's name
-    /// must have a corresponding entries in the fluent templates for weight, name, and index.
-    pub name: String,
+    pub name: FluentName,
 }
 
 impl Rank {
@@ -127,9 +108,11 @@ impl Rank {
     where
         S: Into<String>,
     {
-        let n = name.into();
-        let weight = get_weight_isize(n.as_str());
-        Rank::new_with_weight(n, weight)
+        let n = FluentName::new(name.into());
+        Rank {
+            weight: n.default_weight(),
+            name: n,
+        }
     }
 
     /// Returns a Rank instance with the passed in name and weight, overriding the default value
@@ -145,7 +128,7 @@ impl Rank {
     {
         Rank {
             weight,
-            name: name.into(),
+            name: FluentName::new(name.into()),
         }
     }
 
@@ -199,21 +182,7 @@ impl Rank {
 
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get_index(&US_ENGLISH))
-    }
-}
-
-impl FluentCard for Rank {
-    fn get_name(&self) -> &String {
-        &self.name
-    }
-
-    fn revise_weight(&mut self, new_value: isize) {
-        self.weight = new_value
-    }
-
-    fn get_weight(&self) -> isize {
-        self.weight
+        write!(f, "{}", self.name.index(&US_ENGLISH))
     }
 }
 
@@ -232,16 +201,16 @@ mod rank_tests {
     fn get_index() {
         let queen = Rank::new(QUEEN);
 
-        assert_eq!("Q".to_string(), queen.get_default_index());
-        assert_eq!("D".to_string(), queen.get_index(&GERMAN));
+        assert_eq!("Q".to_string(), queen.name.index_default());
+        assert_eq!("D".to_string(), queen.name.index(&GERMAN));
     }
 
     #[test]
     fn get_long() {
         let ace = Rank::new(ACE);
 
-        assert_eq!("Ace".to_string(), ace.get_long(&US_ENGLISH));
-        assert_eq!("Ass".to_string(), ace.get_long(&GERMAN));
+        assert_eq!("Ace".to_string(), ace.name.long(&US_ENGLISH));
+        assert_eq!("Ass".to_string(), ace.name.long(&GERMAN));
     }
 
     #[test]
@@ -253,7 +222,7 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             weight: 9,
-            name: "nine".to_string(),
+            name: FluentName::new(NINE),
         };
 
         assert_eq!(expected, Rank::new(NINE));
@@ -339,10 +308,10 @@ mod rank_tests {
     #[test]
     fn revise_value() {
         let mut ace = Rank::new(ACE);
-        assert_eq!(14, ace.get_weight());
+        assert_eq!(14, ace.weight);
 
-        ace.revise_weight(3);
+        ace.weight = 3;
 
-        assert_eq!(3, ace.get_weight());
+        assert_eq!(3, ace.weight);
     }
 }

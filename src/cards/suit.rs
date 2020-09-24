@@ -1,19 +1,3 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
-
 use std::fmt;
 
 use crate::fluent::*;
@@ -40,7 +24,7 @@ pub const SHELLEN: &str = "schellen"; // Bells
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub weight: isize,
-    pub name: String,
+    pub name: FluentName,
 }
 
 impl Suit {
@@ -48,24 +32,25 @@ impl Suit {
     where
         S: Into<String>,
     {
-        let n = name.into();
-        let weight = get_weight_isize(n.as_str());
-        Suit::new_with_weight(n, weight)
+        let n = FluentName::new(name.into());
+        Suit {
+            weight: n.default_weight(),
+            name: n,
+        }
     }
 
-    pub fn new_with_weight<S: std::clone::Clone>(name: S, value: isize) -> Suit
+    pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Suit
     where
         S: Into<String>,
     {
         Suit {
-            weight: value,
-            name: name.into(),
+            weight,
+            name: FluentName::new(name.into()),
         }
     }
 
     pub fn get_symbol(&self) -> String {
-        let key = format!("{}-symbol", self.name);
-        get_value_by_key(key.as_str(), &US_ENGLISH)
+        self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
     fn top_down_value(len: usize, i: usize) -> isize {
@@ -106,20 +91,6 @@ impl fmt::Display for Suit {
     }
 }
 
-impl FluentCard for Suit {
-    fn get_name(&self) -> &String {
-        &self.name
-    }
-
-    fn revise_weight(&mut self, new_value: isize) {
-        self.weight = new_value
-    }
-
-    fn get_weight(&self) -> isize {
-        self.weight
-    }
-}
-
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod suit_tests {
@@ -135,7 +106,7 @@ mod suit_tests {
     fn new() {
         let expected = Suit {
             weight: 4,
-            name: SPADES.to_string(),
+            name: FluentName::new(SPADES),
         };
 
         assert_eq!(expected, Suit::new(SPADES));
@@ -145,7 +116,7 @@ mod suit_tests {
     fn new_with_value() {
         let expected = Suit {
             weight: 4,
-            name: SPADES.to_string(),
+            name: FluentName::new(SPADES),
         };
 
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
@@ -157,8 +128,8 @@ mod suit_tests {
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)
         );
-        assert_ne!(
-            Suit::new_with_weight(HEARTS, 4),
+        assert_eq!(
+            Suit::new_with_weight(SPADES, 4),
             Suit::new_with_weight(SPADES, 4)
         );
     }
@@ -167,8 +138,8 @@ mod suit_tests {
     fn get_short() {
         let clubs = Suit::new(CLUBS);
 
-        assert_eq!("C".to_string(), clubs.get_default_index());
-        assert_eq!("K".to_string(), clubs.get_index(&GERMAN));
+        assert_eq!("C".to_string(), clubs.name.index_default());
+        assert_eq!("K".to_string(), clubs.name.index(&GERMAN));
     }
 
     #[test]
@@ -182,8 +153,8 @@ mod suit_tests {
     fn get_long() {
         let clubs = Suit::new("clubs");
 
-        assert_eq!("Clubs".to_string(), clubs.get_long(&US_ENGLISH));
-        assert_eq!("Klee".to_string(), clubs.get_long(&GERMAN));
+        assert_eq!("Clubs".to_string(), clubs.name.long(&US_ENGLISH));
+        assert_eq!("Klee".to_string(), clubs.name.long(&GERMAN));
     }
 
     #[test]
@@ -195,7 +166,7 @@ mod suit_tests {
     fn to_string_by_locale() {
         let clubs = Suit::new("clubs");
 
-        assert_eq!(clubs.get_index(&GERMAN), "K".to_string());
+        assert_eq!(clubs.name.index(&GERMAN), "K".to_string());
     }
 
     #[test]
@@ -233,10 +204,10 @@ mod suit_tests {
     #[test]
     fn revise_value() {
         let mut wands = Suit::new(WANDS);
-        assert_eq!(4, wands.get_weight());
+        assert_eq!(4, wands.weight);
 
-        wands.revise_weight(3);
+        wands.weight = 3;
 
-        assert_eq!(3, wands.get_weight());
+        assert_eq!(3, wands.weight);
     }
 }

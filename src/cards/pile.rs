@@ -1,19 +1,3 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
-
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::collections::HashMap;
@@ -26,7 +10,6 @@ use crate::cards::card::Card;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::fluent::{GERMAN, US_ENGLISH};
-use crate::FluentCard;
 
 /// A Pile is a sortable collection of Cards.
 ///
@@ -109,10 +92,10 @@ impl Pile {
     pub fn demo(&self) {
         println!("   Long in English and German:");
         for card in self.values() {
-            let anzugname = card.suit.get_long(&GERMAN);
-            let suitname = card.suit.get_long(&US_ENGLISH);
-            let rangname = card.rank.get_long(&GERMAN);
-            let rankname = card.rank.get_long(&US_ENGLISH);
+            let anzugname = card.suit.name.long(&GERMAN);
+            let suitname = card.suit.name.long(&US_ENGLISH);
+            let rangname = card.rank.name.long(&GERMAN);
+            let rankname = card.rank.name.long(&US_ENGLISH);
             println!("      {} of {} ", rankname, suitname);
             println!("      {} von {} ", rangname, anzugname);
         }
@@ -248,7 +231,7 @@ impl Pile {
     pub fn rank_indexes(&self) -> String {
         self.cards()
             .iter()
-            .map(|c| c.rank.get_default_index())
+            .map(|c| c.rank.name.index_default())
             .collect::<String>()
     }
 

@@ -1,23 +1,14 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 use fluent_templates::{static_loader, Loader};
+use std::fmt;
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
 pub const GERMAN: LanguageIdentifier = langid!("de");
+
+pub const FLUENT_INDEX_SECTION: &str = "index";
+pub const FLUENT_LONG_SECTION: &str = "long";
+pub const FLUENT_SYMBOL_SECTION: &str = "symbol";
+pub const FLUENT_WEIGHT_SECTION: &str = "weight";
 
 static_loader! {
     pub static LOCALES = {
@@ -28,70 +19,151 @@ static_loader! {
     };
 }
 
-pub trait FluentCard {
-    /// Returns the default, US_ENGLISH value of the implementer's index as set in the fluent
-    /// templates.
-    fn get_default_index(&self) -> String {
-        self.get_index(&US_ENGLISH)
+/// FluentName represents the fluent template key for a card entity such as a Suit or Rank,
+/// which in turn determines its long name in any represented language, the short letter
+/// used to display an index, and the default weight for the if it is instantiated via
+/// `::new()`. A FluentName must have a corresponding entries in the fluent templates for
+/// weight, long, and index.
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct FluentName(String);
+
+impl FluentName {
+    pub fn new<S: std::clone::Clone>(name: S) -> FluentName
+    where
+        S: Into<String>,
+    {
+        FluentName(name.into())
     }
 
-    /// "The number or letter printed in the corner of a playing card,
-    /// so that it may be read when held in a fan." -- Wikipedia
-    fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-index", self.get_name());
-        get_value_by_key(key.as_str(), lid)
+    pub fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
+        let id = format!("{}-{}", self.name(), key_section);
+        LOCALES.lookup(lid, id.as_str())
     }
 
-    /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
-    fn get_default_long(&self) -> String {
-        self.get_long(&US_ENGLISH)
+    pub fn name(&self) -> &String {
+        &self.0
     }
 
-    /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
-    /// templates for that language.
+    /// Returns the value of the names' index in the fluent templates.
+    ///
+    /// The index is defined as the identity indicator in the corner of a playing card.
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::{GERMAN, FluentCard};
-    /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
-    /// println!("{}", queen.get_default_long());
+    /// use cardpack::fluent::*;
+    ///
+    /// let jack = cardpack::FluentName::new("jack");
+    /// println!("{}", jack.index(&GERMAN));
     /// ```
-    /// Prints out `Dame`.
-    fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-long", self.get_name());
-        get_value_by_key(key.as_str(), lid)
+    /// Prints out `B` (for Bube).
+    pub fn index(&self, lid: &LanguageIdentifier) -> String {
+        self.fluent_value(FLUENT_INDEX_SECTION, lid)
     }
 
-    fn get_name(&self) -> &String;
+    /// Returns the default, US_ENGLISH value of the names' index value in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::fluent::*;
+    ///
+    /// let ten = cardpack::FluentName::new("ten");
+    /// println!("{}", ten.index_default());
+    /// ```
+    /// Prints out `T`.
+    pub fn index_default(&self) -> String {
+        self.index(&US_ENGLISH)
+    }
 
-    fn revise_weight(&mut self, new_value: isize);
+    /// Returns the value of the names' long value in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::fluent::*;
+    ///
+    /// let queen = cardpack::FluentName::new("big-joker");
+    /// println!("{}", queen.long(&GERMAN));
+    /// ```
+    /// Prints out `Großer Joker`.
+    pub fn long(&self, lid: &LanguageIdentifier) -> String {
+        self.fluent_value(FLUENT_LONG_SECTION, lid)
+    }
 
-    fn get_weight(&self) -> isize;
+    /// Returns the default, US_ENGLISH value of the names' long value in the fluent templates.
+    pub fn long_default(&self) -> String {
+        self.long(&US_ENGLISH)
+    }
+
+    /// Returns the default weight for a name. Weight is used to sort cards.
+    pub fn default_weight(&self) -> isize {
+        let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
+        weight.parse().unwrap_or(0)
+    }
 }
 
-pub fn get_value_by_key(key: &str, lid: &LanguageIdentifier) -> String {
-    LOCALES.lookup(lid, key)
-}
-
-fn get_weight(name: &str) -> String {
-    let var = "-weight";
-    let id = format!("{}{}", name, var);
-    LOCALES.lookup(&US_ENGLISH, id.as_str())
-}
-
-pub fn get_weight_isize(name: &str) -> isize {
-    let s = get_weight(name);
-    s.parse().unwrap_or(0)
+impl fmt::Display for FluentName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
+    }
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod fluent_tests {
     use super::*;
 
-    #[test]
-    fn doit() {
-        let s = LOCALES.lookup(&US_ENGLISH, "spades-index");
+    mod fluent_name_tests {
+        use super::*;
 
-        assert_eq!("S", s);
+        #[test]
+        fn new() {
+            let n = FluentName::new("boop");
+
+            assert_eq!("boop".to_string(), n.0)
+        }
+
+        #[test]
+        fn fluent_value() {
+            let name = FluentName::new("swords");
+
+            assert_eq!(
+                "⚔".to_string(),
+                name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
+            )
+        }
+
+        #[test]
+        fn index() {
+            assert_eq!("0".to_string(), FluentName::new("fool").index(&US_ENGLISH))
+        }
+
+        #[test]
+        fn index_default() {
+            assert_eq!("0".to_string(), FluentName::new("fool").index_default())
+        }
+
+        #[test]
+        fn long() {
+            assert_eq!("Ober".to_string(), FluentName::new("ober").long(&GERMAN))
+        }
+
+        #[test]
+        fn long_default() {
+            assert_eq!("Deuce".to_string(), FluentName::new("daus").long_default())
+        }
+
+        #[test]
+        fn name() {
+            assert_eq!(&"foo".to_string(), FluentName::new("foo").name())
+        }
+
+        #[test]
+        fn default_weight() {
+            assert_eq!(11, FluentName::new("unter").default_weight())
+        }
+
+        #[test]
+        fn default_weight__ne() {
+            assert_eq!(0, FluentName::new("no-such-name").default_weight())
+        }
     }
 }

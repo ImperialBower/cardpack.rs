@@ -1,32 +1,13 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
-
 use colored::*;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
 use crate::cards::suit::*;
-use crate::FluentCard;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
 /// in a Pile or as a part of a Vector.
-///
-///
 ///
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
@@ -69,8 +50,9 @@ impl Card {
     }
 
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        let rank = rank.get_default_index();
-        let suit = suit.get_default_index();
+        // TODO Needs Trait
+        let rank = rank.name.index_default();
+        let suit = suit.name.index_default();
         format!("{}{}", rank, suit)
     }
 
@@ -80,9 +62,9 @@ impl Card {
     }
 
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_index(&lid);
+        let rank = self.rank.name.index(&lid);
         let suit = self.suit.get_symbol();
-        match &self.suit.name[..] {
+        match &self.suit.name.name()[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
@@ -93,8 +75,8 @@ impl Card {
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_index(&lid);
-        let suit = self.suit.get_index(&lid);
+        let rank = self.rank.name.index(&lid);
+        let suit = self.suit.name.index(&lid);
         format!("{}{}", rank, suit)
     }
 }
