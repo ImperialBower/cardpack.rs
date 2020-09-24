@@ -35,6 +35,8 @@ impl FluentName {
         FluentName(name.into())
     }
 
+    /// This is the core method for getting fluent values. the index, long, and default weight
+    /// methods are all just methods simplifying the call to this method.
     pub fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
         let id = format!("{}-{}", self.name(), key_section);
         LOCALES.lookup(lid, id.as_str())
