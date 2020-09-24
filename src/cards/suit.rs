@@ -15,7 +15,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
 use crate::fluent::*;
 
@@ -41,7 +40,7 @@ pub const SHELLEN: &str = "schellen"; // Bells
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub weight: isize,
-    pub raw: String,
+    pub name: String,
 }
 
 impl Suit {
@@ -60,30 +59,12 @@ impl Suit {
     {
         Suit {
             weight: value,
-            raw: name.into(),
+            name: name.into(),
         }
     }
 
-    pub fn get_default_short(&self) -> String {
-        self.get_short(&US_ENGLISH)
-    }
-
-    pub fn get_short(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-letter", self.raw);
-        get_value_by_key(key.as_str(), lid)
-    }
-
-    pub fn get_default_long(&self) -> String {
-        self.get_long(&US_ENGLISH)
-    }
-
-    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-name", self.raw);
-        get_value_by_key(key.as_str(), lid)
-    }
-
     pub fn get_symbol(&self) -> String {
-        let key = format!("{}-symbol", self.raw);
+        let key = format!("{}-symbol", self.name);
         get_value_by_key(key.as_str(), &US_ENGLISH)
     }
 
@@ -125,7 +106,11 @@ impl fmt::Display for Suit {
     }
 }
 
-impl Weighty for Suit {
+impl FluentCard for Suit {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+
     fn revise_weight(&mut self, new_value: isize) {
         self.weight = new_value
     }
@@ -150,7 +135,7 @@ mod suit_tests {
     fn new() {
         let expected = Suit {
             weight: 4,
-            raw: SPADES.to_string(),
+            name: SPADES.to_string(),
         };
 
         assert_eq!(expected, Suit::new(SPADES));
@@ -160,7 +145,7 @@ mod suit_tests {
     fn new_with_value() {
         let expected = Suit {
             weight: 4,
-            raw: SPADES.to_string(),
+            name: SPADES.to_string(),
         };
 
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
@@ -182,8 +167,8 @@ mod suit_tests {
     fn get_short() {
         let clubs = Suit::new(CLUBS);
 
-        assert_eq!("C".to_string(), clubs.get_default_short());
-        assert_eq!("K".to_string(), clubs.get_short(&GERMAN));
+        assert_eq!("C".to_string(), clubs.get_default_index());
+        assert_eq!("K".to_string(), clubs.get_index(&GERMAN));
     }
 
     #[test]
@@ -210,7 +195,7 @@ mod suit_tests {
     fn to_string_by_locale() {
         let clubs = Suit::new("clubs");
 
-        assert_eq!(clubs.get_short(&GERMAN), "K".to_string());
+        assert_eq!(clubs.get_index(&GERMAN), "K".to_string());
     }
 
     #[test]

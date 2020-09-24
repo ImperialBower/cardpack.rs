@@ -1,40 +1,40 @@
 # Tarot Deck (Rider-Waite)
-major-arcana-name = Major Arcana
-wands-name = Wands
-cups-name = Chalices
-swords-name = Swords
-pentacles-name = Pentacles
+major-arcana-long = Major Arcana
+wands-long = Wands
+cups-long = Chalices
+swords-long = Swords
+pentacles-long = Pentacles
 
-major-arcana-letter = MA
-wands-letter = W
-cups-letter = C
-swords-letter = S
-pentacles-letter = P
+major-arcana-index = MA
+wands-index = W
+cups-index = C
+swords-index = S
+pentacles-index = P
 
 ## Major Arcana
 
-fool-name = The Fool
-magician-name = The Magician
-priestess-name = The High Priestess
-empress-name = The Empress
-emperor-name = The Emperor
-hierophant-name = The Hierophant
-lovers-name = The Lovers
-chariot-name = The Chariot
-strength-name = Strength
-hermit-name = The Hermit
-fortune-name = Wheel of Fortune
-justice-name = Justice
-hanged-name = The Hanged Man
-death-name = Death
-temperance-name = Temperance
-devil-name = The Devil
-tower-name = The Tower
-star-name = The Star
-moon-name = The Moon
-sun-name = The Sun
-judgement-name = Judgement
-world-name = The World
+fool-long = The Fool
+magician-long = The Magician
+priestess-long = The High Priestess
+empress-long = The Empress
+emperor-long = The Emperor
+hierophant-long = The Hierophant
+lovers-long = The Lovers
+chariot-long = The Chariot
+strength-long = Strength
+hermit-long = The Hermit
+fortune-long = Wheel of Fortune
+justice-long = Justice
+hanged-long = The Hanged Man
+death-long = Death
+temperance-long = Temperance
+devil-long = The Devil
+tower-long = The Tower
+star-long = The Star
+moon-long = The Moon
+sun-long = The Sun
+judgement-long = Judgement
+world-long = The World
 
 fool-index = 0
 magician-index = 1
@@ -63,8 +63,8 @@ world-index = 21
 
 ## Ranks
 ### identical names are covered in the French Deck
-knight-name = Knight
-page-name = Page
+knight-long = Knight
+page-long = Page
 
 knight-index = J
 page-index = P

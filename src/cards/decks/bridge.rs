@@ -18,6 +18,7 @@ use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
 use crate::cards::suit::*;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum BridgeDirection {
@@ -56,6 +57,7 @@ impl BridgeDirection {
 
 /// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
 /// of a Bridge hand.
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct BridgeBoard {
     pack: Pack,
     pub south: Pile,
@@ -89,10 +91,10 @@ impl BridgeBoard {
 
     fn fold_in(&mut self, direction: &BridgeDirection, hand: Pile) {
         match direction {
-            BridgeDirection::S => self.south = hand,
-            BridgeDirection::W => self.west = hand,
-            BridgeDirection::N => self.north = hand,
-            BridgeDirection::E => self.east = hand,
+            BridgeDirection::S => self.south = hand.sort(),
+            BridgeDirection::W => self.west = hand.sort(),
+            BridgeDirection::N => self.north = hand.sort(),
+            BridgeDirection::E => self.east = hand.sort(),
             BridgeDirection::UNKNOWN => self.east = hand,
         }
     }
@@ -100,10 +102,10 @@ impl BridgeBoard {
     pub fn deal() -> BridgeBoard {
         let mut board = BridgeBoard::default();
         let mut cards = board.pack.cards().shuffle();
-        board.south = cards.draw(13).unwrap();
-        board.west = cards.draw(13).unwrap();
-        board.north = cards.draw(13).unwrap();
-        board.east = cards.draw(13).unwrap();
+        board.south = cards.draw(13).unwrap().sort();
+        board.west = cards.draw(13).unwrap().sort();
+        board.north = cards.draw(13).unwrap().sort();
+        board.east = cards.draw(13).unwrap().sort();
         board
     }
 
@@ -140,12 +142,20 @@ impl BridgeBoard {
 
     fn hand_to_pbn_deal_segment(hand: &Pile) -> String {
         let mappie = hand.map_by_suit();
-        let spades = mappie.get(&Suit::new(SPADES)).unwrap().rank_indexes();
-        let hearts = mappie.get(&Suit::new(HEARTS)).unwrap().rank_indexes();
-        let diamonds = mappie.get(&Suit::new(DIAMONDS)).unwrap().rank_indexes();
-        let clubs = mappie.get(&Suit::new(CLUBS)).unwrap().rank_indexes();
+        let spades = BridgeBoard::get_suit_string(&Suit::new(SPADES), &mappie);
+        let hearts = BridgeBoard::get_suit_string(&Suit::new(HEARTS), &mappie);
+        let diamonds = BridgeBoard::get_suit_string(&Suit::new(DIAMONDS), &mappie);
+        let clubs = BridgeBoard::get_suit_string(&Suit::new(CLUBS), &mappie);
 
         format!("{}.{}.{}.{}", spades, hearts, diamonds, clubs)
+    }
+
+    fn get_suit_string(suit: &Suit, mappie: &HashMap<Suit, Pile>) -> String {
+        let indexes = mappie.get(suit);
+        match indexes {
+            Some(hand) => hand.rank_indexes(),
+            None => "".to_string(),
+        }
     }
 
     fn to_pile(&self, s: &str) -> Pile {
@@ -240,6 +250,15 @@ mod bridge_tests {
     }
 
     #[test]
+    fn from_pbn_deal__unsorted() {
+        let unsorted = "S:4Q2.5Q2.Q94T3A.Q 79.AT93.562.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982";
+
+        let sorted = BridgeBoard::from_pbn_deal(unsorted).to_pbn_deal();
+
+        assert_eq!(PBN_TEST_STRING, sorted.as_str());
+    }
+
+    #[test]
     fn from_pbn_deal__west() {
         let deck = Pile::french_deck();
         let pbn = "W:A94.K2.T876.QT53 Q75.AQJT976.9.42 KT62.3.AK2.AK986 J83.854.QJ543.J7";
@@ -251,6 +270,16 @@ mod bridge_tests {
 
         assert_eq!(west.unwrap().by_index(), deal.west.by_index());
         assert!(deal.is_valid())
+    }
+
+    #[test]
+    fn from_to_pbn_deal() {
+        let bb = BridgeBoard::deal();
+
+        let pbn = bb.to_pbn_deal();
+        let from = BridgeBoard::from_pbn_deal(pbn.as_str()).to_pbn_deal();
+
+        assert_eq!(pbn, from)
     }
 
     #[test]
@@ -301,7 +330,7 @@ mod bridge_tests {
     }
 
     #[test]
-    fn to_pbn_deal_segment() {
+    fn hand_to_pbn_deal_segment() {
         let deal = BridgeBoard::from_pbn_deal(PBN_TEST_STRING);
         let hand = deal
             .pack
@@ -313,6 +342,16 @@ mod bridge_tests {
         let expected = "Q42.Q52.AQT943.Q";
 
         let actual = BridgeBoard::hand_to_pbn_deal_segment(&hand);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn hand_to_pbn_deal_segment__unbalanced() {
+        let all_spades = Pile::french_deck().draw(13).unwrap();
+        let expected = "AKQJT98765432...";
+
+        let actual = BridgeBoard::hand_to_pbn_deal_segment(&all_spades);
 
         assert_eq!(expected, actual);
     }

@@ -15,7 +15,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 use std::fmt;
-use unic_langid::LanguageIdentifier;
 
 use crate::fluent::*;
 
@@ -77,7 +76,7 @@ pub const PAGE: &str = "page";
 /// ```
 /// let ace = cardpack::Rank {
 ///     weight: 1,
-///     raw: cardpack::ACE.to_string(),
+///     name: cardpack::ACE.to_string(),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
@@ -100,16 +99,30 @@ pub const PAGE: &str = "page";
 /// ```
 /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[cardpack::ACE, cardpack::TEN,]);
 /// ```
-/// Returns a Vector of Ranks with their weights determined by the order their passed in, high to
+/// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
 ///
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
+    /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: isize,
-    pub raw: String,
+    /// Represents the fluent template key for the Rank, which in turn determines the Rank's
+    /// long name in any represented language, the short letter used to display a Card's index,
+    /// and the default weight for the Rank if it is instantiated via `Rank::new()`. A Rank's name
+    /// must have a corresponding entries in the fluent templates for weight, name, and index.
+    pub name: String,
 }
 
 impl Rank {
+    /// Returns a Rank, determining its weight by the default weight value for its name set in the
+    /// fluent templates. For instance, if you look in `src/fluent/locales/core.ftl you will see
+    /// that the default weight for an Ace is 14. This will mean that when a pile of cards is sorted
+    /// that it will be at the top of a standard French Deck where the Ace is high.
+    ///
+    /// ## Usage
+    /// ```
+    /// let king = cardpack::Rank::new(cardpack::HERMIT);
+    /// ```
     pub fn new<S: std::clone::Clone>(name: S) -> Rank
     where
         S: Into<String>,
@@ -119,16 +132,31 @@ impl Rank {
         Rank::new_with_weight(n, weight)
     }
 
+    /// Returns a Rank instance with the passed in name and weight, overriding the default value
+    /// set in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+    /// ```
     pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Rank
     where
         S: Into<String>,
     {
         Rank {
             weight,
-            raw: name.into(),
+            name: name.into(),
         }
     }
 
+    /// ## Usage
+    /// ```
+    /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[
+    ///     cardpack::ACE, cardpack::TEN, cardpack::KING,
+    ///     cardpack::QUEEN, cardpack::JACK, cardpack::NINE]);
+    /// ```
+    /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
+    /// low. This facilitates the easy creation of custom decks, such as for pinochle.
     pub fn from_array(s: &[&str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
@@ -138,26 +166,6 @@ impl Rank {
             v.push(Rank::new_with_weight(elem, weight as isize));
         }
         v
-    }
-
-    pub fn get_default_index(&self) -> String {
-        self.get_index(&US_ENGLISH)
-    }
-
-    /// "The number or letter printed in the corner of a playing card,
-    /// so that it may be read when held in a fan." -- Wikipedia
-    pub fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-index", self.raw);
-        get_value_by_key(key.as_str(), lid)
-    }
-
-    pub fn get_default_long(&self) -> String {
-        self.get_long(&US_ENGLISH)
-    }
-
-    pub fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-name", self.raw);
-        get_value_by_key(key.as_str(), lid)
     }
 
     pub fn generate_french_ranks() -> Vec<Rank> {
@@ -187,11 +195,6 @@ impl Rank {
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
     }
-
-    /// Returns the number of pips on the cards.
-    pub fn pip(&self) -> u8 {
-        self.get_default_index().parse().unwrap_or(0)
-    }
 }
 
 impl fmt::Display for Rank {
@@ -200,7 +203,11 @@ impl fmt::Display for Rank {
     }
 }
 
-impl Weighty for Rank {
+impl FluentCard for Rank {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+
     fn revise_weight(&mut self, new_value: isize) {
         self.weight = new_value
     }
@@ -246,16 +253,17 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             weight: 9,
-            raw: "nine".to_string(),
+            name: "nine".to_string(),
         };
 
         assert_eq!(expected, Rank::new(NINE));
     }
 
     #[test]
-    fn pip() {
-        assert_eq!(Rank::new(KING).pip(), 0);
-        assert_eq!(Rank::new(NINE).pip(), 9);
+    fn new__tarot() {
+        let hermit = Rank::new(HERMIT);
+
+        assert_eq!(Rank::new(HERMIT), hermit)
     }
 
     #[test]

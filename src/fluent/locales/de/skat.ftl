@@ -1,18 +1,18 @@
 # Skat Deck
-eichel-name = Eichel
-laub-name = Laub
-herz-name = Herz
-schellen-name = Schellen
+eichel-long = Eichel
+laub-long = Laub
+herz-long = Herz
+schellen-long = Schellen
 
-eichel-letter = E
-laub-letter = L
-herz-letter = H
-schellen-letter = S
+eichel-index = E
+laub-index = L
+herz-index = H
+schellen-index = S
 
 ## Ranks
-daus-name = Daus
-ober-name = Ober
-unter-name = Unter
+daus-long = Daus
+ober-long = Ober
+unter-long = Unter
 
 daus-index = D
 ober-index = O

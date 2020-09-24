@@ -1,18 +1,18 @@
 # Skat Deck
-eichel-name = Acorns
-laub-name = Leaves
-herz-name = Hearts
-schellen-name = Bells
+eichel-long = Acorns
+laub-long = Leaves
+herz-long = Hearts
+schellen-long = Bells
 
-eichel-letter = A
-laub-letter = L
-herz-letter = H
-schellen-letter = B
+eichel-index = A
+laub-index = L
+herz-index = H
+schellen-index = B
 
 ## Ranks
-daus-name = Deuce
-ober-name = Ober
-unter-name = Unter
+daus-long = Deuce
+ober-long = Ober
+unter-long = Unter
 
 daus-index = D
 ober-index = O
