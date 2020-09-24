@@ -1,25 +1,12 @@
-/*  CardPack - A generic pack of cards library written in Rust.
-Copyright (C) <2020>  Christoph Baker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 use fluent_templates::{static_loader, Loader};
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
 pub const GERMAN: LanguageIdentifier = langid!("de");
+
 pub const FLUENT_INDEX_SECTION: &str = "index";
 pub const FLUENT_LONG_SECTION: &str = "long";
+pub const FLUENT_SYMBOL_SECTION: &str = "symbol";
 pub const FLUENT_WEIGHT_SECTION: &str = "weight";
 
 static_loader! {
@@ -30,6 +17,49 @@ static_loader! {
         core_locales: "./src/fluent/locales/core.ftl",
     };
 }
+
+pub struct FluentName(String);
+
+impl FluentName {
+    pub fn new<S: std::clone::Clone>(name: S) -> FluentName
+        where
+            S: Into<String>,
+    {
+        FluentName(name.into())
+    }
+
+    pub fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
+        let id = format!("{}-{}", self.name(), key_section);
+        LOCALES.lookup(lid, id.as_str())
+    }
+
+    pub fn name(&self) -> &String {
+        &self.0
+    }
+
+    pub fn index(&self, lid: &LanguageIdentifier) -> String {
+        self.fluent_value(FLUENT_INDEX_SECTION, lid)
+    }
+
+    pub fn index_default(&self) -> String {
+        self.index(&US_ENGLISH)
+    }
+
+    pub fn long(&self, lid: &LanguageIdentifier) -> String {
+        self.fluent_value(FLUENT_LONG_SECTION, lid)
+    }
+
+    pub fn long_default(&self) -> String {
+        self.long(&US_ENGLISH)
+    }
+
+    pub fn weight(&self) -> isize {
+        let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
+        weight.parse().unwrap_or(0)
+    }
+}
+
+// region FluentCard
 
 pub trait FluentCard {
     /// Returns the default, US_ENGLISH value of the implementer's index as set in the fluent
@@ -88,9 +118,65 @@ pub fn get_weight_isize(name: &str) -> isize {
     s.parse().unwrap_or(0)
 }
 
+// endregion
+
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod fluent_tests {
     use super::*;
+
+    mod fluent_name_tests {
+        use super::*;
+
+        #[test]
+        fn new() {
+            let n = FluentName::new("boop");
+
+            assert_eq!("boop".to_string(), n.0)
+        }
+
+        #[test]
+        fn fluent_value() {
+            let name = FluentName::new("swords");
+
+            assert_eq!("⚔".to_string(), name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH))
+        }
+
+        #[test]
+        fn index() {
+            assert_eq!("0".to_string(), FluentName::new("fool").index(&US_ENGLISH))
+        }
+
+        #[test]
+        fn index_default() {
+            assert_eq!("0".to_string(), FluentName::new("fool").index_default())
+        }
+
+        #[test]
+        fn long() {
+            assert_eq!("Ober".to_string(), FluentName::new("ober").long(&GERMAN))
+        }
+
+        #[test]
+        fn long_default() {
+            assert_eq!("Deuce".to_string(), FluentName::new("daus").long_default())
+        }
+
+        #[test]
+        fn name() {
+            assert_eq!(&"foo".to_string(), FluentName::new("foo").name())
+        }
+
+        #[test]
+        fn weight() {
+            assert_eq!(11, FluentName::new("unter").weight())
+        }
+
+        #[test]
+        fn weight__ne() {
+            assert_eq!(0, FluentName::new("no-such-name").weight())
+        }
+    }
 
     #[test]
     fn doit() {
