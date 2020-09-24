@@ -88,6 +88,7 @@ impl FluentName {
         self.long(&US_ENGLISH)
     }
 
+    /// Returns the default weight for a name. Weight is used to sort cards.
     pub fn default_weight(&self) -> isize {
         let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
         weight.parse().unwrap_or(0)
@@ -99,63 +100,6 @@ impl fmt::Display for FluentName {
         write!(f, "{}", self.name())
     }
 }
-
-// region FluentCard
-
-// pub trait FluentCard {
-//     /// Returns the default, US_ENGLISH value of the implementer's index as set in the fluent
-//     /// templates.
-//     fn get_default_index(&self) -> String {
-//         self.index(&US_ENGLISH)
-//     }
-//
-//     /// "The number or letter printed in the corner of a playing card,
-//     /// so that it may be read when held in a fan." -- Wikipedia
-//     fn get_index(&self, lid: &LanguageIdentifier) -> String {
-//         get_fluent_value(self.get_name(), FLUENT_INDEX_SECTION, lid)
-//     }
-//
-//     /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
-//     fn get_default_long(&self) -> String {
-//         self.get_long(&US_ENGLISH)
-//     }
-//
-//     /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
-//     /// templates for that language.
-//     ///
-//     /// ## Usage
-//     /// ```
-//     /// use cardpack::{GERMAN, FluentCard};
-//     /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
-//     /// println!("{}", queen.get_long(&GERMAN));
-//     /// ```
-//     /// Prints out `Dame`.
-//     fn get_long(&self, lid: &LanguageIdentifier) -> String {
-//         get_fluent_value(self.get_name(), FLUENT_LONG_SECTION, lid)
-//     }
-//
-//     fn get_name(&self) -> &String;
-//
-//     fn revise_weight(&mut self, new_value: isize);
-//
-//     fn get_weight(&self) -> isize;
-// }
-
-fn get_weight(name: &str) -> String {
-    get_fluent_value(name, FLUENT_WEIGHT_SECTION, &US_ENGLISH)
-}
-
-fn get_fluent_value(key_name: &str, key_section: &str, lid: &LanguageIdentifier) -> String {
-    let id = format!("{}-{}", key_name, key_section);
-    LOCALES.lookup(lid, id.as_str())
-}
-
-pub fn get_weight_isize(name: &str) -> isize {
-    let s = get_weight(name);
-    s.parse().unwrap_or(0)
-}
-
-// endregion
 
 #[cfg(test)]
 #[allow(non_snake_case)]

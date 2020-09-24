@@ -40,8 +40,8 @@ impl Suit {
     }
 
     pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Suit
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Suit {
             weight,
@@ -128,7 +128,7 @@ mod suit_tests {
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)
         );
-        assert_ne!(
+        assert_eq!(
             Suit::new_with_weight(SPADES, 4),
             Suit::new_with_weight(SPADES, 4)
         );

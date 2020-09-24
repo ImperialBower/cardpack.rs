@@ -127,8 +127,8 @@ impl Rank {
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
     pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Rank
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         Rank {
             weight,
@@ -189,20 +189,6 @@ impl fmt::Display for Rank {
         write!(f, "{}", self.name.index(&US_ENGLISH))
     }
 }
-
-// impl FluentCard for Rank {
-//     fn get_name(&self) -> &String {
-//         &self.name.to_string()
-//     }
-//
-//     fn revise_weight(&mut self, new_value: isize) {
-//         self.weight = new_value
-//     }
-//
-//     fn get_weight(&self) -> isize {
-//         self.weight
-//     }
-// }
 
 #[cfg(test)]
 #[allow(non_snake_case)]

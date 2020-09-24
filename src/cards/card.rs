@@ -9,8 +9,6 @@ use crate::cards::suit::*;
 /// a Suit and weight, which is an integer that controls how a card is sorted
 /// in a Pile or as a part of a Vector.
 ///
-///
-///
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     pub weight: isize,
