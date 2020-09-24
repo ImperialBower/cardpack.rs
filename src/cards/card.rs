@@ -4,7 +4,6 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
 use crate::cards::suit::*;
-use crate::FluentCard;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
@@ -53,8 +52,9 @@ impl Card {
     }
 
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        let rank = rank.get_default_index();
-        let suit = suit.get_default_index();
+        // TODO Needs Trait
+        let rank = rank.name.index_default();
+        let suit = suit.name.index_default();
         format!("{}{}", rank, suit)
     }
 
@@ -64,9 +64,9 @@ impl Card {
     }
 
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_index(&lid);
+        let rank = self.rank.name.index(&lid);
         let suit = self.suit.get_symbol();
-        match &self.suit.name[..] {
+        match &self.suit.name.name()[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
@@ -77,8 +77,8 @@ impl Card {
     }
 
     pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.get_index(&lid);
-        let suit = self.suit.get_index(&lid);
+        let rank = self.rank.name.index(&lid);
+        let suit = self.suit.name.index(&lid);
         format!("{}{}", rank, suit)
     }
 }

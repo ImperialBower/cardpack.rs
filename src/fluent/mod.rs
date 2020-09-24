@@ -1,4 +1,5 @@
 use fluent_templates::{static_loader, Loader};
+use std::fmt;
 use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
@@ -18,6 +19,7 @@ static_loader! {
     };
 }
 
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FluentName(String);
 
 impl FluentName {
@@ -86,62 +88,64 @@ impl FluentName {
         self.long(&US_ENGLISH)
     }
 
-    pub fn weight(&self) -> isize {
+    pub fn default_weight(&self) -> isize {
         let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
         weight.parse().unwrap_or(0)
     }
 }
 
+impl fmt::Display for FluentName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
 // region FluentCard
 
-pub trait FluentCard {
-    /// Returns the default, US_ENGLISH value of the implementer's index as set in the fluent
-    /// templates.
-    fn get_default_index(&self) -> String {
-        self.get_index(&US_ENGLISH)
-    }
-
-    /// "The number or letter printed in the corner of a playing card,
-    /// so that it may be read when held in a fan." -- Wikipedia
-    fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        get_fluent_value(self.get_name(), FLUENT_INDEX_SECTION, lid)
-    }
-
-    /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
-    fn get_default_long(&self) -> String {
-        self.get_long(&US_ENGLISH)
-    }
-
-    /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
-    /// templates for that language.
-    ///
-    /// ## Usage
-    /// ```
-    /// use cardpack::{GERMAN, FluentCard};
-    /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
-    /// println!("{}", queen.get_long(&GERMAN));
-    /// ```
-    /// Prints out `Dame`.
-    fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        get_fluent_value(self.get_name(), FLUENT_LONG_SECTION, lid)
-    }
-
-    fn get_name(&self) -> &String;
-
-    fn revise_weight(&mut self, new_value: isize);
-
-    fn get_weight(&self) -> isize;
-}
-
-pub fn get_value_by_key(key: &str, lid: &LanguageIdentifier) -> String {
-    LOCALES.lookup(lid, key)
-}
+// pub trait FluentCard {
+//     /// Returns the default, US_ENGLISH value of the implementer's index as set in the fluent
+//     /// templates.
+//     fn get_default_index(&self) -> String {
+//         self.index(&US_ENGLISH)
+//     }
+//
+//     /// "The number or letter printed in the corner of a playing card,
+//     /// so that it may be read when held in a fan." -- Wikipedia
+//     fn get_index(&self, lid: &LanguageIdentifier) -> String {
+//         get_fluent_value(self.get_name(), FLUENT_INDEX_SECTION, lid)
+//     }
+//
+//     /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
+//     fn get_default_long(&self) -> String {
+//         self.get_long(&US_ENGLISH)
+//     }
+//
+//     /// Returns the long name value for the passed in LanguageIdentifier, as set in the fluent
+//     /// templates for that language.
+//     ///
+//     /// ## Usage
+//     /// ```
+//     /// use cardpack::{GERMAN, FluentCard};
+//     /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+//     /// println!("{}", queen.get_long(&GERMAN));
+//     /// ```
+//     /// Prints out `Dame`.
+//     fn get_long(&self, lid: &LanguageIdentifier) -> String {
+//         get_fluent_value(self.get_name(), FLUENT_LONG_SECTION, lid)
+//     }
+//
+//     fn get_name(&self) -> &String;
+//
+//     fn revise_weight(&mut self, new_value: isize);
+//
+//     fn get_weight(&self) -> isize;
+// }
 
 fn get_weight(name: &str) -> String {
     get_fluent_value(name, FLUENT_WEIGHT_SECTION, &US_ENGLISH)
 }
 
-pub fn get_fluent_value(key_name: &str, key_section: &str, lid: &LanguageIdentifier) -> String {
+fn get_fluent_value(key_name: &str, key_section: &str, lid: &LanguageIdentifier) -> String {
     let id = format!("{}-{}", key_name, key_section);
     LOCALES.lookup(lid, id.as_str())
 }
@@ -204,20 +208,13 @@ mod fluent_tests {
         }
 
         #[test]
-        fn weight() {
-            assert_eq!(11, FluentName::new("unter").weight())
+        fn default_weight() {
+            assert_eq!(11, FluentName::new("unter").default_weight())
         }
 
         #[test]
-        fn weight__ne() {
-            assert_eq!(0, FluentName::new("no-such-name").weight())
+        fn default_weight__ne() {
+            assert_eq!(0, FluentName::new("no-such-name").default_weight())
         }
-    }
-
-    #[test]
-    fn doit() {
-        let s = LOCALES.lookup(&US_ENGLISH, "spades-index");
-
-        assert_eq!("S", s);
     }
 }
