@@ -91,10 +91,6 @@ pub const PAGE: &str = "page";
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: isize,
-    /// Represents the fluent template key for the Rank, which in turn determines the Rank's
-    /// long name in any represented language, the short letter used to display a Card's index,
-    /// and the default weight for the Rank if it is instantiated via `Rank::new()`. A Rank's name
-    /// must have a corresponding entries in the fluent templates for weight, name, and index.
     pub name: FluentName,
 }
 

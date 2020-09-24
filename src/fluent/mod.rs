@@ -19,6 +19,11 @@ static_loader! {
     };
 }
 
+/// FluentName represents the fluent template key for a card entity such as a Suit or Rank,
+/// which in turn determines its long name in any represented language, the short letter
+/// used to display an index, and the default weight for the if it is instantiated via
+/// `::new()`. A FluentName must have a corresponding entries in the fluent templates for
+/// weight, long, and index.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FluentName(String);
 
