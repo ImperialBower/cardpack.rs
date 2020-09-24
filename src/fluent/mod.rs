@@ -18,6 +18,9 @@ use unic_langid::{langid, LanguageIdentifier};
 
 pub const US_ENGLISH: LanguageIdentifier = langid!("en-US");
 pub const GERMAN: LanguageIdentifier = langid!("de");
+pub const FLUENT_INDEX_SECTION: &str = "index";
+pub const FLUENT_LONG_SECTION: &str = "long";
+pub const FLUENT_WEIGHT_SECTION: &str = "weight";
 
 static_loader! {
     pub static LOCALES = {
@@ -38,8 +41,7 @@ pub trait FluentCard {
     /// "The number or letter printed in the corner of a playing card,
     /// so that it may be read when held in a fan." -- Wikipedia
     fn get_index(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-index", self.get_name());
-        get_value_by_key(key.as_str(), lid)
+        get_fluent_value(self.get_name(), FLUENT_INDEX_SECTION, lid)
     }
 
     /// Returns the default, US_ENGLISH long name for the Rank, as set in the fluent templates.
@@ -54,12 +56,11 @@ pub trait FluentCard {
     /// ```
     /// use cardpack::{GERMAN, FluentCard};
     /// let queen = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
-    /// println!("{}", queen.get_default_long());
+    /// println!("{}", queen.get_long(&GERMAN));
     /// ```
     /// Prints out `Dame`.
     fn get_long(&self, lid: &LanguageIdentifier) -> String {
-        let key = format!("{}-long", self.get_name());
-        get_value_by_key(key.as_str(), lid)
+        get_fluent_value(self.get_name(), FLUENT_LONG_SECTION, lid)
     }
 
     fn get_name(&self) -> &String;
@@ -74,9 +75,12 @@ pub fn get_value_by_key(key: &str, lid: &LanguageIdentifier) -> String {
 }
 
 fn get_weight(name: &str) -> String {
-    let var = "-weight";
-    let id = format!("{}{}", name, var);
-    LOCALES.lookup(&US_ENGLISH, id.as_str())
+    get_fluent_value(name, FLUENT_WEIGHT_SECTION, &US_ENGLISH)
+}
+
+pub fn get_fluent_value(key_name: &str, key_section: &str, lid: &LanguageIdentifier) -> String {
+    let id = format!("{}-{}", key_name, key_section);
+    LOCALES.lookup(lid, id.as_str())
 }
 
 pub fn get_weight_isize(name: &str) -> isize {
