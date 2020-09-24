@@ -22,8 +22,8 @@ pub struct FluentName(String);
 
 impl FluentName {
     pub fn new<S: std::clone::Clone>(name: S) -> FluentName
-        where
-            S: Into<String>,
+    where
+        S: Into<String>,
     {
         FluentName(name.into())
     }
@@ -37,18 +37,51 @@ impl FluentName {
         &self.0
     }
 
+    /// Returns the value of the names' index in the fluent templates.
+    ///
+    /// The index is defined as the identity indicator in the corner of a playing card.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::fluent::*;
+    ///
+    /// let jack = cardpack::FluentName::new("jack");
+    /// println!("{}", jack.index(&GERMAN));
+    /// ```
+    /// Prints out `B` (for Bube).
     pub fn index(&self, lid: &LanguageIdentifier) -> String {
         self.fluent_value(FLUENT_INDEX_SECTION, lid)
     }
 
+    /// Returns the default, US_ENGLISH value of the names' index value in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::fluent::*;
+    ///
+    /// let ten = cardpack::FluentName::new("ten");
+    /// println!("{}", ten.index_default());
+    /// ```
+    /// Prints out `T`.
     pub fn index_default(&self) -> String {
         self.index(&US_ENGLISH)
     }
 
+    /// Returns the value of the names' long value in the fluent templates.
+    ///
+    /// ## Usage
+    /// ```
+    /// use cardpack::fluent::*;
+    ///
+    /// let queen = cardpack::FluentName::new("big-joker");
+    /// println!("{}", queen.long(&GERMAN));
+    /// ```
+    /// Prints out `Großer Joker`.
     pub fn long(&self, lid: &LanguageIdentifier) -> String {
         self.fluent_value(FLUENT_LONG_SECTION, lid)
     }
 
+    /// Returns the default, US_ENGLISH value of the names' long value in the fluent templates.
     pub fn long_default(&self) -> String {
         self.long(&US_ENGLISH)
     }
@@ -139,7 +172,10 @@ mod fluent_tests {
         fn fluent_value() {
             let name = FluentName::new("swords");
 
-            assert_eq!("⚔".to_string(), name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH))
+            assert_eq!(
+                "⚔".to_string(),
+                name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
+            )
         }
 
         #[test]
