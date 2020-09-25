@@ -1,6 +1,10 @@
 # cardpack.rs
 
+[![LICENSE](https://img.shields.io/badge/license-AGPL3.0-blue.svg)](LICENSE)
 [![Build Status](https://api.travis-ci.com/ContractBridge/cardpack.rs.svg?branch=main)](https://travis-ci.com/github/ContractBridge/cardpack.rs)
+[![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
+[![Coverage Status](https://coveralls.io/repos/github/ContractBridge/cardpack.rs/badge.svg?branch=main)](https://coveralls.io/github/ContractBridge/cardpack.rs?branch=main)
+[![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
 
 Generic pack of cards library written in Rust. The goals of the library include:
 
