@@ -1,6 +1,8 @@
 use std::fmt;
 
-use crate::fluent::*;
+use crate::fluent_name::FluentName;
+use crate::Named;
+use crate::US_ENGLISH;
 
 // Constants representing the internal identifier for a Rank inside the Fluent template files.
 // French Deck Ranks:
@@ -196,7 +198,7 @@ impl Named for Rank {
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::{GERMAN, US_ENGLISH};
 
     #[test]
     fn display() {

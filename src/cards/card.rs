@@ -92,7 +92,7 @@ impl fmt::Display for Card {
 #[allow(non_snake_case)]
 mod card_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::fluent::named::GERMAN;
 
     #[test]
     fn new() {

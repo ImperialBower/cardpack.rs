@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::fluent::*;
+use crate::fluent_name::FluentName;
+use crate::Named;
+use crate::FLUENT_SYMBOL_SECTION;
+use crate::US_ENGLISH;
 
 // French Deck Suit Fluent Identifiers
 pub const SPADES: &str = "spades";
@@ -91,7 +94,6 @@ impl fmt::Display for Suit {
     }
 }
 
-
 impl Named for Suit {
     fn name(&self) -> &String {
         self.name.name()
@@ -102,7 +104,7 @@ impl Named for Suit {
 #[allow(non_snake_case)]
 mod suit_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::{GERMAN, US_ENGLISH};
 
     #[test]
     fn display() {

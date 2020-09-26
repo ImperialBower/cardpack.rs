@@ -9,4 +9,5 @@ pub use cards::pack::Pack;
 pub use cards::pile::Pile;
 pub use cards::rank::*;
 pub use cards::suit::*;
+pub use fluent::named::*;
 pub use fluent::*;
