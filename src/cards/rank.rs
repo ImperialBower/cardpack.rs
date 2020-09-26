@@ -108,10 +108,10 @@ impl Rank {
     where
         S: Into<String>,
     {
-        let n = FluentName::new(name.into());
+        let name = FluentName::new(name.into());
         Rank {
-            weight: n.default_weight(),
-            name: n,
+            weight: name.default_weight(),
+            name,
         }
     }
 
@@ -183,6 +183,12 @@ impl Rank {
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name.index(&US_ENGLISH))
+    }
+}
+
+impl Named for Rank {
+    fn name(&self) -> &String {
+        self.name.name()
     }
 }
 

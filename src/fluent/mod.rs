@@ -34,16 +34,28 @@ impl FluentName {
     {
         FluentName(name.into())
     }
+}
+
+impl fmt::Display for FluentName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
+impl Named for FluentName {
+    fn name(&self) -> &String {
+        &self.0
+    }
+}
+
+pub trait Named {
+    fn name(&self) -> &String;
 
     /// This is the core method for getting fluent values. the index, long, and default weight
     /// methods are all just methods simplifying the call to this method.
-    pub fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
+    fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
         let id = format!("{}-{}", self.name(), key_section);
         LOCALES.lookup(lid, id.as_str())
-    }
-
-    pub fn name(&self) -> &String {
-        &self.0
     }
 
     /// Returns the value of the names' index in the fluent templates.
@@ -58,7 +70,7 @@ impl FluentName {
     /// println!("{}", jack.index(&GERMAN));
     /// ```
     /// Prints out `B` (for Bube).
-    pub fn index(&self, lid: &LanguageIdentifier) -> String {
+    fn index(&self, lid: &LanguageIdentifier) -> String {
         self.fluent_value(FLUENT_INDEX_SECTION, lid)
     }
 
@@ -72,7 +84,7 @@ impl FluentName {
     /// println!("{}", ten.index_default());
     /// ```
     /// Prints out `T`.
-    pub fn index_default(&self) -> String {
+    fn index_default(&self) -> String {
         self.index(&US_ENGLISH)
     }
 
@@ -86,25 +98,19 @@ impl FluentName {
     /// println!("{}", queen.long(&GERMAN));
     /// ```
     /// Prints out `Großer Joker`.
-    pub fn long(&self, lid: &LanguageIdentifier) -> String {
+    fn long(&self, lid: &LanguageIdentifier) -> String {
         self.fluent_value(FLUENT_LONG_SECTION, lid)
     }
 
     /// Returns the default, US_ENGLISH value of the names' long value in the fluent templates.
-    pub fn long_default(&self) -> String {
+    fn long_default(&self) -> String {
         self.long(&US_ENGLISH)
     }
 
     /// Returns the default weight for a name. Weight is used to sort cards.
-    pub fn default_weight(&self) -> isize {
+    fn default_weight(&self) -> isize {
         let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
         weight.parse().unwrap_or(0)
-    }
-}
-
-impl fmt::Display for FluentName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name())
     }
 }
 

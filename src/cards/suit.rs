@@ -32,10 +32,10 @@ impl Suit {
     where
         S: Into<String>,
     {
-        let n = FluentName::new(name.into());
+        let name = FluentName::new(name.into());
         Suit {
-            weight: n.default_weight(),
-            name: n,
+            weight: name.default_weight(),
+            name,
         }
     }
 
@@ -88,6 +88,13 @@ impl Suit {
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.get_symbol())
+    }
+}
+
+
+impl Named for Suit {
+    fn name(&self) -> &String {
+        self.name.name()
     }
 }
 

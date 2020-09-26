@@ -4,6 +4,7 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
 use crate::cards::suit::*;
+use crate::Named;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
@@ -64,7 +65,7 @@ impl Card {
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.name.index(&lid);
         let suit = self.suit.get_symbol();
-        match &self.suit.name.name()[..] {
+        match &self.suit.name()[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
