@@ -9,7 +9,8 @@ use unic_langid::LanguageIdentifier;
 use crate::cards::card::Card;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
-use crate::fluent::{GERMAN, US_ENGLISH};
+use crate::fluent::named::*;
+use crate::Named;
 
 /// A Pile is a sortable collection of Cards.
 ///
@@ -71,7 +72,7 @@ impl Pile {
     }
 
     fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
+        self.0.iter().map(|s| s.index(lid)).collect()
     }
 
     fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {

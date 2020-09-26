@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::fluent::*;
+use crate::fluent_name::FluentName;
+use crate::Named;
+use crate::FLUENT_SYMBOL_SECTION;
+use crate::US_ENGLISH;
 
 // French Deck Suit Fluent Identifiers
 pub const SPADES: &str = "spades";
@@ -32,10 +35,10 @@ impl Suit {
     where
         S: Into<String>,
     {
-        let n = FluentName::new(name.into());
+        let name = FluentName::new(name.into());
         Suit {
-            weight: n.default_weight(),
-            name: n,
+            weight: name.default_weight(),
+            name,
         }
     }
 
@@ -49,7 +52,7 @@ impl Suit {
         }
     }
 
-    pub fn get_symbol(&self) -> String {
+    pub fn symbol(&self) -> String {
         self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
@@ -87,7 +90,13 @@ impl Suit {
 
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get_symbol())
+        write!(f, "{}", self.symbol())
+    }
+}
+
+impl Named for Suit {
+    fn name(&self) -> &String {
+        self.name.name()
     }
 }
 
@@ -95,7 +104,7 @@ impl fmt::Display for Suit {
 #[allow(non_snake_case)]
 mod suit_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::{GERMAN, US_ENGLISH};
 
     #[test]
     fn display() {
@@ -146,7 +155,7 @@ mod suit_tests {
     fn get_symbol() {
         let clubs = Suit::new(CLUBS);
 
-        assert_eq!("♣".to_string(), clubs.get_symbol());
+        assert_eq!("♣".to_string(), clubs.symbol());
     }
 
     #[test]

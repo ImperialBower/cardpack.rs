@@ -1,3 +1,5 @@
+use cardpack::Named;
+
 fn main() {
     let deck = cardpack::Pile::tarot_deck();
 

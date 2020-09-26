@@ -4,6 +4,7 @@ use unic_langid::LanguageIdentifier;
 
 use crate::cards::rank::*;
 use crate::cards::suit::*;
+use crate::Named;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
@@ -24,15 +25,15 @@ impl Card {
     where
         S: Into<String>,
     {
-        let a = Suit::new(suit);
-        let r = Rank::new(rank);
-        let weight = Card::determine_weight(&a, &r);
-        let index = Card::determine_index(&a, &r);
+        let suit = Suit::new(suit);
+        let rank = Rank::new(rank);
+        let weight = Card::determine_weight(&suit, &rank);
+        let index = Card::determine_index(&suit, &rank);
         Card {
             weight,
             index,
-            suit: a,
-            rank: r,
+            suit,
+            rank,
         }
     }
 
@@ -49,22 +50,10 @@ impl Card {
         }
     }
 
-    fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        // TODO Needs Trait
-        let rank = rank.name.index_default();
-        let suit = suit.name.index_default();
-        format!("{}{}", rank, suit)
-    }
-
-    /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
-        (suit.weight * 1000) + rank.weight
-    }
-
     pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.name.index(&lid);
-        let suit = self.suit.get_symbol();
-        match &self.suit.name.name()[..] {
+        let suit = self.suit.symbol();
+        match &self.suit.name()[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
@@ -74,10 +63,16 @@ impl Card {
         }
     }
 
-    pub fn to_txt_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.name.index(&lid);
-        let suit = self.suit.name.index(&lid);
+    // Private methods
+    fn determine_index(suit: &Suit, rank: &Rank) -> String {
+        let rank = rank.name.index_default();
+        let suit = suit.name.index_default();
         format!("{}{}", rank, suit)
+    }
+
+    /// Prioritizes sorting by Suit and then by Rank.
+    fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
+        (suit.weight * 1000) + rank.weight
     }
 }
 
@@ -87,11 +82,35 @@ impl fmt::Display for Card {
     }
 }
 
+impl Named for Card {
+    fn name(&self) -> &String {
+        &self.index
+    }
+
+    fn index(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.name.index(&lid);
+        let suit = self.suit.name.index(&lid);
+        format!("{}{}", rank, suit)
+    }
+
+    fn long(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.name.long(&lid);
+        let suit = self.suit.name.long(&lid);
+        format!("{} {}", rank, suit)
+    }
+
+    fn default_weight(&self) -> isize {
+        Card::determine_weight(&self.suit, &self.rank)
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod card_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::fluent::named::{GERMAN, US_ENGLISH};
+
+    // region impl tests
 
     #[test]
     fn new() {
@@ -121,10 +140,10 @@ mod card_tests {
     }
 
     #[test]
-    fn to_txt_string() {
+    fn index() {
         let card = Card::new(QUEEN, CLUBS);
 
-        assert_eq!(card.to_txt_string(&GERMAN), "DK".to_string());
+        assert_eq!(card.index(&GERMAN), "DK".to_string());
     }
 
     #[test]
@@ -133,4 +152,46 @@ mod card_tests {
 
         assert_eq!(card.to_symbol_string(&GERMAN), "D♥".red().to_string());
     }
+
+    // endregion
+
+    // region named
+
+    #[test]
+    fn named__name() {
+        let jack = Card::new(JACK, SPADES);
+
+        assert_eq!(&"JS".to_string(), jack.name());
+    }
+
+    #[test]
+    fn named__default_weight() {
+        let mut ace = Card::new(ACE, SPADES);
+        assert_eq!(ace.weight, ace.default_weight());
+
+        let weight = ace.weight;
+        ace.weight = 1;
+
+        assert_eq!(weight, ace.default_weight());
+    }
+
+    #[test]
+    fn named__index() {
+        let jack = Card::new(JACK, SPADES);
+
+        assert_eq!("JS".to_string(), jack.index(&US_ENGLISH));
+        assert_eq!("BS".to_string(), jack.index(&GERMAN));
+        assert_eq!("JS".to_string(), jack.index_default());
+    }
+
+    #[test]
+    fn named__long() {
+        let ace = Card::new(ACE, SPADES);
+
+        assert_eq!("Ace Spades".to_string(), ace.long(&US_ENGLISH));
+        assert_eq!("Ass Spaten".to_string(), ace.long(&GERMAN));
+        assert_eq!("Ace Spades".to_string(), ace.long_default());
+    }
+
+    // endregion
 }

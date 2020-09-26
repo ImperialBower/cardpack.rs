@@ -1,6 +1,8 @@
 use std::fmt;
 
-use crate::fluent::*;
+use crate::fluent_name::FluentName;
+use crate::Named;
+use crate::US_ENGLISH;
 
 // Constants representing the internal identifier for a Rank inside the Fluent template files.
 // French Deck Ranks:
@@ -58,10 +60,9 @@ pub const PAGE: &str = "page";
 ///
 /// # As an *instance* variable
 /// ```
-/// use cardpack::{FluentName, ACE};
 /// let ace = cardpack::Rank {
 ///     weight: 1,
-///     name: FluentName::new(ACE),
+///     name: cardpack::fluent_name::FluentName::new(cardpack::ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
@@ -108,10 +109,10 @@ impl Rank {
     where
         S: Into<String>,
     {
-        let n = FluentName::new(name.into());
+        let name = FluentName::new(name.into());
         Rank {
-            weight: n.default_weight(),
-            name: n,
+            weight: name.default_weight(),
+            name,
         }
     }
 
@@ -186,11 +187,17 @@ impl fmt::Display for Rank {
     }
 }
 
+impl Named for Rank {
+    fn name(&self) -> &String {
+        self.name.name()
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::fluent::GERMAN;
+    use crate::{GERMAN, US_ENGLISH};
 
     #[test]
     fn display() {
