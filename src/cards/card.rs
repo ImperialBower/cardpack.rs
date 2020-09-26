@@ -25,15 +25,15 @@ impl Card {
     where
         S: Into<String>,
     {
-        let a = Suit::new(suit);
-        let r = Rank::new(rank);
-        let weight = Card::determine_weight(&a, &r);
-        let index = Card::determine_index(&a, &r);
+        let suit = Suit::new(suit);
+        let rank = Rank::new(rank);
+        let weight = Card::determine_weight(&suit, &rank);
+        let index = Card::determine_index(&suit, &rank);
         Card {
             weight,
             index,
-            suit: a,
-            rank: r,
+            suit,
+            rank,
         }
     }
 
