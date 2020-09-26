@@ -52,7 +52,7 @@ impl Suit {
         }
     }
 
-    pub fn get_symbol(&self) -> String {
+    pub fn symbol(&self) -> String {
         self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
@@ -90,7 +90,7 @@ impl Suit {
 
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.get_symbol())
+        write!(f, "{}", self.symbol())
     }
 }
 
@@ -155,7 +155,7 @@ mod suit_tests {
     fn get_symbol() {
         let clubs = Suit::new(CLUBS);
 
-        assert_eq!("♣".to_string(), clubs.get_symbol());
+        assert_eq!("♣".to_string(), clubs.symbol());
     }
 
     #[test]

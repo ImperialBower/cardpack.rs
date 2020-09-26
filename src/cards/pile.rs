@@ -72,7 +72,7 @@ impl Pile {
     }
 
     fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_txt_string(lid)).collect()
+        self.0.iter().map(|s| s.index(lid)).collect()
     }
 
     fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
