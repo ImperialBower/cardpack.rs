@@ -60,10 +60,9 @@ pub const PAGE: &str = "page";
 ///
 /// # As an *instance* variable
 /// ```
-/// use cardpack::{FluentName, ACE};
 /// let ace = cardpack::Rank {
 ///     weight: 1,
-///     name: FluentName::new(ACE),
+///     name: cardpack::fluent_name::FluentName::new(cardpack::ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted

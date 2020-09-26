@@ -34,10 +34,10 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::*;
     /// use cardpack::fluent::named::*;
+    /// use cardpack::fluent::fluent_name::*;
     ///
-    /// let jack = cardpack::FluentName::new("jack");
+    /// let jack = FluentName::new("jack");
     /// println!("{}", jack.index(&GERMAN));
     /// ```
     /// Prints out `B` (for Bube).
@@ -49,10 +49,10 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::*;
     /// use cardpack::fluent::named::*;
+    /// use cardpack::fluent::fluent_name::*;
     ///
-    /// let ten = cardpack::FluentName::new("ten");
+    /// let ten = FluentName::new("ten");
     /// println!("{}", ten.index_default());
     /// ```
     /// Prints out `T`.
@@ -64,10 +64,10 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::*;
     /// use cardpack::fluent::named::*;
+    /// use cardpack::fluent::fluent_name::*;
     ///
-    /// let queen = cardpack::FluentName::new("big-joker");
+    /// let queen = FluentName::new("big-joker");
     /// println!("{}", queen.long(&GERMAN));
     /// ```
     /// Prints out `Großer Joker`.
