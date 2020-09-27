@@ -76,7 +76,7 @@ impl Pile {
     }
 
     fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.to_symbol_string(lid)).collect()
+        self.0.iter().map(|s| s.symbol_colorized(lid)).collect()
     }
 
     /// Tests if a card is in the Pile.

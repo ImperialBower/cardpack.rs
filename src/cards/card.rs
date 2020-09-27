@@ -12,7 +12,9 @@ use crate::Named;
 ///
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
+    /// Used by the Pile struct to sort Cards.
     pub weight: isize,
+    /// The identity indicator in the corner of a playing card, such as `AS` for ace of spades.
     pub index: String,
     pub suit: Suit,
     pub rank: Rank,
@@ -50,8 +52,16 @@ impl Card {
         }
     }
 
-    pub fn to_symbol_string(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.name.index(&lid);
+    /// Returns a Symbol String for the Card.
+    pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.index(&lid);
+        let suit = self.suit.symbol();
+        format!("{}{}", rank, suit)
+    }
+
+    /// Returns a Symbol String for the Card in the traditional colors for the Suits.
+    pub fn symbol_colorized(&self, lid: &LanguageIdentifier) -> String {
+        let rank = self.rank.index(&lid);
         let suit = self.suit.symbol();
         match &self.suit.name()[..] {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
@@ -65,8 +75,8 @@ impl Card {
 
     // Private methods
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        let rank = rank.name.index_default();
-        let suit = suit.name.index_default();
+        let rank = rank.index_default();
+        let suit = suit.index_default();
         format!("{}{}", rank, suit)
     }
 
@@ -147,10 +157,17 @@ mod card_tests {
     }
 
     #[test]
-    fn to_symbol_string() {
+    fn symbol() {
         let card = Card::new(QUEEN, HEARTS);
 
-        assert_eq!(card.to_symbol_string(&GERMAN), "D♥".red().to_string());
+        assert_eq!(card.symbol(&GERMAN), "D♥".to_string());
+    }
+
+    #[test]
+    fn symbol_colorized() {
+        let card = Card::new(QUEEN, HEARTS);
+
+        assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
     }
 
     // endregion
