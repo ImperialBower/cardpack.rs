@@ -6,6 +6,8 @@ use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::Named;
 
+pub const BLANK: &str = "blank";
+
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
 /// in a Pile or as a part of a Vector.
@@ -83,6 +85,12 @@ impl Card {
     /// Prioritizes sorting by Suit and then by Rank.
     fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
         (suit.weight * 1000) + rank.weight
+    }
+}
+
+impl Default for Card {
+    fn default() -> Card {
+        Card::new(BLANK, BLANK)
     }
 }
 
@@ -168,6 +176,18 @@ mod card_tests {
         let card = Card::new(QUEEN, HEARTS);
 
         assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
+    }
+
+    #[test]
+    fn default() {
+        let card = Card::default();
+
+        assert_eq!(-1001, card.weight);
+        assert_eq!("__".to_string(), card.index);
+        assert_eq!("__".to_string(), card.index_default());
+        assert_eq!("__".to_string(), card.symbol(&US_ENGLISH));
+        assert_eq!(&"__".to_string(), card.name());
+        assert_eq!("_____ _____".to_string(), card.long_default());
     }
 
     // endregion
