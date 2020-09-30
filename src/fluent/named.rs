@@ -19,7 +19,7 @@ pub const FLUENT_SYMBOL_SECTION: &str = "symbol";
 pub const FLUENT_WEIGHT_SECTION: &str = "weight";
 
 pub trait Named {
-    fn name(&self) -> &String;
+    fn name(&self) -> &str;
 
     /// This is the core method for getting fluent values. the index, long, and default weight
     /// methods are all just methods simplifying the call to this method.

@@ -31,24 +31,18 @@ pub struct Suit {
 }
 
 impl Suit {
-    pub fn new<S: std::clone::Clone>(name: S) -> Suit
-    where
-        S: Into<String>,
-    {
-        let name = FluentName::new(name.into());
+    pub fn new(name: &'static str) -> Suit {
+        let name = FluentName::new(name);
         Suit {
             weight: name.default_weight(),
             name,
         }
     }
 
-    pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Suit
-    where
-        S: Into<String>,
-    {
+    pub fn new_with_weight(name: &'static str, weight: isize) -> Suit {
         Suit {
             weight,
-            name: FluentName::new(name.into()),
+            name: FluentName::new(name),
         }
     }
 
@@ -60,7 +54,7 @@ impl Suit {
         (len - i) as isize
     }
 
-    fn from_array_gen(s: &[&str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
+    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
         let mut v: Vec<Suit> = Vec::new();
 
         #[allow(clippy::into_iter_on_ref)]
@@ -71,7 +65,7 @@ impl Suit {
         v
     }
 
-    pub fn from_array(s: &[&str]) -> Vec<Suit> {
+    pub fn from_array(s: &[&'static str]) -> Vec<Suit> {
         Suit::from_array_gen(s, Suit::top_down_value)
     }
 
@@ -95,7 +89,7 @@ impl fmt::Display for Suit {
 }
 
 impl Named for Suit {
-    fn name(&self) -> &String {
+    fn name(&self) -> &str {
         self.name.name()
     }
 }

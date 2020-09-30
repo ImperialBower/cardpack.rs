@@ -1,5 +1,4 @@
 use colored::*;
-use std::cell::Cell;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -26,10 +25,7 @@ pub struct Card {
 impl Card {
     /// Instantiates a new Card with the default weight as defined in the fluent
     /// templates.
-    pub fn new<S: std::clone::Clone>(rank: S, suit: S) -> Card
-    where
-        S: Into<String>,
-    {
+    pub fn new(rank: &'static str, suit: &'static str) -> Card {
         let suit = Suit::new(suit);
         let rank = Rank::new(rank);
         let weight = Card::determine_weight(&suit, &rank);
@@ -102,8 +98,8 @@ impl fmt::Display for Card {
 }
 
 impl Named for Card {
-    fn name(&self) -> &String {
-        &self.index
+    fn name(&self) -> &str {
+        &self.index.as_str()
     }
 
     fn index(&self, lid: &LanguageIdentifier) -> String {
@@ -128,6 +124,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
+    use std::cell::Cell;
 
     // region impl tests
 
