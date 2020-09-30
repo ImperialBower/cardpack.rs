@@ -4,6 +4,7 @@ mod cards;
 pub mod fluent;
 
 pub use cards::card::Card;
+pub use cards::card_cell::CardCell;
 pub use cards::decks::bridge::BridgeBoard;
 pub use cards::pack::Pack;
 pub use cards::pile::Pile;
