@@ -236,7 +236,7 @@ mod card_tests {
     #[test]
     fn card_cell() {
         let ace_of_spades = Card::new(ACE, SPADES);
-        let blank = Card::new(BLANK, BLANK);
+        let blank = Card::default();
         let cell = Cell::new(ace_of_spades);
 
         let aces = cell.take();
