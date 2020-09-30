@@ -1,4 +1,5 @@
 use colored::*;
+use std::cell::Cell;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
@@ -231,4 +232,17 @@ mod card_tests {
     }
 
     // endregion
+
+    #[test]
+    fn card_cell() {
+        let ace_of_spades = Card::new(ACE, SPADES);
+        let blank = Card::new(BLANK, BLANK);
+        let cell = Cell::new(ace_of_spades);
+
+        let aces = cell.take();
+
+        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(blank, cell.take());
+        assert_eq!(blank, cell.take());
+    }
 }
