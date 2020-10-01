@@ -63,7 +63,7 @@ impl Pile {
     }
 
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
-        self.0.iter().find(|c| c.index == index)
+        self.0.iter().find(|c| c.index_default() == index)
     }
 
     /// Returns a reference to the Vector containing all the cards.
@@ -457,7 +457,7 @@ mod card_deck_tests {
     #[test]
     fn card_by_index_ne() {
         let deck = Pile::spades_deck();
-        let fool_index = Card::new(FOOL, MAJOR_ARCANA).index;
+        let fool_index = Card::new(FOOL, MAJOR_ARCANA).index_default();
 
         // Verifies that the index for a card in the tarot deck isn't in a spades deck.
         assert!(deck.card_by_index(fool_index.as_str()).is_none());
@@ -597,10 +597,10 @@ mod card_deck_tests {
         let mappie = pile.map_by_suit();
 
         assert_eq!(
-            qs.index,
-            mappie.get(&spades).unwrap().first().unwrap().index
+            qs.index_default(),
+            mappie.get(&spades).unwrap().first().unwrap().index_default()
         );
-        assert_eq!(qc.index, mappie.get(&clubs).unwrap().first().unwrap().index);
+        assert_eq!(qc.index_default(), mappie.get(&clubs).unwrap().first().unwrap().index_default());
     }
 
     #[test]

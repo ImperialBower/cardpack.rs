@@ -9,7 +9,7 @@ use crate::Named;
 /// used to display an index, and the default weight for the if it is instantiated via
 /// `::new()`. A FluentName must have a corresponding entries in the fluent templates for
 /// weight, long, and index.
-#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FluentName(&'static str);
 
 impl FluentName {

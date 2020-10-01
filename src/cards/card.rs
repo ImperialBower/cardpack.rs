@@ -234,7 +234,15 @@ mod card_tests {
     fn card_cell() {
         let ace_of_spades = Card::new(ACE, SPADES);
         let blank = Card::default();
-        let cell = Cell::new(ace_of_spades);
+        let cell = Cell::new(ace_of_spades.clone());
+
+        let aces = cell.take();
+
+        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(blank, cell.take());
+        assert_eq!(blank, cell.take());
+
+        cell.replace(ace_of_spades);
 
         let aces = cell.take();
 

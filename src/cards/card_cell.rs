@@ -7,11 +7,28 @@ use crate::cards::card::Card;
 /// and just have it as a newtype struct.
 ///
 // #[derive(Debug)]
-pub struct CardCell(Cell<Card>, RefCell<Card>);
+pub struct CardCell {
+    cell: Cell<Card>,
+    is_there: bool,
+    card: RefCell<Card>,
+}
 
 impl CardCell {
     pub fn new(card: Card) -> CardCell {
-        CardCell(Cell::new(card.clone()), RefCell::new(card))
+        CardCell {
+            /// The internal container for the actual Card. When it is dealt it is replaced with
+            /// a blank Card.
+            cell: Cell::new(card.clone()),
+            /// True if the Card has not been dealt.
+            is_there: true,
+            /// A reference to what the card is in the Cell. A Card from a CardCell can only be
+            /// returned if it matches this card.
+            card: RefCell::new(card),
+        }
+    }
+
+    pub fn deal(&self) -> Card {
+        self.cell.take()
     }
 }
 
@@ -33,10 +50,24 @@ mod card_cell_tests {
     #[test]
     fn new() {
         let deuce = Card::new(TWO, SPADES);
-        let expected = CardCell(Cell::new(deuce.clone()), RefCell::new(deuce.clone()));
+        let _ = CardCell {
+            cell: Cell::new(deuce.clone()),
+            is_there: true,
+            card: RefCell::new(deuce.clone()),
+        };
 
-        let actual = CardCell::new(deuce);
+        let _ = CardCell::new(deuce);
 
         // assert_eq!(expected, actual)
+    }
+
+    #[test]
+    fn deal() {
+        let deuce = Card::new(TWO, SPADES);
+        let cc = CardCell::new(deuce.clone());
+
+        let actual = cc.deal();
+
+        assert_eq!(deuce, actual);
     }
 }
