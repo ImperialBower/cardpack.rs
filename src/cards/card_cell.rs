@@ -35,9 +35,13 @@ impl CardCell {
         self.cell.take()
     }
 
+    pub fn look(&self) -> Card {
+        self.card.borrow().deref().clone()
+    }
+
     pub fn is_there(&self) -> bool {
         let is_there = self.aligned.take();
-        self.aligned.replace(is_there.clone());
+        self.aligned.replace(is_there);
         is_there
     }
 
@@ -49,8 +53,8 @@ impl CardCell {
                 self.cell.set(card);
                 self.aligned.set(true);
                 Some(true)
-            },
-            false => None
+            }
+            false => None,
         }
     }
 }
@@ -103,6 +107,14 @@ mod card_cell_tests {
     }
 
     #[test]
+    fn look() {
+        let deuce = Card::new(TWO, SPADES);
+        let cc = CardCell::new(deuce.clone());
+
+        assert_eq!(deuce, cc.look());
+    }
+
+    #[test]
     fn replace() {
         let cc = CardCell::new(Card::new(TWO, SPADES));
         let deuce = cc.deal();
@@ -111,5 +123,16 @@ mod card_cell_tests {
 
         assert!(result.unwrap());
         assert!(cc.is_there());
+    }
+
+    #[test]
+    fn replace__ne() {
+        let cc = CardCell::new(Card::new(TWO, SPADES));
+        cc.deal();
+
+        let result = cc.replace(Card::default());
+
+        assert!(result.is_none());
+        assert!(!cc.is_there());
     }
 }

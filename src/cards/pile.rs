@@ -163,7 +163,7 @@ impl Pile {
     fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                self.add(Card::new_from_structs(*rank, *suit));
             }
         }
     }
@@ -271,7 +271,7 @@ impl Pile {
 
     /// Returns a sorted collection of the unique Suits in a Pile.
     pub fn suits(&self) -> Vec<Suit> {
-        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit.clone()).collect();
+        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit).collect();
         let mut suits: Vec<Suit> = Vec::from_iter(hashset);
         suits.sort();
         suits.reverse();
@@ -304,8 +304,8 @@ impl Pile {
         let mut cards: Pile = Pile::default();
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                cards.add(Card::new_from_structs(*rank, *suit));
+                cards.add(Card::new_from_structs(*rank, *suit));
             }
         }
         cards
@@ -342,16 +342,13 @@ impl Pile {
 
         // Generate Major Arcana
         for (_, rank) in major_arcana_ranks.iter().enumerate() {
-            cards.add(Card::new_from_structs(
-                rank.clone(),
-                major_arcana_suit.clone(),
-            ));
+            cards.add(Card::new_from_structs(*rank, *major_arcana_suit));
         }
 
         // Generate Minor Arcana
         for (_, suit) in arcana_suits_enumerator {
             for (_, rank) in minor_arcana_ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                cards.add(Card::new_from_structs(*rank, *suit));
             }
         }
 
@@ -598,9 +595,17 @@ mod card_deck_tests {
 
         assert_eq!(
             qs.index_default(),
-            mappie.get(&spades).unwrap().first().unwrap().index_default()
+            mappie
+                .get(&spades)
+                .unwrap()
+                .first()
+                .unwrap()
+                .index_default()
         );
-        assert_eq!(qc.index_default(), mappie.get(&clubs).unwrap().first().unwrap().index_default());
+        assert_eq!(
+            qc.index_default(),
+            mappie.get(&clubs).unwrap().first().unwrap().index_default()
+        );
     }
 
     #[test]
