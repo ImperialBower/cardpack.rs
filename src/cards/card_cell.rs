@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 
 use crate::cards::card::Card;
+use std::ops::Deref;
 
 /// The structure of this struct is to deal with the issue that RefCell.take() is only
 /// available in unstable. Once that feature has been merged in we can eliminate the Cell
@@ -38,6 +39,19 @@ impl CardCell {
         let is_there = self.aligned.take();
         self.aligned.replace(is_there.clone());
         is_there
+    }
+
+    pub fn replace(&self, card: Card) -> Option<bool> {
+        let should = self.card.borrow();
+
+        match &card == should.deref() {
+            true => {
+                self.cell.set(card);
+                self.aligned.set(true);
+                Some(true)
+            },
+            false => None
+        }
     }
 }
 
@@ -86,5 +100,16 @@ mod card_cell_tests {
         let cc = CardCell::new(Card::new(TWO, SPADES));
 
         assert!(cc.is_there())
+    }
+
+    #[test]
+    fn replace() {
+        let cc = CardCell::new(Card::new(TWO, SPADES));
+        let deuce = cc.deal();
+
+        let result = cc.replace(deuce);
+
+        assert!(result.unwrap());
+        assert!(cc.is_there());
     }
 }
