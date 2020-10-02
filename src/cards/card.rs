@@ -201,6 +201,7 @@ mod card_tests {
 
     #[test]
     fn named__default_weight() {
+        let original = Card::new(ACE, SPADES);
         let mut ace = Card::new(ACE, SPADES);
         assert_eq!(ace.weight, ace.default_weight());
 
@@ -208,6 +209,7 @@ mod card_tests {
         ace.weight = 1;
 
         assert_eq!(weight, ace.default_weight());
+        assert_ne!(original, ace);
     }
 
     #[test]

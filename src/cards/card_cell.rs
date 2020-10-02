@@ -1,7 +1,8 @@
 use std::cell::{Cell, RefCell};
+use std::fmt;
+use std::ops::Deref;
 
 use crate::cards::card::Card;
-use std::ops::Deref;
 
 /// The structure of this struct is to deal with the issue that RefCell.take() is only
 /// available in unstable. Once that feature has been merged in we can eliminate the Cell
@@ -45,7 +46,12 @@ impl CardCell {
         is_there
     }
 
+    /// Allows for the Card to be returned to the CardCell if the Card return matches the one that
+    /// was dealt and the CardCell is empty, otherwise it returns None.
     pub fn replace(&self, card: Card) -> Option<bool> {
+        if self.is_there() {
+            return None;
+        }
         let should = self.card.borrow();
 
         match &card == should.deref() {
@@ -59,33 +65,46 @@ impl CardCell {
     }
 }
 
-// impl PartialEq for CardCell {
-//     fn eq(&self, other: &Self) -> bool {
-//         let taken = self.0.take();
-//         self.0.replace(taken.clone());
-//
-//         self.path == other.path
-//     }
-// }
+impl fmt::Debug for CardCell {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "CardCell: [aligned: {}, card: {:?}]",
+            self.is_there(),
+            self.look()
+        )
+    }
+}
+
+impl Eq for CardCell {}
+
+impl PartialEq for CardCell {
+    fn eq(&self, other: &Self) -> bool {
+        let is_there_matches = self.is_there() == other.is_there();
+        let look_matches = self.look() == other.look();
+
+        is_there_matches && look_matches
+    }
+}
 
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod card_cell_tests {
     use super::*;
-    use crate::{SPADES, TWO};
+    use crate::{ACE, HEARTS, QUEEN, SPADES, TWO};
 
     #[test]
     fn new() {
         let deuce = Card::new(TWO, SPADES);
-        let _ = CardCell {
+        let expected = CardCell {
             cell: Cell::new(deuce.clone()),
             aligned: Cell::new(true),
             card: RefCell::new(deuce.clone()),
         };
 
-        let _ = CardCell::new(deuce);
+        let actual = CardCell::new(deuce);
 
-        // assert_eq!(expected, actual)
+        assert_eq!(expected, actual);
     }
 
     #[test]
@@ -97,6 +116,28 @@ mod card_cell_tests {
 
         assert_eq!(deuce, actual);
         assert!(!cc.is_there())
+    }
+
+    #[test]
+    fn debug() {
+        let deuce = Card::new(TWO, SPADES);
+        let cc1 = CardCell::new(deuce.clone());
+        let cc2 = CardCell::new(deuce.clone());
+
+        assert_eq!(cc1, cc2);
+        cc1.deal();
+        assert_ne!(cc1, cc2)
+    }
+
+    #[test]
+    fn debug___ne_different_weight_cards() {
+        let ace = Card::new(ACE, SPADES);
+        let ace_cell = CardCell::new(ace);
+        let mut alt_ace = Card::new(ACE, SPADES);
+        alt_ace.weight = 1;
+        let alt_cell = CardCell::new(alt_ace);
+
+        assert_ne!(ace_cell, alt_cell);
     }
 
     #[test]
@@ -126,7 +167,7 @@ mod card_cell_tests {
     }
 
     #[test]
-    fn replace__ne() {
+    fn replace__ne_mismatched_card() {
         let cc = CardCell::new(Card::new(TWO, SPADES));
         cc.deal();
 
@@ -134,5 +175,15 @@ mod card_cell_tests {
 
         assert!(result.is_none());
         assert!(!cc.is_there());
+    }
+
+    #[test]
+    fn replace__ne_already_there() {
+        let queen = Card::new(QUEEN, HEARTS);
+        let cc = CardCell::new(queen.clone());
+
+        let result = cc.replace(queen);
+
+        assert!(result.is_none());
     }
 }
