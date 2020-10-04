@@ -1,3 +1,9 @@
+# Default
+blank-symbol = _
+blank-weight = -1
+blank-long = _____
+blank-index = _
+
 # French Deck
 spades-symbol = ♠
 hearts-symbol = ♥

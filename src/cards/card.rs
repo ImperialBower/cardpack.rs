@@ -6,6 +6,8 @@ use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::Named;
 
+pub const BLANK: &str = "blank";
+
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a Suit and weight, which is an integer that controls how a card is sorted
 /// in a Pile or as a part of a Vector.
@@ -23,10 +25,7 @@ pub struct Card {
 impl Card {
     /// Instantiates a new Card with the default weight as defined in the fluent
     /// templates.
-    pub fn new<S: std::clone::Clone>(rank: S, suit: S) -> Card
-    where
-        S: Into<String>,
-    {
+    pub fn new(rank: &'static str, suit: &'static str) -> Card {
         let suit = Suit::new(suit);
         let rank = Rank::new(rank);
         let weight = Card::determine_weight(&suit, &rank);
@@ -86,6 +85,12 @@ impl Card {
     }
 }
 
+impl Default for Card {
+    fn default() -> Card {
+        Card::new(BLANK, BLANK)
+    }
+}
+
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.index)
@@ -93,8 +98,8 @@ impl fmt::Display for Card {
 }
 
 impl Named for Card {
-    fn name(&self) -> &String {
-        &self.index
+    fn name(&self) -> &str {
+        &self.index.as_str()
     }
 
     fn index(&self, lid: &LanguageIdentifier) -> String {
@@ -119,6 +124,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
+    use std::cell::Cell;
 
     // region impl tests
 
@@ -170,6 +176,18 @@ mod card_tests {
         assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
     }
 
+    #[test]
+    fn default() {
+        let card = Card::default();
+
+        assert_eq!(-1001, card.weight);
+        assert_eq!("__".to_string(), card.index);
+        assert_eq!("__".to_string(), card.index_default());
+        assert_eq!("__".to_string(), card.symbol(&US_ENGLISH));
+        assert_eq!(&"__".to_string(), card.name());
+        assert_eq!("_____ _____".to_string(), card.long_default());
+    }
+
     // endregion
 
     // region named
@@ -183,6 +201,7 @@ mod card_tests {
 
     #[test]
     fn named__default_weight() {
+        let original = Card::new(ACE, SPADES);
         let mut ace = Card::new(ACE, SPADES);
         assert_eq!(ace.weight, ace.default_weight());
 
@@ -190,6 +209,7 @@ mod card_tests {
         ace.weight = 1;
 
         assert_eq!(weight, ace.default_weight());
+        assert_ne!(original, ace);
     }
 
     #[test]
@@ -211,4 +231,25 @@ mod card_tests {
     }
 
     // endregion
+
+    #[test]
+    fn card_cell() {
+        let ace_of_spades = Card::new(ACE, SPADES);
+        let blank = Card::default();
+        let cell = Cell::new(ace_of_spades.clone());
+
+        let aces = cell.take();
+
+        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(blank, cell.take());
+        assert_eq!(blank, cell.take());
+
+        cell.replace(ace_of_spades);
+
+        let aces = cell.take();
+
+        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(blank, cell.take());
+        assert_eq!(blank, cell.take());
+    }
 }
