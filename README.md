@@ -111,3 +111,7 @@ Other possibilities include:
 
 * [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
   * [Project Fluent](https://www.projectfluent.org/)
+
+## Of Interest
+
+* [OneCell](https://github.com/matklad/once_cell)

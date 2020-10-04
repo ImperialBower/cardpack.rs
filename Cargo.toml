@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.3.7"
+version = "0.3.8"
 authors = ["folkengine <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ContractBridge/cardpack.rs.git"
 homepage = "https://github.com/ContractBridge/cardpack.rs"
@@ -18,5 +18,6 @@ path = "src/lib.rs"
 colored = "2"
 fluent-templates = "0.5.13"
 lazy_static = "1.4.0"
+once_cell = "1.4.1"
 rand = "0.7.3"
 unic-langid = { version = "0.9.0", features = ["macros"] }

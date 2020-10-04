@@ -252,4 +252,12 @@ mod card_tests {
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
     }
+
+    #[test]
+    fn once_cell() {
+        use once_cell::sync::{Lazy, OnceCell};
+
+        // https://docs.rs/once_cell/1.4.1/once_cell/#lazy-initialized-global-data
+        let ace: Lazy<Card> = Lazy::new(|| Card::new(ACE, SPADES));
+    }
 }
