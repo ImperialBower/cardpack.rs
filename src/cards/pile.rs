@@ -63,7 +63,7 @@ impl Pile {
     }
 
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
-        self.0.iter().find(|c| c.index == index)
+        self.0.iter().find(|c| c.index_default() == index)
     }
 
     /// Returns a reference to the Vector containing all the cards.
@@ -163,7 +163,7 @@ impl Pile {
     fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                self.add(Card::new_from_structs(*rank, *suit));
             }
         }
     }
@@ -271,7 +271,7 @@ impl Pile {
 
     /// Returns a sorted collection of the unique Suits in a Pile.
     pub fn suits(&self) -> Vec<Suit> {
-        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit.clone()).collect();
+        let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit).collect();
         let mut suits: Vec<Suit> = Vec::from_iter(hashset);
         suits.sort();
         suits.reverse();
@@ -304,8 +304,8 @@ impl Pile {
         let mut cards: Pile = Pile::default();
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                cards.add(Card::new_from_structs(*rank, *suit));
+                cards.add(Card::new_from_structs(*rank, *suit));
             }
         }
         cards
@@ -342,16 +342,13 @@ impl Pile {
 
         // Generate Major Arcana
         for (_, rank) in major_arcana_ranks.iter().enumerate() {
-            cards.add(Card::new_from_structs(
-                rank.clone(),
-                major_arcana_suit.clone(),
-            ));
+            cards.add(Card::new_from_structs(*rank, *major_arcana_suit));
         }
 
         // Generate Minor Arcana
         for (_, suit) in arcana_suits_enumerator {
             for (_, rank) in minor_arcana_ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(rank.clone(), suit.clone()));
+                cards.add(Card::new_from_structs(*rank, *suit));
             }
         }
 
@@ -457,7 +454,7 @@ mod card_deck_tests {
     #[test]
     fn card_by_index_ne() {
         let deck = Pile::spades_deck();
-        let fool_index = Card::new(FOOL, MAJOR_ARCANA).index;
+        let fool_index = Card::new(FOOL, MAJOR_ARCANA).index_default();
 
         // Verifies that the index for a card in the tarot deck isn't in a spades deck.
         assert!(deck.card_by_index(fool_index.as_str()).is_none());
@@ -597,10 +594,18 @@ mod card_deck_tests {
         let mappie = pile.map_by_suit();
 
         assert_eq!(
-            qs.index,
-            mappie.get(&spades).unwrap().first().unwrap().index
+            qs.index_default(),
+            mappie
+                .get(&spades)
+                .unwrap()
+                .first()
+                .unwrap()
+                .index_default()
         );
-        assert_eq!(qc.index, mappie.get(&clubs).unwrap().first().unwrap().index);
+        assert_eq!(
+            qc.index_default(),
+            mappie.get(&clubs).unwrap().first().unwrap().index_default()
+        );
     }
 
     #[test]

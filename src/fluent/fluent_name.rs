@@ -9,15 +9,12 @@ use crate::Named;
 /// used to display an index, and the default weight for the if it is instantiated via
 /// `::new()`. A FluentName must have a corresponding entries in the fluent templates for
 /// weight, long, and index.
-#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct FluentName(String);
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct FluentName(&'static str);
 
 impl FluentName {
-    pub fn new<S: std::clone::Clone>(name: S) -> FluentName
-    where
-        S: Into<String>,
-    {
-        FluentName(name.into())
+    pub fn new(name: &'static str) -> FluentName {
+        FluentName(name)
     }
 }
 
@@ -28,7 +25,7 @@ impl fmt::Display for FluentName {
 }
 
 impl Named for FluentName {
-    fn name(&self) -> &String {
+    fn name(&self) -> &str {
         &self.0
     }
 }

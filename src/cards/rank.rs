@@ -88,7 +88,7 @@ pub const PAGE: &str = "page";
 /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
 ///
-#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: isize,
@@ -105,11 +105,8 @@ impl Rank {
     /// ```
     /// let king = cardpack::Rank::new(cardpack::HERMIT);
     /// ```
-    pub fn new<S: std::clone::Clone>(name: S) -> Rank
-    where
-        S: Into<String>,
-    {
-        let name = FluentName::new(name.into());
+    pub fn new(name: &'static str) -> Rank {
+        let name = FluentName::new(name);
         Rank {
             weight: name.default_weight(),
             name,
@@ -123,13 +120,10 @@ impl Rank {
     /// ```
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
-    pub fn new_with_weight<S: std::clone::Clone>(name: S, weight: isize) -> Rank
-    where
-        S: Into<String>,
-    {
+    pub fn new_with_weight(name: &'static str, weight: isize) -> Rank {
         Rank {
             weight,
-            name: FluentName::new(name.into()),
+            name: FluentName::new(name),
         }
     }
 
@@ -141,7 +135,7 @@ impl Rank {
     /// ```
     /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
     /// low. This facilitates the easy creation of custom decks, such as for pinochle.
-    pub fn from_array(s: &[&str]) -> Vec<Rank> {
+    pub fn from_array(s: &[&'static str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
         #[allow(clippy::into_iter_on_ref)]
@@ -188,7 +182,7 @@ impl fmt::Display for Rank {
 }
 
 impl Named for Rank {
-    fn name(&self) -> &String {
+    fn name(&self) -> &str {
         self.name.name()
     }
 }
