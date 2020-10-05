@@ -115,3 +115,6 @@ Other possibilities include:
 ## Of Interest
 
 * [OneCell](https://github.com/matklad/once_cell)
+* [Substrate](https://www.substrate.io/)
+  * [Developer's Hub](https://substrate.dev/)
+  * [Implementing a non-fungible token written with Ink](https://medium.com/block-journal/introducing-substrate-smart-contracts-with-ink-d486289e2b59)
