@@ -260,6 +260,15 @@ mod card_tests {
         // https://docs.rs/once_cell/1.4.1/once_cell/#lazy-initialized-global-data
         let ace: Lazy<Card> = Lazy::new(|| Card::new(ACE, SPADES));
 
-        println!("{:?}", *ace)
+        let queen_cell: OnceCell<Card> = OnceCell::from(Card::new(QUEEN, SPADES));
+        // let queen: OnceCell<Card> = OnceCell::from(Card::new(QUEEN, SPADES));
+
+        let queen = queen_cell.get().unwrap();
+        let queen2 = queen_cell.get().unwrap();
+
+        println!("{:?}", *ace);
+        println!("{:?}", queen_cell);
+        println!("{:?}", queen2);
+        println!("{:?}", queen);
     }
 }
