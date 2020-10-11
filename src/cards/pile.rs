@@ -446,7 +446,7 @@ mod card_deck_tests {
         let deck = Pile::spades_deck();
         let expected = Card::new(LITTLE_JOKER, TRUMP);
 
-        let card = deck.card_by_index("JLS").unwrap();
+        let card = deck.card_by_index("JLT").unwrap();
 
         assert_eq!(&expected, card);
     }
@@ -733,8 +733,8 @@ mod card_deck_tests {
         let sig_english = deck.by_index();
         let sig_german = deck.by_index_locale(&GERMAN);
 
-        assert_eq!("JBS JLS AS KS".to_string(), sig_english);
-        assert_eq!("JGS JKS AS KS".to_string(), sig_german);
+        assert_eq!("JBT JLT AS KS".to_string(), sig_english);
+        assert_eq!("JGT JKT AS KS".to_string(), sig_german);
     }
 
     #[test]
@@ -743,7 +743,7 @@ mod card_deck_tests {
 
         let sig = deck.by_symbol_index();
 
-        assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
+        assert_eq!("JB🃟 JL🃟 A♠ K♠".to_string(), sig);
     }
 
     #[test]
