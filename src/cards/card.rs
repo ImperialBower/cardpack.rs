@@ -256,17 +256,22 @@ mod card_tests {
     #[test]
     fn once_cell() {
         use once_cell::sync::{Lazy, OnceCell};
+        let ace_card = Card::new(ACE, SPADES);
+        let queen_card = Card::new(QUEEN, SPADES);
 
-        // https://docs.rs/once_cell/1.4.1/once_cell/#lazy-initialized-global-data
-        let ace: Lazy<Card> = Lazy::new(|| Card::new(ACE, SPADES));
+        let ace_cell: OnceCell<Card> = OnceCell::from(ace_card.clone());
+        let queen_cell: OnceCell<Card> = OnceCell::from(queen_card.clone());
 
-        let queen_cell: OnceCell<Card> = OnceCell::from(Card::new(QUEEN, SPADES));
+        let cell = OnceCell::new();
+        cell.set(ace_card.clone());
+        cell.set(ace_card.clone());
+
         // let queen: OnceCell<Card> = OnceCell::from(Card::new(QUEEN, SPADES));
 
         let queen = queen_cell.get().unwrap();
         let queen2 = queen_cell.get().unwrap();
 
-        println!("{:?}", *ace);
+        // println!("{:?}", *ace_cell);
         println!("{:?}", queen_cell);
         println!("{:?}", queen2);
         println!("{:?}", queen);
