@@ -36,6 +36,17 @@ impl Pile {
         piles.into_iter().flatten().collect()
     }
 
+    pub fn pile_up<F>(x: usize, f: F) -> Pile
+    where
+        F: Fn() -> Pile,
+    {
+        let mut pile: Vec<Pile> = Vec::new();
+        for _ in 0..x {
+            pile.push(f())
+        }
+        Pile::pile_on(pile)
+    }
+
     /// Places the Card at the bottom (end) of the Pile.
     pub fn add(&mut self, elem: Card) {
         self.0.push(elem);
@@ -288,6 +299,16 @@ impl Pile {
         Pile::new_from_vector(vec![big_joker, little_joker])
     }
 
+    pub fn canasta_single_deck() -> Pile {
+        let suits = Suit::generate_french_suits();
+        let ranks = Rank::generate_canasta_ranks();
+
+        let mut cards: Pile = Pile::default();
+        cards.fold_in(suits, ranks);
+        cards.prepend(&Pile::jokers());
+        cards
+    }
+
     pub fn french_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
@@ -295,6 +316,12 @@ impl Pile {
         let mut cards: Pile = Pile::default();
         cards.fold_in(suits, ranks);
         cards
+    }
+
+    pub fn french_deck_with_jokers() -> Pile {
+        let mut pile = Pile::french_deck();
+        pile.prepend(&Pile::jokers());
+        pile
     }
 
     pub fn pinochle_deck() -> Pile {
@@ -774,6 +801,7 @@ mod card_deck_tests {
     fn sort() {
         let decks = vec![
             Pile::french_deck(),
+            Pile::french_deck_with_jokers(),
             Pile::skat_deck(),
             Pile::spades_deck(),
             Pile::tarot_deck(),
@@ -784,6 +812,13 @@ mod card_deck_tests {
             assert_ne!(deck, shuffled);
             assert_eq!(deck, shuffled.sort());
         }
+    }
+
+    #[test]
+    fn french_deck_with_jokers() {
+        let deck = Pile::french_deck_with_jokers();
+
+        assert_eq!(54, deck.len());
     }
 
     #[test]
