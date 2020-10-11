@@ -68,7 +68,7 @@ decks of various sizes and suits. Out of the box, the library supports:
   * [Pinochle](https://en.wikipedia.org/wiki/Pinochle#Deck)
   * [Spades](https://en.wikipedia.org/wiki/Spades_(card_game)#General_overview) with [Jokers](https://en.wikipedia.org/wiki/Joker_(playing_card))
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
-  * Canasta
+  * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
     * [Hand and Foot](https://www.pagat.com/rummy/handfoot.html)
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks) with [Major](https://en.wikipedia.org/wiki/Major_Arcana) and [Minor](https://en.wikipedia.org/wiki/Minor_Arcana) Arcana
@@ -82,7 +82,6 @@ internationalization. Current languages supported are
 Other possibilities include:
 
 * French Deck
-  * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
 
 ## Responsibilities

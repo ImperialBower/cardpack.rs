@@ -36,6 +36,17 @@ impl Pile {
         piles.into_iter().flatten().collect()
     }
 
+    /// Allows you to pass in an integer and a Pile returning function method and creates a Pile
+    /// made up of the Piles generated that many times.
+    ///
+    /// # Usage:
+    /// ```
+    /// let pile = cardpack::Pile::pile_up(6, cardpack::Pile::french_deck);
+    /// pile.shuffle();
+    /// ```
+    /// This creates and shuffles a Pile made up of six traditional French decks, which would be
+    /// suitable for a casino blackjack table.
+    ///
     pub fn pile_up<F>(x: usize, f: F) -> Pile
     where
         F: Fn() -> Pile,
