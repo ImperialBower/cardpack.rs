@@ -283,8 +283,8 @@ impl Pile {
     }
 
     pub fn jokers() -> Pile {
-        let big_joker = Card::new(BIG_JOKER, SPADES);
-        let little_joker = Card::new(LITTLE_JOKER, SPADES);
+        let big_joker = Card::new(BIG_JOKER, TRUMP);
+        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
         Pile::new_from_vector(vec![big_joker, little_joker])
     }
 
@@ -430,8 +430,8 @@ mod card_deck_tests {
     fn append() {
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
-        let big_joker = Card::new(BIG_JOKER, SPADES);
-        let little_joker = Card::new(LITTLE_JOKER, SPADES);
+        let big_joker = Card::new(BIG_JOKER, TRUMP);
+        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
         let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
         let from_deck = Pile::jokers();
         let expected = Pile::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
@@ -444,7 +444,7 @@ mod card_deck_tests {
     #[test]
     fn card_by_index() {
         let deck = Pile::spades_deck();
-        let expected = Card::new(LITTLE_JOKER, SPADES);
+        let expected = Card::new(LITTLE_JOKER, TRUMP);
 
         let card = deck.card_by_index("JLS").unwrap();
 

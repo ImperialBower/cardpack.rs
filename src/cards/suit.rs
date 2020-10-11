@@ -21,6 +21,8 @@ pub const EICHEL: &str = "eichel"; // Acorns
 pub const LAUB: &str = "laub"; // Leaves
 pub const HERZ: &str = "herz"; // Hearts
 pub const SHELLEN: &str = "schellen"; // Bells
+// Special Suits
+pub const TRUMP: &str = "trump";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
