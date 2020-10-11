@@ -320,6 +320,16 @@ impl Pile {
         cards
     }
 
+    pub fn euchre_deck() -> Pile {
+        let suits = Suit::generate_french_suits();
+        let ranks = Rank::generate_euchre_ranks();
+
+        let mut cards: Pile = Pile::default();
+        cards.fold_in(suits, ranks);
+        cards.prepend(&Pile::new_from_vector(vec![Card::new(BIG_JOKER, TRUMP)]));
+        cards
+    }
+
     pub fn french_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
@@ -335,18 +345,17 @@ impl Pile {
         pile
     }
 
-    pub fn pinochle_deck() -> Pile {
+    fn pinochle_pile() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_pinochle_ranks();
 
         let mut cards: Pile = Pile::default();
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(*rank, *suit));
-                cards.add(Card::new_from_structs(*rank, *suit));
-            }
-        }
+        cards.fold_in(suits, ranks);
         cards
+    }
+
+    pub fn pinochle_deck() -> Pile {
+        Pile::pile_up(2, Pile::pinochle_pile).sort()
     }
 
     pub fn skat_deck() -> Pile {

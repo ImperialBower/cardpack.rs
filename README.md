@@ -56,8 +56,8 @@ Long in English and German:
    Sort Deck:              AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
 ```
 
-Also included are example programs for `spades`, `pinochle`, `skat`, `handandfoot` and `tarot` as well as example `poker`  
-and `bridge` hands.
+Also included are example programs for `spades`, `pinochle`, `skat`, `canasta`,
+`euchre`, `handandfoot` and `tarot` as well as example `poker` and `bridge` hands.
 
 ## Details
 
@@ -70,6 +70,7 @@ decks of various sizes and suits. Out of the box, the library supports:
   * [Standard 52](https://en.wikipedia.org/wiki/Standard_52-card_deck)
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
     * [Hand and Foot](https://www.pagat.com/rummy/handfoot.html)
+  * [Euchre](https://en.wikipedia.org/wiki/Euchre)
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks) with [Major](https://en.wikipedia.org/wiki/Major_Arcana) and [Minor](https://en.wikipedia.org/wiki/Minor_Arcana) Arcana
 
@@ -78,11 +79,6 @@ The project takes advantage of [Project Fluent](https://www.projectfluent.org/)'
 internationalization. Current languages supported are
 [English](src/fluent/locales/en-US/french-deck.ftl) and
 [German](src/fluent/locales/de/french-deck.ftl).
-
-Other possibilities include:
-
-* French Deck
-  * [Euchre](https://en.wikipedia.org/wiki/Euchre)
 
 ## Responsibilities
 

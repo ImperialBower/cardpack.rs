@@ -51,13 +51,16 @@ impl Pack {
         Pack::new(pile)
     }
 
+    pub fn euchre_deck() -> Pack {
+        Pack::new(Pile::euchre_deck())
+    }
+
     pub fn hand_and_foot_deck() -> Pack {
         let pile = Pile::pile_up(5, Pile::canasta_single_deck);
         let pile = pile.sort();
         Pack::new(pile)
     }
 
-    ///
     pub fn french_deck() -> Pack {
         Pack::new(Pile::french_deck())
     }

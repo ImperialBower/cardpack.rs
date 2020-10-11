@@ -152,6 +152,10 @@ impl Rank {
         ])
     }
 
+    pub fn generate_euchre_ranks() -> Vec<Rank> {
+        Rank::from_array(&[ACE, KING, QUEEN, JACK, TEN, NINE])
+    }
+
     pub fn generate_french_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO,
@@ -281,6 +285,19 @@ mod rank_tests {
         expected.push(Rank::new_with_weight(THREE, 2));
 
         assert_eq!(expected, Rank::generate_canasta_ranks());
+    }
+
+    #[test]
+    fn generate_euchre_ranks() {
+        let mut expected: Vec<Rank> = Vec::new();
+        expected.push(Rank::new_with_weight(ACE, 7));
+        expected.push(Rank::new_with_weight(KING, 6));
+        expected.push(Rank::new_with_weight(QUEEN, 5));
+        expected.push(Rank::new_with_weight(JACK, 4));
+        expected.push(Rank::new_with_weight(TEN, 3));
+        expected.push(Rank::new_with_weight(NINE, 2));
+
+        assert_eq!(expected, Rank::generate_euchre_ranks());
     }
 
     #[test]
