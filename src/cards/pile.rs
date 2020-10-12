@@ -310,13 +310,18 @@ impl Pile {
         Pile::new_from_vector(vec![big_joker, little_joker])
     }
 
-    pub fn canasta_single_deck() -> Pile {
+    pub fn canasta_base_single_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_canasta_ranks();
 
         let mut cards: Pile = Pile::default();
         cards.fold_in(suits, ranks);
         cards.prepend(&Pile::jokers());
+        cards
+    }
+
+    pub fn canasta_single_deck() -> Pile {
+        let mut cards: Pile = Pile::canasta_base_single_deck();
 
         cards.remove_card(&Card::new(THREE, HEARTS));
         cards.remove_card(&Card::new(THREE, DIAMONDS));

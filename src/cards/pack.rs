@@ -56,7 +56,7 @@ impl Pack {
     }
 
     pub fn hand_and_foot_deck() -> Pack {
-        let pile = Pile::pile_up(5, Pile::canasta_single_deck);
+        let pile = Pile::pile_up(5, Pile::canasta_base_single_deck);
         let pile = pile.sort();
         Pack::new(pile)
     }
