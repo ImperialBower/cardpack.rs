@@ -45,9 +45,28 @@ impl Pack {
         &self.cards
     }
 
-    ///
+    pub fn canasta_deck() -> Pack {
+        let pile = Pile::pile_up(2, Pile::canasta_single_deck);
+        let pile = pile.sort();
+        Pack::new(pile)
+    }
+
+    pub fn euchre_deck() -> Pack {
+        Pack::new(Pile::euchre_deck())
+    }
+
+    pub fn hand_and_foot_deck() -> Pack {
+        let pile = Pile::pile_up(5, Pile::canasta_base_single_deck);
+        let pile = pile.sort();
+        Pack::new(pile)
+    }
+
     pub fn french_deck() -> Pack {
         Pack::new(Pile::french_deck())
+    }
+
+    pub fn french_deck_with_jokers() -> Pack {
+        Pack::new(Pile::french_deck_with_jokers())
     }
 
     pub fn pinochle_deck() -> Pack {

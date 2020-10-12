@@ -146,6 +146,16 @@ impl Rank {
         v
     }
 
+    pub fn generate_canasta_ranks() -> Vec<Rank> {
+        Rank::from_array(&[
+            TWO, ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE,
+        ])
+    }
+
+    pub fn generate_euchre_ranks() -> Vec<Rank> {
+        Rank::from_array(&[ACE, KING, QUEEN, JACK, TEN, NINE])
+    }
+
     pub fn generate_french_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO,
@@ -255,6 +265,39 @@ mod rank_tests {
         expected.push(Rank::new_with_weight(QUEEN, 2));
 
         assert_eq!(expected, Rank::from_array(&[KING, QUEEN]));
+    }
+
+    #[test]
+    fn generate_canasta_ranks() {
+        let mut expected: Vec<Rank> = Vec::new();
+        expected.push(Rank::new_with_weight(TWO, 14));
+        expected.push(Rank::new_with_weight(ACE, 13));
+        expected.push(Rank::new_with_weight(KING, 12));
+        expected.push(Rank::new_with_weight(QUEEN, 11));
+        expected.push(Rank::new_with_weight(JACK, 10));
+        expected.push(Rank::new_with_weight(TEN, 9));
+        expected.push(Rank::new_with_weight(NINE, 8));
+        expected.push(Rank::new_with_weight(EIGHT, 7));
+        expected.push(Rank::new_with_weight(SEVEN, 6));
+        expected.push(Rank::new_with_weight(SIX, 5));
+        expected.push(Rank::new_with_weight(FIVE, 4));
+        expected.push(Rank::new_with_weight(FOUR, 3));
+        expected.push(Rank::new_with_weight(THREE, 2));
+
+        assert_eq!(expected, Rank::generate_canasta_ranks());
+    }
+
+    #[test]
+    fn generate_euchre_ranks() {
+        let mut expected: Vec<Rank> = Vec::new();
+        expected.push(Rank::new_with_weight(ACE, 7));
+        expected.push(Rank::new_with_weight(KING, 6));
+        expected.push(Rank::new_with_weight(QUEEN, 5));
+        expected.push(Rank::new_with_weight(JACK, 4));
+        expected.push(Rank::new_with_weight(TEN, 3));
+        expected.push(Rank::new_with_weight(NINE, 2));
+
+        assert_eq!(expected, Rank::generate_euchre_ranks());
     }
 
     #[test]

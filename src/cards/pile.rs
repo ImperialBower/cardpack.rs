@@ -36,6 +36,28 @@ impl Pile {
         piles.into_iter().flatten().collect()
     }
 
+    /// Allows you to pass in an integer and a Pile returning function method and creates a Pile
+    /// made up of the Piles generated that many times.
+    ///
+    /// # Usage:
+    /// ```
+    /// let pile = cardpack::Pile::pile_up(6, cardpack::Pile::french_deck);
+    /// pile.shuffle();
+    /// ```
+    /// This creates and shuffles a Pile made up of six traditional French decks, which would be
+    /// suitable for a casino blackjack table.
+    ///
+    pub fn pile_up<F>(x: usize, f: F) -> Pile
+    where
+        F: Fn() -> Pile,
+    {
+        let mut pile: Vec<Pile> = Vec::new();
+        for _ in 0..x {
+            pile.push(f())
+        }
+        Pile::pile_on(pile)
+    }
+
     /// Places the Card at the bottom (end) of the Pile.
     pub fn add(&mut self, elem: Card) {
         self.0.push(elem);
@@ -205,7 +227,7 @@ impl Pile {
     }
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
-        self.0.iter().position(|k| k == karte)
+        self.0.iter().position(|k| k.index == karte.index)
     }
 
     pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
@@ -283,9 +305,48 @@ impl Pile {
     }
 
     pub fn jokers() -> Pile {
-        let big_joker = Card::new(BIG_JOKER, SPADES);
-        let little_joker = Card::new(LITTLE_JOKER, SPADES);
+        let big_joker = Card::new(BIG_JOKER, TRUMP);
+        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
         Pile::new_from_vector(vec![big_joker, little_joker])
+    }
+
+    pub fn canasta_base_single_deck() -> Pile {
+        let suits = Suit::generate_french_suits();
+        let ranks = Rank::generate_canasta_ranks();
+
+        let mut cards: Pile = Pile::default();
+        cards.fold_in(suits, ranks);
+        cards.prepend(&Pile::jokers());
+        cards
+    }
+
+    pub fn canasta_single_deck() -> Pile {
+        let mut cards: Pile = Pile::canasta_base_single_deck();
+
+        cards.remove_card(&Card::new(THREE, HEARTS));
+        cards.remove_card(&Card::new(THREE, DIAMONDS));
+
+        cards.prepend(&Pile::canasta_red_threes());
+        cards
+    }
+
+    fn canasta_red_threes() -> Pile {
+        let mut three_hearts = Card::new(THREE, HEARTS);
+        let mut three_diamonds = Card::new(THREE, DIAMONDS);
+        three_hearts.weight = 100001;
+        three_diamonds.weight = 100000;
+
+        Pile::new_from_vector(vec![three_hearts, three_diamonds])
+    }
+
+    pub fn euchre_deck() -> Pile {
+        let suits = Suit::generate_french_suits();
+        let ranks = Rank::generate_euchre_ranks();
+
+        let mut cards: Pile = Pile::default();
+        cards.fold_in(suits, ranks);
+        cards.prepend(&Pile::new_from_vector(vec![Card::new(BIG_JOKER, TRUMP)]));
+        cards
     }
 
     pub fn french_deck() -> Pile {
@@ -297,18 +358,23 @@ impl Pile {
         cards
     }
 
-    pub fn pinochle_deck() -> Pile {
+    pub fn french_deck_with_jokers() -> Pile {
+        let mut pile = Pile::french_deck();
+        pile.prepend(&Pile::jokers());
+        pile
+    }
+
+    fn pinochle_pile() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_pinochle_ranks();
 
         let mut cards: Pile = Pile::default();
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(*rank, *suit));
-                cards.add(Card::new_from_structs(*rank, *suit));
-            }
-        }
+        cards.fold_in(suits, ranks);
         cards
+    }
+
+    pub fn pinochle_deck() -> Pile {
+        Pile::pile_up(2, Pile::pinochle_pile).sort()
     }
 
     pub fn skat_deck() -> Pile {
@@ -430,8 +496,8 @@ mod card_deck_tests {
     fn append() {
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
-        let big_joker = Card::new(BIG_JOKER, SPADES);
-        let little_joker = Card::new(LITTLE_JOKER, SPADES);
+        let big_joker = Card::new(BIG_JOKER, TRUMP);
+        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
         let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
         let from_deck = Pile::jokers();
         let expected = Pile::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
@@ -444,9 +510,9 @@ mod card_deck_tests {
     #[test]
     fn card_by_index() {
         let deck = Pile::spades_deck();
-        let expected = Card::new(LITTLE_JOKER, SPADES);
+        let expected = Card::new(LITTLE_JOKER, TRUMP);
 
-        let card = deck.card_by_index("JLS").unwrap();
+        let card = deck.card_by_index("JLT").unwrap();
 
         assert_eq!(&expected, card);
     }
@@ -733,8 +799,8 @@ mod card_deck_tests {
         let sig_english = deck.by_index();
         let sig_german = deck.by_index_locale(&GERMAN);
 
-        assert_eq!("JBS JLS AS KS".to_string(), sig_english);
-        assert_eq!("JGS JKS AS KS".to_string(), sig_german);
+        assert_eq!("JBT JLT AS KS".to_string(), sig_english);
+        assert_eq!("JGT JKT AS KS".to_string(), sig_german);
     }
 
     #[test]
@@ -743,7 +809,7 @@ mod card_deck_tests {
 
         let sig = deck.by_symbol_index();
 
-        assert_eq!("JB♠ JL♠ A♠ K♠".to_string(), sig);
+        assert_eq!("JB🃟 JL🃟 A♠ K♠".to_string(), sig);
     }
 
     #[test]
@@ -774,6 +840,7 @@ mod card_deck_tests {
     fn sort() {
         let decks = vec![
             Pile::french_deck(),
+            Pile::french_deck_with_jokers(),
             Pile::skat_deck(),
             Pile::spades_deck(),
             Pile::tarot_deck(),
@@ -784,6 +851,13 @@ mod card_deck_tests {
             assert_ne!(deck, shuffled);
             assert_eq!(deck, shuffled.sort());
         }
+    }
+
+    #[test]
+    fn french_deck_with_jokers() {
+        let deck = Pile::french_deck_with_jokers();
+
+        assert_eq!(54, deck.len());
     }
 
     #[test]
