@@ -227,7 +227,7 @@ impl Pile {
     }
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
-        self.0.iter().position(|k| k == karte)
+        self.0.iter().position(|k| k.index == karte.index )
     }
 
     pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
@@ -317,7 +317,22 @@ impl Pile {
         let mut cards: Pile = Pile::default();
         cards.fold_in(suits, ranks);
         cards.prepend(&Pile::jokers());
+
+        cards.remove_card(&Card::new(THREE, HEARTS));
+        cards.remove_card(&Card::new(THREE, DIAMONDS));
+
+        cards.prepend(&Pile::canasta_red_threes());
         cards
+    }
+
+    fn canasta_red_threes() -> Pile {
+        let mut three_hearts = Card::new(THREE, HEARTS);
+        let mut three_diamonds = Card::new(THREE, DIAMONDS);
+        three_hearts.weight = 100001;
+        three_diamonds.weight = 100000;
+
+        Pile::new_from_vector(vec![three_hearts, three_diamonds])
+
     }
 
     pub fn euchre_deck() -> Pile {
