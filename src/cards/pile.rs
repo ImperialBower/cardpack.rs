@@ -227,7 +227,7 @@ impl Pile {
     }
 
     pub fn position(&self, karte: &Card) -> Option<usize> {
-        self.0.iter().position(|k| k.index == karte.index )
+        self.0.iter().position(|k| k.index == karte.index)
     }
 
     pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
@@ -337,7 +337,6 @@ impl Pile {
         three_diamonds.weight = 100000;
 
         Pile::new_from_vector(vec![three_hearts, three_diamonds])
-
     }
 
     pub fn euchre_deck() -> Pile {
