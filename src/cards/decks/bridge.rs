@@ -10,7 +10,7 @@ pub enum BridgeDirection {
     E,
     S,
     W,
-    UNKNOWN,
+    Unknown,
 }
 
 impl BridgeDirection {
@@ -24,7 +24,7 @@ impl BridgeDirection {
             'e' => BridgeDirection::E,
             'W' => BridgeDirection::W,
             'w' => BridgeDirection::W,
-            _ => BridgeDirection::UNKNOWN,
+            _ => BridgeDirection::Unknown,
         }
     }
 
@@ -34,7 +34,7 @@ impl BridgeDirection {
             BridgeDirection::W => BridgeDirection::N,
             BridgeDirection::N => BridgeDirection::E,
             BridgeDirection::E => BridgeDirection::S,
-            BridgeDirection::UNKNOWN => BridgeDirection::UNKNOWN,
+            BridgeDirection::Unknown => BridgeDirection::Unknown,
         }
     }
 }
@@ -79,7 +79,7 @@ impl BridgeBoard {
             BridgeDirection::W => self.west = hand.sort(),
             BridgeDirection::N => self.north = hand.sort(),
             BridgeDirection::E => self.east = hand.sort(),
-            BridgeDirection::UNKNOWN => self.east = hand,
+            BridgeDirection::Unknown => self.east = hand,
         }
     }
 
@@ -147,19 +147,19 @@ impl BridgeBoard {
 
         let mut v: Vec<String> = Vec::new();
         v.append(&mut BridgeBoard::splice_suit_in(
-            &rawsuits.get(0).unwrap(),
+            rawsuits.get(0).unwrap(),
             'S',
         ));
         v.append(&mut BridgeBoard::splice_suit_in(
-            &rawsuits.get(1).unwrap(),
+            rawsuits.get(1).unwrap(),
             'H',
         ));
         v.append(&mut BridgeBoard::splice_suit_in(
-            &rawsuits.get(2).unwrap(),
+            rawsuits.get(2).unwrap(),
             'D',
         ));
         v.append(&mut BridgeBoard::splice_suit_in(
-            &rawsuits.get(3).unwrap(),
+            rawsuits.get(3).unwrap(),
             'C',
         ));
 
@@ -350,7 +350,7 @@ mod bridge_tests {
         assert_eq!(BridgeDirection::N, BridgeDirection::to('n'));
         assert_eq!(BridgeDirection::W, BridgeDirection::to('W'));
         assert_eq!(BridgeDirection::W, BridgeDirection::to('w'));
-        assert_eq!(BridgeDirection::UNKNOWN, BridgeDirection::to(' '));
+        assert_eq!(BridgeDirection::Unknown, BridgeDirection::to(' '));
     }
 
     #[test]
@@ -372,8 +372,8 @@ mod bridge_tests {
             BridgeDirection::next(&BridgeDirection::E)
         );
         assert_eq!(
-            BridgeDirection::UNKNOWN,
-            BridgeDirection::next(&BridgeDirection::UNKNOWN)
+            BridgeDirection::Unknown,
+            BridgeDirection::next(&BridgeDirection::Unknown)
         );
     }
 }

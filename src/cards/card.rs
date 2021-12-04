@@ -53,16 +53,16 @@ impl Card {
 
     /// Returns a Symbol String for the Card.
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.index(&lid);
+        let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
         format!("{}{}", rank, suit)
     }
 
     /// Returns a Symbol String for the Card in the traditional colors for the Suits.
     pub fn symbol_colorized(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.index(&lid);
+        let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
-        match &self.suit.name()[..] {
+        match self.suit.name() {
             "hearts" => format!("{}{}", rank, suit).red().to_string(),
             "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
@@ -99,18 +99,18 @@ impl fmt::Display for Card {
 
 impl Named for Card {
     fn name(&self) -> &str {
-        &self.index.as_str()
+        self.index.as_str()
     }
 
     fn index(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.name.index(&lid);
-        let suit = self.suit.name.index(&lid);
+        let rank = self.rank.name.index(lid);
+        let suit = self.suit.name.index(lid);
         format!("{}{}", rank, suit)
     }
 
     fn long(&self, lid: &LanguageIdentifier) -> String {
-        let rank = self.rank.name.long(&lid);
-        let suit = self.suit.name.long(&lid);
+        let rank = self.rank.name.long(lid);
+        let suit = self.suit.name.long(lid);
         format!("{} {}", rank, suit)
     }
 
