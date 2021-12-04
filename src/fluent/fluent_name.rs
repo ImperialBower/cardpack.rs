@@ -26,7 +26,7 @@ impl fmt::Display for FluentName {
 
 impl Named for FluentName {
     fn name(&self) -> &str {
-        &self.0
+        self.0
     }
 }
 

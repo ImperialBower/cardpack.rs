@@ -143,11 +143,11 @@ impl Pile {
         println!();
         print!("   Shuffle Deck:           ");
         let shuffled = self.shuffle();
-        print!("{}", shuffled.to_string());
+        print!("{}", shuffled);
 
         println!();
         print!("   Sort Deck:              ");
-        print!("{}", shuffled.sort().to_string());
+        print!("{}", shuffled.sort());
 
         println!();
     }
