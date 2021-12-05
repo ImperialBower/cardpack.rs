@@ -38,6 +38,10 @@ impl Card {
         }
     }
 
+    pub fn new_from_string(&self, _string: &str) -> Card {
+        Card::new("A", "♠")
+    }
+
     /// Instantiates a Card with the weight determined by the passed in Rank and
     /// Suit.
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
