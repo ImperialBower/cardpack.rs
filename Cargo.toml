@@ -16,7 +16,7 @@ path = "src/lib.rs"
 
 [dependencies]
 colored = "2"
-fluent-templates = "0.5.13"
+fluent-templates = "0.6.1"
 lazy_static = "1.4.0"
-rand = "0.7.3"
+rand = "0.8.4"
 unic-langid = { version = "0.9.0", features = ["macros"] }
