@@ -80,7 +80,6 @@ impl Suit {
             "🃟" => Suit::new(TRUMP),
             _ => Suit::new("_"),
         }
-
     }
 
     pub fn generate_french_suits() -> Vec<Suit> {
