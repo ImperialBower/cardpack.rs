@@ -71,6 +71,18 @@ impl Suit {
         Suit::from_array_gen(s, Suit::top_down_value)
     }
 
+    pub fn from_french_suit_symbol(symbol: &'static str) -> Suit {
+        match symbol {
+            "♠" => Suit::new(SPADES),
+            "♥" => Suit::new(HEARTS),
+            "♦" => Suit::new(DIAMONDS),
+            "♣" => Suit::new(CLUBS),
+            "🃟" => Suit::new(TRUMP),
+            _ => Suit::new("_"),
+        }
+
+    }
+
     pub fn generate_french_suits() -> Vec<Suit> {
         Suit::from_array(&[SPADES, HEARTS, DIAMONDS, CLUBS])
     }
@@ -128,7 +140,17 @@ mod suit_tests {
     }
 
     #[test]
-    fn partial_eq() {
+    fn from_french_suit_symbol() {
+        assert_eq!(Suit::new(HEARTS), Suit::from_french_suit_symbol("♥"));
+        assert_eq!(Suit::new(SPADES), Suit::from_french_suit_symbol("♠"));
+        assert_eq!(Suit::new(DIAMONDS), Suit::from_french_suit_symbol("♦"));
+        assert_eq!(Suit::new(CLUBS), Suit::from_french_suit_symbol("♣"));
+        assert_eq!(Suit::new(TRUMP), Suit::from_french_suit_symbol("🃟"));
+        assert_eq!(Suit::new("_"), Suit::from_french_suit_symbol(""));
+    }
+
+    #[test]
+    fn part1ial_eq() {
         assert_ne!(
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)
