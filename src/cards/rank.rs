@@ -149,7 +149,7 @@ impl Rank {
     }
 
     /// Returns a Rank entity based on its index string.
-    pub fn from_french_suit_index(index: &'static str) -> Rank {
+    pub fn from_french_deck_index(index: &'static str) -> Rank {
         match index {
             "JB" => Rank::new(BIG_JOKER),
             "JL" => Rank::new(LITTLE_JOKER),
@@ -315,8 +315,8 @@ mod rank_tests {
     #[case("_", Rank::new(BLANK))]
     #[case("", Rank::new(BLANK))]
     #[case(" ", Rank::new(BLANK))]
-    fn from_french_suit_index(#[case] input: &'static str, #[case] expected: Rank) {
-        assert_eq!(expected, Rank::from_french_suit_index(input));
+    fn from_french_deck_index(#[case] input: &'static str, #[case] expected: Rank) {
+        assert_eq!(expected, Rank::from_french_deck_index(input));
     }
 
     #[test]

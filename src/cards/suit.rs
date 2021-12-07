@@ -73,7 +73,7 @@ impl Suit {
     }
 
     /// Returns a Suit from its symbol string.
-    pub fn from_french_suit_index(symbol: &'static str) -> Suit {
+    pub fn from_french_deck_index(symbol: &'static str) -> Suit {
         match symbol {
             "♠" => Suit::new(SPADES),
             "S" => Suit::new(SPADES),
@@ -160,8 +160,8 @@ mod suit_tests {
     #[case(" ", Suit::new(BLANK))]
     #[case("FOOBAR", Suit::new(BLANK))]
     #[case("", Suit::new(BLANK))]
-    fn from_french_suit_index(#[case] input: &'static str, #[case] expected: Suit) {
-        assert_eq!(expected, Suit::from_french_suit_index(input));
+    fn from_french_deck_index(#[case] input: &'static str, #[case] expected: Suit) {
+        assert_eq!(expected, Suit::from_french_deck_index(input));
     }
 
     #[test]
