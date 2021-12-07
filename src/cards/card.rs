@@ -38,10 +38,6 @@ impl Card {
         }
     }
 
-    pub fn new_from_string(&self, _string: &str) -> Card {
-        Card::new("A", "♠")
-    }
-
     /// Instantiates a Card with the weight determined by the passed in Rank and
     /// Suit.
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
@@ -53,6 +49,10 @@ impl Card {
             rank,
             suit,
         }
+    }
+
+    pub fn from_french_deck_index(_index: &'static str) -> Card {
+        Card::new("A", "♠")
     }
 
     /// Returns a Symbol String for the Card.

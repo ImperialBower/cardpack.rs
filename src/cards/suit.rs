@@ -117,9 +117,9 @@ impl Named for Suit {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod suit_tests {
-    use rstest::rstest;
     use super::*;
     use crate::{GERMAN, US_ENGLISH};
+    use rstest::rstest;
 
     #[test]
     fn display() {

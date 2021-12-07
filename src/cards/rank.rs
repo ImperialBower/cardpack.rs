@@ -226,9 +226,9 @@ impl Named for Rank {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod rank_tests {
-    use rstest::rstest;
     use super::*;
     use crate::{GERMAN, US_ENGLISH};
+    use rstest::rstest;
 
     #[test]
     fn display() {
