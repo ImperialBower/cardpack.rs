@@ -23,6 +23,7 @@ pub const HERZ: &str = "herz"; // Hearts
 pub const SHELLEN: &str = "schellen"; // Bells
                                       // Special Suits
 pub const TRUMP: &str = "trump";
+pub const BLANK: &str = "_";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
@@ -71,6 +72,7 @@ impl Suit {
         Suit::from_array_gen(s, Suit::top_down_value)
     }
 
+    /// Returns a Suit from its symbol string.
     pub fn from_french_suit_symbol(symbol: &'static str) -> Suit {
         match symbol {
             "♠" => Suit::new(SPADES),
@@ -78,7 +80,7 @@ impl Suit {
             "♦" => Suit::new(DIAMONDS),
             "♣" => Suit::new(CLUBS),
             "🃟" => Suit::new(TRUMP),
-            _ => Suit::new("_"),
+            _ => Suit::new(BLANK),
         }
     }
 
@@ -110,6 +112,7 @@ impl Named for Suit {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod suit_tests {
+    use rstest::rstest;
     use super::*;
     use crate::{GERMAN, US_ENGLISH};
 
@@ -138,14 +141,17 @@ mod suit_tests {
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
     }
 
-    #[test]
-    fn from_french_suit_symbol() {
-        assert_eq!(Suit::new(HEARTS), Suit::from_french_suit_symbol("♥"));
-        assert_eq!(Suit::new(SPADES), Suit::from_french_suit_symbol("♠"));
-        assert_eq!(Suit::new(DIAMONDS), Suit::from_french_suit_symbol("♦"));
-        assert_eq!(Suit::new(CLUBS), Suit::from_french_suit_symbol("♣"));
-        assert_eq!(Suit::new(TRUMP), Suit::from_french_suit_symbol("🃟"));
-        assert_eq!(Suit::new("_"), Suit::from_french_suit_symbol(""));
+    #[rstest]
+    #[case("♠", Suit::new(SPADES))]
+    #[case("♥", Suit::new(HEARTS))]
+    #[case("♦", Suit::new(DIAMONDS))]
+    #[case("♣", Suit::new(CLUBS))]
+    #[case("🃟", Suit::new(TRUMP))]
+    #[case(" ", Suit::new(BLANK))]
+    #[case("FOOBAR", Suit::new(BLANK))]
+    #[case("", Suit::new(BLANK))]
+    fn from_french_suit_symbol(#[case] input: &'static str, #[case] expected: Suit) {
+        assert_eq!(expected, Suit::from_french_suit_symbol(input));
     }
 
     #[test]

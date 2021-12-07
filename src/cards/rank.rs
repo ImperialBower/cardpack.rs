@@ -146,21 +146,7 @@ impl Rank {
         v
     }
 
-    // big-joker-index = JB
-    // little-joker-index = JL
-    // ace-index = A
-    // king-index = K
-    // queen-index = Q
-    // jack-index = J
-    // ten-index = T
-    // nine-index = 9
-    // eight-index = 8
-    // seven-index = 7
-    // six-index = 6
-    // five-index = 5
-    // four-index = 4
-    // three-index = 3
-    // two-index = 2
+    /// Returns a Rank entity based on its index string.
     pub fn from_french_suit_index(index: &'static str) -> Rank {
         match index {
             "JB" => Rank::new(BIG_JOKER),
@@ -176,6 +162,10 @@ impl Rank {
             "8" => Rank::new(EIGHT),
             "7" => Rank::new(SEVEN),
             "6" => Rank::new(SIX),
+            "5" => Rank::new(FIVE),
+            "4" => Rank::new(FOUR),
+            "3" => Rank::new(THREE),
+            "2" => Rank::new(TWO),
             _ => Rank::new("_"),
         }
     }
