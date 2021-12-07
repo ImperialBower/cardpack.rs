@@ -4,11 +4,11 @@ fn main() {
 
     let card_str = shuffled.by_symbol_index();
 
-    let rawcards: Vec<&str> = card_str.split(' ').collect();
+    let _rawcards: Vec<&str> = card_str.split(' ').collect();
 
-    for _s in rawcards {
-
-    }
+    // for _s in rawcards {
+    //
+    // }
 
     println!();
 
