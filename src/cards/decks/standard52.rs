@@ -17,7 +17,7 @@ impl Standard52 {
     pub fn card_from_index_string(card_str: &'static str) -> Card {
         // Card::new(&card_str[..0], &card_str[1..2])
         let rank = Rank::from_french_deck_index(Standard52::rank_str_from_index_string(card_str));
-        let suit = Suit::from_french_deck_index(Standard52::suit_str_from_index_string(card_str));
+        let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index_string(card_str));
 
         Card::new_from_structs(rank, suit)
     }
@@ -26,8 +26,8 @@ impl Standard52 {
         &card_str[..1]
     }
 
-    fn suit_str_from_index_string(card_str: &'static str) -> &'static str {
-        &card_str[1..2]
+    fn suit_char_from_index_string(card_str: &'static str) -> char {
+        card_str.char_indices().nth(1).unwrap().1
     }
 }
 
@@ -52,15 +52,18 @@ mod standard52_tests {
     }
 
     #[test]
-    fn suit_str_from_index_string() {
-        assert_eq!("S", Standard52::suit_str_from_index_string("2S"));
+    fn suit_char_from_index_string() {
+        assert_eq!('S', Standard52::suit_char_from_index_string("2S"));
+        assert_eq!('♠', Standard52::suit_char_from_index_string("2♠"));
     }
 
     // 2S 3D QS KH 3C 3S TC 9H 3H 6H QD 4H 2H 5S 6D 9S AD 5C 7S JS AC 6S 8H 7C JC 7H JD TS AS KS JH 5D 6C 9C QC 8D 4C 5H 4D 8S 2C AH 2D 9D TH KD 7D KC 4S 8C QH TD
 
     #[rstest]
     #[case("2S", Card::new(TWO, SPADES))]
+    #[case("2♠", Card::new(TWO, SPADES))]
     #[case("3S", Card::new(THREE, SPADES))]
+    #[case("3♠", Card::new(THREE, SPADES))]
     fn card_from_index_string(#[case] input: &'static str, #[case] expected: Card) {
         assert_eq!(expected, Standard52::card_from_index_string(input));
     }

@@ -73,18 +73,18 @@ impl Suit {
     }
 
     /// Returns a Suit from its symbol string.
-    pub fn from_french_deck_index(symbol: &'static str) -> Suit {
+    pub fn from_french_deck_index(symbol: char) -> Suit {
         match symbol {
-            "♠" => Suit::new(SPADES),
-            "S" => Suit::new(SPADES),
-            "♥" => Suit::new(HEARTS),
-            "H" => Suit::new(HEARTS),
-            "♦" => Suit::new(DIAMONDS),
-            "D" => Suit::new(DIAMONDS),
-            "♣" => Suit::new(CLUBS),
-            "C" => Suit::new(CLUBS),
-            "🃟" => Suit::new(TRUMP),
-            "T" => Suit::new(TRUMP),
+            '♠' => Suit::new(SPADES),
+            'S' => Suit::new(SPADES),
+            '♥' => Suit::new(HEARTS),
+            'H' => Suit::new(HEARTS),
+            '♦' => Suit::new(DIAMONDS),
+            'D' => Suit::new(DIAMONDS),
+            '♣' => Suit::new(CLUBS),
+            'C' => Suit::new(CLUBS),
+            '🃟' => Suit::new(TRUMP),
+            'T' => Suit::new(TRUMP),
             _ => Suit::new(BLANK),
         }
     }
@@ -147,20 +147,19 @@ mod suit_tests {
     }
 
     #[rstest]
-    #[case("♠", Suit::new(SPADES))]
-    #[case("S", Suit::new(SPADES))]
-    #[case("♥", Suit::new(HEARTS))]
-    #[case("H", Suit::new(HEARTS))]
-    #[case("♦", Suit::new(DIAMONDS))]
-    #[case("D", Suit::new(DIAMONDS))]
-    #[case("♣", Suit::new(CLUBS))]
-    #[case("C", Suit::new(CLUBS))]
-    #[case("🃟", Suit::new(TRUMP))]
-    #[case("T", Suit::new(TRUMP))]
-    #[case(" ", Suit::new(BLANK))]
-    #[case("FOOBAR", Suit::new(BLANK))]
-    #[case("", Suit::new(BLANK))]
-    fn from_french_deck_index(#[case] input: &'static str, #[case] expected: Suit) {
+    #[case('♠', Suit::new(SPADES))]
+    #[case('S', Suit::new(SPADES))]
+    #[case('♥', Suit::new(HEARTS))]
+    #[case('H', Suit::new(HEARTS))]
+    #[case('♦', Suit::new(DIAMONDS))]
+    #[case('D', Suit::new(DIAMONDS))]
+    #[case('♣', Suit::new(CLUBS))]
+    #[case('C', Suit::new(CLUBS))]
+    #[case('🃟', Suit::new(TRUMP))]
+    #[case('T', Suit::new(TRUMP))]
+    #[case(' ', Suit::new(BLANK))]
+    #[case('F', Suit::new(BLANK))]
+    fn from_french_deck_index(#[case] input: char, #[case] expected: Suit) {
         assert_eq!(expected, Suit::from_french_deck_index(input));
     }
 
