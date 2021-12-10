@@ -16,7 +16,7 @@ pub struct FluentName(&'static str);
 
 impl FluentName {
     pub fn new(name: &'static str) -> FluentName {
-        if name.is_empty() {
+        if name.trim().is_empty() {
             FluentName(BLANK)
         } else {
             FluentName(name)
@@ -53,8 +53,15 @@ mod fluent_tests {
         }
 
         #[test]
-        fn new__invalid() {
+        fn new__empty_string() {
             let n = FluentName::new("");
+
+            assert_eq!("_".to_string(), n.index_default())
+        }
+
+        #[test]
+        fn new__blank_string() {
+            let n = FluentName::new(" ");
 
             assert_eq!("_".to_string(), n.index_default())
         }
