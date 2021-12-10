@@ -52,7 +52,7 @@ pub const WORLD: &str = "world";
 pub const KNIGHT: &str = "knight";
 pub const PAGE: &str = "page";
 
-pub const BLANK: &str = "_";
+pub const BLANK_RANK: &str = "_";
 
 /// Rank Struct for a Card. Examples of standard Card Ranks would include: Ace, Ten, and Deuce
 /// Joker, Death (Tarot), and Ober (Skat). The weight of the Rank determines how a Card is sorted relative to
@@ -168,7 +168,7 @@ impl Rank {
             "4" => Rank::new(FOUR),
             "3" => Rank::new(THREE),
             "2" => Rank::new(TWO),
-            _ => Rank::new(BLANK),
+            _ => Rank::new(BLANK_RANK),
         }
     }
 
@@ -208,6 +208,10 @@ impl Rank {
 
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
+    }
+
+    pub fn is_blank(&self) -> bool {
+        self.name.name() == BLANK_RANK
     }
 }
 
@@ -312,9 +316,9 @@ mod rank_tests {
     #[case("4", Rank::new(FOUR))]
     #[case("3", Rank::new(THREE))]
     #[case("2", Rank::new(TWO))]
-    #[case("_", Rank::new(BLANK))]
-    #[case("", Rank::new(BLANK))]
-    #[case(" ", Rank::new(BLANK))]
+    #[case("_", Rank::new(BLANK_RANK))]
+    #[case("", Rank::new(BLANK_RANK))]
+    #[case(" ", Rank::new(BLANK_RANK))]
     fn from_french_deck_index(#[case] input: &'static str, #[case] expected: Rank) {
         assert_eq!(expected, Rank::from_french_deck_index(input));
     }

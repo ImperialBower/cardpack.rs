@@ -126,15 +126,15 @@ impl Pile {
     }
 
     pub fn demo_short(&self) {
-        let langs = &[US_ENGLISH, GERMAN];
+        let languages = &[US_ENGLISH, GERMAN];
 
-        for lang in langs {
+        for lang in languages {
             println!();
             print!("   Short Symbols in {:<5}: ", format!("{}", lang));
             print!("{}", self.by_symbol_index_locale(lang));
         }
 
-        for lang in langs {
+        for lang in languages {
             println!();
             print!("   Short Letters in {:<5}: ", format!("{}", lang));
             print!("{}", self.by_index_locale(lang));

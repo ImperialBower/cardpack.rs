@@ -51,10 +51,6 @@ impl Card {
         }
     }
 
-    pub fn from_french_deck_index(_index: &'static str) -> Card {
-        Card::new("A", "♠")
-    }
-
     /// Returns a Symbol String for the Card.
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.index(lid);
@@ -74,6 +70,14 @@ impl Card {
             "schellen" => format!("{}{}", rank, suit).yellow().to_string(),
             _ => format!("{}{}", rank, suit),
         }
+    }
+
+    pub fn blank_card() -> Card {
+        Card::new(BLANK, BLANK)
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self == &Card::blank_card()
     }
 
     // Private methods
@@ -178,6 +182,11 @@ mod card_tests {
         let card = Card::new(QUEEN, HEARTS);
 
         assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
+    }
+
+    #[test]
+    fn is_valid__false() {
+        assert!(!Card::new(QUEEN, CLUBS).is_valid())
     }
 
     #[test]

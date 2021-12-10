@@ -1,2 +1,2 @@
 pub mod bridge;
-mod standard52;
+pub mod standard52;
