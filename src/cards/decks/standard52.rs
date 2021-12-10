@@ -26,9 +26,7 @@ impl Standard52 {
         let rank = Rank::from_french_deck_index(Standard52::rank_str_from_index_string(card_str));
         let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index_string(card_str));
 
-        if rank.is_blank() {
-            Card::blank_card()
-        } else if suit.is_blank() {
+        if rank.is_blank() || suit.is_blank() {
             Card::blank_card()
         } else {
             Card::new_from_structs(rank, suit)
@@ -37,14 +35,14 @@ impl Standard52 {
 
     fn rank_str_from_index_string(card_str: &'static str) -> &'static str {
         if card_str.len() < 2 {
-            return BLANK_RANK
+            return BLANK_RANK;
         }
         &card_str[..1]
     }
 
     fn suit_char_from_index_string(card_str: &'static str) -> char {
         if card_str.len() < 2 {
-            return '_'
+            return '_';
         }
         card_str.char_indices().nth(1).unwrap().1
     }
@@ -81,9 +79,7 @@ mod standard52_tests {
     }
 
     #[test]
-    fn play() {
-
-    }
+    fn play() {}
 
     #[test]
     fn rank_str_from_index_string() {
