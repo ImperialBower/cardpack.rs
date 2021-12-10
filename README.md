@@ -108,3 +108,7 @@ internationalization. Current languages supported are
 
 * [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
   * [Project Fluent](https://www.projectfluent.org/)
+
+## Dev Dependencies
+
+* [rstest](https://github.com/la10736/rstest) - Fixture-based test framework for Rust
