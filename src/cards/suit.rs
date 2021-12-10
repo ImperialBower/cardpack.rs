@@ -23,7 +23,7 @@ pub const HERZ: &str = "herz"; // Hearts
 pub const SHELLEN: &str = "schellen"; // Bells
                                       // Special Suits
 pub const TRUMP: &str = "trump";
-pub const BLANK_SUIT: &str = "_";
+pub const BLANK_SUIT: &str = "blank";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
@@ -34,8 +34,8 @@ pub struct Suit {
 }
 
 impl Suit {
-    pub fn new(name: &'static str) -> Suit {
-        let name = FluentName::new(name);
+    pub fn new(name_str: &'static str) -> Suit {
+        let name = FluentName::new(name_str);
         Suit {
             weight: name.default_weight(),
             name,
@@ -138,6 +138,11 @@ mod suit_tests {
         };
 
         assert_eq!(expected, Suit::new(SPADES));
+    }
+
+    #[test]
+    fn new__invalid() {
+        assert!(Suit::new("").is_blank());
     }
 
     #[test]

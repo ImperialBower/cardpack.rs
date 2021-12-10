@@ -2,6 +2,8 @@ use std::fmt;
 
 use crate::Named;
 
+const BLANK: &str = "blank";
+
 /// FluentName is the primary implementation of the Named trait.
 ///
 /// FluentName represents the fluent template key for a card entity such as a Suit or Rank,
@@ -14,7 +16,11 @@ pub struct FluentName(&'static str);
 
 impl FluentName {
     pub fn new(name: &'static str) -> FluentName {
-        FluentName(name)
+        if name.is_empty() {
+            FluentName(BLANK)
+        } else {
+            FluentName(name)
+        }
     }
 }
 
@@ -44,6 +50,13 @@ mod fluent_tests {
             let n = FluentName::new("boop");
 
             assert_eq!("boop".to_string(), n.0)
+        }
+
+        #[test]
+        fn new__invalid() {
+            let n = FluentName::new("");
+
+            assert_eq!("_".to_string(), n.index_default())
         }
 
         #[test]

@@ -77,7 +77,7 @@ impl Card {
     }
 
     pub fn is_valid(&self) -> bool {
-        self == &Card::blank_card()
+        !self.rank.is_blank() && !self.suit.is_blank()
     }
 
     // Private methods
@@ -185,8 +185,17 @@ mod card_tests {
     }
 
     #[test]
+    fn is_valid() {
+        assert!(Card::new(QUEEN, CLUBS).is_valid())
+    }
+
+    #[test]
     fn is_valid__false() {
-        assert!(!Card::new(QUEEN, CLUBS).is_valid())
+        assert!(!Card::new("", "").is_valid());
+        assert!(!Card::new(QUEEN, BLANK_SUIT).is_valid());
+        assert!(!Card::new(BLANK_RANK, CLUBS).is_valid());
+        assert!(!Card::new(BLANK_RANK, BLANK_SUIT).is_valid());
+        assert!(!Card::new(" ", BLANK_SUIT).is_valid());
     }
 
     #[test]

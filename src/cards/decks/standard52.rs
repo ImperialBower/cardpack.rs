@@ -92,7 +92,6 @@ mod standard52_tests {
         assert_eq!('♠', Standard52::suit_char_from_index_string("2♠"));
     }
 
-    //
     #[rstest]
     #[case("2S", Card::new(TWO, SPADES))]
     #[case("2♠", Card::new(TWO, SPADES))]
@@ -109,6 +108,7 @@ mod standard52_tests {
     #[rstest]
     #[case("XX")]
     #[case("2X")]
+    #[case("2s")]
     #[case("XS")]
     #[case("  ")]
     #[case(" ")]
