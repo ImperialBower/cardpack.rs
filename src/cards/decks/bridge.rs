@@ -94,10 +94,10 @@ impl BridgeBoard {
     }
 
     pub fn demo(&self) {
-        println!("S: {}", self.south.sort().by_symbol_index());
-        println!("W: {}", self.west.sort().by_symbol_index());
-        println!("N: {}", self.north.sort().by_symbol_index());
-        println!("E: {}", self.east.sort().by_symbol_index());
+        println!("S: {}", self.south.sort().to_symbol_index());
+        println!("W: {}", self.west.sort().to_symbol_index());
+        println!("N: {}", self.north.sort().to_symbol_index());
+        println!("E: {}", self.east.sort().to_symbol_index());
     }
 
     pub fn get_pack(&self) -> &Pack {
@@ -226,10 +226,10 @@ mod bridge_tests {
 
         let deal = BridgeBoard::from_pbn_deal(PBN_TEST_STRING);
 
-        assert_eq!(south.unwrap().by_index(), deal.south.by_index());
-        assert_eq!(west.unwrap().by_index(), deal.west.by_index());
-        assert_eq!(north.unwrap().by_index(), deal.north.by_index());
-        assert_eq!(east.unwrap().by_index(), deal.east.by_index());
+        assert_eq!(south.unwrap().to_index(), deal.south.to_index());
+        assert_eq!(west.unwrap().to_index(), deal.west.to_index());
+        assert_eq!(north.unwrap().to_index(), deal.north.to_index());
+        assert_eq!(east.unwrap().to_index(), deal.east.to_index());
         assert!(deal.is_valid())
     }
 
@@ -252,7 +252,7 @@ mod bridge_tests {
 
         let deal = BridgeBoard::from_pbn_deal(pbn);
 
-        assert_eq!(west.unwrap().by_index(), deal.west.by_index());
+        assert_eq!(west.unwrap().to_index(), deal.west.to_index());
         assert!(deal.is_valid())
     }
 

@@ -24,10 +24,8 @@ impl Standard52 {
     }
 
     pub fn from_index(card_str: &'static str) -> Standard52 {
-        let raw_cards: Vec<&str> = card_str.split(' ').collect();
-
         let mut pile = Pile::default();
-        for index in raw_cards {
+        for index in card_str.split_whitespace() {
             pile.add(Standard52::card_from_index(index));
         }
 
@@ -37,13 +35,13 @@ impl Standard52 {
         }
     }
 
-    pub fn by_index(&self) -> String {
-        self.deck.by_index()
+    pub fn to_index(&self) -> String {
+        self.deck.to_index()
     }
-    //
-    // pub fn by_index_str(&self) -> &'static str {
-    //     self.by_index().as_str()
-    // }
+
+    pub fn to_index_str(&self) -> &'static str {
+        Box::leak(self.to_index().into_boxed_str())
+    }
 
     pub fn is_complete(&self) -> bool {
         let pile = self.deck.sort();
@@ -107,6 +105,15 @@ mod standard52_tests {
     }
 
     #[test]
+    fn from_index_shuffled() {
+        let starter = Standard52::new_shuffled();
+        let standard52 = Standard52::from_index(starter.to_index_str());
+
+        assert!(standard52.is_complete());
+        assert_eq!(starter, standard52);
+    }
+
+    #[test]
     fn is_complete() {
         assert!(Standard52::default().is_complete());
         assert!(Standard52::new_shuffled().is_complete());
@@ -118,16 +125,6 @@ mod standard52_tests {
         assert!(!Standard52::new(Pile::french_deck().draw(4).unwrap()).is_complete());
         assert!(!Standard52::new(Pile::french_deck_with_jokers()).is_complete());
     }
-
-    // #[test]
-    // fn play() {
-    //     let starter = Standard52::new_shuffled();
-    //     let index_string = starter.by_index();
-    //     // let index_str:&'static str = index_string;
-    //     let standard52 = Standard52::from_index(index_string.as_str());
-    //
-    //     assert!(standard52.is_complete());
-    // }
 
     #[test]
     fn rank_str_from_index() {

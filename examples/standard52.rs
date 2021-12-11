@@ -3,6 +3,6 @@ fn main() {
     let pack = cardpack::Pack::french_deck();
 
     let shuffled = pack.cards().shuffle();
-    let index_str = shuffled.by_index();
+    let index_str = shuffled.to_index();
     println!("{}", index_str);
 }

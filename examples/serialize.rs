@@ -2,7 +2,7 @@ fn main() {
     let pack = cardpack::Pack::french_deck();
     let shuffled = pack.cards().shuffle();
 
-    let card_str = shuffled.by_symbol_index();
+    let card_str = shuffled.to_symbol_index();
 
     let _rawcards: Vec<&str> = card_str.split(' ').collect();
 
