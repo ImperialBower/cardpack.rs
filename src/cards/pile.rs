@@ -72,6 +72,7 @@ impl Pile {
         self.to_index_locale(&US_ENGLISH)
     }
 
+    /// https://stackoverflow.com/a/52367953
     pub fn to_index_str(&self) -> &'static str {
         Box::leak(self.to_index().into_boxed_str())
     }

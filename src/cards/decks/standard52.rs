@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::{Card, Pack, Pile};
@@ -80,6 +82,13 @@ impl Default for Standard52 {
             pack: Pack::french_deck(),
             deck: Pile::french_deck(),
         }
+    }
+}
+
+impl fmt::Display for Standard52 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let sig = self.to_index();
+        write!(f, "{}", sig)
     }
 }
 
