@@ -2,12 +2,27 @@ use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::{Card, Pack, Pile};
 
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Standard52 {
     pub pack: Pack,
     pub deck: Pile,
 }
 
 impl Standard52 {
+    pub fn new(pile: Pile) -> Standard52 {
+        Standard52 {
+            pack: Pack::french_deck(),
+            deck: pile,
+        }
+    }
+
+    pub fn new_shuffled() -> Standard52 {
+        Standard52 {
+            pack: Pack::french_deck(),
+            deck: Pile::french_deck().shuffle(),
+        }
+    }
+
     pub fn from_index(card_str: &'static str) -> Standard52 {
         let raw_cards: Vec<&str> = card_str.split(' ').collect();
 
@@ -20,6 +35,19 @@ impl Standard52 {
             pack: Pack::french_deck(),
             deck: pile,
         }
+    }
+
+    pub fn by_index(&self) -> String {
+        self.deck.by_index()
+    }
+    //
+    // pub fn by_index_str(&self) -> &'static str {
+    //     self.by_index().as_str()
+    // }
+
+    pub fn is_complete(&self) -> bool {
+        let pile = self.deck.sort();
+        &pile == self.pack.cards()
     }
 
     pub fn card_from_index(card_str: &'static str) -> Card {
@@ -79,7 +107,27 @@ mod standard52_tests {
     }
 
     #[test]
-    fn play() {}
+    fn is_complete() {
+        assert!(Standard52::default().is_complete());
+        assert!(Standard52::new_shuffled().is_complete());
+        assert!(Standard52::new(Pile::french_deck().draw(52).unwrap()).is_complete());
+    }
+
+    #[test]
+    fn is_complete__false() {
+        assert!(!Standard52::new(Pile::french_deck().draw(4).unwrap()).is_complete());
+        assert!(!Standard52::new(Pile::french_deck_with_jokers()).is_complete());
+    }
+
+    // #[test]
+    // fn play() {
+    //     let starter = Standard52::new_shuffled();
+    //     let index_string = starter.by_index();
+    //     // let index_str:&'static str = index_string;
+    //     let standard52 = Standard52::from_index(index_string.as_str());
+    //
+    //     assert!(standard52.is_complete());
+    // }
 
     #[test]
     fn rank_str_from_index() {
