@@ -40,7 +40,7 @@ impl Standard52 {
     }
 
     pub fn to_index_str(&self) -> &'static str {
-        Box::leak(self.to_index().into_boxed_str())
+        self.deck.to_index_str()
     }
 
     pub fn is_complete(&self) -> bool {

@@ -72,6 +72,10 @@ impl Pile {
         self.to_index_locale(&US_ENGLISH)
     }
 
+    pub fn to_index_str(&self) -> &'static str {
+        Box::leak(self.to_index().into_boxed_str())
+    }
+
     pub fn to_index_locale(&self, lid: &LanguageIdentifier) -> String {
         Pile::sig_generate_from_strings(&self.collect_index(lid))
     }
