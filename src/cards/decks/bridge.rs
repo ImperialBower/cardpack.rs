@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
@@ -197,6 +199,13 @@ impl Default for BridgeBoard {
             north: Pile::default(),
             east: Pile::default(),
         }
+    }
+}
+
+impl fmt::Display for BridgeBoard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let sig = self.to_pbn_deal();
+        write!(f, "{}", sig)
     }
 }
 
