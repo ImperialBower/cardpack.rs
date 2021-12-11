@@ -52,6 +52,8 @@ pub const WORLD: &str = "world";
 pub const KNIGHT: &str = "knight";
 pub const PAGE: &str = "page";
 
+pub const BLANK_RANK: &str = "_";
+
 /// Rank Struct for a Card. Examples of standard Card Ranks would include: Ace, Ten, and Deuce
 /// Joker, Death (Tarot), and Ober (Skat). The weight of the Rank determines how a Card is sorted relative to
 /// it's Suit.
@@ -146,6 +148,30 @@ impl Rank {
         v
     }
 
+    /// Returns a Rank entity based on its index string.
+    pub fn from_french_deck_index(index: &'static str) -> Rank {
+        match index {
+            "JB" => Rank::new(BIG_JOKER),
+            "JL" => Rank::new(LITTLE_JOKER),
+            "A" => Rank::new(ACE),
+            "K" => Rank::new(KING),
+            "Q" => Rank::new(QUEEN),
+            "J" => Rank::new(JACK),
+            "T" => Rank::new(TEN),
+            "10" => Rank::new(TEN),
+            "0" => Rank::new(TEN),
+            "9" => Rank::new(NINE),
+            "8" => Rank::new(EIGHT),
+            "7" => Rank::new(SEVEN),
+            "6" => Rank::new(SIX),
+            "5" => Rank::new(FIVE),
+            "4" => Rank::new(FOUR),
+            "3" => Rank::new(THREE),
+            "2" => Rank::new(TWO),
+            _ => Rank::new(BLANK_RANK),
+        }
+    }
+
     pub fn generate_canasta_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             TWO, ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE,
@@ -183,6 +209,10 @@ impl Rank {
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
     }
+
+    pub fn is_blank(&self) -> bool {
+        self.name.name() == BLANK_RANK
+    }
 }
 
 impl fmt::Display for Rank {
@@ -202,6 +232,7 @@ impl Named for Rank {
 mod rank_tests {
     use super::*;
     use crate::{GERMAN, US_ENGLISH};
+    use rstest::rstest;
 
     #[test]
     fn display() {
@@ -265,6 +296,31 @@ mod rank_tests {
         expected.push(Rank::new_with_weight(QUEEN, 2));
 
         assert_eq!(expected, Rank::from_array(&[KING, QUEEN]));
+    }
+
+    #[rstest]
+    #[case("JB", Rank::new(BIG_JOKER))]
+    #[case("JL", Rank::new(LITTLE_JOKER))]
+    #[case("A", Rank::new(ACE))]
+    #[case("K", Rank::new(KING))]
+    #[case("Q", Rank::new(QUEEN))]
+    #[case("J", Rank::new(JACK))]
+    #[case("T", Rank::new(TEN))]
+    #[case("10", Rank::new(TEN))]
+    #[case("0", Rank::new(TEN))]
+    #[case("9", Rank::new(NINE))]
+    #[case("8", Rank::new(EIGHT))]
+    #[case("7", Rank::new(SEVEN))]
+    #[case("6", Rank::new(SIX))]
+    #[case("5", Rank::new(FIVE))]
+    #[case("4", Rank::new(FOUR))]
+    #[case("3", Rank::new(THREE))]
+    #[case("2", Rank::new(TWO))]
+    #[case("_", Rank::new(BLANK_RANK))]
+    #[case("", Rank::new(BLANK_RANK))]
+    #[case(" ", Rank::new(BLANK_RANK))]
+    fn from_french_deck_index(#[case] input: &'static str, #[case] expected: Rank) {
+        assert_eq!(expected, Rank::from_french_deck_index(input));
     }
 
     #[test]

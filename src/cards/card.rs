@@ -72,6 +72,14 @@ impl Card {
         }
     }
 
+    pub fn blank_card() -> Card {
+        Card::new(BLANK, BLANK)
+    }
+
+    pub fn is_valid(&self) -> bool {
+        !self.rank.is_blank() && !self.suit.is_blank()
+    }
+
     // Private methods
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
         let rank = rank.index_default();
@@ -174,6 +182,20 @@ mod card_tests {
         let card = Card::new(QUEEN, HEARTS);
 
         assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
+    }
+
+    #[test]
+    fn is_valid() {
+        assert!(Card::new(QUEEN, CLUBS).is_valid())
+    }
+
+    #[test]
+    fn is_valid__false() {
+        assert!(!Card::new("", "").is_valid());
+        assert!(!Card::new(QUEEN, BLANK_SUIT).is_valid());
+        assert!(!Card::new(BLANK_RANK, CLUBS).is_valid());
+        assert!(!Card::new(BLANK_RANK, BLANK_SUIT).is_valid());
+        assert!(!Card::new(" ", BLANK_SUIT).is_valid());
     }
 
     #[test]

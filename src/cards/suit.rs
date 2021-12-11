@@ -23,6 +23,7 @@ pub const HERZ: &str = "herz"; // Hearts
 pub const SHELLEN: &str = "schellen"; // Bells
                                       // Special Suits
 pub const TRUMP: &str = "trump";
+pub const BLANK_SUIT: &str = "blank";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
@@ -33,8 +34,8 @@ pub struct Suit {
 }
 
 impl Suit {
-    pub fn new(name: &'static str) -> Suit {
-        let name = FluentName::new(name);
+    pub fn new(name_str: &'static str) -> Suit {
+        let name = FluentName::new(name_str);
         Suit {
             weight: name.default_weight(),
             name,
@@ -46,6 +47,10 @@ impl Suit {
             weight,
             name: FluentName::new(name),
         }
+    }
+
+    pub fn is_blank(&self) -> bool {
+        self.name.name() == BLANK_SUIT
     }
 
     pub fn symbol(&self) -> String {
@@ -69,6 +74,23 @@ impl Suit {
 
     pub fn from_array(s: &[&'static str]) -> Vec<Suit> {
         Suit::from_array_gen(s, Suit::top_down_value)
+    }
+
+    /// Returns a Suit from its symbol string.
+    pub fn from_french_deck_index(symbol: char) -> Suit {
+        match symbol {
+            '♠' => Suit::new(SPADES),
+            'S' => Suit::new(SPADES),
+            '♥' => Suit::new(HEARTS),
+            'H' => Suit::new(HEARTS),
+            '♦' => Suit::new(DIAMONDS),
+            'D' => Suit::new(DIAMONDS),
+            '♣' => Suit::new(CLUBS),
+            'C' => Suit::new(CLUBS),
+            '🃟' => Suit::new(TRUMP),
+            'T' => Suit::new(TRUMP),
+            _ => Suit::new(BLANK_SUIT),
+        }
     }
 
     pub fn generate_french_suits() -> Vec<Suit> {
@@ -101,6 +123,7 @@ impl Named for Suit {
 mod suit_tests {
     use super::*;
     use crate::{GERMAN, US_ENGLISH};
+    use rstest::rstest;
 
     #[test]
     fn display() {
@@ -118,6 +141,11 @@ mod suit_tests {
     }
 
     #[test]
+    fn new__invalid() {
+        assert!(Suit::new("").is_blank());
+    }
+
+    #[test]
     fn new_with_value() {
         let expected = Suit {
             weight: 4,
@@ -127,8 +155,25 @@ mod suit_tests {
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
     }
 
+    #[rstest]
+    #[case('♠', Suit::new(SPADES))]
+    #[case('S', Suit::new(SPADES))]
+    #[case('♥', Suit::new(HEARTS))]
+    #[case('H', Suit::new(HEARTS))]
+    #[case('♦', Suit::new(DIAMONDS))]
+    #[case('D', Suit::new(DIAMONDS))]
+    #[case('♣', Suit::new(CLUBS))]
+    #[case('C', Suit::new(CLUBS))]
+    #[case('🃟', Suit::new(TRUMP))]
+    #[case('T', Suit::new(TRUMP))]
+    #[case(' ', Suit::new(BLANK_SUIT))]
+    #[case('F', Suit::new(BLANK_SUIT))]
+    fn from_french_deck_index(#[case] input: char, #[case] expected: Suit) {
+        assert_eq!(expected, Suit::from_french_deck_index(input));
+    }
+
     #[test]
-    fn partial_eq() {
+    fn part1ial_eq() {
         assert_ne!(
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)

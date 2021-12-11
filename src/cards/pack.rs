@@ -13,7 +13,7 @@ use crate::cards::pile::Pile;
 /// let sb = shuffled.draw(2).unwrap();
 /// let bb = shuffled.draw(2).unwrap();
 ///
-/// println!("small blind: {}", sb.by_symbol_index());
+/// println!("small blind: {}", sb.to_symbol_index());
 /// println!("big blind:   {}", bb);
 ///
 /// println!();
