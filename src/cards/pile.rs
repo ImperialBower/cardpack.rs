@@ -102,6 +102,13 @@ impl Pile {
         &self.0
     }
 
+    // TODO
+    pub fn cards_by_suit(&self, _suit: Suit) -> Vec<Card> {
+        let qh = Card::new(QUEEN, HEARTS);
+        let jh = Card::new(JACK, HEARTS);
+        vec![qh, jh]
+    }
+
     fn collect_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
         self.0.iter().map(|s| s.index(lid)).collect()
     }
@@ -298,13 +305,6 @@ impl Pile {
     pub fn sort_in_place(&mut self) {
         self.0.sort();
         self.0.reverse();
-    }
-
-    // TODO
-    pub fn cards_by_suit(&self, _suit: Suit) -> Vec<Card> {
-        let qh = Card::new(QUEEN, HEARTS);
-        let jh = Card::new(JACK, HEARTS);
-        vec![qh, jh]
     }
 
     /// Returns a sorted collection of the unique Suits in a Pile.
@@ -540,6 +540,18 @@ mod card_deck_tests {
 
         // Verifies that the index for a card in the tarot deck isn't in a spades deck.
         assert!(deck.card_by_index(fool_index.as_str()).is_none());
+    }
+
+    #[test]
+    fn cards() {
+        let qclubs = Card::new(QUEEN, CLUBS);
+        let qhearts = Card::new(QUEEN, HEARTS);
+        let expected = vec![qclubs.clone(), qhearts.clone()];
+        let pile = Pile::new_from_vector(expected.clone());
+
+        let v = pile.cards();
+
+        assert_eq!(&expected, v);
     }
 
     #[test]
