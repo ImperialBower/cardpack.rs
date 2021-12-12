@@ -45,6 +45,10 @@ impl Standard52 {
         self.deck.to_index_str()
     }
 
+    pub fn to_symbol_index(&self) -> String {
+        self.deck.to_symbol_index()
+    }
+
     pub fn is_complete(&self) -> bool {
         let pile = self.deck.sort();
         &pile == self.pack.cards()
@@ -111,6 +115,24 @@ mod standard52_tests {
             Card::new(THREE, DIAMONDS),
             standard52.deck.draw_first().unwrap()
         );
+    }
+
+    #[test]
+    fn to_index() {
+        let expected = "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C".to_string();
+        assert_eq!(expected, Standard52::default().to_index())
+    }
+
+    #[test]
+    fn to_index_str() {
+        let expected = "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C";
+        assert_eq!(expected, Standard52::default().to_index_str())
+    }
+
+    #[test]
+    fn to_symbol_index() {
+        let expected = "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣";
+        assert_eq!(expected, Standard52::default().to_symbol_index())
     }
 
     #[test]
