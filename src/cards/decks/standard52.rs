@@ -45,6 +45,10 @@ impl Standard52 {
         self.deck.to_index_str()
     }
 
+    pub fn to_symbol_index(&self) -> String {
+        self.deck.to_symbol_index()
+    }
+
     pub fn is_complete(&self) -> bool {
         let pile = self.deck.sort();
         &pile == self.pack.cards()
