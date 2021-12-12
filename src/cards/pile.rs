@@ -72,7 +72,9 @@ impl Pile {
         self.to_index_locale(&US_ENGLISH)
     }
 
-    /// https://stackoverflow.com/a/52367953
+    /// Returns a static str of the Pack's index. Mainly used for testing deserialization.
+    ///
+    /// Idea from: https://stackoverflow.com/a/52367953
     pub fn to_index_str(&self) -> &'static str {
         Box::leak(self.to_index().into_boxed_str())
     }
@@ -158,7 +160,7 @@ impl Pile {
     }
 
     pub fn draw(&mut self, x: usize) -> Option<Pile> {
-        if x > self.len() {
+        if x > self.len() || x < 1 {
             None
         } else {
             let mut cards = Pile::default();
@@ -475,7 +477,7 @@ mod card_deck_tests {
     use super::*;
 
     #[test]
-    fn new_all_add_new_from_vector() {
+    fn new_from_vector() {
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
         let mut expected = Pile::default();
@@ -523,7 +525,7 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn card_by_index_ne() {
+    fn card_by_index__ne() {
         let deck = Pile::spades_deck();
         let fool_index = Card::new(FOOL, MAJOR_ARCANA).index_default();
 
@@ -550,7 +552,7 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn contains_all_ne() {
+    fn contains_all__ne() {
         let deck = Pile::spades_deck();
         let hand = Pile::skat_deck().shuffle().draw(4).unwrap();
 
@@ -559,14 +561,12 @@ mod card_deck_tests {
 
     #[test]
     fn draw() {
-        let mut zero = Pile::default();
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
         let qspades = Card::new(QUEEN, SPADES);
         let mut deck =
             Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone(), qspades.clone()]);
 
-        assert!(zero.draw(2).is_none());
         assert_eq!(
             deck.draw(2).unwrap(),
             Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()])
@@ -575,38 +575,64 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn draw_first() {
+    fn draw__empty_deck() {
         let mut zero = Pile::default();
+
+        assert!(zero.draw(1).is_none());
+        assert!(zero.draw(2).is_none());
+        assert!(zero.draw(0).is_none());
+    }
+
+    #[test]
+    fn draw__index_too_high() {
+        let mut deck = Pile::french_deck();
+
+        assert!(deck.draw(53).is_none());
+        assert!(deck.draw(100).is_none());
+    }
+
+    #[test]
+    fn draw_first() {
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
         let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
-        assert!(zero.draw_first().is_none());
         assert_eq!(deck.draw_first().unwrap(), qclubs);
         assert_eq!(1, deck.len());
     }
 
     #[test]
+    fn draw_first__empty_deck() {
+        assert!(Pile::default().draw_first().is_none());
+    }
+
+    #[test]
     fn draw_last() {
-        let mut zero = Pile::default();
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
         let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
-        assert!(zero.draw_last().is_none());
         assert_eq!(deck.draw_last().unwrap(), qhearts);
         assert_eq!(1, deck.len());
     }
 
     #[test]
+    fn draw_last__empty_deck() {
+        assert!(Pile::default().draw_last().is_none());
+    }
+
+    #[test]
     fn first() {
-        let zero = Pile::default();
         let qclubs = Card::new(QUEEN, CLUBS);
         let qhearts = Card::new(QUEEN, HEARTS);
         let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
-        assert!(zero.first().is_none());
         assert_eq!(deck.first().unwrap(), &qclubs);
+    }
+
+    #[test]
+    fn first__empty_deck() {
+        assert!(Pile::default().first().is_none());
     }
 
     #[test]
@@ -836,9 +862,7 @@ mod card_deck_tests {
     fn to_string() {
         let deck = Pile::french_deck().draw(4);
 
-        let sig = deck.unwrap().to_string();
-
-        assert_eq!("AS KS QS JS".to_string(), sig);
+        assert_eq!("AS KS QS JS".to_string(), deck.unwrap().to_string());
     }
 
     #[test]
@@ -859,7 +883,7 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn french_deck_with_jokers() {
+    fn ln__french_deck_with_jokers() {
         let deck = Pile::french_deck_with_jokers();
 
         assert_eq!(54, deck.len());
