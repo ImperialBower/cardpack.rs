@@ -107,7 +107,7 @@ impl Pile {
     }
 
     fn collect_symbol_index(&self, lid: &LanguageIdentifier) -> Vec<String> {
-        self.0.iter().map(|s| s.symbol_colorized(lid)).collect()
+        self.0.iter().map(|s| s.symbol(lid)).collect()
     }
 
     /// Tests if a card is in the Pile.
@@ -301,10 +301,10 @@ impl Pile {
     }
 
     // TODO
-    pub fn cards_by_suit(&self, suit: Suit) -> Vec<Card> {
+    pub fn cards_by_suit(&self, _suit: Suit) -> Vec<Card> {
         let qh = Card::new(QUEEN, HEARTS);
         let jh = Card::new(JACK, HEARTS);
-        vec![qh.clone(), jh.clone()]
+        vec![qh, jh]
     }
 
     /// Returns a sorted collection of the unique Suits in a Pile.
@@ -880,6 +880,12 @@ mod card_deck_tests {
     }
 
     #[test]
+    fn to_symbol_index() {
+        let expected = "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣".to_string();
+        assert_eq!(expected, Pile::french_deck().to_symbol_index())
+    }
+
+    #[test]
     fn to_string() {
         let deck = Pile::french_deck().draw(4);
 
@@ -904,7 +910,7 @@ mod card_deck_tests {
     }
 
     #[test]
-    fn ln__french_deck_with_jokers() {
+    fn len__french_deck_with_jokers() {
         let deck = Pile::french_deck_with_jokers();
 
         assert_eq!(54, deck.len());
