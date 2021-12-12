@@ -298,6 +298,13 @@ impl Pile {
         self.0.reverse();
     }
 
+    // TODO
+    pub fn cards_by_suit(&self, suit: Suit) -> Vec<Card> {
+        let qh = Card::new(QUEEN, HEARTS);
+        let jh = Card::new(JACK, HEARTS);
+        vec![qh.clone(), jh.clone()]
+    }
+
     /// Returns a sorted collection of the unique Suits in a Pile.
     pub fn suits(&self) -> Vec<Suit> {
         let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit).collect();
