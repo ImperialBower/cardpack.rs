@@ -104,8 +104,8 @@ impl Pile {
 
     /// Returns a Vector of Cards matching the passed in Suit.
     pub fn cards_by_suit(&self, suit: Suit) -> Vec<Card> {
-        self.0
-            .clone()
+        self.sort()
+            .0
             .into_iter()
             .filter(|c| c.suit == suit)
             .collect()
@@ -558,13 +558,15 @@ mod card_deck_tests {
 
     #[test]
     fn cards_by_suit() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let expected = vec![qclubs.clone()];
+        let qh = Card::new(QUEEN, HEARTS);
+        let qc = Card::new(QUEEN, CLUBS);
+        let jh = Card::new(JACK, HEARTS);
+        let jc = Card::new(JACK, CLUBS);
+        let expected = vec![qc.clone(), jc.clone()];
 
-        let pile = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let pile = Pile::new_from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
 
-        let v = pile.cards_by_suit(qclubs.suit);
+        let v = pile.cards_by_suit(qc.suit);
 
         assert_eq!(expected, v);
     }
