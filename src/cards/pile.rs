@@ -68,6 +68,8 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
+    /// Returns a simple string representation of the Cards in the Pile based upon the
+    /// default language local, which is US_ENGLISH.
     pub fn to_index(&self) -> String {
         self.to_index_locale(&US_ENGLISH)
     }
@@ -856,6 +858,18 @@ mod card_deck_tests {
         let suits = deck.suits();
 
         assert_eq!(expected, suits);
+    }
+
+    #[test]
+    fn to_index() {
+        let expected = "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C".to_string();
+        assert_eq!(expected, Pile::french_deck().to_index())
+    }
+
+    #[test]
+    fn to_index_str() {
+        let expected = "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C";
+        assert_eq!(expected, Pile::french_deck().to_index_str())
     }
 
     #[test]

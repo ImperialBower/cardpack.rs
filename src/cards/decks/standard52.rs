@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::cards::decks::deck_error::DeckError;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
 use crate::{Card, Pack, Pile};
@@ -11,10 +12,16 @@ pub struct Standard52 {
 }
 
 impl Standard52 {
-    pub fn new(pile: Pile) -> Standard52 {
-        Standard52 {
+    pub fn new_from_pile(pile: Pile) -> Result<Standard52, DeckError> {
+        let standard52 = Standard52 {
             pack: Pack::french_deck(),
             deck: pile,
+        };
+
+        if standard52.is_complete() {
+            Ok(standard52)
+        } else {
+            Err(DeckError::PilePackMismatch)
         }
     }
 
@@ -25,15 +32,21 @@ impl Standard52 {
         }
     }
 
-    pub fn from_index(card_str: &'static str) -> Standard52 {
+    pub fn from_index(card_str: &'static str) -> Result<Standard52, DeckError> {
         let mut pile = Pile::default();
         for index in card_str.split_whitespace() {
             pile.add(Standard52::card_from_index(index));
         }
 
-        Standard52 {
+        let standard52 = Standard52 {
             pack: Pack::french_deck(),
             deck: pile,
+        };
+
+        if standard52.is_complete() {
+            Ok(standard52)
+        } else {
+            Err(DeckError::InvalidIndex)
         }
     }
 
@@ -49,6 +62,7 @@ impl Standard52 {
         self.deck.to_symbol_index()
     }
 
+    /// A Standard52 deck is complete if a sorted Pile of the deck is equal to it's Pack.
     pub fn is_complete(&self) -> bool {
         let pile = self.deck.sort();
         &pile == self.pack.cards()
@@ -105,7 +119,8 @@ mod standard52_tests {
     #[test]
     fn from_index() {
         let index_string = "2S 3D QS KH 3C 3S TC 9H 3H 6H QD 4H 2H 5S 6D 9S AD 5C 7S JS AC 6S 8H 7C JC 7H JD TS AS KS JH 5D 6C 9C QC 8D 4C 5H 4D 8S 2C AH 2D 9D TH KD 7D KC 4S 8C QH TD";
-        let mut standard52 = Standard52::from_index(index_string);
+
+        let mut standard52 = Standard52::from_index(index_string).unwrap();
 
         assert_eq!(
             Card::new(TWO, SPADES),
@@ -115,6 +130,15 @@ mod standard52_tests {
             Card::new(THREE, DIAMONDS),
             standard52.deck.draw_first().unwrap()
         );
+    }
+
+    #[test]
+    fn from_index__invalid() {
+        let index_string = "2S 3D QS K 3C 3S TC 9H 3H 6H QD 4H 2H 5S 6D 9S AD 5C 7S JS AC 6S 8H 7C JC 7H JD TS AS KS JH 5D 6C 9C QC 8D 4C 5H 4D 8S 2C AH 2D 9D TH KD 7D KC 4S 8C QH TD";
+
+        let standard52 = Standard52::from_index(index_string);
+
+        assert!(standard52.is_err())
     }
 
     #[test]
@@ -131,30 +155,67 @@ mod standard52_tests {
 
     #[test]
     fn to_symbol_index() {
-        let expected = "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣";
+        let expected = "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣".to_string();
         assert_eq!(expected, Standard52::default().to_symbol_index())
     }
 
     #[test]
     fn from_index_shuffled() {
         let starter = Standard52::new_shuffled();
-        let standard52 = Standard52::from_index(starter.to_index_str());
+
+        let standard52 = Standard52::from_index(starter.to_index_str()).unwrap();
 
         assert!(standard52.is_complete());
         assert_eq!(starter, standard52);
     }
 
     #[test]
-    fn is_complete() {
-        assert!(Standard52::default().is_complete());
-        assert!(Standard52::new_shuffled().is_complete());
-        assert!(Standard52::new(Pile::french_deck().draw(52).unwrap()).is_complete());
+    fn from_index_shuffled__symbol_index() {
+        let index = "8♣ 4♣ K♥ Q♦ K♦ 8♥ 5♦ T♣ 9♦ J♣ T♠ 2♠ 4♥ 2♦ 3♠ 5♥ 3♦ A♣ T♥ 7♠ 4♠ K♠ 5♠ 7♣ A♥ K♣ J♠ A♠ Q♥ 2♣ 6♦ J♦ 6♠ 8♠ T♦ 9♠ 7♦ 8♦ 7♥ Q♣ 4♦ 9♣ J♥ 3♣ 6♥ 5♣ A♦ 3♥ 6♣ Q♠ 2♥ 9♥";
+
+        let standard52 = Standard52::from_index(index).unwrap();
+
+        assert!(standard52.is_complete());
     }
 
     #[test]
-    fn is_complete__false() {
-        assert!(!Standard52::new(Pile::french_deck().draw(4).unwrap()).is_complete());
-        assert!(!Standard52::new(Pile::french_deck_with_jokers()).is_complete());
+    fn from_index_shuffled__invalid_symbol_index() {
+        let index = "8 4♣ K♥ Q♦ K♦ 8♥ 5♦ T♣ 9♦ J♣ T♠ 2♠ 4♥ 2♦ 3♠ 5♥ 3♦ A♣ T♥ 7♠ 4♠ K♠ 5♠ 7♣ A♥ K♣ J♠ A♠ Q♥ 2♣ 6♦ J♦ 6♠ 8♠ T♦ 9♠ 7♦ 8♦ 7♥ Q♣ 4♦ 9♣ J♥ 3♣ 6♥ 5♣ A♦ 3♥ 6♣ Q♠ 2♥ 9♥";
+
+        let standard52 = Standard52::from_index(index);
+
+        assert!(standard52.is_err());
+    }
+
+    #[test]
+    fn is_complete() {
+        assert!(Standard52::default().is_complete());
+        assert!(Standard52::new_shuffled().is_complete());
+        assert!(
+            Standard52::new_from_pile(Pile::french_deck().draw(52).unwrap())
+                .unwrap()
+                .is_complete()
+        );
+    }
+
+    #[test]
+    fn is_complete__french_deck_with_jokers__false() {
+        let standard52 = Standard52 {
+            pack: Pack::french_deck(),
+            deck: Pile::french_deck_with_jokers(),
+        };
+
+        assert!(!standard52.is_complete());
+    }
+
+    #[test]
+    fn is_complete__missing_cards__false() {
+        let standard52 = Standard52 {
+            pack: Pack::french_deck(),
+            deck: Pile::french_deck().shuffle().draw(50).unwrap(),
+        };
+
+        assert!(!standard52.is_complete());
     }
 
     #[test]
