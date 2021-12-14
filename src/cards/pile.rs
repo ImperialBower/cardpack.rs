@@ -268,12 +268,36 @@ impl Pile {
         self.0 = product;
     }
 
+    pub fn ranks(&self) -> Vec<Rank> {
+        let hashset: HashSet<Rank> = self.0.iter().map(|c| c.rank).collect();
+        let mut ranks: Vec<Rank> = Vec::from_iter(hashset);
+        ranks.sort();
+        ranks.reverse();
+        ranks
+    }
+
     /// Returns a String of all of the Rank Index Characters for a Pile.
     pub fn rank_indexes(&self) -> String {
-        self.cards()
+        self.ranks()
             .iter()
-            .map(|c| c.rank.name.index_default())
+            .map(|c| c.to_string())
             .collect::<String>()
+    }
+
+    /// Returns a String of all of the Rank Index Characters for a Pile.
+    ///
+    /// TODO: There has to be an easier way to do this :-P
+    pub fn rank_indexes_with_separator(&self, separator: &'static str) -> String {
+        self.ranks()
+            .iter()
+            .map(|c| c.to_string())
+            .collect::<String>()
+            .chars()
+            .collect::<Vec<char>>()
+            .chunks(1)
+            .map(|c| c.iter().collect::<String>())
+            .collect::<Vec<String>>()
+            .join(separator)
     }
 
     pub fn remove(&mut self, index: usize) -> Card {
@@ -286,6 +310,26 @@ impl Pile {
             None => None,
             _ => Some(self.0.remove(position.unwrap())),
         }
+    }
+
+    pub fn short_index_for_suit(&self, suit: Suit) -> String {
+        let cards = Pile::new_from_vector(self.cards_by_suit(suit));
+
+        suit.symbol().as_str().to_owned() + " " + &cards.rank_indexes_with_separator(" ")
+    }
+
+    pub fn short_suit_indexes(&self) -> Vec<String> {
+        self.sort()
+            .suits()
+            .iter()
+            .map(|suit| self.short_index_for_suit(*suit))
+            .collect::<Vec<String>>()
+    }
+
+    /// Returns a String where each line is the short suit index for the Pile.
+    /// This format is common to display hands in Bridge.
+    pub fn short_suit_indexes_to_string(&self) -> String {
+        self.short_suit_indexes().join("\n")
     }
 
     pub fn shuffle(&self) -> Pile {
@@ -559,8 +603,8 @@ mod card_deck_tests {
     #[test]
     fn cards_by_suit() {
         let qh = Card::new(QUEEN, HEARTS);
-        let qc = Card::new(QUEEN, CLUBS);
         let jh = Card::new(JACK, HEARTS);
+        let qc = Card::new(QUEEN, CLUBS);
         let jc = Card::new(JACK, CLUBS);
         let expected = vec![qc.clone(), jc.clone()];
 
@@ -569,6 +613,22 @@ mod card_deck_tests {
         let v = pile.cards_by_suit(qc.suit);
 
         assert_eq!(expected, v);
+    }
+
+    #[test]
+    fn short_index_by_suit() {
+        let qh = Card::new(QUEEN, HEARTS);
+        let jh = Card::new(JACK, HEARTS);
+        let qc = Card::new(QUEEN, CLUBS);
+        let jc = Card::new(JACK, CLUBS);
+        let pile = Pile::new_from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
+
+        let expected = String::from("♥ Q J");
+        let actual = pile.short_index_for_suit(qh.suit);
+        assert_eq!(expected, actual);
+        let expected = String::from("♣ Q J");
+        let actual = pile.short_index_for_suit(qc.suit);
+        assert_eq!(expected, actual);
     }
 
     #[test]
@@ -790,12 +850,47 @@ mod card_deck_tests {
         assert_eq!(expected, to_deck);
     }
 
+    // todo
+    #[test]
+    fn ranks() {
+        let qc = Card::new(QUEEN, CLUBS);
+        let qh = Card::new(QUEEN, HEARTS);
+        let jh = Card::new(JACK, HEARTS);
+        let expected: Vec<Rank> = vec![qc.clone().rank, jh.clone().rank];
+        let deck = Pile::new_from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
+
+        assert_eq!(expected, deck.ranks());
+    }
+
     #[test]
     fn rank_indexes() {
         let mut deck = Pile::french_deck();
         let expected = "AKQJT".to_string();
 
         let actual = deck.draw(5).unwrap().rank_indexes();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn rank_indexes__shuffled() {
+        let qc = Card::new(QUEEN, CLUBS);
+        let qh = Card::new(QUEEN, HEARTS);
+        let jh = Card::new(JACK, HEARTS);
+        let expected = "QJ".to_string();
+        let deck = Pile::new_from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
+
+        let actual = deck.rank_indexes();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn rank_indexes_with_separator() {
+        let mut deck = Pile::french_deck();
+        let expected = "A K Q J T".to_string();
+
+        let actual = deck.draw(5).unwrap().rank_indexes_with_separator(" ");
 
         assert_eq!(expected, actual);
     }
@@ -823,6 +918,28 @@ mod card_deck_tests {
         assert_eq!(removed.unwrap(), qclubs);
         assert!(deck.contains(&qhearts));
         assert!(!deck.contains(&qclubs));
+    }
+
+    #[test]
+    fn short_suit_indexes() {
+        let french_deck = Pile::french_deck();
+        let expected = vec![
+            "♠ A K Q J T 9 8 7 6 5 4 3 2",
+            "♥ A K Q J T 9 8 7 6 5 4 3 2",
+            "♦ A K Q J T 9 8 7 6 5 4 3 2",
+            "♣ A K Q J T 9 8 7 6 5 4 3 2",
+        ];
+
+        let actual = french_deck.short_suit_indexes();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn short_suit_indexes_to_string() {
+        let expected = "♠ A K Q J T 9 8 7 6 5 4 3 2\n♥ A K Q J T 9 8 7 6 5 4 3 2\n♦ A K Q J T 9 8 7 6 5 4 3 2\n♣ A K Q J T 9 8 7 6 5 4 3 2";
+
+        assert_eq!(expected, Pile::french_deck().short_suit_indexes_to_string());
     }
 
     // Signature methods
