@@ -73,6 +73,10 @@ impl Pack {
         Pack::new(Pile::pinochle_deck())
     }
 
+    pub fn short_deck() -> Pack {
+        Pack::new(Pile::short_deck())
+    }
+
     pub fn skat_deck() -> Pack {
         Pack::new(Pile::skat_deck())
     }
