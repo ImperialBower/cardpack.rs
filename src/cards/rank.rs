@@ -206,6 +206,12 @@ impl Rank {
         ])
     }
 
+    pub fn generate_short_deck_ranks() -> Vec<Rank> {
+        Rank::from_array(&[
+            ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX,
+        ])
+    }
+
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
     }
@@ -403,6 +409,22 @@ mod rank_tests {
         ]);
 
         assert_eq!(ex, Rank::generate_minor_arcana_ranks());
+    }
+
+    #[test]
+    fn generate_short_deck_ranks() {
+        let mut expected: Vec<Rank> = Vec::new();
+        expected.push(Rank::new_with_weight(ACE, 10));
+        expected.push(Rank::new_with_weight(KING, 9));
+        expected.push(Rank::new_with_weight(QUEEN, 8));
+        expected.push(Rank::new_with_weight(JACK, 7));
+        expected.push(Rank::new_with_weight(TEN, 6));
+        expected.push(Rank::new_with_weight(NINE, 5));
+        expected.push(Rank::new_with_weight(EIGHT, 4));
+        expected.push(Rank::new_with_weight(SEVEN, 3));
+        expected.push(Rank::new_with_weight(SIX, 2));
+
+        assert_eq!(expected, Rank::generate_short_deck_ranks());
     }
 
     #[test]

@@ -71,6 +71,7 @@ decks of various sizes and suits. Out of the box, the library supports:
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
     * [Hand and Foot](https://www.pagat.com/rummy/handfoot.html)
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
+* [Short Deck](https://en.wikipedia.org/wiki/Six-plus_hold_'em)
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks) with [Major](https://en.wikipedia.org/wiki/Major_Arcana) and [Minor](https://en.wikipedia.org/wiki/Minor_Arcana) Arcana
 

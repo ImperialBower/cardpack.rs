@@ -439,6 +439,15 @@ impl Pile {
         Pile::pile_up(2, Pile::pinochle_pile).sort()
     }
 
+    pub fn short_deck() -> Pile {
+        let suits = Suit::generate_french_suits();
+        let ranks = Rank::generate_short_deck_ranks();
+
+        let mut cards: Pile = Pile::default();
+        cards.fold_in(suits, ranks);
+        cards
+    }
+
     pub fn skat_deck() -> Pile {
         let suits = Suit::generate_skat_suits();
         let ranks = Rank::generate_skat_ranks();
@@ -1060,6 +1069,16 @@ mod card_deck_tests {
         let deck = Pile::french_deck_with_jokers();
 
         assert_eq!(54, deck.len());
+    }
+
+    #[test]
+    fn short_deck() {
+        let deck = Pile::short_deck();
+
+        assert!(!deck.contains(&Card::new(FIVE, CLUBS)));
+        assert!(!deck.contains(&Card::new(TWO, CLUBS)));
+        assert!(!deck.contains(&Card::new(TWO, DIAMONDS)));
+        assert!(!deck.contains(&Card::new(TWO, SPADES)));
     }
 
     #[test]
