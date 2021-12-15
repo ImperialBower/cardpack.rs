@@ -4,7 +4,7 @@ use cardpack::BridgeBoard;
 fn main() {
     println!("First, let's deal out a Bridge hand:");
     let board = BridgeBoard::deal();
-    board.demo();
+    board.demo_compass();
     println!();
 
     println!(
@@ -22,5 +22,9 @@ fn main() {
 
     println!("[Deal \"{}\"]\n", deal);
 
+    println!("Let's print it out simply:");
     board.demo();
+
+    println!("\nLet's print it out in a compass format:");
+    board.demo_compass();
 }
