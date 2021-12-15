@@ -1,6 +1,6 @@
 extern crate rand;
 
-mod cards;
+pub mod cards;
 pub mod fluent;
 
 pub use cards::card::Card;

@@ -1,8 +1,13 @@
+use std::fmt;
+
 use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
 use crate::cards::suit::*;
 use std::collections::HashMap;
+use term_table::row::Row;
+use term_table::table_cell::{Alignment, TableCell};
+use term_table::{Table, TableStyle};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum BridgeDirection {
@@ -98,6 +103,62 @@ impl BridgeBoard {
         println!("W: {}", self.west.sort().to_symbol_index());
         println!("N: {}", self.north.sort().to_symbol_index());
         println!("E: {}", self.east.sort().to_symbol_index());
+    }
+
+    pub fn demo_compass(&self) {
+        let north = self.north.short_suit_indexes_to_string();
+        let west = self.west.short_suit_indexes_to_string();
+        let east = self.east.short_suit_indexes_to_string();
+        let south = self.south.short_suit_indexes_to_string();
+
+        println!(
+            "{}",
+            BridgeBoard::compass(
+                BridgeBoard::compass_cell("NORTH", north),
+                BridgeBoard::compass_cell("WEST", west),
+                BridgeBoard::compass_cell("EAST", east),
+                BridgeBoard::compass_cell("SOUTH", south),
+            )
+        );
+    }
+
+    fn compass_cell(direction: &str, index: String) -> String {
+        let contents = "   ".to_owned() + direction + "\n" + index.as_str();
+
+        let mut table = Table::new();
+        table.has_top_boarder = false;
+        table.has_bottom_boarder = false;
+        table.separate_rows = false;
+        table.style = TableStyle::empty();
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            contents,
+            2,
+            Alignment::Left,
+        )]));
+        table.render()
+    }
+
+    fn compass(north: String, west: String, east: String, south: String) -> String {
+        let mut table = Table::new();
+        table.has_top_boarder = false;
+        table.has_bottom_boarder = false;
+        table.separate_rows = false;
+        table.style = TableStyle::empty();
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            north,
+            2,
+            Alignment::Center,
+        )]));
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment(west, 1, Alignment::Left),
+            TableCell::new_with_alignment(east, 1, Alignment::Left),
+        ]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            south,
+            2,
+            Alignment::Center,
+        )]));
+        table.render()
     }
 
     pub fn get_pack(&self) -> &Pack {
@@ -197,6 +258,13 @@ impl Default for BridgeBoard {
             north: Pile::default(),
             east: Pile::default(),
         }
+    }
+}
+
+impl fmt::Display for BridgeBoard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let sig = self.to_pbn_deal();
+        write!(f, "{}", sig)
     }
 }
 

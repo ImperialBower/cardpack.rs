@@ -76,6 +76,8 @@ impl Card {
         Card::new(BLANK, BLANK)
     }
 
+    /// A valid Card is one where the Rank and Suit are not blank.
+    /// Cards are blank when an invalid Rank or Suit are passed in.
     pub fn is_valid(&self) -> bool {
         !self.rank.is_blank() && !self.suit.is_blank()
     }
