@@ -207,9 +207,7 @@ impl Rank {
     }
 
     pub fn generate_short_deck_ranks() -> Vec<Rank> {
-        Rank::from_array(&[
-            ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX,
-        ])
+        Rank::from_array(&[ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX])
     }
 
     pub fn generate_skat_ranks() -> Vec<Rank> {
