@@ -1,0 +1,3 @@
+msrv = "1.56.0"
+
+cyclomatic-complexity-threshold = 30
