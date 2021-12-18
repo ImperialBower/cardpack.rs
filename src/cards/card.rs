@@ -138,8 +138,8 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use std::cell::Cell;
     use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, HEARTS, JACK, QUEEN, SPADES};
+    use std::cell::Cell;
 
     // region impl tests
 

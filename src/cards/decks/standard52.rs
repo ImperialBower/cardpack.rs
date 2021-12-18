@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
-use crate::cards::rank::{BLANK_RANK, Rank};
+use crate::cards::rank::{Rank, BLANK_RANK};
 use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
 
@@ -126,8 +126,8 @@ impl fmt::Display for Standard52 {
 #[allow(non_snake_case)]
 mod standard52_tests {
     use super::*;
+    use crate::{DIAMONDS, FIVE, FOUR, SPADES, THREE, TWO};
     use rstest::rstest;
-    use crate::{DIAMONDS, SPADES, FIVE, FOUR, THREE, TWO};
 
     #[test]
     fn from_index() {

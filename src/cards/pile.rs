@@ -9,7 +9,7 @@ use unic_langid::LanguageIdentifier;
 use crate::cards::card::Card;
 #[allow(clippy::wildcard_imports)]
 use crate::cards::rank::*;
-use crate::cards::suit::{CLUBS, DIAMONDS, HEARTS, Suit, TRUMP};
+use crate::cards::suit::{Suit, CLUBS, DIAMONDS, HEARTS, TRUMP};
 use crate::fluent::named::{GERMAN, US_ENGLISH};
 use crate::Named;
 
