@@ -45,7 +45,7 @@ pub trait Named {
         self.fluent_value(FLUENT_INDEX_SECTION, lid)
     }
 
-    /// Returns the default, US_ENGLISH value of the names' index value in the fluent templates.
+    /// Returns the default, `US_ENGLISH` value of the names' index value in the fluent templates.
     ///
     /// ## Usage
     /// ```
@@ -75,7 +75,7 @@ pub trait Named {
         self.fluent_value(FLUENT_LONG_SECTION, lid)
     }
 
-    /// Returns the default, US_ENGLISH value of the names' long value in the fluent templates.
+    /// Returns the default, `US_ENGLISH` value of the names' long value in the fluent templates.
     fn long_default(&self) -> String {
         self.long(&US_ENGLISH)
     }

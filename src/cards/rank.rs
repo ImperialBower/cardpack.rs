@@ -70,20 +70,20 @@ pub const BLANK_RANK: &str = "_";
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
 /// at the and of a Suit (unless there are any Cards with negative weights).
 ///
-/// # Rank::new() with a value string
+/// # ``Rank::new()`` with a value string
 /// ```
 /// let king = cardpack::Rank::new(cardpack::KING);
 /// ```
 /// This sets the weight for the Rank based upon the default value as set in its fluent template
 /// entry.
 ///
-/// # Rank::new_with_weight()
+/// # ``Rank::new_with_weight()``
 /// ```
 /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
 /// ```
 /// Overrides the default weight for a Rank.
 ///
-/// # Rank::from_array()
+/// # ``Rank::from_array()``
 /// ```
 /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[cardpack::ACE, cardpack::TEN,]);
 /// ```
@@ -98,8 +98,8 @@ pub struct Rank {
 }
 
 impl Rank {
-    /// Returns a Rank, determining its weight by the default weight value for its name set in the
-    /// fluent templates. For instance, if you look in `src/fluent/locales/core.ftl you will see
+    /// Returns a `Rank`, determining its weight by the default weight value for its name set in the
+    /// fluent templates. For instance, if you look in `src/fluent/locales/core.ftl` you will see
     /// that the default weight for an Ace is 14. This will mean that when a pile of cards is sorted
     /// that it will be at the top of a standard French Deck where the Ace is high.
     ///
@@ -107,6 +107,7 @@ impl Rank {
     /// ```
     /// let king = cardpack::Rank::new(cardpack::HERMIT);
     /// ```
+    #[must_use]
     pub fn new(name: &'static str) -> Rank {
         let name = FluentName::new(name);
         Rank {
@@ -122,6 +123,7 @@ impl Rank {
     /// ```
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
+    #[must_use]
     pub fn new_with_weight(name: &'static str, weight: isize) -> Rank {
         Rank {
             weight,
@@ -137,10 +139,11 @@ impl Rank {
     /// ```
     /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
     /// low. This facilitates the easy creation of custom decks, such as for pinochle.
+    #[must_use]
     pub fn from_array(s: &[&'static str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
-        #[allow(clippy::into_iter_on_ref)]
+        #[allow(clippy::cast_possible_wrap, clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let weight = (s.len() + 1) - i;
             v.push(Rank::new_with_weight(elem, weight as isize));
@@ -149,6 +152,7 @@ impl Rank {
     }
 
     /// Returns a Rank entity based on its index string.
+    #[must_use]
     pub fn from_french_deck_index(index: &'static str) -> Rank {
         match index {
             "JB" => Rank::new(BIG_JOKER),
@@ -157,9 +161,7 @@ impl Rank {
             "K" => Rank::new(KING),
             "Q" => Rank::new(QUEEN),
             "J" => Rank::new(JACK),
-            "T" => Rank::new(TEN),
-            "10" => Rank::new(TEN),
-            "0" => Rank::new(TEN),
+            "T" | "0" | "10" => Rank::new(TEN),
             "9" => Rank::new(NINE),
             "8" => Rank::new(EIGHT),
             "7" => Rank::new(SEVEN),
@@ -172,26 +174,31 @@ impl Rank {
         }
     }
 
+    #[must_use]
     pub fn generate_canasta_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             TWO, ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE,
         ])
     }
 
+    #[must_use]
     pub fn generate_euchre_ranks() -> Vec<Rank> {
         Rank::from_array(&[ACE, KING, QUEEN, JACK, TEN, NINE])
     }
 
+    #[must_use]
     pub fn generate_french_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO,
         ])
     }
 
+    #[must_use]
     pub fn generate_pinochle_ranks() -> Vec<Rank> {
         Rank::from_array(&[ACE, TEN, KING, QUEEN, JACK, NINE])
     }
 
+    #[must_use]
     pub fn generate_major_arcana_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             FOOL, MAGICIAN, PRIESTESS, EMPRESS, EMPEROR, HIEROPHANT, LOVERS, CHARIOT, STRENGTH,
@@ -200,20 +207,24 @@ impl Rank {
         ])
     }
 
+    #[must_use]
     pub fn generate_minor_arcana_ranks() -> Vec<Rank> {
         Rank::from_array(&[
             KING, QUEEN, KNIGHT, PAGE, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO, ACE,
         ])
     }
 
+    #[must_use]
     pub fn generate_short_deck_ranks() -> Vec<Rank> {
         Rank::from_array(&[ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX])
     }
 
+    #[must_use]
     pub fn generate_skat_ranks() -> Vec<Rank> {
         Rank::from_array(&[DAUS, KING, OBER, UNTER, TEN, NINE, EIGHT, SEVEN])
     }
 
+    #[must_use]
     pub fn is_blank(&self) -> bool {
         self.name.name() == BLANK_RANK
     }

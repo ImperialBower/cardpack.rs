@@ -1,9 +1,9 @@
-use colored::*;
+use colored::Colorize;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::rank::*;
-use crate::cards::suit::*;
+use crate::cards::rank::Rank;
+use crate::cards::suit::Suit;
 use crate::Named;
 
 pub const BLANK: &str = "blank";
@@ -25,6 +25,7 @@ pub struct Card {
 impl Card {
     /// Instantiates a new Card with the default weight as defined in the fluent
     /// templates.
+    #[must_use]
     pub fn new(rank: &'static str, suit: &'static str) -> Card {
         let suit = Suit::new(suit);
         let rank = Rank::new(rank);
@@ -40,18 +41,20 @@ impl Card {
 
     /// Instantiates a Card with the weight determined by the passed in Rank and
     /// Suit.
+    #[must_use]
     pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
         let weight = Card::determine_weight(&suit, &rank);
         let index = Card::determine_index(&suit, &rank);
         Card {
             weight,
             index,
-            rank,
             suit,
+            rank,
         }
     }
 
     /// Returns a Symbol String for the Card.
+    #[must_use]
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
@@ -59,25 +62,26 @@ impl Card {
     }
 
     /// Returns a Symbol String for the Card in the traditional colors for the Suits.
+    #[must_use]
     pub fn symbol_colorized(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
         match self.suit.name() {
-            "hearts" => format!("{}{}", rank, suit).red().to_string(),
-            "diamonds" => format!("{}{}", rank, suit).red().to_string(),
+            "hearts" | "herz" | "diamonds" => format!("{}{}", rank, suit).red().to_string(),
             "laub" => format!("{}{}", rank, suit).green().to_string(),
-            "herz" => format!("{}{}", rank, suit).red().to_string(),
             "schellen" => format!("{}{}", rank, suit).yellow().to_string(),
             _ => format!("{}{}", rank, suit),
         }
     }
 
+    #[must_use]
     pub fn blank_card() -> Card {
         Card::new(BLANK, BLANK)
     }
 
     /// A valid Card is one where the Rank and Suit are not blank.
     /// Cards are blank when an invalid Rank or Suit are passed in.
+    #[must_use]
     pub fn is_valid(&self) -> bool {
         !self.rank.is_blank() && !self.suit.is_blank()
     }
@@ -134,6 +138,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
+    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, HEARTS, JACK, QUEEN, SPADES};
     use std::cell::Cell;
 
     // region impl tests

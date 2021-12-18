@@ -7,9 +7,10 @@ use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::card::Card;
+#[allow(clippy::wildcard_imports)]
 use crate::cards::rank::*;
-use crate::cards::suit::*;
-use crate::fluent::named::*;
+use crate::cards::suit::{Suit, CLUBS, DIAMONDS, HEARTS, TRUMP};
+use crate::fluent::named::{GERMAN, US_ENGLISH};
 use crate::Named;
 
 /// A Pile is a sortable collection of Cards.
@@ -27,11 +28,13 @@ use crate::Named;
 pub struct Pile(Vec<Card>);
 
 impl Pile {
+    #[must_use]
     pub fn new_from_vector(v: Vec<Card>) -> Pile {
         Pile(v)
     }
 
     /// Takes a reference to an Array of Piles and consolidates them into a single Pile of Cards.
+    #[must_use]
     pub fn pile_on(piles: Vec<Pile>) -> Pile {
         piles.into_iter().flatten().collect()
     }
@@ -53,7 +56,7 @@ impl Pile {
     {
         let mut pile: Vec<Pile> = Vec::new();
         for _ in 0..x {
-            pile.push(f())
+            pile.push(f());
         }
         Pile::pile_on(pile)
     }
@@ -69,40 +72,48 @@ impl Pile {
     }
 
     /// Returns a simple string representation of the Cards in the Pile based upon the
-    /// default language local, which is US_ENGLISH.
+    /// default language local, which is `US_ENGLISH`.
+    #[must_use]
     pub fn to_index(&self) -> String {
         self.to_index_locale(&US_ENGLISH)
     }
 
     /// Returns a static str of the Pack's index. Mainly used for testing deserialization.
     ///
-    /// Idea from: https://stackoverflow.com/a/52367953
+    /// Idea from: <https://stackoverflow.com/a/52367953/>
+    #[must_use]
     pub fn to_index_str(&self) -> &'static str {
         Box::leak(self.to_index().into_boxed_str())
     }
 
+    #[must_use]
     pub fn to_index_locale(&self, lid: &LanguageIdentifier) -> String {
         Pile::sig_generate_from_strings(&self.collect_index(lid))
     }
 
+    #[must_use]
     pub fn to_symbol_index(&self) -> String {
         self.to_symbol_index_locale(&US_ENGLISH)
     }
 
+    #[must_use]
     pub fn to_symbol_index_locale(&self, lid: &LanguageIdentifier) -> String {
         Pile::sig_generate_from_strings(&self.collect_symbol_index(lid))
     }
 
+    #[must_use]
     pub fn card_by_index(&self, index: &str) -> Option<&Card> {
         self.0.iter().find(|c| c.index_default() == index)
     }
 
     /// Returns a reference to the Vector containing all the cards.
+    #[must_use]
     pub fn cards(&self) -> &Vec<Card> {
         &self.0
     }
 
     /// Returns a Vector of Cards matching the passed in Suit.
+    #[must_use]
     pub fn cards_by_suit(&self, suit: Suit) -> Vec<Card> {
         self.sort()
             .0
@@ -120,16 +131,19 @@ impl Pile {
     }
 
     /// Tests if a card is in the Pile.
+    #[must_use]
     pub fn contains(&self, card: &Card) -> bool {
         self.0.contains(card)
     }
 
     /// Tests if every element is inside the Pile.
+    #[must_use]
     pub fn contains_all(&self, pile: &Pile) -> bool {
         pile.cards().iter().all(|c| self.contains(c))
     }
 
     /// This function is designed to demonstrate the capabilities of the library.
+    #[allow(clippy::similar_names)]
     pub fn demo(&self) {
         println!("   Long in English and German:");
         for card in self.values() {
@@ -140,7 +154,7 @@ impl Pile {
             println!("      {} of {} ", rankname, suitname);
             println!("      {} von {} ", rangname, anzugname);
         }
-        self.demo_short()
+        self.demo_short();
     }
 
     pub fn demo_short(&self) {
@@ -176,7 +190,7 @@ impl Pile {
         } else {
             let mut cards = Pile::default();
             for _ in 0..x {
-                cards.add(self.draw_first().unwrap());
+                cards.add(self.draw_first()?);
             }
             Some(cards)
         }
@@ -196,11 +210,12 @@ impl Pile {
         }
     }
 
+    #[must_use]
     pub fn first(&self) -> Option<&Card> {
         self.0.first()
     }
 
-    fn fold_in(&mut self, suits: Vec<Suit>, ranks: Vec<Rank>) {
+    fn fold_in(&mut self, suits: &[Suit], ranks: &[Rank]) {
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
                 self.add(Card::new_from_structs(*rank, *suit));
@@ -208,28 +223,34 @@ impl Pile {
         }
     }
 
+    #[must_use]
     pub fn get(&self, index: usize) -> Option<&Card> {
         self.0.get(index)
     }
 
+    #[must_use]
     pub fn get_random(&self) -> Option<&Card> {
         self.0.choose(&mut rand::thread_rng())
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    #[must_use]
     pub fn last(&self) -> Option<&Card> {
         self.0.last()
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
-    /// Takes a pile and returns a HashMap with the key as each Suit in the Pile with the values
-    /// as a Pile of the cards for that Suit.
+    /// Takes a `Pile` and returns a `HashMap` with the key as each `Suit` in the `Pile` with the values
+    /// as a `Pile` of the cards for that Suit.
+    #[must_use]
     pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
         let mut mappie: HashMap<Suit, Pile> = HashMap::new();
         for suit in self.suits() {
@@ -244,10 +265,12 @@ impl Pile {
         mappie
     }
 
+    #[must_use]
     pub fn position(&self, karte: &Card) -> Option<usize> {
         self.0.iter().position(|k| k.index == karte.index)
     }
 
+    #[must_use]
     pub fn pile_by_index(&self, indexes: &[&str]) -> Option<Pile> {
         let mut pile = Pile::default();
         for index in indexes {
@@ -268,6 +291,7 @@ impl Pile {
         self.0 = product;
     }
 
+    #[must_use]
     pub fn ranks(&self) -> Vec<Rank> {
         let hashset: HashSet<Rank> = self.0.iter().map(|c| c.rank).collect();
         let mut ranks: Vec<Rank> = Vec::from_iter(hashset);
@@ -277,20 +301,22 @@ impl Pile {
     }
 
     /// Returns a String of all of the Rank Index Characters for a Pile.
+    #[must_use]
     pub fn rank_indexes(&self) -> String {
         self.ranks()
             .iter()
-            .map(|c| c.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<String>()
     }
 
     /// Returns a String of all of the Rank Index Characters for a Pile.
     ///
     /// TODO: There has to be an easier way to do this :-P
+    #[must_use]
     pub fn rank_indexes_with_separator(&self, separator: &'static str) -> String {
         self.ranks()
             .iter()
-            .map(|c| c.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<String>()
             .chars()
             .collect::<Vec<char>>()
@@ -308,16 +334,18 @@ impl Pile {
         let position = self.position(card);
         match position {
             None => None,
-            _ => Some(self.0.remove(position.unwrap())),
+            _ => Some(self.0.remove(position?)),
         }
     }
 
+    #[must_use]
     pub fn short_index_for_suit(&self, suit: Suit) -> String {
         let cards = Pile::new_from_vector(self.cards_by_suit(suit));
 
         suit.symbol().as_str().to_owned() + " " + &cards.rank_indexes_with_separator(" ")
     }
 
+    #[must_use]
     pub fn short_suit_indexes(&self) -> Vec<String> {
         self.sort()
             .suits()
@@ -328,10 +356,12 @@ impl Pile {
 
     /// Returns a String where each line is the short suit index for the Pile.
     /// This format is common to display hands in Bridge.
+    #[must_use]
     pub fn short_suit_indexes_to_string(&self) -> String {
         self.short_suit_indexes().join("\n")
     }
 
+    #[must_use]
     pub fn shuffle(&self) -> Pile {
         let mut shuffled = self.clone();
         shuffled.shuffle_in_place();
@@ -342,6 +372,7 @@ impl Pile {
         self.0.shuffle(&mut thread_rng());
     }
 
+    #[must_use]
     pub fn sort(&self) -> Pile {
         let mut pile = self.clone();
         pile.sort_in_place();
@@ -354,6 +385,7 @@ impl Pile {
     }
 
     /// Returns a sorted collection of the unique Suits in a Pile.
+    #[must_use]
     pub fn suits(&self) -> Vec<Suit> {
         let hashset: HashSet<Suit> = self.0.iter().map(|c| c.suit).collect();
         let mut suits: Vec<Suit> = Vec::from_iter(hashset);
@@ -366,22 +398,25 @@ impl Pile {
         self.0.iter()
     }
 
+    #[must_use]
     pub fn jokers() -> Pile {
         let big_joker = Card::new(BIG_JOKER, TRUMP);
         let little_joker = Card::new(LITTLE_JOKER, TRUMP);
         Pile::new_from_vector(vec![big_joker, little_joker])
     }
 
+    #[must_use]
     pub fn canasta_base_single_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_canasta_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards.prepend(&Pile::jokers());
         cards
     }
 
+    #[must_use]
     pub fn canasta_single_deck() -> Pile {
         let mut cards: Pile = Pile::canasta_base_single_deck();
 
@@ -395,31 +430,34 @@ impl Pile {
     fn canasta_red_threes() -> Pile {
         let mut three_hearts = Card::new(THREE, HEARTS);
         let mut three_diamonds = Card::new(THREE, DIAMONDS);
-        three_hearts.weight = 100001;
-        three_diamonds.weight = 100000;
+        three_hearts.weight = 100_001;
+        three_diamonds.weight = 100_000;
 
         Pile::new_from_vector(vec![three_hearts, three_diamonds])
     }
 
+    #[must_use]
     pub fn euchre_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_euchre_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards.prepend(&Pile::new_from_vector(vec![Card::new(BIG_JOKER, TRUMP)]));
         cards
     }
 
+    #[must_use]
     pub fn french_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_french_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards
     }
 
+    #[must_use]
     pub fn french_deck_with_jokers() -> Pile {
         let mut pile = Pile::french_deck();
         pile.prepend(&Pile::jokers());
@@ -431,32 +469,36 @@ impl Pile {
         let ranks = Rank::generate_pinochle_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards
     }
 
+    #[must_use]
     pub fn pinochle_deck() -> Pile {
         Pile::pile_up(2, Pile::pinochle_pile).sort()
     }
 
+    #[must_use]
     pub fn short_deck() -> Pile {
         let suits = Suit::generate_french_suits();
         let ranks = Rank::generate_short_deck_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards
     }
 
+    #[must_use]
     pub fn skat_deck() -> Pile {
         let suits = Suit::generate_skat_suits();
         let ranks = Rank::generate_skat_ranks();
 
         let mut cards: Pile = Pile::default();
-        cards.fold_in(suits, ranks);
+        cards.fold_in(&suits, &ranks);
         cards
     }
 
+    #[must_use]
     pub fn spades_deck() -> Pile {
         let mut deck = Pile::french_deck();
         deck.remove_card(&Card::new(TWO, CLUBS));
@@ -467,6 +509,8 @@ impl Pile {
         deck
     }
 
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
     pub fn tarot_deck() -> Pile {
         let arcana_suits = Suit::generate_arcana_suits();
         let mut arcana_suits_enumerator = arcana_suits.iter().enumerate();
@@ -492,6 +536,7 @@ impl Pile {
         cards
     }
 
+    #[must_use]
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
         strings
             .iter()
@@ -508,7 +553,7 @@ impl Default for Pile {
     }
 }
 
-/// Sets the to_string() function for a Pile to return the default index signature for the Pile.
+/// Sets the `to_string()` function for a `Pile` to return the default index signature for the `Pile`.
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.to_index();
@@ -539,6 +584,7 @@ impl IntoIterator for Pile {
 #[allow(non_snake_case)]
 mod card_deck_tests {
     use super::*;
+    use crate::cards::suit::{MAJOR_ARCANA, SPADES};
 
     #[test]
     fn new_from_vector() {

@@ -4,17 +4,18 @@ use crate::Named;
 
 const BLANK: &str = "blank";
 
-/// FluentName is the primary implementation of the Named trait.
+/// `FluentName` is the primary implementation of the Named trait.
 ///
-/// FluentName represents the fluent template key for a card entity such as a Suit or Rank,
+/// `FluentName` represents the fluent template key for a card entity such as a Suit or Rank,
 /// which in turn determines its long name in any represented language, the short letter
 /// used to display an index, and the default weight for the if it is instantiated via
-/// `::new()`. A FluentName must have a corresponding entries in the fluent templates for
+/// `::new()`. A `FluentName` must have a corresponding entries in the fluent templates for
 /// weight, long, and index.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FluentName(&'static str);
 
 impl FluentName {
+    #[must_use]
     pub fn new(name: &'static str) -> FluentName {
         if name.trim().is_empty() {
             FluentName(BLANK)

@@ -34,6 +34,7 @@ pub struct Suit {
 }
 
 impl Suit {
+    #[must_use]
     pub fn new(name_str: &'static str) -> Suit {
         let name = FluentName::new(name_str);
         Suit {
@@ -42,6 +43,7 @@ impl Suit {
         }
     }
 
+    #[must_use]
     pub fn new_with_weight(name: &'static str, weight: isize) -> Suit {
         Suit {
             weight,
@@ -49,14 +51,17 @@ impl Suit {
         }
     }
 
+    #[must_use]
     pub fn is_blank(&self) -> bool {
         self.name.name() == BLANK_SUIT
     }
 
+    #[must_use]
     pub fn symbol(&self) -> String {
         self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     fn top_down_value(len: usize, i: usize) -> isize {
         (len - i) as isize
     }
@@ -77,30 +82,29 @@ impl Suit {
     }
 
     /// Returns a Suit from its symbol string.
+    #[must_use]
     pub fn from_french_deck_index(symbol: char) -> Suit {
         match symbol {
-            '♠' => Suit::new(SPADES),
-            'S' => Suit::new(SPADES),
-            '♥' => Suit::new(HEARTS),
-            'H' => Suit::new(HEARTS),
-            '♦' => Suit::new(DIAMONDS),
-            'D' => Suit::new(DIAMONDS),
-            '♣' => Suit::new(CLUBS),
-            'C' => Suit::new(CLUBS),
-            '🃟' => Suit::new(TRUMP),
-            'T' => Suit::new(TRUMP),
+            '♠' | 'S' => Suit::new(SPADES),
+            '♥' | 'H' => Suit::new(HEARTS),
+            '♦' | 'D' => Suit::new(DIAMONDS),
+            '♣' | 'C' => Suit::new(CLUBS),
+            '🃟' | 'T' => Suit::new(TRUMP),
             _ => Suit::new(BLANK_SUIT),
         }
     }
 
+    #[must_use]
     pub fn generate_french_suits() -> Vec<Suit> {
         Suit::from_array(&[SPADES, HEARTS, DIAMONDS, CLUBS])
     }
 
+    #[must_use]
     pub fn generate_arcana_suits() -> Vec<Suit> {
         Suit::from_array(&[MAJOR_ARCANA, WANDS, CUPS, SWORDS, PENTACLES])
     }
 
+    #[must_use]
     pub fn generate_skat_suits() -> Vec<Suit> {
         Suit::from_array(&[EICHEL, LAUB, HERZ, SHELLEN])
     }
