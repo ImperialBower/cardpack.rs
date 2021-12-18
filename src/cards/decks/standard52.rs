@@ -244,6 +244,7 @@ mod standard52_tests {
 
     #[rstest]
     #[case("2S", Card::new(TWO, SPADES))]
+    #[case("2s", Card::new(TWO, SPADES))]
     #[case("2♠", Card::new(TWO, SPADES))]
     #[case("3S", Card::new(THREE, SPADES))]
     #[case("3♠", Card::new(THREE, SPADES))]
@@ -258,7 +259,6 @@ mod standard52_tests {
     #[rstest]
     #[case("XX")]
     #[case("2X")]
-    #[case("2s")]
     #[case("XS")]
     #[case("  ")]
     #[case(" ")]
