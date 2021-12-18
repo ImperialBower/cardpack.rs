@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.4.5"
+version = "0.4.6"
 authors = ["folkengine <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ContractBridge/cardpack.rs.git"
 homepage = "https://github.com/ContractBridge/cardpack.rs"
@@ -24,4 +24,4 @@ term-table = "1.3.2"
 unic-langid = { version = "0.9.0", features = ["macros"] }
 
 [dev-dependencies]
-rstest = "0.11.0"
+rstest = "0.12.0"
