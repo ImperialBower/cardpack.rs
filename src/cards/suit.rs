@@ -85,11 +85,11 @@ impl Suit {
     #[must_use]
     pub fn from_french_deck_index(symbol: char) -> Suit {
         match symbol {
-            '♠' | 'S' => Suit::new(SPADES),
-            '♥' | 'H' => Suit::new(HEARTS),
-            '♦' | 'D' => Suit::new(DIAMONDS),
-            '♣' | 'C' => Suit::new(CLUBS),
-            '🃟' | 'T' => Suit::new(TRUMP),
+            '♠' | 'S' | 's' => Suit::new(SPADES),
+            '♥' | 'H' | 'h' => Suit::new(HEARTS),
+            '♦' | 'D' | 'd' => Suit::new(DIAMONDS),
+            '♣' | 'C' | 'c' => Suit::new(CLUBS),
+            '🃟' | 'T' | 't' => Suit::new(TRUMP),
             _ => Suit::new(BLANK_SUIT),
         }
     }
@@ -162,14 +162,19 @@ mod suit_tests {
     #[rstest]
     #[case('♠', Suit::new(SPADES))]
     #[case('S', Suit::new(SPADES))]
+    #[case('s', Suit::new(SPADES))]
     #[case('♥', Suit::new(HEARTS))]
     #[case('H', Suit::new(HEARTS))]
+    #[case('h', Suit::new(HEARTS))]
     #[case('♦', Suit::new(DIAMONDS))]
     #[case('D', Suit::new(DIAMONDS))]
+    #[case('d', Suit::new(DIAMONDS))]
     #[case('♣', Suit::new(CLUBS))]
     #[case('C', Suit::new(CLUBS))]
+    #[case('c', Suit::new(CLUBS))]
     #[case('🃟', Suit::new(TRUMP))]
     #[case('T', Suit::new(TRUMP))]
+    #[case('t', Suit::new(TRUMP))]
     #[case(' ', Suit::new(BLANK_SUIT))]
     #[case('F', Suit::new(BLANK_SUIT))]
     fn from_french_deck_index(#[case] input: char, #[case] expected: Suit) {
