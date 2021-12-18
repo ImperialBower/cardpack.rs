@@ -1,8 +1,8 @@
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
-use crate::cards::rank::*;
-use crate::cards::suit::*;
+use crate::cards::rank::{BLANK_RANK, Rank};
+use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
 
 #[derive(Clone, Debug, Hash, PartialEq)]
@@ -12,6 +12,9 @@ pub struct Standard52 {
 }
 
 impl Standard52 {
+    /// # Errors
+    ///
+    /// Will return `DeckError::PilePackMismatch` error if `Pile` passed in isn't a `FrenchDeck`.
     pub fn new_from_pile(pile: Pile) -> Result<Standard52, DeckError> {
         let standard52 = Standard52 {
             pack: Pack::french_deck(),
@@ -25,6 +28,7 @@ impl Standard52 {
         }
     }
 
+    #[must_use]
     pub fn new_shuffled() -> Standard52 {
         Standard52 {
             pack: Pack::french_deck(),
@@ -32,6 +36,9 @@ impl Standard52 {
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return `DeckError::InvalidIndex` if passed in index is incomplete.
     pub fn from_index(card_str: &'static str) -> Result<Standard52, DeckError> {
         let mut pile = Pile::default();
         for index in card_str.split_whitespace() {
@@ -50,24 +57,29 @@ impl Standard52 {
         }
     }
 
+    #[must_use]
     pub fn to_index(&self) -> String {
         self.deck.to_index()
     }
 
+    #[must_use]
     pub fn to_index_str(&self) -> &'static str {
         self.deck.to_index_str()
     }
 
+    #[must_use]
     pub fn to_symbol_index(&self) -> String {
         self.deck.to_symbol_index()
     }
 
     /// A Standard52 deck is complete if a sorted Pile of the deck is equal to it's Pack.
+    #[must_use]
     pub fn is_complete(&self) -> bool {
         let pile = self.deck.sort();
         &pile == self.pack.cards()
     }
 
+    #[must_use]
     pub fn card_from_index(card_str: &'static str) -> Card {
         let rank = Rank::from_french_deck_index(Standard52::rank_str_from_index(card_str));
         let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index(card_str));
@@ -115,6 +127,7 @@ impl fmt::Display for Standard52 {
 mod standard52_tests {
     use super::*;
     use rstest::rstest;
+    use crate::{DIAMONDS, SPADES, FIVE, FOUR, THREE, TWO};
 
     #[test]
     fn from_index() {

@@ -3,13 +3,14 @@ use std::fmt;
 use crate::cards::card::Card;
 use crate::cards::pack::Pack;
 use crate::cards::pile::Pile;
-use crate::cards::suit::*;
+use crate::cards::suit::{CLUBS, DIAMONDS, HEARTS, SPADES, Suit};
 use std::collections::HashMap;
 use term_table::row::Row;
 use term_table::table_cell::{Alignment, TableCell};
 use term_table::{Table, TableStyle};
 
 #[derive(Clone, Debug, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub enum BridgeDirection {
     N,
     E,
@@ -19,16 +20,13 @@ pub enum BridgeDirection {
 }
 
 impl BridgeDirection {
+    #[must_use]
     pub fn to(c: char) -> BridgeDirection {
         match c {
-            'S' => BridgeDirection::S,
-            's' => BridgeDirection::S,
-            'N' => BridgeDirection::N,
-            'n' => BridgeDirection::N,
-            'E' => BridgeDirection::E,
-            'e' => BridgeDirection::E,
-            'W' => BridgeDirection::W,
-            'w' => BridgeDirection::W,
+            'S' | 's' => BridgeDirection::S,
+            'N' | 'n' => BridgeDirection::N,
+            'E' | 'e' => BridgeDirection::E,
+            'W' | 'w' => BridgeDirection::W,
             _ => BridgeDirection::Unknown,
         }
     }
@@ -44,9 +42,10 @@ impl BridgeDirection {
     }
 }
 
-/// BridgeBoard is a French Deck Pack that sorts and validates the hands dealt as a part
+/// `BridgeBoard` is a French Deck Pack that sorts and validates the hands dealt as a part
 /// of a Bridge hand.
 #[derive(Clone, Debug, Hash, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct BridgeBoard {
     pack: Pack,
     pub south: Pile,
@@ -57,7 +56,12 @@ pub struct BridgeBoard {
 
 impl BridgeBoard {
     /// Parses a Portable Bridge Notation deal string and converts it into a
-    /// BridgeBoard struct.
+    /// `BridgeBoard` struct.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if an invalid PBN deal string is passed in.
+    #[must_use]
     pub fn from_pbn_deal(deal: &str) -> BridgeBoard {
         let (direction, pbn) = BridgeBoard::split_on_direction(deal);
 
@@ -88,6 +92,8 @@ impl BridgeBoard {
         }
     }
 
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
     pub fn deal() -> BridgeBoard {
         let mut board = BridgeBoard::default();
         let mut cards = board.pack.cards().shuffle();
@@ -114,16 +120,16 @@ impl BridgeBoard {
         println!(
             "{}",
             BridgeBoard::compass(
-                BridgeBoard::compass_cell("NORTH", north),
-                BridgeBoard::compass_cell("WEST", west),
-                BridgeBoard::compass_cell("EAST", east),
-                BridgeBoard::compass_cell("SOUTH", south),
+                BridgeBoard::compass_cell("NORTH", north.as_str()),
+                BridgeBoard::compass_cell("WEST", west.as_str()),
+                BridgeBoard::compass_cell("EAST", east.as_str()),
+                BridgeBoard::compass_cell("SOUTH", south.as_str()),
             )
         );
     }
 
-    fn compass_cell(direction: &str, index: String) -> String {
-        let contents = "   ".to_owned() + direction + "\n" + index.as_str();
+    fn compass_cell(direction: &str, index: &str) -> String {
+        let contents = "   ".to_owned() + direction + "\n" + index;
 
         let mut table = Table::new();
         table.has_top_boarder = false;
@@ -161,10 +167,12 @@ impl BridgeBoard {
         table.render()
     }
 
+    #[must_use]
     pub fn get_pack(&self) -> &Pack {
         &self.pack
     }
 
+    #[must_use]
     pub fn is_valid(&self) -> bool {
         let piles = &[
             self.south.clone(),
@@ -177,6 +185,7 @@ impl BridgeBoard {
     }
 
     /// Returns a Portable Bridge Notation deal string from a Bridge Board.
+    #[must_use]
     pub fn to_pbn_deal(&self) -> String {
         let south = BridgeBoard::hand_to_pbn_deal_segment(&self.south);
         let west = BridgeBoard::hand_to_pbn_deal_segment(&self.west);

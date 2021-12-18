@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 extern crate rand;
 
 pub mod cards;

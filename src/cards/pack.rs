@@ -34,6 +34,7 @@ impl Pack {
     }
 
     /// Returns true of the combined Cards from the passed in Vector match the Cards in the Pack.
+    #[must_use]
     pub fn is_complete(&self, piles: &[Pile]) -> bool {
         let mut pile = Pile::pile_on(piles.to_vec());
         pile.sort_in_place();
@@ -41,6 +42,7 @@ impl Pack {
     }
 
     /// Returns a reference to the cards in the Pack.
+    #[must_use]
     pub fn cards(&self) -> &Pile {
         &self.cards
     }
@@ -51,6 +53,7 @@ impl Pack {
         Pack::new(pile)
     }
 
+    #[must_use]
     pub fn euchre_deck() -> Pack {
         Pack::new(Pile::euchre_deck())
     }
@@ -61,26 +64,32 @@ impl Pack {
         Pack::new(pile)
     }
 
+    #[must_use]
     pub fn french_deck() -> Pack {
         Pack::new(Pile::french_deck())
     }
 
+    #[must_use]
     pub fn french_deck_with_jokers() -> Pack {
         Pack::new(Pile::french_deck_with_jokers())
     }
 
+    #[must_use]
     pub fn pinochle_deck() -> Pack {
         Pack::new(Pile::pinochle_deck())
     }
 
+    #[must_use]
     pub fn short_deck() -> Pack {
         Pack::new(Pile::short_deck())
     }
 
+    #[must_use]
     pub fn skat_deck() -> Pack {
         Pack::new(Pile::skat_deck())
     }
 
+    #[must_use]
     pub fn spades_deck() -> Pack {
         Pack::new(Pile::spades_deck())
     }
