@@ -4,6 +4,7 @@ extern crate rand;
 
 pub mod cards;
 pub mod fluent;
+pub mod games;
 
 pub use cards::card::Card;
 pub use cards::decks::bridge::BridgeBoard;
