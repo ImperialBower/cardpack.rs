@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::{Card, Pile, Suit};
+use std::collections::HashMap;
 // use std::collections::HashMap;
 
 pub struct CardsBySuit {
@@ -23,10 +23,11 @@ pub struct CardsBySuit {
 //     }
 // }
 
-/// https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry/
-/// https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors/
-pub fn sort_by_suit(_pile: Pile) -> HashMap<Suit, Pile> {
-    let sorted:HashMap<Suit, Pile> = HashMap::new();
+/// <https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry//>
+/// <https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors//>
+#[must_use]
+pub fn sort_by_suit(_pile: &Pile) -> HashMap<Suit, Pile> {
+    let sorted: HashMap<Suit, Pile> = HashMap::new();
 
     sorted
 }
@@ -43,6 +44,6 @@ mod eval_tests {
     fn to_a_flush(#[case] input: &'static str) {
         let pile = Standard52::pile_from_index(input).unwrap();
 
-        let _sorted = sort_by_suit(pile);
+        let _sorted = sort_by_suit(&pile);
     }
 }

@@ -122,13 +122,14 @@ impl Standard52 {
 
     /// Returns `HashMap` of Piles of Cards sorted by the Standard52 Suits.
     ///
-    /// https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry/
-    /// https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors/
-    pub fn sort_by_suit(pile: Pile) -> HashMap<Suit, Pile> {
-        let mut sorted:HashMap<Suit, Pile> = HashMap::new();
+    /// <https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry//>
+    /// <https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors//>
+    #[must_use]
+    pub fn sort_by_suit(pile: &Pile) -> HashMap<Suit, Pile> {
+        let mut sorted: HashMap<Suit, Pile> = HashMap::new();
 
         for suit in Suit::generate_french_suits() {
-            let cards_by_suit = pile.cards_by_suit(suit.clone());
+            let cards_by_suit = pile.cards_by_suit(suit);
             if !cards_by_suit.is_empty() {
                 sorted.insert(suit, Pile::new_from_vector(cards_by_suit));
             }
@@ -331,7 +332,7 @@ mod standard52_tests {
     fn sort_by_suit() {
         let pile = Standard52::pile_from_index("2S 3S 9S TS QS JH Ac").unwrap();
 
-        let sorted = Standard52::sort_by_suit(pile);
+        let sorted = Standard52::sort_by_suit(&pile);
 
         assert!(sorted.contains_key(&Suit::new(SPADES)));
         assert!(sorted.contains_key(&Suit::new(HEARTS)));
@@ -344,6 +345,6 @@ mod standard52_tests {
     fn to_a_flush(#[case] input: &'static str) {
         let pile = Standard52::pile_from_index(input).unwrap();
 
-        let _sorted = Standard52::sort_by_suit(pile);
+        let _sorted = Standard52::sort_by_suit(&pile);
     }
 }
