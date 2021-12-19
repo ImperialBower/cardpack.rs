@@ -17,6 +17,7 @@ pub const FLUENT_INDEX_SECTION: &str = "index";
 pub const FLUENT_LONG_SECTION: &str = "long";
 pub const FLUENT_SYMBOL_SECTION: &str = "symbol";
 pub const FLUENT_WEIGHT_SECTION: &str = "weight";
+pub const FLUENT_PRIME_SECTION: &str = "prime";
 
 pub trait Named {
     fn name(&self) -> &str;
@@ -84,5 +85,10 @@ pub trait Named {
     fn default_weight(&self) -> isize {
         let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
         weight.parse().unwrap_or(0)
+    }
+
+    fn default_prime(&self) -> u64 {
+        let prime = self.fluent_value(FLUENT_PRIME_SECTION, &US_ENGLISH);
+        prime.parse().unwrap_or(0)
     }
 }

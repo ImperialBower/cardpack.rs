@@ -64,11 +64,12 @@ pub const BLANK_RANK: &str = "_";
 /// ```
 /// let ace = cardpack::Rank {
 ///     weight: 1,
+///     prime: 19,
 ///     name: cardpack::fluent_name::FluentName::new(cardpack::ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
-/// at the and of a Suit (unless there are any Cards with negative weights).
+/// at the end of a Suit (unless there are any Cards with negative weights).
 ///
 /// # ``Rank::new()`` with a value string
 /// ```
@@ -94,6 +95,7 @@ pub const BLANK_RANK: &str = "_";
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: isize,
+    pub prime: u64,
     pub name: FluentName,
 }
 
@@ -112,6 +114,7 @@ impl Rank {
         let name = FluentName::new(name);
         Rank {
             weight: name.default_weight(),
+            prime: name.default_prime(),
             name,
         }
     }
@@ -125,8 +128,19 @@ impl Rank {
     /// ```
     #[must_use]
     pub fn new_with_weight(name: &'static str, weight: isize) -> Rank {
+        let name = FluentName::new(name);
         Rank {
             weight,
+            prime: name.default_prime(),
+            name,
+        }
+    }
+
+    #[must_use]
+    pub fn new_with_weight_and_prime(name: &'static str, weight: isize, prime: u64) -> Rank {
+        Rank {
+            weight,
+            prime,
             name: FluentName::new(name),
         }
     }
@@ -279,6 +293,7 @@ mod rank_tests {
     fn new() {
         let expected = Rank {
             weight: 7,
+            prime: 19,
             name: FluentName::new(NINE),
         };
 
