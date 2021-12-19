@@ -40,14 +40,9 @@ impl Standard52 {
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is incomplete.
     pub fn from_index(card_str: &'static str) -> Result<Standard52, DeckError> {
-        let mut pile = Pile::default();
-        for index in card_str.split_whitespace() {
-            pile.add(Standard52::card_from_index(index));
-        }
-
         let standard52 = Standard52 {
             pack: Pack::french_deck(),
-            deck: pile,
+            deck: Standard52::pile_from_index(card_str)?,
         };
 
         if standard52.is_complete() {
@@ -55,6 +50,23 @@ impl Standard52 {
         } else {
             Err(DeckError::InvalidIndex)
         }
+    }
+
+    /// # Errors
+    ///
+    /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
+    pub fn pile_from_index(card_str: &'static str) -> Result<Pile, DeckError> {
+        let mut pile = Pile::default();
+        for index in card_str.split_whitespace() {
+            let card = Standard52::card_from_index(index);
+
+            if card.is_valid() {
+                pile.add(card);
+            } else {
+                return Err(DeckError::InvalidIndex);
+            }
+        }
+        Ok(pile)
     }
 
     #[must_use]
@@ -126,7 +138,7 @@ impl fmt::Display for Standard52 {
 #[allow(non_snake_case)]
 mod standard52_tests {
     use super::*;
-    use crate::{DIAMONDS, FIVE, FOUR, SPADES, THREE, TWO};
+    use crate::{CLUBS, DIAMONDS, FIVE, FOUR, HEARTS, KING, QUEEN, SPADES, TEN, THREE, TWO};
     use rstest::rstest;
 
     #[test]
@@ -192,12 +204,39 @@ mod standard52_tests {
     }
 
     #[test]
-    fn from_index_shuffled__invalid_symbol_index() {
+    fn from_index__invalid_index__invalid_index_error() {
         let index = "8 4♣ K♥ Q♦ K♦ 8♥ 5♦ T♣ 9♦ J♣ T♠ 2♠ 4♥ 2♦ 3♠ 5♥ 3♦ A♣ T♥ 7♠ 4♠ K♠ 5♠ 7♣ A♥ K♣ J♠ A♠ Q♥ 2♣ 6♦ J♦ 6♠ 8♠ T♦ 9♠ 7♦ 8♦ 7♥ Q♣ 4♦ 9♣ J♥ 3♣ 6♥ 5♣ A♦ 3♥ 6♣ Q♠ 2♥ 9♥";
 
-        let standard52 = Standard52::from_index(index);
+        let actual_error = Standard52::from_index(index).unwrap_err();
 
-        assert!(standard52.is_err());
+        assert_eq!(actual_error, DeckError::InvalidIndex);
+    }
+
+    #[test]
+    fn pile_from_index() {
+        let index_string = "2S 3D QS KH 3C 3S TC";
+
+        let pile = Standard52::pile_from_index(index_string);
+
+        assert!(pile.is_ok());
+        let pile = pile.unwrap();
+        assert_eq!(pile.cards().len(), 7);
+        assert!(pile.contains(&Card::new(TWO, SPADES)));
+        assert!(pile.contains(&Card::new(THREE, DIAMONDS)));
+        assert!(pile.contains(&Card::new(QUEEN, SPADES)));
+        assert!(pile.contains(&Card::new(KING, HEARTS)));
+        assert!(pile.contains(&Card::new(THREE, CLUBS)));
+        assert!(pile.contains(&Card::new(THREE, SPADES)));
+        assert!(pile.contains(&Card::new(TEN, CLUBS)));
+    }
+
+    #[test]
+    fn pile_from_index__invalid_index__invalid_index_error() {
+        let index = "2S 3D QS K 3C 3S TC";
+
+        let actual_error = Standard52::pile_from_index(index).unwrap_err();
+
+        assert_eq!(actual_error, DeckError::InvalidIndex);
     }
 
     #[test]
