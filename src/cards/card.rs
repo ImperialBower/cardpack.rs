@@ -146,7 +146,7 @@ mod card_tests {
     #[test]
     fn new() {
         let expected = Card {
-            weight: 4014,
+            weight: 4012,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
             suit: Suit::new(SPADES),
@@ -158,7 +158,7 @@ mod card_tests {
     #[test]
     fn new_from_structs() {
         let expected = Card {
-            weight: 4014,
+            weight: 4012,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
             suit: Suit::new(SPADES),

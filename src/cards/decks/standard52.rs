@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
@@ -116,6 +117,25 @@ impl Standard52 {
         }
         card_str.char_indices().nth(1).unwrap().1
     }
+
+    // Suit HashMap Functions
+
+    /// Returns `HashMap` of Piles of Cards sorted by the Standard52 Suits.
+    ///
+    /// https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry/
+    /// https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors/
+    pub fn sort_by_suit(pile: Pile) -> HashMap<Suit, Pile> {
+        let mut sorted:HashMap<Suit, Pile> = HashMap::new();
+
+        for suit in Suit::generate_french_suits() {
+            let cards_by_suit = pile.cards_by_suit(suit.clone());
+            if !cards_by_suit.is_empty() {
+                sorted.insert(suit, Pile::new_from_vector(cards_by_suit));
+            }
+        }
+
+        sorted
+    }
 }
 
 impl Default for Standard52 {
@@ -230,6 +250,7 @@ mod standard52_tests {
         assert!(pile.contains(&Card::new(TEN, CLUBS)));
     }
 
+    /// <https://zhauniarovich.com/post/2021/2021-01-testing-errors-in-rust//>
     #[test]
     fn pile_from_index__invalid_index__invalid_index_error() {
         let index = "2S 3D QS K 3C 3S TC";
@@ -304,5 +325,25 @@ mod standard52_tests {
     #[case("")]
     fn card_from_index__invalid_index(#[case] input: &'static str) {
         assert_eq!(Card::blank_card(), Standard52::card_from_index(input));
+    }
+
+    #[test]
+    fn sort_by_suit() {
+        let pile = Standard52::pile_from_index("2S 3S 9S TS QS JH Ac").unwrap();
+
+        let sorted = Standard52::sort_by_suit(pile);
+
+        assert!(sorted.contains_key(&Suit::new(SPADES)));
+        assert!(sorted.contains_key(&Suit::new(HEARTS)));
+        assert!(sorted.contains_key(&Suit::new(CLUBS)));
+        assert!(!sorted.contains_key(&Suit::new(DIAMONDS)));
+    }
+
+    #[rstest]
+    #[case("2S 3S 9S TS QS JH Ac")]
+    fn to_a_flush(#[case] input: &'static str) {
+        let pile = Standard52::pile_from_index(input).unwrap();
+
+        let _sorted = Standard52::sort_by_suit(pile);
     }
 }

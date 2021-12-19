@@ -145,7 +145,7 @@ impl Rank {
 
         #[allow(clippy::cast_possible_wrap, clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
-            let weight = (s.len() + 1) - i;
+            let weight = (s.len() - 1) - i;
             v.push(Rank::new_with_weight(elem, weight as isize));
         }
         v
