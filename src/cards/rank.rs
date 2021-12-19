@@ -244,6 +244,20 @@ impl Rank {
     }
 }
 
+/// Allows for the Rank to be displayed as a binary value based upon it's prime field.
+/// This will be used for Cactus Kev style hand evaluation.
+/// ```
+/// let king = cardpack::Rank::new(cardpack::KING);
+/// assert_eq!(format!("King as binary is: {:06b}", king), "King as binary is: 100101");
+/// ```
+impl fmt::Binary for Rank {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let val = self.prime;
+
+        fmt::Binary::fmt(&val, f)
+    }
+}
+
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name.index(&US_ENGLISH))
@@ -459,5 +473,16 @@ mod rank_tests {
         ace.weight = 3;
 
         assert_eq!(3, ace.weight);
+    }
+
+    #[test]
+    fn fmt_binary() {
+        let king = Rank::new(KING);
+        let jack = Rank::new(JACK);
+        let five = Rank::new(FIVE);
+
+        assert_eq!(format!("King as binary is: {:06b}", king), "King as binary is: 100101");
+        assert_eq!(format!("Jack as binary is: {:06b}", jack), "Jack as binary is: 011101");
+        assert_eq!(format!("Five as binary is: {:06b}", five), "Five as binary is: 000111");
     }
 }
