@@ -481,8 +481,17 @@ mod rank_tests {
         let jack = Rank::new(JACK);
         let five = Rank::new(FIVE);
 
-        assert_eq!(format!("King as binary is: {:06b}", king), "King as binary is: 100101");
-        assert_eq!(format!("Jack as binary is: {:06b}", jack), "Jack as binary is: 011101");
-        assert_eq!(format!("Five as binary is: {:06b}", five), "Five as binary is: 000111");
+        assert_eq!(
+            format!("King as binary is: {:08b}", king),
+            "King as binary is: 00100101"
+        );
+        assert_eq!(
+            format!("Jack as binary is: {:08b}", jack),
+            "Jack as binary is: 00011101"
+        );
+        assert_eq!(
+            format!("Five as binary is: {:08b}", five),
+            "Five as binary is: 00000111"
+        );
     }
 }
