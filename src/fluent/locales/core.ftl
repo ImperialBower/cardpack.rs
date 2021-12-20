@@ -38,6 +38,8 @@ four-weight = 2
 three-weight = 1
 two-weight = 0
 
+big-joker-prime=47
+little-joker-prime=43
 ace-prime = 41
 king-prime = 37
 queen-prime = 31
