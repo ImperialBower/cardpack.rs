@@ -1,6 +1,6 @@
 # Default
 blank-symbol = _
-blank-weight = -1
+blank-weight = 0
 blank-long = _____
 blank-index = _
 

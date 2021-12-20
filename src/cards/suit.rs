@@ -29,7 +29,7 @@ pub const BLANK_SUIT: &str = "blank";
 /// Supports internationalization through fluent template files.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
-    pub weight: isize,
+    pub weight: u64,
     pub name: FluentName,
 }
 
@@ -44,7 +44,7 @@ impl Suit {
     }
 
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: isize) -> Suit {
+    pub fn new_with_weight(name: &'static str, weight: u64) -> Suit {
         Suit {
             weight,
             name: FluentName::new(name),
@@ -62,11 +62,11 @@ impl Suit {
     }
 
     #[allow(clippy::cast_possible_wrap)]
-    fn top_down_value(len: usize, i: usize) -> isize {
-        (len - i) as isize
+    fn top_down_value(len: usize, i: usize) -> u64 {
+        (len - i) as u64
     }
 
-    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
+    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> u64) -> Vec<Suit> {
         let mut v: Vec<Suit> = Vec::new();
 
         #[allow(clippy::into_iter_on_ref)]

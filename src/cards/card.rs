@@ -15,7 +15,7 @@ pub const BLANK: &str = "blank";
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     /// Used by the Pile struct to sort Cards.
-    pub weight: isize,
+    pub weight: u64,
     /// The identity indicator in the corner of a playing card, such as `AS` for ace of spades.
     pub index: String,
     pub suit: Suit,
@@ -27,16 +27,7 @@ impl Card {
     /// templates.
     #[must_use]
     pub fn new(rank: &'static str, suit: &'static str) -> Card {
-        let suit = Suit::new(suit);
-        let rank = Rank::new(rank);
-        let weight = Card::determine_weight(&suit, &rank);
-        let index = Card::determine_index(&suit, &rank);
-        Card {
-            weight,
-            index,
-            suit,
-            rank,
-        }
+        Card::new_from_structs(Rank::new(rank), Suit::new(suit))
     }
 
     /// Instantiates a Card with the weight determined by the passed in Rank and
@@ -94,7 +85,7 @@ impl Card {
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
+    fn determine_weight(suit: &Suit, rank: &Rank) -> u64 {
         (suit.weight * 1000) + rank.weight
     }
 }
@@ -102,6 +93,24 @@ impl Card {
 impl Default for Card {
     fn default() -> Card {
         Card::new(BLANK, BLANK)
+    }
+}
+
+impl fmt::Binary for Card {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let suit: u64 = match self.suit.weight {
+            4 => 0x1000,
+            3 => 0x2000,
+            2 => 0x4000,
+            1 => 0x8000,
+            _ => 0xF000,
+        };
+
+        let bits = 1 << (16 + self.rank.weight);
+
+        let val = bits | self.rank.prime | self.rank.weight << 8 | suit;
+
+        fmt::Binary::fmt(&val, f)
     }
 }
 
@@ -128,7 +137,7 @@ impl Named for Card {
         format!("{} {}", rank, suit)
     }
 
-    fn default_weight(&self) -> isize {
+    fn default_weight(&self) -> u64 {
         Card::determine_weight(&self.suit, &self.rank)
     }
 }
@@ -138,7 +147,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, HEARTS, JACK, QUEEN, SPADES};
+    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES};
     use std::cell::Cell;
 
     // region impl tests
@@ -209,7 +218,7 @@ mod card_tests {
     fn default() {
         let card = Card::default();
 
-        assert_eq!(-1001, card.weight);
+        assert_eq!(0, card.weight);
         assert_eq!("__".to_string(), card.index);
         assert_eq!("__".to_string(), card.index_default());
         assert_eq!("__".to_string(), card.symbol(&US_ENGLISH));
@@ -280,5 +289,15 @@ mod card_tests {
         assert_eq!(Card::new(ACE, SPADES), aces);
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
+    }
+
+    #[test]
+    fn fmt_binary() {
+        let card = Card::new(KING, DIAMONDS);
+
+        assert_eq!(
+            format!("King of Diamonds as binary is: {:032b}", card),
+            "King of Diamonds as binary is: 00001000000000000100101100100101"
+        );
     }
 }
