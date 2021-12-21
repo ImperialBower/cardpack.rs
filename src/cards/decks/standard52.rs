@@ -169,11 +169,11 @@ mod standard52_tests {
         let mut standard52 = Standard52::from_index(index_string).unwrap();
 
         assert_eq!(
-            Card::new_from_index_strings(TWO, SPADES),
+            Card::from_index_strings(TWO, SPADES),
             standard52.deck.draw_first().unwrap()
         );
         assert_eq!(
-            Card::new_from_index_strings(THREE, DIAMONDS),
+            Card::from_index_strings(THREE, DIAMONDS),
             standard52.deck.draw_first().unwrap()
         );
     }
@@ -242,13 +242,13 @@ mod standard52_tests {
         assert!(pile.is_ok());
         let pile = pile.unwrap();
         assert_eq!(pile.cards().len(), 7);
-        assert!(pile.contains(&Card::new_from_index_strings(TWO, SPADES)));
-        assert!(pile.contains(&Card::new_from_index_strings(THREE, DIAMONDS)));
-        assert!(pile.contains(&Card::new_from_index_strings(QUEEN, SPADES)));
-        assert!(pile.contains(&Card::new_from_index_strings(KING, HEARTS)));
-        assert!(pile.contains(&Card::new_from_index_strings(THREE, CLUBS)));
-        assert!(pile.contains(&Card::new_from_index_strings(THREE, SPADES)));
-        assert!(pile.contains(&Card::new_from_index_strings(TEN, CLUBS)));
+        assert!(pile.contains(&Card::from_index_strings(TWO, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, DIAMONDS)));
+        assert!(pile.contains(&Card::from_index_strings(QUEEN, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(KING, HEARTS)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, CLUBS)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(TEN, CLUBS)));
     }
 
     /// <https://zhauniarovich.com/post/2021/2021-01-testing-errors-in-rust//>
@@ -304,15 +304,15 @@ mod standard52_tests {
     }
 
     #[rstest]
-    #[case("2S", Card::new_from_index_strings(TWO, SPADES))]
-    #[case("2s", Card::new_from_index_strings(TWO, SPADES))]
-    #[case("2♠", Card::new_from_index_strings(TWO, SPADES))]
-    #[case("3S", Card::new_from_index_strings(THREE, SPADES))]
-    #[case("3♠", Card::new_from_index_strings(THREE, SPADES))]
-    #[case("4♠", Card::new_from_index_strings(FOUR, SPADES))]
-    #[case("4S", Card::new_from_index_strings(FOUR, SPADES))]
-    #[case("5♠", Card::new_from_index_strings(FIVE, SPADES))]
-    #[case("5S", Card::new_from_index_strings(FIVE, SPADES))]
+    #[case("2S", Card::from_index_strings(TWO, SPADES))]
+    #[case("2s", Card::from_index_strings(TWO, SPADES))]
+    #[case("2♠", Card::from_index_strings(TWO, SPADES))]
+    #[case("3S", Card::from_index_strings(THREE, SPADES))]
+    #[case("3♠", Card::from_index_strings(THREE, SPADES))]
+    #[case("4♠", Card::from_index_strings(FOUR, SPADES))]
+    #[case("4S", Card::from_index_strings(FOUR, SPADES))]
+    #[case("5♠", Card::from_index_strings(FIVE, SPADES))]
+    #[case("5S", Card::from_index_strings(FIVE, SPADES))]
     fn card_from_index(#[case] input: &'static str, #[case] expected: Card) {
         assert_eq!(expected, Standard52::card_from_index(input));
     }
