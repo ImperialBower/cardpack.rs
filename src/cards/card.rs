@@ -9,8 +9,9 @@ use crate::Named;
 pub const BLANK: &str = "blank";
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
-/// a Suit and weight, which is an integer that controls how a card is sorted
-/// in a Pile or as a part of a Vector.
+/// a `Suit`, `weight`, which is an integer that controls how a card is sorted
+/// in a `Pile` or as a part of a `Vector`, and index, which is a short `String`
+/// representation of the card, suitable for serialization in text format.
 ///
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
@@ -75,19 +76,19 @@ impl Card {
         !self.rank.is_blank() && !self.suit.is_blank()
     }
 
-    // Private methods
-    fn determine_index(suit: &Suit, rank: &Rank) -> String {
-        let rank = rank.index_default();
-        let suit = suit.index_default();
-        format!("{}{}", rank, suit)
-    }
-
-    /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rank: &Rank) -> u64 {
-        (suit.weight * 1000) + rank.weight
-    }
-
-    fn calculate_binary_signature(&self) -> u64 {
+    /// Creates [Cactus Kev's Hand Evaluator](http://suffe.cool/poker/evaluator.html) value.
+    /// ```txt
+    /// +--------+--------+--------+--------+
+    /// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+    /// +--------+--------+--------+--------+
+    ///
+    /// p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
+    /// r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+    /// cdhs = suit of card (bit turned on based on suit of card)
+    /// b = bit turned on depending on rank of card
+    /// ```
+    /// This is used for Poker hand evaluation.
+    pub fn binary_signature(&self) -> u64 {
         let suit: u64 = match self.suit.weight {
             4 => 0x1000,
             3 => 0x2000,
@@ -100,6 +101,18 @@ impl Card {
 
         bits | self.rank.prime | self.rank.weight << 8 | suit
     }
+
+    // Private methods
+    fn determine_index(suit: &Suit, rank: &Rank) -> String {
+        let rank = rank.index_default();
+        let suit = suit.index_default();
+        format!("{}{}", rank, suit)
+    }
+
+    /// Prioritizes sorting by Suit and then by Rank.
+    fn determine_weight(suit: &Suit, rank: &Rank) -> u64 {
+        (suit.weight * 1000) + rank.weight
+    }
 }
 
 /// Defaults to a blank `Card`.
@@ -111,7 +124,7 @@ impl Default for Card {
 
 impl fmt::Binary for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Binary::fmt(&self.calculate_binary_signature(), f)
+        fmt::Binary::fmt(&self.binary_signature(), f)
     }
 }
 
