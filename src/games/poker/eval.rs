@@ -45,5 +45,17 @@ mod eval_tests {
         let pile = Standard52::pile_from_index(input).unwrap();
 
         let _sorted = sort_by_suit(&pile);
+
+        let mut and:u64 = 0xF000;
+        for card in pile.cards() {
+            let bin = card.binary_signature();
+            println!("    {:032b}", and);
+            println!("  + {:032b}", bin);
+            println!("    ================================");
+            and = and & bin;
+            println!("    {:032b}", and);
+            println!();
+        }
+        assert_eq!(and, 0);
     }
 }

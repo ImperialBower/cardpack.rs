@@ -23,6 +23,7 @@ use crate::Named;
 /// pile.add(ace_of_spades);
 /// pile.add(ace_of_hearts);
 /// pile.shuffle();
+/// ```
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Pile(Vec<Card>);

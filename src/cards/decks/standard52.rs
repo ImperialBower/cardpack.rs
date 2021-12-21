@@ -341,7 +341,7 @@ mod standard52_tests {
     }
 
     #[rstest]
-    #[case("2S 3S 9S TS QS JH Ac")]
+    #[case("2S 3S 9S TS QS")]
     fn to_a_flush(#[case] input: &'static str) {
         let pile = Standard52::pile_from_index(input).unwrap();
 
