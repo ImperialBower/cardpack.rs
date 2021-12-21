@@ -102,6 +102,7 @@ impl Card {
     }
 }
 
+/// Defaults to a blank `Card`.
 impl Default for Card {
     fn default() -> Card {
         Card::from_index_strings(BLANK, BLANK)
@@ -214,6 +215,8 @@ mod card_tests {
     #[test]
     fn default() {
         let card = Card::default();
+
+        println!("{:?}", card);
 
         assert_eq!(0, card.weight);
         assert_eq!("__".to_string(), card.index);

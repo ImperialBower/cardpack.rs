@@ -91,7 +91,7 @@ pub const BLANK_RANK: &str = "_";
 /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
 ///
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
     pub weight: u64,
@@ -241,6 +241,13 @@ impl Rank {
     #[must_use]
     pub fn is_blank(&self) -> bool {
         self.name.name() == BLANK_RANK
+    }
+}
+
+/// Defaults to a blank `Rank`.
+impl Default for Rank {
+    fn default() -> Rank {
+        Rank::new(BLANK_RANK)
     }
 }
 
@@ -493,5 +500,10 @@ mod rank_tests {
             format!("Five as binary is: {:08b}", five),
             "Five as binary is: 00000111"
         );
+    }
+
+    #[test]
+    fn default() {
+        assert_eq!(Rank::default(), Rank::new(BLANK_RANK));
     }
 }

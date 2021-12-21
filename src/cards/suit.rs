@@ -27,7 +27,7 @@ pub const BLANK_SUIT: &str = "blank";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
     pub weight: u64,
     pub name: FluentName,
@@ -107,6 +107,13 @@ impl Suit {
     #[must_use]
     pub fn generate_skat_suits() -> Vec<Suit> {
         Suit::from_array(&[EICHEL, LAUB, HERZ, SHELLEN])
+    }
+}
+
+/// Defaults to a blank `Suit`.
+impl Default for Suit {
+    fn default() -> Suit {
+        Suit::new(BLANK_SUIT)
     }
 }
 
@@ -268,5 +275,10 @@ mod suit_tests {
         wands.weight = 3;
 
         assert_eq!(3, wands.weight);
+    }
+
+    #[test]
+    fn default() {
+        assert_eq!(Suit::default(), Suit::new(BLANK_SUIT));
     }
 }
