@@ -88,6 +88,7 @@ impl Card {
     /// b = bit turned on depending on rank of card
     /// ```
     /// This is used for Poker hand evaluation.
+    #[must_use]
     pub fn binary_signature(&self) -> u64 {
         let suit: u64 = match self.suit.weight {
             4 => 0x1000,
