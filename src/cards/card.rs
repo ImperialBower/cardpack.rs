@@ -306,6 +306,13 @@ mod card_tests {
     }
 
     #[test]
+    fn binary_signature() {
+        let card = Card::from_index_strings(KING, DIAMONDS);
+
+        assert_eq!(card.binary_signature(), 134236965);
+    }
+
+    #[test]
     fn fmt_binary() {
         assert_eq!(
             format!(

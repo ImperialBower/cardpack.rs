@@ -56,7 +56,7 @@ impl Standard52 {
     /// # Errors
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
-    pub fn pile_from_index(card_str: &'static str) -> Result<Pile, DeckError> {
+    pub fn pile_from_index(card_str: &'static str) -> `Result<Pile, DeckError>` {
         let mut pile = Pile::default();
         for index in card_str.split_whitespace() {
             let card = Standard52::card_from_index(index);
