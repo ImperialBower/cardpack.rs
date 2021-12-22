@@ -10,6 +10,8 @@ pub struct CardsBySuit {
 
 /// Possible five card combinations from a `Pile` of seven cards. The u8 value is the binary
 /// representation.
+#[allow(dead_code)]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq)]
 #[repr(u8)]
 enum Spread57 {
@@ -34,18 +36,18 @@ enum Spread57 {
     OOXXXXX = 31,
 }
 
+#[allow(dead_code, unused_imports)]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq)]
 #[repr(u8)]
 enum CardSieve {
-    XOOOOOOOO = 256,
-    OXOOOOOOO = 128,
-    OOXOOOOOO = 64,
-    OOOXOOOOO = 32,
-    OOOOXOOOO = 16,
-    OOOOOXOOO = 8,
-    OOOOOOXOO = 4,
-    OOOOOOOXO = 2,
-    OOOOOOOOX = 1,
+    XOOOOOO = 64,
+    OXOOOOO = 32,
+    OOXOOOO = 16,
+    OOOXOOO = 8,
+    OOOOXOO = 4,
+    OOOOOXO = 2,
+    OOOOOOX = 1,
 }
 
 /// <https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry//>
@@ -57,7 +59,8 @@ pub fn sort_by_suit(_pile: &Pile) -> HashMap<Suit, Pile> {
     sorted
 }
 
-pub fn pile_by_spread_key(spread: u8, pile: Pile) -> Result<Pile, CardError> {
+#[allow(clippy::missing_errors_doc)]
+pub fn pile_by_spread_key(_spread: u8, _pile: &Pile) -> Result<Pile, CardError> {
     Ok(Pile::default())
 }
 
