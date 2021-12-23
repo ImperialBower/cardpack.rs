@@ -314,5 +314,13 @@ mod cactus_kev_tests {
 
         assert_eq!(cactusKevCardFromU64.display(true), s);
         // println!("{:#}", cactusKevCardFromU64);
+
+        // this counts how many bit flags are set to true
+        // let i = cactusKevCardFromU64.bites.iter().filter(|b| **b).count();
+        // println!("{}", i);
+        //
+        // for j in cactusKevCardFromU64.bites.iter() {
+        //     println!("{}", j);
+        // }
     }
 }
