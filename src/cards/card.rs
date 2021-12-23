@@ -69,6 +69,14 @@ impl Card {
         Card::from_index_strings(BLANK, BLANK)
     }
 
+    /// A unique index of a `Card` relative to other cards in a `Pile` prioritized by `Rank` and
+    /// then by `Suit`, such that a 2 of spades is lower than a 3 of clubs. While Card.weight
+    /// prioritizes by `Suit` and then by `Rank`.
+    #[must_use]
+    pub fn count(&self) -> u64 {
+        (self.suit.weight - 1) + (self.rank.weight * 4) + 1
+    }
+
     /// A valid Card is one where the Rank and Suit are not blank.
     /// Cards are blank when an invalid Rank or Suit are passed in.
     #[must_use]
@@ -162,7 +170,9 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES};
+    use crate::{
+        ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, TWO,
+    };
     use std::cell::Cell;
 
     // region impl tests
@@ -189,6 +199,13 @@ mod card_tests {
         };
 
         assert_eq!(expected, Card::new(Rank::new(ACE), Suit::new(SPADES)));
+    }
+
+    #[test]
+    fn count() {
+        assert_eq!(52, Card::from_index_strings(ACE, SPADES).count());
+        assert_eq!(1, Card::from_index_strings(TWO, CLUBS).count());
+        assert_eq!(2, Card::from_index_strings(TWO, DIAMONDS).count());
     }
 
     #[test]

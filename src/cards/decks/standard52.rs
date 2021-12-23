@@ -137,6 +137,20 @@ impl Standard52 {
 
         sorted
     }
+
+    /// Returns true if five or more cards in a `Pile` are of the same `Suit`.
+    ///
+    /// NOTE: This method is non optimal and is primarily for verification purposes.
+    #[must_use]
+    pub fn is_flush(pile: &Pile) -> bool {
+        let hash_map = Standard52::sort_by_suit(pile);
+        for c in hash_map.values() {
+            if c.len() > 4 {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 impl Default for Standard52 {
@@ -346,5 +360,23 @@ mod standard52_tests {
         let pile = Standard52::pile_from_index(input).unwrap();
 
         let _sorted = Standard52::sort_by_suit(&pile);
+    }
+
+    #[rstest]
+    #[case("2S 3S 9S TS QS")]
+    #[case("2S 3S 9S TS QS AH QD")]
+    fn is_flush(#[case] input: &'static str) {
+        assert!(Standard52::is_flush(
+            &Standard52::pile_from_index(input).unwrap()
+        ));
+    }
+
+    #[rstest]
+    #[case("2S 3S 9D TS QS")]
+    #[case("2S 3S 9S TD QS AH QD")]
+    fn is_flush__false(#[case] input: &'static str) {
+        assert!(!Standard52::is_flush(
+            &Standard52::pile_from_index(input).unwrap()
+        ));
     }
 }
