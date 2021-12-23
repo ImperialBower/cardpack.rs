@@ -20,7 +20,7 @@ impl CactusKevCard {
     #[must_use]
     #[allow(clippy::needless_borrow)]
     pub fn new_from_card(card: &Card) -> CactusKevCard {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.set_rank(&card);
         cactus.set_rank_flag(&card);
         cactus.set_rank_prime(&card);
@@ -28,16 +28,11 @@ impl CactusKevCard {
         cactus
     }
 
+    #[must_use]
     pub fn new_from_u64(integer: u64) -> CactusKevCard {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.bites[..32].store_be(integer);
         cactus
-    }
-
-    #[must_use]
-    pub fn blank() -> CactusKevCard {
-        let bites: CactusKev = BitArray::zeroed();
-        CactusKevCard::new(bites)
     }
 
     /// Takes the `BitArray` representation of the Card and returns a `String`
@@ -106,6 +101,12 @@ impl CactusKevCard {
     }
 }
 
+impl Default for CactusKevCard {
+    fn default() -> CactusKevCard {
+        CactusKevCard::new(BitArray::zeroed())
+    }
+}
+
 /// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
 impl Display for CactusKevCard {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
@@ -130,7 +131,7 @@ mod cactus_kev_tests {
     fn len() {
         let card: CactusKev = BitArray::zeroed();
         assert_eq!(card.len(), 32);
-        assert_eq!(CactusKevCard::blank().bites.len(), 32);
+        assert_eq!(CactusKevCard::default().bites.len(), 32);
     }
 
     #[test]
@@ -158,7 +159,7 @@ mod cactus_kev_tests {
 
     #[test]
     fn set_rank() {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         let card = Standard52::card_from_index("K♦");
 
         cactus.set_rank(&card);
@@ -167,7 +168,7 @@ mod cactus_kev_tests {
 
     #[test]
     fn set_rank_flag() {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         let card = Standard52::card_from_index("K♦");
 
         cactus.set_rank_flag(&card);
@@ -176,7 +177,7 @@ mod cactus_kev_tests {
 
     #[test]
     fn set() {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         let card = Standard52::card_from_index("K♦");
 
         cactus.set_rank_prime(&card);
@@ -198,24 +199,24 @@ mod cactus_kev_tests {
 
     #[test]
     fn set_suit() {
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
 
         let card = Standard52::card_from_index("KS");
         cactus.set_suit(&card);
         assert_eq!("00000000 00000000 00010000 00000000", cactus.display(true));
 
         let card = Standard52::card_from_index("KH");
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.set_suit(&card);
         assert_eq!("00000000 00000000 00100000 00000000", cactus.display(true));
 
         let card = Standard52::card_from_index("K♦");
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.set_suit(&card);
         assert_eq!("00000000 00000000 01000000 00000000", cactus.display(true));
 
         let card = Standard52::card_from_index("KC");
-        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.set_suit(&card);
         assert_eq!("00000000 00000000 10000000 00000000", cactus.display(true));
     }

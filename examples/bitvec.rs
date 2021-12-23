@@ -3,7 +3,7 @@ use bitvec::prelude::*;
 use cardpack::games::poker::cactus_kev::CactusKevCard;
 
 fn main() {
-    let mut c: CactusKevCard = CactusKevCard::blank();
+    let mut c: CactusKevCard = CactusKevCard::default();
     c.bites[..8].store(1u8);
 
     println!("{:#}", c.bites);
