@@ -4,12 +4,12 @@ use cardpack::games::poker::cactus_kev::CactusKevCard;
 
 fn main() {
     let mut c: CactusKevCard = CactusKevCard::blank();
-    c.card[..8].store(1u8);
+    c.bites[..8].store(1u8);
 
-    println!("{:#}", c.card);
+    println!("{:#}", c.bites);
     println!("{:#}", c);
-    println!("{}", c.dump());
+    println!("{}", c.display(true));
 
-    assert_eq!(c.card.len(), 32);
-    println!("{}", c.card.get(7).unwrap());
+    assert_eq!(c.bites.len(), 32);
+    println!("{}", c.bites.get(7).unwrap());
 }
