@@ -51,6 +51,12 @@ impl CactusKevCard {
         word_string
     }
 
+    /// Returns a `BitSlice` of the `Suit` section of the `CactusKev` `BitArray`.
+    #[must_use]
+    pub fn get_suit(&self) -> &BitSlice<Msb0, u8> {
+        &self.bites[16..20]
+    }
+
     fn set_rank_prime(&mut self, card: &Card) {
         self.bites[26..32].store_be(card.rank.prime);
     }
@@ -157,5 +163,24 @@ mod cactus_kev_tests {
         println!("{}", cactus.display(true));
         println!("{:032b}", card.binary_signature());
         println!("{:#}", cactus);
+    }
+
+    #[test]
+    fn get_suit() {
+        let card = Standard52::card_from_index("KS");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0001]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("KH");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0010]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("K♦");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0100]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("KC");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[1000]", format!("{:04b}", cactusKevCard.get_suit()));
     }
 }
