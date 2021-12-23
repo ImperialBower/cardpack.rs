@@ -1,17 +1,15 @@
 use bitvec::prelude::*;
 
-use cardpack::games::poker::cactus_kev::{CactusKev, CactusKevCard};
+use cardpack::games::poker::cactus_kev::CactusKevCard;
 
 fn main() {
-    let mut card: CactusKev = BitArray::zeroed();
-    card[..8].store(1u8);
+    let mut c: CactusKevCard = CactusKevCard::blank();
+    c.card[..8].store(1u8);
 
-    let c = CactusKevCard::new(&card);
-
-    println!("{:#}", card);
+    println!("{:#}", c.card);
     println!("{:#}", c);
     println!("{}", c.dump());
 
-    assert_eq!(card.len(), 32);
-    println!("{}", card.get(7).unwrap());
+    assert_eq!(c.card.len(), 32);
+    println!("{}", c.card.get(7).unwrap());
 }

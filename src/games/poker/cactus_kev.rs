@@ -1,3 +1,4 @@
+use crate::Card;
 use bitvec::prelude::*;
 use std::fmt::{Display, Formatter};
 use wyz::fmt::FmtForward;
@@ -6,20 +7,21 @@ use wyz::fmt::FmtForward;
 pub type CactusKev = BitArray<Msb0, [u8; 4]>;
 
 #[allow(clippy::module_name_repetitions)]
-pub struct CactusKevCard<'a> {
-    pub card: &'a CactusKev,
+pub struct CactusKevCard {
+    pub card: CactusKev,
 }
 
-impl<'a> CactusKevCard<'a> {
+impl CactusKevCard {
     #[must_use]
-    pub fn new(card: &'a CactusKev) -> Self {
+    pub fn new(card: CactusKev) -> Self {
         Self { card }
     }
 
-    // pub fn blank() -> CactusKevCard {
-    //     let card: CactusKev = BitArray::zeroed();
-    //     CactusKevCard::new(&card);
-    // }
+    #[must_use]
+    pub fn blank() -> CactusKevCard {
+        let card: CactusKev = BitArray::zeroed();
+        CactusKevCard::new(card)
+    }
 
     #[must_use]
     pub fn dump(&self) -> String {
@@ -36,10 +38,47 @@ impl<'a> CactusKevCard<'a> {
         }
         word_string
     }
+
+    pub fn set_rank_prime(&mut self, card: &Card) {
+        self.card[26..32].store_be(card.rank.prime);
+    }
+
+    pub fn set_rank_flag(&mut self, card: &Card) {
+        match card.rank.weight {
+            12 => self.card[..4].store(1u8), // Ace
+            11 => self.card[..5].store(1u8), // King
+            10 => self.card[..6].store(1u8), // Queen
+            9 => self.card[..7].store(1u8),  // Jack
+            8 => self.card[..8].store(1u8),  // Ten
+            7 => self.card[..9].store(1u8),  // Nine
+            6 => self.card[..10].store(1u8), // Eight
+            5 => self.card[..11].store(1u8), // Seven
+            4 => self.card[..12].store(1u8), // Six
+            3 => self.card[..13].store(1u8), // Five
+            2 => self.card[..14].store(1u8), // Four
+            1 => self.card[..15].store(1u8), // Three
+            0 => self.card[..16].store(1u8), // Two
+            _ => (),
+        }
+    }
+
+    pub fn set_rank(&mut self, card: &Card) {
+        self.card[20..24].store_be(card.rank.weight);
+    }
+
+    pub fn set_suit(&mut self, card: &Card) {
+        match card.suit.weight {
+            4 => self.card[..20].store(1u8),   // Spades
+            3 => self.card[..19].store(1u8),   // Hearts
+            2 => self.card[17..18].store(1u8), // Diamonds
+            1 => self.card[16..17].store(1u8), // Clubs
+            _ => (),
+        }
+    }
 }
 
 /// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
-impl<'a> Display for CactusKevCard<'a> {
+impl Display for CactusKevCard {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
         let mut out = fmt.debug_list();
 
@@ -56,10 +95,33 @@ impl<'a> Display for CactusKevCard<'a> {
 #[allow(non_snake_case)]
 mod cactus_kev_tests {
     use super::*;
+    use crate::{Card, DIAMONDS, KING};
 
     #[test]
     fn len() {
         let card: CactusKev = BitArray::zeroed();
         assert_eq!(card.len(), 32);
+    }
+
+    //  00001000 00000000 01000000 00100101
+    //  00001000 00000000 01001011 00100101
+    #[test]
+    fn set_rank_prime() {
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let card = Card::from_index_strings(KING, DIAMONDS);
+
+        cactus.set_rank_prime(&card);
+        assert_eq!("00000000 00000000 00000000 00100101", cactus.dump());
+
+        cactus.set_rank(&card);
+        cactus.set_rank_flag(&card);
+        assert_eq!("00001000 00000000 00001011 00100101", cactus.dump());
+
+        cactus.set_suit(&card);
+        assert_eq!("00001000 00000000 01001011 00100101", cactus.dump());
+
+        println!("{}", cactus.dump());
+        println!("{:032b}", card.binary_signature());
+        println!("{:#}", cactus);
     }
 }

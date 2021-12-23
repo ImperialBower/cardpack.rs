@@ -100,6 +100,8 @@ impl Card {
 
         let bits = 1 << (16 + self.rank.weight);
 
+        println!("{}", bits);
+
         bits | self.rank.prime | self.rank.weight << 8 | suit
     }
 
