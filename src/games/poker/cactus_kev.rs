@@ -28,6 +28,12 @@ impl CactusKevCard {
         cactus
     }
 
+    pub fn new_from_u64(integer: u64) -> CactusKevCard {
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        cactus.bites[..32].store_be(integer);
+        cactus
+    }
+
     #[must_use]
     pub fn blank() -> CactusKevCard {
         let bites: CactusKev = BitArray::zeroed();
@@ -59,7 +65,7 @@ impl CactusKevCard {
 
     // #[must_use]
     // pub fn get_int(&self) -> usize {
-    //     self.bites.as_bitslice().
+    //     self.bites.
     // }
 
     fn set_rank_prime(&mut self, card: &Card) {
@@ -151,7 +157,25 @@ mod cactus_kev_tests {
     }
 
     #[test]
-    fn set_rank_prime() {
+    fn set_rank() {
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let card = Standard52::card_from_index("K♦");
+
+        cactus.set_rank(&card);
+        assert_eq!("00000000 00000000 00001011 00000000", cactus.display(true));
+    }
+
+    #[test]
+    fn set_rank_flag() {
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        let card = Standard52::card_from_index("K♦");
+
+        cactus.set_rank_flag(&card);
+        assert_eq!("00001000 00000000 00000000 00000000", cactus.display(true));
+    }
+
+    #[test]
+    fn set() {
         let mut cactus: CactusKevCard = CactusKevCard::blank();
         let card = Standard52::card_from_index("K♦");
 
@@ -159,15 +183,41 @@ mod cactus_kev_tests {
         assert_eq!("00000000 00000000 00000000 00100101", cactus.display(true));
 
         cactus.set_rank(&card);
+        assert_eq!("00000000 00000000 00001011 00100101", cactus.display(true));
+
         cactus.set_rank_flag(&card);
         assert_eq!("00001000 00000000 00001011 00100101", cactus.display(true));
 
         cactus.set_suit(&card);
         assert_eq!("00001000 00000000 01001011 00100101", cactus.display(true));
 
-        println!("{}", cactus.display(true));
-        println!("{:032b}", card.binary_signature());
-        println!("{:#}", cactus);
+        // println!("{}", cactus.display(true));
+        // println!("{:032b}", card.binary_signature());
+        // println!("{:#}", cactus);
+    }
+
+    #[test]
+    fn set_suit() {
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+
+        let card = Standard52::card_from_index("KS");
+        cactus.set_suit(&card);
+        assert_eq!("00000000 00000000 00010000 00000000", cactus.display(true));
+
+        let card = Standard52::card_from_index("KH");
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        cactus.set_suit(&card);
+        assert_eq!("00000000 00000000 00100000 00000000", cactus.display(true));
+
+        let card = Standard52::card_from_index("K♦");
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        cactus.set_suit(&card);
+        assert_eq!("00000000 00000000 01000000 00000000", cactus.display(true));
+
+        let card = Standard52::card_from_index("KC");
+        let mut cactus: CactusKevCard = CactusKevCard::blank();
+        cactus.set_suit(&card);
+        assert_eq!("00000000 00000000 10000000 00000000", cactus.display(true));
     }
 
     #[test]
@@ -187,5 +237,81 @@ mod cactus_kev_tests {
         let card = Standard52::card_from_index("KC");
         let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
         assert_eq!("[1000]", format!("{:04b}", cactusKevCard.get_suit()));
+    }
+
+    #[test]
+    fn new_from_u64() {
+        let standard52 = Standard52::default();
+        for card in standard52.deck {
+            let cactusKevCardFromCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+            let cactusKevCardFromU64 = CactusKevCard::new_from_u64(card.binary_signature());
+            // println!("{} {}", card, card.binary_signature());
+            assert_eq!(
+                cactusKevCardFromU64.display(true),
+                cactusKevCardFromCard.display(true)
+            );
+        }
+    }
+
+    // AS 268442665
+    // KS 134224677
+    // QS 67115551
+    // JS 33560861
+    // TS 16783383
+    // 9S 8394515
+    // 8S 4199953
+    // 7S 2102541
+    // 6S 1053707
+    // 5S 529159
+    // 4S 266757
+    // 3S 135427
+    // 2S 69634
+    // AH 268446761
+    // KH 134228773
+    // QH 67119647
+    // JH 33564957
+    // TH 16787479
+    // 9H 8398611
+    // 8H 4204049
+    // 7H 2106637
+    // 6H 1057803
+    // 5H 533255
+    // 4H 270853
+    // 3H 139523
+    // 2H 73730
+    // AD 268454953
+    // KD 134236965
+    // QD 67127839
+    // JD 33573149
+    // TD 16795671
+    // 9D 8406803
+    // 8D 4212241
+    // 7D 2114829
+    // 6D 1065995
+    // 5D 541447
+    // 4D 279045
+    // 3D 147715
+    // 2D 81922
+    // AC 268471337
+    // KC 134253349
+    // QC 67144223
+    // JC 33589533
+    // TC 16812055
+    // 9C 8423187
+    // 8C 4228625
+    // 7C 2131213
+    // 6C 1082379
+    // 5C 557831
+    // 4C 295429
+    // 3C 164099
+    // 2C 98306
+    #[test]
+    fn from_int() {
+        let acespades: u64 = 268442665;
+        let s = "00010000 00000000 00011100 00101001".to_string();
+        let cactusKevCardFromU64 = CactusKevCard::new_from_u64(acespades);
+
+        assert_eq!(cactusKevCardFromU64.display(true), s);
+        // println!("{:#}", cactusKevCardFromU64);
     }
 }

@@ -247,7 +247,7 @@ mod card_tests {
     fn default() {
         let card = Card::default();
 
-        println!("{:?}", card);
+        // println!("{:?}", card);
 
         assert_eq!(0, card.weight);
         assert_eq!("__".to_string(), card.index);
