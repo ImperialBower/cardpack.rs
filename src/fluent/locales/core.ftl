@@ -22,8 +22,8 @@ hearts-weight = 3
 diamonds-weight = 2
 clubs-weight = 1
 
-big-joker-weight = 100
-little-joker-weight = 50
+big-joker-weight = 14
+little-joker-weight = 13
 ace-weight = 12
 king-weight = 11
 queen-weight = 10
