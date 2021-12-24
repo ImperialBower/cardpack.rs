@@ -1,4 +1,5 @@
-use crate::{Card, Pile};
+use crate::cards::card_error::CardError;
+use crate::{Card, Pile, Standard52};
 use bitvec::prelude::*;
 use std::fmt::{Display, Formatter};
 use wyz::fmt::FmtForward;
@@ -7,6 +8,7 @@ use wyz::fmt::FmtForward;
 pub type CactusKev = BitArray<Msb0, [u8; 4]>;
 
 #[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CactusKevCard {
     pub bites: CactusKev,
 }
@@ -26,6 +28,19 @@ impl CactusKevCard {
         cactus.set_rank_prime(&card);
         cactus.set_suit(&card);
         cactus
+    }
+
+    /// # Errors
+    ///
+    /// Will return `CardError::InvalidCard` for an invalid index.
+    pub fn new_from_index(i: &'static str) -> Result<CactusKevCard, CardError> {
+        let c = Standard52::card_from_index(i);
+
+        if c.is_valid() {
+            Ok(CactusKevCard::new_from_card(&c))
+        } else {
+            Err(CardError::InvalidCard)
+        }
     }
 
     #[must_use]
@@ -63,6 +78,7 @@ impl CactusKevCard {
         &self.bites[..16]
     }
 
+    #[must_use]
     pub fn is_straight(v: &BitVec<Msb0, u8>) -> bool {
         (v.leading_zeros() + v.trailing_zeros()) == 11
     }
@@ -167,6 +183,20 @@ impl Display for CactusKevCard {
     }
 }
 
+// #[derive(Debug, Hash, PartialEq)]
+// pub struct CactusKevPile(Vec<CactusKevCard>);
+//
+// impl CactusKevPile {
+//     pub fn new_from_vector(v: Vec<CactusKevCard>) -> CactusKevPile {
+//         CactusKevPile(v)
+//     }
+//
+//     // pub fn new_from_pile(p: Pile) -> CactusKevPile {
+//     //     let mut ckp =
+//     //     p.into_iter().
+//     // }
+// }
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod cactus_kev_tests {
@@ -201,6 +231,16 @@ mod cactus_kev_tests {
             let s = format!("{:032b}", card).to_string();
             assert_eq!(s, cactusKevCard.display(false));
         }
+    }
+
+    #[test]
+    fn new_from_index() {
+        let card = Standard52::card_from_index("KS");
+        let expected = CactusKevCard::new_from_card(&card);
+
+        let actual = CactusKevCard::new_from_index("KS").unwrap();
+
+        assert_eq!(expected, actual);
     }
 
     #[test]
