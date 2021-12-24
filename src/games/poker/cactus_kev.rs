@@ -59,19 +59,40 @@ impl CactusKevCard {
     }
 
     #[must_use]
-    pub fn get_rank_bit(&self) -> &BitSlice<Msb0, u8> {
+    pub fn get_rank_bits(&self) -> &BitSlice<Msb0, u8> {
         &self.bites[..16]
     }
 
-    // pub fn xor_rank_bits(pile: &Pile) -> &BitSlice<Msb0, u8> {
-    //     let mut bit_slice: BitVec<Msb0, u8> = BitVec::zeroed();
-    //
-    //     for card in pile.cards() {
-    //         let ck: CactusKevCard = CactusKevCard::new_from_card(&card);
-    //         bit_slice = bit_slice.to_bitvec() ^ ck.get_rank_bit().to_bitvec();
-    //     }
-    //     &bit_slice
-    // }
+    pub fn is_straight(v: &BitVec<Msb0, u8>) -> bool {
+        (v.leading_zeros() + v.trailing_zeros()) == 11
+    }
+
+    #[must_use]
+    pub fn rank_bits_of_five(
+        c1: &CactusKevCard,
+        c2: &CactusKevCard,
+        c3: &CactusKevCard,
+        c4: &CactusKevCard,
+        c5: &CactusKevCard,
+    ) -> BitVec<Msb0, u8> {
+        c1.get_rank_bits().to_bitvec()
+            | c2.get_rank_bits().to_bitvec()
+            | c3.get_rank_bits().to_bitvec()
+            | c4.get_rank_bits().to_bitvec()
+            | c5.get_rank_bits().to_bitvec()
+    }
+
+    #[must_use]
+    pub fn xor_rank_bits(_pile: &Pile) -> &BitSlice<Msb0, u8> {
+        BitSlice::empty()
+
+        // for card in pile.cards() {
+        //     let ck: CactusKevCard = CactusKevCard::new_from_card(&card);
+        //     bit_slice.bitxor_assign(ck.get_rank_bits().iter());
+        //
+        // }
+        // bit_slice
+    }
 
     // #[must_use]
     // pub fn get_int(&self) -> usize {
@@ -202,12 +223,12 @@ mod cactus_kev_tests {
     }
 
     #[test]
-    fn get_rank_bit() {
+    fn get_rank_bits() {
         let card = Standard52::card_from_index("KS");
         let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
         assert_eq!(
             "[00001000, 00000000]",
-            format!("{:b}", cactusKevCard.get_rank_bit())
+            format!("{:b}", cactusKevCard.get_rank_bits())
         );
     }
 
@@ -361,18 +382,51 @@ mod cactus_kev_tests {
 
     #[test]
     fn scratch() {
-        let king_spades = Standard52::card_from_index("KS");
-        let ck_king_spades: CactusKevCard = CactusKevCard::new_from_card(&king_spades);
-        let ace_spades = Standard52::card_from_index("AS");
-        let ck_ace_spades: CactusKevCard = CactusKevCard::new_from_card(&ace_spades);
+        let pile = Standard52::pile_from_index("AS KS QS JS TS")
+            .unwrap()
+            .sort();
+        let ck_ace_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(0).unwrap());
+        let ck_king_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(1).unwrap());
+        let ck_queen_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(2).unwrap());
+        let ck_jack_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(3).unwrap());
+        let ck_ten_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(4).unwrap());
+        // let s = ck_king_spades.bites.to_bitvec().sum();
 
-        let sum =
-            ck_king_spades.get_rank_bit().to_bitvec() ^ ck_ace_spades.get_rank_bit().to_bitvec();
+        let sum = ck_ace_spades.get_rank_bits().to_bitvec()
+            | ck_king_spades.get_rank_bits().to_bitvec()
+            | ck_queen_spades.get_rank_bits().to_bitvec()
+            | ck_jack_spades.get_rank_bits().to_bitvec()
+            | ck_ten_spades.get_rank_bits().to_bitvec();
 
-        println!("{}", sum);
+        let sum2 = CactusKevCard::rank_bits_of_five(
+            &ck_ace_spades,
+            &ck_king_spades,
+            &ck_queen_spades,
+            &ck_jack_spades,
+            &ck_ten_spades,
+        );
 
-        let _pile = Standard52::pile_from_index("2S 3S 9D TS QS").unwrap();
+        assert_eq!(sum, sum2);
+
+        println!("{} {}", sum, sum2);
+
+        println!("{}", sum.leading_zeros());
+        println!("{}", sum.trailing_zeros());
+
+        assert!(CactusKevCard::is_straight(&sum));
+
+        // let pile = Standard52::pile_from_index("2S 3S 9D TS QS").unwrap();
+        // let p: BitVec = pile.cards().into_iter().map(|&c| CactusKevCard::new_from_card(&c).get_rank_bits().to_bitvec()).collect();
         // let sum = CactusKevCard::xor_rank_bits(&pile);
         // println!("{}", sum);
+
+        // let mut bv: BitVec = BitVec::new();
+        // for card in pile.cards() {
+        //     let ck: CactusKevCard = CactusKevCard::new_from_card(&card);
+        //     let card_vec = ck.get_rank_bits().to_bitvec();
+        //     bv = bv | card_vec;
+        //     println!("{} {}", bv, card_vec);
+        // }
+        // println!("{:#}", bv);
     }
 }
