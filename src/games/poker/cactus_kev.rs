@@ -58,6 +58,11 @@ impl CactusKevCard {
         &self.bites[16..20]
     }
 
+    #[must_use]
+    pub fn get_rank_bit(&self) -> &BitSlice<Msb0, u8> {
+        &self.bites[..16]
+    }
+
     // #[must_use]
     // pub fn get_int(&self) -> usize {
     //     self.bites.
@@ -108,6 +113,16 @@ impl Default for CactusKevCard {
 }
 
 /// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
+/// ```txt
+/// +--------+--------+--------+--------+
+/// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+/// +--------+--------+--------+--------+
+///
+/// p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
+/// r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+/// cdhs = suit of card (bit turned on based on suit of card)
+/// b = bit turned on depending on rank of card
+/// ```
 impl Display for CactusKevCard {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
         let mut out = fmt.debug_list();
@@ -155,6 +170,35 @@ mod cactus_kev_tests {
             let s = format!("{:032b}", card).to_string();
             assert_eq!(s, cactusKevCard.display(false));
         }
+    }
+
+    #[test]
+    fn get_suit() {
+        let card = Standard52::card_from_index("KS");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0001]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("KH");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0010]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("K♦");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[0100]", format!("{:04b}", cactusKevCard.get_suit()));
+
+        let card = Standard52::card_from_index("KC");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!("[1000]", format!("{:04b}", cactusKevCard.get_suit()));
+    }
+
+    #[test]
+    fn get_rank_bit() {
+        let card = Standard52::card_from_index("KS");
+        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
+        assert_eq!(
+            "[00001000, 00000000]",
+            format!("{:b}", cactusKevCard.get_rank_bit())
+        );
     }
 
     #[test]
@@ -219,25 +263,6 @@ mod cactus_kev_tests {
         let mut cactus: CactusKevCard = CactusKevCard::default();
         cactus.set_suit(&card);
         assert_eq!("00000000 00000000 10000000 00000000", cactus.display(true));
-    }
-
-    #[test]
-    fn get_suit() {
-        let card = Standard52::card_from_index("KS");
-        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
-        assert_eq!("[0001]", format!("{:04b}", cactusKevCard.get_suit()));
-
-        let card = Standard52::card_from_index("KH");
-        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
-        assert_eq!("[0010]", format!("{:04b}", cactusKevCard.get_suit()));
-
-        let card = Standard52::card_from_index("K♦");
-        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
-        assert_eq!("[0100]", format!("{:04b}", cactusKevCard.get_suit()));
-
-        let card = Standard52::card_from_index("KC");
-        let cactusKevCard: CactusKevCard = CactusKevCard::new_from_card(&card);
-        assert_eq!("[1000]", format!("{:04b}", cactusKevCard.get_suit()));
     }
 
     #[test]
