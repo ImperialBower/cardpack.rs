@@ -183,19 +183,26 @@ impl Display for CactusKevCard {
     }
 }
 
-// #[derive(Debug, Hash, PartialEq)]
-// pub struct CactusKevPile(Vec<CactusKevCard>);
-//
-// impl CactusKevPile {
-//     pub fn new_from_vector(v: Vec<CactusKevCard>) -> CactusKevPile {
-//         CactusKevPile(v)
-//     }
-//
-//     // pub fn new_from_pile(p: Pile) -> CactusKevPile {
-//     //     let mut ckp =
-//     //     p.into_iter().
-//     // }
-// }
+#[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Debug, Hash, PartialEq)]
+pub struct CactusKevPile(Vec<CactusKevCard>);
+
+impl CactusKevPile {
+    #[must_use]
+    pub fn new_from_vector(v: Vec<CactusKevCard>) -> CactusKevPile {
+        CactusKevPile(v)
+    }
+
+    #[must_use]
+    pub fn new_from_pile(p: &Pile) -> CactusKevPile {
+        CactusKevPile::new_from_vector(
+            p.clone()
+                .into_iter()
+                .map(|c| CactusKevCard::new_from_card(&c))
+                .collect(),
+        )
+    }
+}
 
 #[cfg(test)]
 #[allow(non_snake_case)]
@@ -288,6 +295,15 @@ mod cactus_kev_tests {
 
         cactus.set_rank_flag(&card);
         assert_eq!("00001000 00000000 00000000 00000000", cactus.display(true));
+    }
+
+    #[test]
+    fn set_rank_prime() {
+        let mut cactus: CactusKevCard = CactusKevCard::default();
+        let card = Standard52::card_from_index("K♦");
+
+        cactus.set_rank_prime(&card);
+        assert_eq!("00000000 00000000 00000000 00100101", cactus.display(true));
     }
 
     #[test]
