@@ -72,6 +72,11 @@ impl BitCard {
     }
 
     #[must_use]
+    pub fn get_card(&self) -> Card {
+        Card::new(self.get_rank(), self.get_suit())
+    }
+
+    #[must_use]
     pub fn get_rank(&self) -> Rank {
         match format!("{:b}", self.get_rank_bits_slice()).as_str() {
             "[00010000, 00000000]" => Rank::new(ACE),
@@ -245,6 +250,24 @@ mod bit_card_tests {
 
         assert_eq!(actual.display(true), s);
         assert_eq!(actual, BitCard::new_from_index("A♤").unwrap());
+    }
+
+    /// Round trip tests between `Card` and `BitCard`.
+    #[test]
+    fn get_card() {
+        let standard52 = Standard52::default();
+        for card in standard52.deck {
+            let bit_card = BitCard::new_from_u64(card.binary_signature());
+            assert_eq!(bit_card.get_card(), card);
+
+            let bit_card = BitCard::new_from_card(&card);
+            assert_eq!(bit_card.get_card(), card);
+
+            // Extremely over the top test
+            let leaked: &'static str = Box::leak(card.clone().index.into_boxed_str());
+            let bit_card = BitCard::new_from_index(leaked).unwrap();
+            assert_eq!(bit_card.get_card(), card);
+        }
     }
 
     #[test]
