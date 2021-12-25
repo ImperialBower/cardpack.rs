@@ -20,7 +20,7 @@ impl BitCard {
 
     #[must_use]
     #[allow(clippy::needless_borrow)]
-    pub fn new_from_card(card: &Card) -> BitCard {
+    pub fn from_card(card: &Card) -> BitCard {
         let mut bit_card: BitCard = BitCard::default();
         bit_card.set_rank(&card);
         bit_card.set_rank_flag(&card);
@@ -32,18 +32,18 @@ impl BitCard {
     /// # Errors
     ///
     /// Will return `CardError::InvalidCard` for an invalid index.
-    pub fn new_from_index(i: &'static str) -> Result<BitCard, CardError> {
+    pub fn from_index(i: &'static str) -> Result<BitCard, CardError> {
         let c = Standard52::card_from_index(i);
 
         if c.is_valid() {
-            Ok(BitCard::new_from_card(&c))
+            Ok(BitCard::from_card(&c))
         } else {
             Err(CardError::InvalidCard)
         }
     }
 
     #[must_use]
-    pub fn new_from_u64(integer: u64) -> BitCard {
+    pub fn from_u64(integer: u64) -> BitCard {
         let mut bc: BitCard = BitCard::default();
         bc.0[..32].store_be(integer);
         bc
@@ -204,9 +204,9 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn new_from_card() {
+    fn from_card() {
         let card = Standard52::card_from_index("K♦");
-        let cactusKevCard: BitCard = BitCard::new_from_card(&card);
+        let cactusKevCard: BitCard = BitCard::from_card(&card);
 
         assert_eq!(
             "00001000 00000000 01001011 00100101",
@@ -217,38 +217,38 @@ mod bit_card_tests {
     /// This test goes through all 52 cards in a Standard52 deck and compares the
     /// `CactusKevCard` version of the bite signature with the `Card`'s version.
     #[test]
-    fn new_from_card__complete() {
+    fn from_card__complete() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let cactusKevCard: BitCard = BitCard::new_from_card(&card);
+            let cactusKevCard: BitCard = BitCard::from_card(&card);
             let s = format!("{:032b}", card).to_string();
             assert_eq!(s, cactusKevCard.display(false));
         }
     }
 
     #[test]
-    fn new_from_index() {
+    fn from_index() {
         let card = Standard52::card_from_index("KS");
-        let expected = BitCard::new_from_card(&card);
+        let expected = BitCard::from_card(&card);
 
-        let actual = BitCard::new_from_index("KS").unwrap();
+        let actual = BitCard::from_index("KS").unwrap();
 
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn new_from_index__invalid() {
-        assert!(BitCard::new_from_index("xx").is_err());
+    fn from_index__invalid() {
+        assert!(BitCard::from_index("xx").is_err());
     }
 
     #[test]
-    fn new_from_u64() {
+    fn from_u64() {
         let ace_spades: u64 = 268442665;
         let s = "00010000 00000000 00011100 00101001".to_string();
-        let actual = BitCard::new_from_u64(ace_spades);
+        let actual = BitCard::from_u64(ace_spades);
 
         assert_eq!(actual.display(true), s);
-        assert_eq!(actual, BitCard::new_from_index("A♤").unwrap());
+        assert_eq!(actual, BitCard::from_index("A♤").unwrap());
     }
 
     /// Round trip tests between `Card` and `BitCard`.
@@ -256,15 +256,15 @@ mod bit_card_tests {
     fn get_card() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let bit_card = BitCard::new_from_u64(card.binary_signature());
+            let bit_card = BitCard::from_u64(card.binary_signature());
             assert_eq!(bit_card.get_card(), card);
 
-            let bit_card = BitCard::new_from_card(&card);
+            let bit_card = BitCard::from_card(&card);
             assert_eq!(bit_card.get_card(), card);
 
             // Extremely over the top test
             let leaked: &'static str = Box::leak(card.clone().index.into_boxed_str());
-            let bit_card = BitCard::new_from_index(leaked).unwrap();
+            let bit_card = BitCard::from_index(leaked).unwrap();
             assert_eq!(bit_card.get_card(), card);
         }
     }
@@ -272,62 +272,62 @@ mod bit_card_tests {
     #[test]
     fn get_rank() {
         assert_eq!(
-            BitCard::new_from_index("AS").unwrap().get_rank(),
+            BitCard::from_index("AS").unwrap().get_rank(),
             Rank::new(ACE)
         );
         assert_eq!(
-            BitCard::new_from_index("KS").unwrap().get_rank(),
+            BitCard::from_index("KS").unwrap().get_rank(),
             Rank::new(KING)
         );
         assert_eq!(
-            BitCard::new_from_index("QS").unwrap().get_rank(),
+            BitCard::from_index("QS").unwrap().get_rank(),
             Rank::new(QUEEN)
         );
         assert_eq!(
-            BitCard::new_from_index("JS").unwrap().get_rank(),
+            BitCard::from_index("JS").unwrap().get_rank(),
             Rank::new(JACK)
         );
         assert_eq!(
-            BitCard::new_from_index("TS").unwrap().get_rank(),
+            BitCard::from_index("TS").unwrap().get_rank(),
             Rank::new(TEN)
         );
         assert_eq!(
-            BitCard::new_from_index("9S").unwrap().get_rank(),
+            BitCard::from_index("9S").unwrap().get_rank(),
             Rank::new(NINE)
         );
         assert_eq!(
-            BitCard::new_from_index("8S").unwrap().get_rank(),
+            BitCard::from_index("8S").unwrap().get_rank(),
             Rank::new(EIGHT)
         );
         assert_eq!(
-            BitCard::new_from_index("7S").unwrap().get_rank(),
+            BitCard::from_index("7S").unwrap().get_rank(),
             Rank::new(SEVEN)
         );
         assert_eq!(
-            BitCard::new_from_index("6S").unwrap().get_rank(),
+            BitCard::from_index("6S").unwrap().get_rank(),
             Rank::new(SIX)
         );
         assert_eq!(
-            BitCard::new_from_index("5S").unwrap().get_rank(),
+            BitCard::from_index("5S").unwrap().get_rank(),
             Rank::new(FIVE)
         );
         assert_eq!(
-            BitCard::new_from_index("4S").unwrap().get_rank(),
+            BitCard::from_index("4S").unwrap().get_rank(),
             Rank::new(FOUR)
         );
         assert_eq!(
-            BitCard::new_from_index("3S").unwrap().get_rank(),
+            BitCard::from_index("3S").unwrap().get_rank(),
             Rank::new(THREE)
         );
         assert_eq!(
-            BitCard::new_from_index("2S").unwrap().get_rank(),
+            BitCard::from_index("2S").unwrap().get_rank(),
             Rank::new(TWO)
         );
     }
 
     #[test]
     fn get_rank_bits_slice() {
-        let card: BitCard = BitCard::new_from_index("KS").unwrap();
+        let card: BitCard = BitCard::from_index("KS").unwrap();
         assert_eq!(
             "[00001000, 00000000]",
             format!("{:b}", card.get_rank_bits_slice())
@@ -337,50 +337,50 @@ mod bit_card_tests {
     #[test]
     fn get_suit() {
         assert_eq!(
-            BitCard::new_from_index("AS").unwrap().get_suit(),
+            BitCard::from_index("AS").unwrap().get_suit(),
             Suit::new(SPADES)
         );
 
         assert_eq!(
-            BitCard::new_from_index("2H").unwrap().get_suit(),
+            BitCard::from_index("2H").unwrap().get_suit(),
             Suit::new(HEARTS)
         );
 
         assert_eq!(
-            BitCard::new_from_index("3♦").unwrap().get_suit(),
+            BitCard::from_index("3♦").unwrap().get_suit(),
             Suit::new(DIAMONDS)
         );
 
         assert_eq!(
-            BitCard::new_from_index("TC").unwrap().get_suit(),
+            BitCard::from_index("TC").unwrap().get_suit(),
             Suit::new(CLUBS)
         )
     }
 
     #[test]
     fn get_suit_slice() {
-        let card: BitCard = BitCard::new_from_index("KS").unwrap();
+        let card: BitCard = BitCard::from_index("KS").unwrap();
         assert_eq!("[0001]", format!("{:04b}", card.get_suit_slice()));
 
-        let card: BitCard = BitCard::new_from_index("KH").unwrap();
+        let card: BitCard = BitCard::from_index("KH").unwrap();
         assert_eq!("[0010]", format!("{:04b}", card.get_suit_slice()));
 
-        let card: BitCard = BitCard::new_from_index("K♦").unwrap();
+        let card: BitCard = BitCard::from_index("K♦").unwrap();
         assert_eq!("[0100]", format!("{:04b}", card.get_suit_slice()));
 
-        let card: BitCard = BitCard::new_from_index("KC").unwrap();
+        let card: BitCard = BitCard::from_index("KC").unwrap();
         assert_eq!("[1000]", format!("{:04b}", card.get_suit_slice()));
     }
 
     #[test]
     fn is_blank() {
         assert!(BitCard::default().is_blank());
-        assert!(!BitCard::new_from_index("KS").unwrap().is_blank());
+        assert!(!BitCard::from_index("KS").unwrap().is_blank());
     }
 
     #[test]
     fn is_blank__false() {
-        assert!(!BitCard::new_from_index("KS").unwrap().is_blank());
+        assert!(!BitCard::from_index("KS").unwrap().is_blank());
     }
 
     #[test]

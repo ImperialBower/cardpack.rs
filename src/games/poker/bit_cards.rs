@@ -7,7 +7,7 @@ pub struct BitCards(Vec<BitCard>);
 
 impl BitCards {
     #[must_use]
-    pub fn new_from_vector(v: Vec<BitCard>) -> BitCards {
+    pub fn new(v: Vec<BitCard>) -> BitCards {
         BitCards(v)
     }
 
@@ -28,7 +28,7 @@ impl BitCards {
 
 impl Default for BitCards {
     fn default() -> Self {
-        BitCards::new_from_vector(Vec::new())
+        BitCards::new(Vec::new())
     }
 }
 
@@ -63,15 +63,15 @@ mod bit_cards_tests {
         let mut cards = BitCards::default();
         assert_eq!(0, cards.len());
 
-        cards.push(BitCard::new_from_index("AS").unwrap());
+        cards.push(BitCard::from_index("AS").unwrap());
         assert_eq!(1, cards.len());
     }
 
     #[test]
     fn push() {
         let mut cards = BitCards::default();
-        cards.push(BitCard::new_from_index("AS").unwrap());
-        cards.push(BitCard::new_from_index("KS").unwrap());
+        cards.push(BitCard::from_index("AS").unwrap());
+        cards.push(BitCard::from_index("KS").unwrap());
         let expected = "[00010000 00000000 00011100 00101001, xxxAKQJT 98765432 CDHSrrrr xxpppppp, 00001000 00000000 00011011 00100101, xxxAKQJT 98765432 CDHSrrrr xxpppppp]";
 
         // println!("{:#}", cards);
