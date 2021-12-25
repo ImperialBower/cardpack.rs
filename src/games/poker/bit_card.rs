@@ -178,7 +178,7 @@ impl Display for BitCard {
 #[allow(non_snake_case)]
 mod bit_card_tests {
     use super::*;
-    use crate::{ACE, QUEEN, Standard52};
+    use crate::{Standard52};
 
     #[test]
     fn len() {
@@ -238,6 +238,16 @@ mod bit_card_tests {
         assert_eq!(BitCard::new_from_index("AS").unwrap().get_rank(), Rank::new(ACE));
         assert_eq!(BitCard::new_from_index("KS").unwrap().get_rank(), Rank::new(KING));
         assert_eq!(BitCard::new_from_index("QS").unwrap().get_rank(), Rank::new(QUEEN));
+        assert_eq!(BitCard::new_from_index("JS").unwrap().get_rank(), Rank::new(JACK));
+        assert_eq!(BitCard::new_from_index("TS").unwrap().get_rank(), Rank::new(TEN));
+        assert_eq!(BitCard::new_from_index("9S").unwrap().get_rank(), Rank::new(NINE));
+        assert_eq!(BitCard::new_from_index("8S").unwrap().get_rank(), Rank::new(EIGHT));
+        assert_eq!(BitCard::new_from_index("7S").unwrap().get_rank(), Rank::new(SEVEN));
+        assert_eq!(BitCard::new_from_index("6S").unwrap().get_rank(), Rank::new(SIX));
+        assert_eq!(BitCard::new_from_index("5S").unwrap().get_rank(), Rank::new(FIVE));
+        assert_eq!(BitCard::new_from_index("4S").unwrap().get_rank(), Rank::new(FOUR));
+        assert_eq!(BitCard::new_from_index("3S").unwrap().get_rank(), Rank::new(THREE));
+        assert_eq!(BitCard::new_from_index("2S").unwrap().get_rank(), Rank::new(TWO));
     }
 
     #[test]
