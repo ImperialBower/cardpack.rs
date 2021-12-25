@@ -446,7 +446,7 @@ mod cactus_kev_tests {
         let ck_queen_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(2).unwrap());
         let ck_jack_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(3).unwrap());
         let ck_ten_spades: CactusKevCard = CactusKevCard::new_from_card(&pile.get(4).unwrap());
-        // let s = ck_king_spades.bites.to_bitvec().sum();
+        // let s = ck_king_spades.bites.to_bitvec().sum()
 
         let sum = ck_ace_spades.get_rank_bits().to_bitvec()
             | ck_king_spades.get_rank_bits().to_bitvec()

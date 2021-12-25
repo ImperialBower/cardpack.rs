@@ -4,7 +4,7 @@ use crate::{
     NINE, QUEEN, SEVEN, SIX, SPADES, TEN, THREE, TWO,
 };
 use bitvec::field::BitField;
-use bitvec::prelude::{BitArray, BitSlice, Msb0};
+use bitvec::prelude::{BitArray, BitSlice, BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
@@ -120,6 +120,11 @@ impl BitCard {
     #[must_use]
     pub fn is_blank(&self) -> bool {
         self.0.count_zeros() == 32
+    }
+
+    #[must_use]
+    pub fn or_rank_bit_slice(&self, bc: &BitCard) -> BitVec<Msb0, u8> {
+        self.get_rank_bit_slice().to_bitvec() | bc.get_rank_bit_slice().to_bitvec()
     }
 
     // Private methods
@@ -375,12 +380,20 @@ mod bit_card_tests {
     #[test]
     fn is_blank() {
         assert!(BitCard::default().is_blank());
-        assert!(!BitCard::from_index("KS").unwrap().is_blank());
     }
 
     #[test]
     fn is_blank__false() {
         assert!(!BitCard::from_index("KS").unwrap().is_blank());
+    }
+
+    #[test]
+    fn or_rank_bit_slice() {
+        let ace_spades = BitCard::from_index("AS").unwrap();
+        let king_spades = BitCard::from_index("KS").unwrap();
+        let result = ace_spades.or_rank_bit_slice(&king_spades);
+
+        assert_eq!(format!("{}", result), "[00011000, 00000000]");
     }
 
     #[test]

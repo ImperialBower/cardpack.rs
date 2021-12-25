@@ -73,6 +73,25 @@ impl Display for BitCards {
     }
 }
 
+impl FromIterator<BitCard> for BitCards {
+    fn from_iter<T: IntoIterator<Item = BitCard>>(iter: T) -> Self {
+        let mut c = BitCards::default();
+        for i in iter {
+            c.push(i);
+        }
+        c
+    }
+}
+
+impl IntoIterator for BitCards {
+    type Item = BitCard;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod bit_cards_tests {
@@ -111,5 +130,14 @@ mod bit_cards_tests {
 
         // println!("{:#}", cards);
         assert_eq!(format!("{}", cards), expected);
+    }
+
+    #[test]
+    fn scratch() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        // cards.into_iter().map()
+
+        for _c in cards {}
     }
 }
