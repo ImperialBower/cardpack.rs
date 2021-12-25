@@ -85,10 +85,10 @@ impl Suit {
     #[must_use]
     pub fn from_french_deck_index(symbol: char) -> Suit {
         match symbol {
-            '♠' | 'S' | 's' => Suit::new(SPADES),
-            '♥' | 'H' | 'h' => Suit::new(HEARTS),
-            '♦' | 'D' | 'd' => Suit::new(DIAMONDS),
-            '♣' | 'C' | 'c' => Suit::new(CLUBS),
+            '♤' | '♠' | 'S' | 's' => Suit::new(SPADES),
+            '♡' | '♥' | 'H' | 'h' => Suit::new(HEARTS),
+            '♢' | '♦' | 'D' | 'd' => Suit::new(DIAMONDS),
+            '♧' | '♣' | 'C' | 'c' => Suit::new(CLUBS),
             '🃟' | 'T' | 't' => Suit::new(TRUMP),
             _ => Suit::new(BLANK_SUIT),
         }
