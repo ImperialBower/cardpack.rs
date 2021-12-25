@@ -7,7 +7,6 @@ use wyz::fmt::FmtForward;
 /// A `CactusKev` Card representation is made up of four bites.
 pub type CactusKev = BitArray<Msb0, [u8; 4]>;
 
-
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CactusKevCard {
