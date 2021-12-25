@@ -1,5 +1,5 @@
 use crate::cards::card_error::CardError;
-use crate::{Card, Standard52};
+use crate::{ACE, Card, EIGHT, FIVE, FOUR, JACK, KING, NINE, QUEEN, Rank, SEVEN, SIX, Standard52, TEN, THREE, TWO};
 use bitvec::field::BitField;
 use bitvec::prelude::{BitArray, BitSlice, Msb0};
 use std::fmt::{Display, Formatter};
@@ -7,6 +7,8 @@ use wyz::FmtForward;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);
+
+pub struct FiveBitCards([BitCard; 5]);
 
 impl BitCard {
     // Constructors
@@ -64,6 +66,31 @@ impl BitCard {
             }
         }
         word_string
+    }
+
+    #[must_use]
+    pub fn get_rank(&self) -> Rank {
+        match format!("{:b}", self.get_rank_bits_slice()).as_str() {
+            "[00010000, 00000000]" => Rank::new(ACE),
+            "[00001000, 00000000]" => Rank::new(KING),
+            "[00000100, 00000000]" => Rank::new(QUEEN),
+            "[00000010, 00000000]" => Rank::new(JACK),
+            "[00000001, 00000000]" => Rank::new(TEN),
+            "[00000000, 10000000]" => Rank::new(NINE),
+            "[00000000, 01000000]" => Rank::new(EIGHT),
+            "[00000000, 00100000]" => Rank::new(SEVEN),
+            "[00000000, 00010000]" => Rank::new(SIX),
+            "[00000000, 00001000]" => Rank::new(FIVE),
+            "[00000000, 00000100]" => Rank::new(FOUR),
+            "[00000000, 00000010]" => Rank::new(THREE),
+            "[00000000, 00000001]" => Rank::new(TWO),
+            _ => Rank::default()
+        }
+    }
+
+    #[must_use]
+    pub fn get_rank_bits_slice(&self) -> &BitSlice<Msb0, u8> {
+        &self.0[..16]
     }
 
     /// Returns a `BitSlice` of the `Suit` section of the `CactusKev` `BitArray`.
@@ -151,7 +178,7 @@ impl Display for BitCard {
 #[allow(non_snake_case)]
 mod bit_card_tests {
     use super::*;
-    use crate::Standard52;
+    use crate::{ACE, QUEEN, Standard52};
 
     #[test]
     fn len() {
@@ -207,7 +234,23 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn get_suit() {
+    fn get_rank() {
+        assert_eq!(BitCard::new_from_index("AS").unwrap().get_rank(), Rank::new(ACE));
+        assert_eq!(BitCard::new_from_index("KS").unwrap().get_rank(), Rank::new(KING));
+        assert_eq!(BitCard::new_from_index("QS").unwrap().get_rank(), Rank::new(QUEEN));
+    }
+
+    #[test]
+    fn get_rank_bits() {
+        let card: BitCard = BitCard::new_from_index("KS").unwrap();
+        assert_eq!(
+            "[00001000, 00000000]",
+            format!("{:b}", card.get_rank_bits_slice())
+        );
+    }
+
+    #[test]
+    fn get_suit_slice() {
         let card: BitCard = BitCard::new_from_index("KS").unwrap();
         assert_eq!("[0001]", format!("{:04b}", card.get_suit_slice()));
 
