@@ -71,6 +71,7 @@ impl BitCard {
         word_string
     }
 
+    /// Returns a `cardpack::Card`.
     #[must_use]
     pub fn get_card(&self) -> Card {
         Card::new(self.get_rank(), self.get_suit())
