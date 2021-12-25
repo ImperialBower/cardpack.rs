@@ -8,7 +8,7 @@ use bitvec::prelude::{BitArray, BitSlice, BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);
 
 impl BitCard {
@@ -123,8 +123,8 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn or_rank_bit_slice(&self, bc: &BitCard) -> BitVec<Msb0, u8> {
-        self.get_rank_bit_slice().to_bitvec() | bc.get_rank_bit_slice().to_bitvec()
+    pub fn or_rank_bit_slice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.get_rank_bit_slice().to_bitvec() | bc.to_bitvec()
     }
 
     // Private methods
@@ -391,7 +391,7 @@ mod bit_card_tests {
     fn or_rank_bit_slice() {
         let ace_spades = BitCard::from_index("AS").unwrap();
         let king_spades = BitCard::from_index("KS").unwrap();
-        let result = ace_spades.or_rank_bit_slice(&king_spades);
+        let result = ace_spades.or_rank_bit_slice(&king_spades.get_rank_bit_slice());
 
         assert_eq!(format!("{}", result), "[00011000, 00000000]");
     }

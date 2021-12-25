@@ -1,6 +1,7 @@
 use crate::cards::card_error::CardError;
 use crate::games::poker::bit_card::BitCard;
 use crate::Standard52;
+use bitvec::prelude::{BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
@@ -42,12 +43,31 @@ impl BitCards {
     }
 
     #[must_use]
+    pub fn is_straight(&self) -> bool {
+        let v = self.or_rank_bit_slice();
+        ((v.leading_zeros() + v.trailing_zeros()) == 11) && (self.len() == 5)
+    }
+
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    #[must_use]
+    pub fn or_rank_bit_slice(&self) -> BitVec<Msb0, u8> {
+        let mut s = BitVec::new();
+        for bit_card in self.values() {
+            s = bit_card.or_rank_bit_slice(&s);
+        }
+        s
+    }
+
     pub fn push(&mut self, bit_card: BitCard) {
         self.0.push(bit_card);
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &BitCard> {
+        self.0.iter()
     }
 }
 
@@ -113,12 +133,41 @@ mod bit_cards_tests {
     }
 
     #[test]
+    fn is_straight() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        assert!(cards.is_straight());
+    }
+
+    #[test]
+    fn is_straight__false() {
+        let cards = BitCards::from_index("AS KS QS JS 9S").unwrap();
+
+        assert!(!cards.is_straight());
+    }
+
+    #[test]
+    fn is_straight__incomplete() {
+        let cards = BitCards::from_index("AS KS QS TS").unwrap();
+
+        assert!(!cards.is_straight());
+    }
+
+    #[test]
     fn len() {
         let mut cards = BitCards::default();
         assert_eq!(0, cards.len());
 
         cards.push(BitCard::from_index("AS").unwrap());
         assert_eq!(1, cards.len());
+    }
+
+    #[test]
+    fn or_rank_bit_slice() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+        let orbs = cards.or_rank_bit_slice();
+
+        println!("{:#}", orbs);
     }
 
     #[test]
