@@ -1,11 +1,15 @@
-use crate::Card;
+use crate::cards::card_error::CardError;
+use crate::{Card, Standard52};
 use bitvec::field::BitField;
-use bitvec::prelude::{BitArray, Msb0};
+use bitvec::prelude::{BitArray, BitSlice, Msb0};
+use std::fmt::{Display, Formatter};
+use wyz::FmtForward;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);
 
 impl BitCard {
+    // Constructors
     #[must_use]
     pub fn new(b: BitArray<Msb0, [u8; 4]>) -> BitCard {
         BitCard(b)
@@ -21,6 +25,59 @@ impl BitCard {
         bit_card.set_suit(&card);
         bit_card
     }
+
+    /// # Errors
+    ///
+    /// Will return `CardError::InvalidCard` for an invalid index.
+    pub fn new_from_index(i: &'static str) -> Result<BitCard, CardError> {
+        let c = Standard52::card_from_index(i);
+
+        if c.is_valid() {
+            Ok(BitCard::new_from_card(&c))
+        } else {
+            Err(CardError::InvalidCard)
+        }
+    }
+
+    #[must_use]
+    pub fn new_from_u64(integer: u64) -> BitCard {
+        let mut bc: BitCard = BitCard::default();
+        bc.0[..32].store_be(integer);
+        bc
+    }
+
+    // Struct methods
+
+    /// Takes the `BitArray` representation of the Card and returns a `String`
+    /// representation of the bits. If split is set to true, it will put a space
+    /// between each bite. For instance, `00001000000000000100101100100101`
+    /// becomes `00001000 00000000 01001011 00100101`.
+    #[must_use]
+    pub fn display(&self, split: bool) -> String {
+        let mut word_string = String::with_capacity(35);
+        let start_bit: usize = 0;
+        let bits = start_bit..start_bit + 32;
+        for (bit, idx) in self.0.as_bitslice().iter().by_val().zip(bits) {
+            word_string.push_str(if bit { "1" } else { "0" });
+            if split && idx % 8 == 7 && idx % 32 != 31 {
+                word_string.push(' ');
+            }
+        }
+        word_string
+    }
+
+    /// Returns a `BitSlice` of the `Suit` section of the `CactusKev` `BitArray`.
+    #[must_use]
+    pub fn get_suit_slice(&self) -> &BitSlice<Msb0, u8> {
+        &self.0[16..20]
+    }
+
+    #[must_use]
+    pub fn is_blank(&self) -> bool {
+        self.0.count_zeros() == 32
+    }
+
+    // Private methods
 
     fn set_rank(&mut self, card: &Card) {
         self.0[20..24].store_be(card.rank.weight);
@@ -58,24 +115,6 @@ impl BitCard {
             _ => (),
         }
     }
-
-    /// Takes the `BitArray` representation of the Card and returns a `String`
-    /// representation of the bits. If split is set to true, it will put a space
-    /// between each bite. For instance, `00001000000000000100101100100101`
-    /// becomes `00001000 00000000 01001011 00100101`.
-    #[must_use]
-    pub fn display(&self, split: bool) -> String {
-        let mut word_string = String::with_capacity(35);
-        let start_bit: usize = 0;
-        let bits = start_bit..start_bit + 32;
-        for (bit, idx) in self.0.as_bitslice().iter().by_val().zip(bits) {
-            word_string.push_str(if bit { "1" } else { "0" });
-            if split && idx % 8 == 7 && idx % 32 != 31 {
-                word_string.push(' ');
-            }
-        }
-        word_string
-    }
 }
 
 impl Default for BitCard {
@@ -84,11 +123,114 @@ impl Default for BitCard {
     }
 }
 
+/// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
+/// ```txt
+/// +--------+--------+--------+--------+
+/// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+/// +--------+--------+--------+--------+
+///
+/// p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
+/// r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+/// cdhs = suit of card (bit turned on based on suit of card)
+/// b = bit turned on depending on rank of card
+/// ```
+impl Display for BitCard {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut out = fmt.debug_list();
+
+        let mut mark_string = String::with_capacity(35);
+        mark_string.push_str("xxxAKQJT 98765432 CDHSrrrr xxpppppp");
+
+        out.entry(&(self.display(true)).fmt_display());
+        out.entry(&(&mark_string).fmt_display());
+        out.finish()
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod bit_card_tests {
     use super::*;
     use crate::Standard52;
+
+    #[test]
+    fn len() {
+        assert_eq!(BitCard::default().0.len(), 32);
+    }
+
+    #[test]
+    fn new_from_card() {
+        let card = Standard52::card_from_index("K♦");
+        let cactusKevCard: BitCard = BitCard::new_from_card(&card);
+
+        assert_eq!(
+            "00001000 00000000 01001011 00100101",
+            cactusKevCard.display(true)
+        );
+    }
+
+    /// This test goes through all 52 cards in a Standard52 deck and compares the
+    /// `CactusKevCard` version of the bite signature with the `Card`'s version.
+    #[test]
+    fn new_from_card__complete() {
+        let standard52 = Standard52::default();
+        for card in standard52.deck {
+            let cactusKevCard: BitCard = BitCard::new_from_card(&card);
+            let s = format!("{:032b}", card).to_string();
+            assert_eq!(s, cactusKevCard.display(false));
+        }
+    }
+
+    #[test]
+    fn new_from_index() {
+        let card = Standard52::card_from_index("KS");
+        let expected = BitCard::new_from_card(&card);
+
+        let actual = BitCard::new_from_index("KS").unwrap();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn new_from_index__invalid() {
+        assert!(BitCard::new_from_index("xx").is_err());
+    }
+
+    #[test]
+    fn new_from_u64() {
+        let ace_spades: u64 = 268442665;
+        let s = "00010000 00000000 00011100 00101001".to_string();
+        let actual = BitCard::new_from_u64(ace_spades);
+
+        assert_eq!(actual.display(true), s);
+        assert_eq!(actual, BitCard::new_from_index("A♤").unwrap());
+    }
+
+    #[test]
+    fn get_suit() {
+        let card: BitCard = BitCard::new_from_index("KS").unwrap();
+        assert_eq!("[0001]", format!("{:04b}", card.get_suit_slice()));
+
+        let card: BitCard = BitCard::new_from_index("KH").unwrap();
+        assert_eq!("[0010]", format!("{:04b}", card.get_suit_slice()));
+
+        let card: BitCard = BitCard::new_from_index("K♦").unwrap();
+        assert_eq!("[0100]", format!("{:04b}", card.get_suit_slice()));
+
+        let card: BitCard = BitCard::new_from_index("KC").unwrap();
+        assert_eq!("[1000]", format!("{:04b}", card.get_suit_slice()));
+    }
+
+    #[test]
+    fn is_blank() {
+        assert!(BitCard::default().is_blank());
+        assert!(!BitCard::new_from_index("KS").unwrap().is_blank());
+    }
+
+    #[test]
+    fn is_blank__false() {
+        assert!(!BitCard::new_from_index("KS").unwrap().is_blank());
+    }
 
     #[test]
     fn set_rank() {
