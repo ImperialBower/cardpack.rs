@@ -1,4 +1,6 @@
+use crate::cards::card_error::CardError;
 use crate::games::poker::bit_card::BitCard;
+use crate::Standard52;
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
@@ -9,6 +11,29 @@ impl BitCards {
     #[must_use]
     pub fn new(v: Vec<BitCard>) -> BitCards {
         BitCards(v)
+    }
+
+    /// # Errors
+    ///
+    /// Will return `CardError::InvalidCard` for an invalid index.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn from_index(i: &'static str) -> Result<BitCards, CardError> {
+        let pile = Standard52::pile_from_index(i);
+
+        if pile.is_err() {
+            return Err(CardError::InvalidCard);
+        }
+
+        let mut cards = BitCards::default();
+        for card in pile.unwrap() {
+            cards.push(BitCard::from_card(&card));
+        }
+        Ok(cards)
+    }
+
+    #[must_use]
+    pub fn get(&self, i: usize) -> Option<&BitCard> {
+        self.0.get(i)
     }
 
     #[must_use]
@@ -52,6 +77,16 @@ impl Display for BitCards {
 #[allow(non_snake_case)]
 mod bit_cards_tests {
     use super::*;
+
+    #[test]
+    fn from_index() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        assert_eq!(cards.len(), 5);
+        let c = cards.get(1).unwrap();
+        // let ex = BitCard::from_index("AS").unwrap();
+        assert_eq!(c, &BitCard::from_index("KS").unwrap());
+    }
 
     #[test]
     fn is_empty() {

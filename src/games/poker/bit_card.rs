@@ -77,7 +77,7 @@ impl BitCard {
 
     #[must_use]
     pub fn get_rank(&self) -> Rank {
-        match format!("{:b}", self.get_rank_bits_slice()).as_str() {
+        match format!("{:b}", self.get_rank_bit_slice()).as_str() {
             "[00010000, 00000000]" => Rank::new(ACE),
             "[00001000, 00000000]" => Rank::new(KING),
             "[00000100, 00000000]" => Rank::new(QUEEN),
@@ -96,13 +96,13 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn get_rank_bits_slice(&self) -> &BitSlice<Msb0, u8> {
+    pub fn get_rank_bit_slice(&self) -> &BitSlice<Msb0, u8> {
         &self.0[..16]
     }
 
     #[must_use]
     pub fn get_suit(&self) -> Suit {
-        match format!("{:04b}", self.get_suit_slice()).as_str() {
+        match format!("{:04b}", self.get_suit_bit_slice()).as_str() {
             "[0001]" => Suit::new(SPADES),
             "[0010]" => Suit::new(HEARTS),
             "[0100]" => Suit::new(DIAMONDS),
@@ -113,7 +113,7 @@ impl BitCard {
 
     /// Returns a `BitSlice` of the `Suit` section of the `CactusKev` `BitArray`.
     #[must_use]
-    pub fn get_suit_slice(&self) -> &BitSlice<Msb0, u8> {
+    pub fn get_suit_bit_slice(&self) -> &BitSlice<Msb0, u8> {
         &self.0[16..20]
     }
 
@@ -326,11 +326,11 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn get_rank_bits_slice() {
+    fn get_rank_bit_slice() {
         let card: BitCard = BitCard::from_index("KS").unwrap();
         assert_eq!(
             "[00001000, 00000000]",
-            format!("{:b}", card.get_rank_bits_slice())
+            format!("{:b}", card.get_rank_bit_slice())
         );
     }
 
@@ -358,18 +358,18 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn get_suit_slice() {
+    fn get_suit_bit_slice() {
         let card: BitCard = BitCard::from_index("KS").unwrap();
-        assert_eq!("[0001]", format!("{:04b}", card.get_suit_slice()));
+        assert_eq!("[0001]", format!("{:04b}", card.get_suit_bit_slice()));
 
         let card: BitCard = BitCard::from_index("KH").unwrap();
-        assert_eq!("[0010]", format!("{:04b}", card.get_suit_slice()));
+        assert_eq!("[0010]", format!("{:04b}", card.get_suit_bit_slice()));
 
         let card: BitCard = BitCard::from_index("K♦").unwrap();
-        assert_eq!("[0100]", format!("{:04b}", card.get_suit_slice()));
+        assert_eq!("[0100]", format!("{:04b}", card.get_suit_bit_slice()));
 
         let card: BitCard = BitCard::from_index("KC").unwrap();
-        assert_eq!("[1000]", format!("{:04b}", card.get_suit_slice()));
+        assert_eq!("[1000]", format!("{:04b}", card.get_suit_bit_slice()));
     }
 
     #[test]
