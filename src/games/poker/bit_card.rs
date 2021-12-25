@@ -11,8 +11,6 @@ use wyz::FmtForward;
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);
 
-pub struct FiveBitCards([BitCard; 5]);
-
 impl BitCard {
     // Constructors
     #[must_use]
