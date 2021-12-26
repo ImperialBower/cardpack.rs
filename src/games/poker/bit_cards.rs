@@ -38,14 +38,24 @@ impl BitCards {
     }
 
     #[must_use]
+    pub fn is_complete_hand(&self) -> bool {
+        self.len() == 5
+    }
+
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     #[must_use]
+    pub fn is_flush(&self) -> bool {
+        (self.or_suit_bit_slice().count_ones() == 1) && self.is_complete_hand()
+    }
+
+    #[must_use]
     pub fn is_straight(&self) -> bool {
         let v = self.or_rank_bit_slice();
-        ((v.leading_zeros() + v.trailing_zeros()) == 11) && (self.len() == 5)
+        ((v.leading_zeros() + v.trailing_zeros()) == 11) && self.is_complete_hand()
     }
 
     #[must_use]
@@ -55,11 +65,20 @@ impl BitCards {
 
     #[must_use]
     pub fn or_rank_bit_slice(&self) -> BitVec<Msb0, u8> {
-        let mut s = BitVec::new();
+        let mut v = BitVec::new();
         for bit_card in self.values() {
-            s = bit_card.or_rank_bit_slice(&s);
+            v = bit_card.or_rank_bitslice(&v);
         }
-        s
+        v
+    }
+
+    #[must_use]
+    pub fn or_suit_bit_slice(&self) -> BitVec<Msb0, u8> {
+        let mut v = BitVec::new();
+        for bit_card in self.values() {
+            v = bit_card.or_suit_bitslice(&v);
+        }
+        v
     }
 
     pub fn push(&mut self, bit_card: BitCard) {
@@ -118,18 +137,24 @@ mod bit_cards_tests {
     use super::*;
 
     #[test]
-    fn from_index() {
+    fn get() {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
 
         assert_eq!(cards.len(), 5);
         let c = cards.get(1).unwrap();
-        // let ex = BitCard::from_index("AS").unwrap();
         assert_eq!(c, &BitCard::from_index("KS").unwrap());
     }
 
     #[test]
     fn is_empty() {
         assert!(BitCards::default().is_empty());
+    }
+
+    #[test]
+    fn is_flush() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        assert!(cards.is_flush());
     }
 
     #[test]
@@ -165,9 +190,18 @@ mod bit_cards_tests {
     #[test]
     fn or_rank_bit_slice() {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
-        let orbs = cards.or_rank_bit_slice();
 
-        println!("{:#}", orbs);
+        assert_eq!(
+            "[00011111, 00000000]",
+            format!("{}", cards.or_rank_bit_slice())
+        );
+    }
+
+    #[test]
+    fn or_suit_bit_slice() {
+        let cards = BitCards::from_index("AS KC QH JD TS").unwrap();
+
+        assert_eq!("[1111]", format!("{:04b}", cards.or_suit_bit_slice()));
     }
 
     #[test]
@@ -183,10 +217,29 @@ mod bit_cards_tests {
 
     #[test]
     fn scratch() {
-        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+        let _cards = BitCards::from_index("AS KS QS JS TS").unwrap();
 
         // cards.into_iter().map()
 
-        for _c in cards {}
+        let pile = Standard52::pile_from_index("AS KS QS JS TS")
+            .unwrap()
+            .sort();
+        let ck_ace_spades: BitCard = BitCard::from_card(&pile.get(0).unwrap());
+        let ck_king_spades: BitCard = BitCard::from_card(&pile.get(1).unwrap());
+        let ck_queen_spades: BitCard = BitCard::from_card(&pile.get(2).unwrap());
+        let ck_jack_spades: BitCard = BitCard::from_card(&pile.get(3).unwrap());
+        let ck_ten_spades: BitCard = BitCard::from_card(&pile.get(4).unwrap());
+        // let s = ck_king_spades.bites.to_bitvec().sum()
+
+        let sum = ck_ace_spades.get_rank_bitslice().to_bitvec()
+            | ck_king_spades.get_rank_bitslice().to_bitvec()
+            | ck_queen_spades.get_rank_bitslice().to_bitvec()
+            | ck_jack_spades.get_rank_bitslice().to_bitvec()
+            | ck_ten_spades.get_rank_bitslice().to_bitvec();
+
+        println!("{}", sum);
+
+        println!("{}", sum.leading_zeros());
+        println!("{}", sum.trailing_zeros());
     }
 }

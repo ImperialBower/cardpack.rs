@@ -1,15 +1,8 @@
-use bitvec::prelude::*;
-
-use cardpack::games::poker::cactus_kev::CactusKevCard;
+use cardpack::games::poker::bit_card::{AnnotatedBitCard, BitCard};
 
 fn main() {
-    let mut c: CactusKevCard = CactusKevCard::default();
-    c.bites[..8].store(1u8);
+    let king_spades: BitCard = BitCard::from_index("KS").unwrap();
+    println!("{}", king_spades);
 
-    println!("{:#}", c.bites);
-    println!("{:#}", c);
-    println!("{}", c.display(true));
-
-    assert_eq!(c.bites.len(), 32);
-    println!("{}", c.bites.get(7).unwrap());
+    println!("{:#}", AnnotatedBitCard::new(king_spades));
 }

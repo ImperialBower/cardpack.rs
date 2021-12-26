@@ -69,7 +69,12 @@ impl BitCard {
         word_string
     }
 
-    /// Returns a `cardpack::Card`.
+    #[must_use]
+    pub fn as_bitslice(&self) -> &BitSlice<Msb0, u8> {
+        self.0.as_bitslice()
+    }
+
+    /// Returns a ` cardpack::Card`.
     #[must_use]
     pub fn get_card(&self) -> Card {
         Card::new(self.get_rank(), self.get_suit())
@@ -77,7 +82,7 @@ impl BitCard {
 
     #[must_use]
     pub fn get_rank(&self) -> Rank {
-        match format!("{:b}", self.get_rank_bit_slice()).as_str() {
+        match format!("{:b}", self.get_rank_bitslice()).as_str() {
             "[00010000, 00000000]" => Rank::new(ACE),
             "[00001000, 00000000]" => Rank::new(KING),
             "[00000100, 00000000]" => Rank::new(QUEEN),
@@ -96,13 +101,13 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn get_rank_bit_slice(&self) -> &BitSlice<Msb0, u8> {
+    pub fn get_rank_bitslice(&self) -> &BitSlice<Msb0, u8> {
         &self.0[..16]
     }
 
     #[must_use]
     pub fn get_suit(&self) -> Suit {
-        match format!("{:04b}", self.get_suit_bit_slice()).as_str() {
+        match format!("{:04b}", self.get_suit_bitslice()).as_str() {
             "[0001]" => Suit::new(SPADES),
             "[0010]" => Suit::new(HEARTS),
             "[0100]" => Suit::new(DIAMONDS),
@@ -113,7 +118,7 @@ impl BitCard {
 
     /// Returns a `BitSlice` of the `Suit` section of the `CactusKev` `BitArray`.
     #[must_use]
-    pub fn get_suit_bit_slice(&self) -> &BitSlice<Msb0, u8> {
+    pub fn get_suit_bitslice(&self) -> &BitSlice<Msb0, u8> {
         &self.0[16..20]
     }
 
@@ -123,9 +128,35 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn or_rank_bit_slice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
-        self.get_rank_bit_slice().to_bitvec() | bc.to_bitvec()
+    pub fn or_rank_bitslice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.get_rank_bitslice().to_bitvec() | bc.to_bitvec()
     }
+
+    #[must_use]
+    pub fn or_suit_bitslice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.get_suit_bitslice().to_bitvec() | bc.to_bitvec()
+    }
+
+    #[must_use]
+    pub fn to_bitvec(&self) -> BitVec<Msb0, u8> {
+        self.0.to_bitvec()
+    }
+
+    // #[must_use]
+    // pub fn to_u64(&self) -> u64 {
+    //     let mut result: u64 = 0;
+    //     let mut r = self.0.clone();
+    //     r.reverse();
+    //
+    //     for (i, v) in r.to_bitvec().as_bitslice().into_iter().enumerate() {
+    //         // if v.into_bitptr().read() {
+    //         //     result = result + (i as u64 * 1);
+    //         // }
+    //         println!(">> {} {}", i, v);
+    //         // println!("{} {}", i, &v);
+    //     }
+    //     1
+    // }
 
     // Private methods
 
@@ -186,12 +217,53 @@ impl Default for BitCard {
 /// ```
 impl Display for BitCard {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(fmt, "{}", self.display(true))
+    }
+}
+
+/// Usage:
+///
+/// ```
+/// use cardpack::games::poker::bit_card::{AnnotatedBitCard, BitCard};
+///
+/// let king_spades: BitCard = BitCard::from_index("KS").unwrap();
+/// println!("{:#}", AnnotatedBitCard::new(king_spades));
+///
+/// // prints out:
+/// // [
+/// //     00001000 00000000 00011011 00100101,
+/// //     xxxAKQJT 98765432 CDHSrrrr xxpppppp,
+/// // ]
+/// ```
+#[allow(clippy::module_name_repetitions)]
+pub struct AnnotatedBitCard(BitCard);
+
+impl AnnotatedBitCard {
+    #[must_use]
+    pub fn new(bit_card: BitCard) -> AnnotatedBitCard {
+        AnnotatedBitCard(bit_card)
+    }
+}
+
+/// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
+/// ```txt
+/// +--------+--------+--------+--------+
+/// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+/// +--------+--------+--------+--------+
+///
+/// p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
+/// r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+/// cdhs = suit of card (bit turned on based on suit of card)
+/// b = bit turned on depending on rank of card
+/// ```
+impl Display for AnnotatedBitCard {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
         let mut out = fmt.debug_list();
 
         let mut mark_string = String::with_capacity(35);
         mark_string.push_str("xxxAKQJT 98765432 CDHSrrrr xxpppppp");
 
-        out.entry(&(self.display(true)).fmt_display());
+        out.entry(&(self.0.display(true)).fmt_display());
         out.entry(&(&mark_string).fmt_display());
         out.finish()
     }
@@ -202,6 +274,7 @@ impl Display for BitCard {
 mod bit_card_tests {
     use super::*;
     use crate::{Standard52, Suit};
+    use rstest::rstest;
 
     #[test]
     fn len() {
@@ -254,6 +327,87 @@ mod bit_card_tests {
 
         assert_eq!(actual.display(true), s);
         assert_eq!(actual, BitCard::from_index("A♤").unwrap());
+    }
+
+    #[rstest]
+    #[case("A♠", 268442665)]
+    #[case("K♠", 134224677)]
+    #[case("Q♠", 67115551)]
+    #[case("J♠", 33560861)]
+    #[case("T♠", 16783383)]
+    #[case("9♠", 8394515)]
+    #[case("8♠", 4199953)]
+    #[case("7♠", 2102541)]
+    #[case("6♠", 1053707)]
+    #[case("5♠", 529159)]
+    #[case("4♠", 266757)]
+    #[case("3♠", 135427)]
+    #[case("2♠", 69634)]
+    #[case("A♥", 268446761)]
+    #[case("K♥", 134228773)]
+    #[case("Q♥", 67119647)]
+    #[case("J♥", 33564957)]
+    #[case("T♥", 16787479)]
+    #[case("9♥", 8398611)]
+    #[case("8♥", 4204049)]
+    #[case("7♥", 2106637)]
+    #[case("6♥", 1057803)]
+    #[case("5♥", 533255)]
+    #[case("4♥", 270853)]
+    #[case("3♥", 139523)]
+    #[case("2♥", 73730)]
+    #[case("A♦", 268454953)]
+    #[case("K♦", 134236965)]
+    #[case("Q♦", 67127839)]
+    #[case("J♦", 33573149)]
+    #[case("T♦", 16795671)]
+    #[case("9♦", 8406803)]
+    #[case("8♦", 4212241)]
+    #[case("7♦", 2114829)]
+    #[case("6♦", 1065995)]
+    #[case("5♦", 541447)]
+    #[case("4♦", 279045)]
+    #[case("3♦", 147715)]
+    #[case("2♦", 81922)]
+    #[case("A♣", 268471337)]
+    #[case("K♣", 134253349)]
+    #[case("Q♣", 67144223)]
+    #[case("J♣", 33589533)]
+    #[case("T♣", 16812055)]
+    #[case("9♣", 8423187)]
+    #[case("8♣", 4228625)]
+    #[case("7♣", 2131213)]
+    #[case("6♣", 1082379)]
+    #[case("5♣", 557831)]
+    #[case("4♣", 295429)]
+    #[case("3♣", 164099)]
+    #[case("2♣", 98306)]
+    fn from_u64__comprehensive(#[case] expected: &'static str, #[case] input: u64) {
+        let actual = BitCard::from_u64(input);
+        assert_eq!(actual, BitCard::from_index(expected).unwrap());
+    }
+
+    #[test]
+    fn from_u64__comprehensive_too() {
+        let standard52 = Standard52::default();
+        for card in standard52.deck {
+            let actual = BitCard::from_u64(card.binary_signature());
+            assert_eq!(actual.get_card(), card);
+        }
+    }
+
+    // TODO
+    #[test]
+    fn to_u64() {
+        let ace_spades = BitCard::from_index("AS").unwrap();
+        let _expected: u64 = 268442665;
+
+        // println!("{:?}", ace_spades.get_rank_bit_slice().domain());
+        // println!("{:?}", ace_spades.get_suit_bit_slice().domain());
+        // println!("{:?}", ace_spades.get_bit_slice().domain());
+        println!("{:#}", ace_spades.as_bitslice());
+
+        // assert_eq!(ace_spades.to_u64(), expected);
     }
 
     /// Round trip tests between `Card` and `BitCard`.
@@ -331,11 +485,11 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn get_rank_bit_slice() {
+    fn get_rank_bitslice() {
         let card: BitCard = BitCard::from_index("KS").unwrap();
         assert_eq!(
             "[00001000, 00000000]",
-            format!("{:b}", card.get_rank_bit_slice())
+            format!("{:b}", card.get_rank_bitslice())
         );
     }
 
@@ -363,18 +517,18 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn get_suit_bit_slice() {
+    fn get_suit_bitslice() {
         let card: BitCard = BitCard::from_index("KS").unwrap();
-        assert_eq!("[0001]", format!("{:04b}", card.get_suit_bit_slice()));
+        assert_eq!("[0001]", format!("{:04b}", card.get_suit_bitslice()));
 
         let card: BitCard = BitCard::from_index("KH").unwrap();
-        assert_eq!("[0010]", format!("{:04b}", card.get_suit_bit_slice()));
+        assert_eq!("[0010]", format!("{:04b}", card.get_suit_bitslice()));
 
         let card: BitCard = BitCard::from_index("K♦").unwrap();
-        assert_eq!("[0100]", format!("{:04b}", card.get_suit_bit_slice()));
+        assert_eq!("[0100]", format!("{:04b}", card.get_suit_bitslice()));
 
         let card: BitCard = BitCard::from_index("KC").unwrap();
-        assert_eq!("[1000]", format!("{:04b}", card.get_suit_bit_slice()));
+        assert_eq!("[1000]", format!("{:04b}", card.get_suit_bitslice()));
     }
 
     #[test]
@@ -388,12 +542,29 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn or_rank_bit_slice() {
+    fn or_rank_bitslice() {
         let ace_spades = BitCard::from_index("AS").unwrap();
         let king_spades = BitCard::from_index("KS").unwrap();
-        let result = ace_spades.or_rank_bit_slice(&king_spades.get_rank_bit_slice());
+        let result = ace_spades.or_rank_bitslice(&king_spades.get_rank_bitslice());
 
         assert_eq!(format!("{}", result), "[00011000, 00000000]");
+    }
+
+    #[test]
+    fn or_suit_bitslice() {
+        let king_spades: BitCard = BitCard::from_index("KS").unwrap();
+        let king_hearts: BitCard = BitCard::from_index("KH").unwrap();
+        let king_diamonds: BitCard = BitCard::from_index("KD").unwrap();
+        let king_clubs: BitCard = BitCard::from_index("KC").unwrap();
+
+        let actual = king_spades.or_suit_bitslice(&king_hearts.get_suit_bitslice());
+        assert_eq!("[0011]", format!("{:04b}", actual));
+
+        let actual = king_diamonds.or_suit_bitslice(&actual);
+        assert_eq!("[0111]", format!("{:04b}", actual));
+
+        let actual = king_clubs.or_suit_bitslice(&actual);
+        assert_eq!("[1111]", format!("{:04b}", actual));
     }
 
     #[test]
