@@ -249,6 +249,15 @@ impl Pile {
         self.0.len()
     }
 
+    #[must_use]
+    pub fn map_by_rank_count(&self) -> HashMap<Rank, usize> {
+        let mut mappie: HashMap<Rank, usize> = HashMap::new();
+        for card in self.cards() {
+            *mappie.entry(card.rank).or_insert(0) += 1;
+        }
+        mappie
+    }
+
     /// Takes a `Pile` and returns a `HashMap` with the key as each `Suit` in the `Pile` with the values
     /// as a `Pile` of the cards for that Suit.
     #[must_use]
@@ -832,6 +841,18 @@ mod card_deck_tests {
 
         assert_eq!(zero.len(), 0);
         assert_eq!(deck.len(), 2);
+    }
+
+    #[test]
+    fn map_by_rank_count() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
+            .unwrap();
+        let mappie = pile.map_by_rank_count();
+
+        assert_eq!(*mappie.get(&Rank::new(QUEEN)).unwrap(), 4);
+        assert_eq!(*mappie.get(&Rank::new(NINE)).unwrap(), 1);
+        assert!(mappie.get(&Rank::new(EIGHT)).is_none());
     }
 
     #[test]
