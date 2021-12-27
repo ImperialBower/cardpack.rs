@@ -70,6 +70,11 @@ impl BitCard {
     }
 
     #[must_use]
+    pub fn as_bitarray(&self) -> BitArray<Msb0, [u8; 4]> {
+        self.0
+    }
+
+    #[must_use]
     pub fn as_bitslice(&self) -> &BitSlice<Msb0, u8> {
         self.0.as_bitslice()
     }
