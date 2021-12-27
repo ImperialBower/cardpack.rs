@@ -107,6 +107,20 @@ impl Card {
         bits | self.rank.prime | rank_eight | suit
     }
 
+    pub fn debug(&self) {
+        println!("{}:", self.index);
+        println!(
+            "     {:032b} {}",
+            self.binary_signature(),
+            self.binary_signature()
+        );
+        println!(
+            "     {:032b} {} < Suit binary_signature",
+            self.suit.binary_signature(),
+            self.suit.binary_signature()
+        );
+    }
+
     // Private methods
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
         let rank = rank.index_default();
