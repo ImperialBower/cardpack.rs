@@ -59,6 +59,11 @@ impl BitCards {
     }
 
     #[must_use]
+    pub fn is_straight_flush(&self) -> bool {
+        self.is_straight() && self.is_flush()
+    }
+
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -176,6 +181,20 @@ mod bit_cards_tests {
         let cards = BitCards::from_index("AS KS QS TS").unwrap();
 
         assert!(!cards.is_straight());
+    }
+
+    #[test]
+    fn is_straight_flush() {
+        let cards = BitCards::from_index("KS QS JS TS 9S").unwrap();
+
+        assert!(cards.is_straight_flush());
+    }
+
+    #[test]
+    fn is_straight_flush__false() {
+        let cards = BitCards::from_index("AS KS QS JS TC").unwrap();
+
+        assert!(!cards.is_straight_flush());
     }
 
     #[test]

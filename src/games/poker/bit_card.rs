@@ -74,12 +74,6 @@ impl BitCard {
         self.0.as_bitslice()
     }
 
-    /// Returns a ` cardpack::Card`.
-    #[must_use]
-    pub fn get_card(&self) -> Card {
-        Card::new(self.get_rank(), self.get_suit())
-    }
-
     #[must_use]
     pub fn get_rank(&self) -> Rank {
         match format!("{:b}", self.get_rank_bitslice()).as_str() {
@@ -142,21 +136,17 @@ impl BitCard {
         self.0.to_bitvec()
     }
 
-    // #[must_use]
-    // pub fn to_u64(&self) -> u64 {
-    //     let mut result: u64 = 0;
-    //     let mut r = self.0.clone();
-    //     r.reverse();
-    //
-    //     for (i, v) in r.to_bitvec().as_bitslice().into_iter().enumerate() {
-    //         // if v.into_bitptr().read() {
-    //         //     result = result + (i as u64 * 1);
-    //         // }
-    //         println!(">> {} {}", i, v);
-    //         // println!("{} {}", i, &v);
-    //     }
-    //     1
-    // }
+    /// Returns a `cardpack::Card`.
+    #[must_use]
+    pub fn to_card(&self) -> Card {
+        Card::new(self.get_rank(), self.get_suit())
+    }
+
+    // TODO: Hack
+    #[must_use]
+    pub fn to_u64(&self) -> u64 {
+        self.to_card().binary_signature()
+    }
 
     // Private methods
 
@@ -204,7 +194,6 @@ impl Default for BitCard {
     }
 }
 
-/// [Module ``std::fmt``](https://doc.rust-lang.org/std/fmt/)
 /// ```txt
 /// +--------+--------+--------+--------+
 /// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
@@ -392,7 +381,7 @@ mod bit_card_tests {
         let standard52 = Standard52::default();
         for card in standard52.deck {
             let actual = BitCard::from_u64(card.binary_signature());
-            assert_eq!(actual.get_card(), card);
+            assert_eq!(actual.to_card(), card);
         }
     }
 
@@ -400,31 +389,31 @@ mod bit_card_tests {
     #[test]
     fn to_u64() {
         let ace_spades = BitCard::from_index("AS").unwrap();
-        let _expected: u64 = 268442665;
+        let expected: u64 = 268442665;
 
         // println!("{:?}", ace_spades.get_rank_bit_slice().domain());
         // println!("{:?}", ace_spades.get_suit_bit_slice().domain());
         // println!("{:?}", ace_spades.get_bit_slice().domain());
         println!("{:#}", ace_spades.as_bitslice());
 
-        // assert_eq!(ace_spades.to_u64(), expected);
+        assert_eq!(ace_spades.to_u64(), expected);
     }
 
     /// Round trip tests between `Card` and `BitCard`.
     #[test]
-    fn get_card() {
+    fn to_card() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
             let bit_card = BitCard::from_u64(card.binary_signature());
-            assert_eq!(bit_card.get_card(), card);
+            assert_eq!(bit_card.to_card(), card);
 
             let bit_card = BitCard::from_card(&card);
-            assert_eq!(bit_card.get_card(), card);
+            assert_eq!(bit_card.to_card(), card);
 
             // Extremely over the top test
             let leaked: &'static str = Box::leak(card.clone().index.into_boxed_str());
             let bit_card = BitCard::from_index(leaked).unwrap();
-            assert_eq!(bit_card.get_card(), card);
+            assert_eq!(bit_card.to_card(), card);
         }
     }
 

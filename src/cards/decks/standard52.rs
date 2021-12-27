@@ -6,6 +6,9 @@ use crate::cards::rank::{Rank, BLANK_RANK};
 use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
 
+/// `Standard52` is a representation of a deck of cards used to play
+/// most versions of poker. It is useful to determine if a `Card` belongs
+/// in the deck and to deserialize Cards, Piles and decks from index strings.
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Standard52 {
     pub pack: Pack,

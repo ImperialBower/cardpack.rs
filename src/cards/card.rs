@@ -98,17 +98,13 @@ impl Card {
     /// This is used for Poker hand evaluation.
     #[must_use]
     pub fn binary_signature(&self) -> u64 {
-        let suit: u64 = match self.suit.weight {
-            4 => 0x1000,
-            3 => 0x2000,
-            2 => 0x4000,
-            1 => 0x8000,
-            _ => 0xF000,
-        };
-
+        let suit: u64 = self.suit.binary_signature();
         let bits = 1 << (16 + self.rank.weight);
+        let rank_eight = self.rank.weight << 8;
 
-        bits | self.rank.prime | self.rank.weight << 8 | suit
+        // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
+
+        bits | self.rank.prime | rank_eight | suit
     }
 
     // Private methods

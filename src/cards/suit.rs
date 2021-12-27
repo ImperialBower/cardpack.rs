@@ -51,6 +51,18 @@ impl Suit {
         }
     }
 
+    /// Used to generate `Card`'s binary signature.
+    #[must_use]
+    pub fn binary_signature(&self) -> u64 {
+        match self.weight {
+            4 => 0x1000,
+            3 => 0x2000,
+            2 => 0x4000,
+            1 => 0x8000,
+            _ => 0xF000,
+        }
+    }
+
     #[must_use]
     pub fn is_blank(&self) -> bool {
         self.name.name() == BLANK_SUIT
@@ -166,6 +178,14 @@ mod suit_tests {
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
     }
 
+    #[test]
+    fn binary_signature() {
+        assert_eq!(4096, Suit::new(SPADES).binary_signature());
+        assert_eq!(8192, Suit::new(HEARTS).binary_signature());
+        assert_eq!(16384, Suit::new(DIAMONDS).binary_signature());
+        assert_eq!(32768, Suit::new(CLUBS).binary_signature());
+    }
+
     #[rstest]
     #[case('♠', Suit::new(SPADES))]
     #[case('S', Suit::new(SPADES))]
@@ -189,7 +209,7 @@ mod suit_tests {
     }
 
     #[test]
-    fn part1ial_eq() {
+    fn partial_eq() {
         assert_ne!(
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)
