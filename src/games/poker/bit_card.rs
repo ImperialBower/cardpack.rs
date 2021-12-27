@@ -147,7 +147,9 @@ impl BitCard {
         Card::new(self.get_rank(), self.get_suit())
     }
 
-    // TODO: Hack
+    /// TODO: Hack
+    ///
+    /// Really want to be able to calculate this value on its own.
     #[must_use]
     pub fn to_u64(&self) -> u64 {
         self.to_card().binary_signature()
