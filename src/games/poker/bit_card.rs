@@ -396,18 +396,13 @@ mod bit_card_tests {
         }
     }
 
-    // TODO
     #[test]
     fn to_cactus_kev_card() {
-        let ace_spades = BitCard::from_index("AS").unwrap();
-        let expected: u32 = 268442665;
-
-        // println!("{:?}", ace_spades.get_rank_bit_slice().domain());
-        // println!("{:?}", ace_spades.get_suit_bit_slice().domain());
-        // println!("{:?}", ace_spades.get_bit_slice().domain());
-        println!("{:#}", ace_spades.as_bitslice());
-
-        assert_eq!(ace_spades.to_cactus_kev_card(), expected);
+        let standard52 = Standard52::new_shuffled();
+        for card in standard52.deck {
+            let bit_card = BitCard::from_card(&card);
+            assert_eq!(bit_card.to_cactus_kev_card(), card.to_cactus_kev_card());
+        }
     }
 
     /// Round trip tests between `Card` and `BitCard`.
