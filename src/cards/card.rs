@@ -10,6 +10,7 @@ pub const BLANK: &str = "blank";
 
 /// A card encoded using the bit pattern described in Cactus Kev's
 /// [article](http://www.suffecool.net/poker/evaluator.html).
+#[allow(clippy::module_name_repetitions)]
 pub type CactusKevCard = u32;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,

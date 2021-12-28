@@ -73,7 +73,7 @@ impl Suit {
         self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
-    #[allow(clippy::cast_possible_wrap)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     fn top_down_value(len: usize, i: usize) -> u32 {
         (len - i) as u32
     }

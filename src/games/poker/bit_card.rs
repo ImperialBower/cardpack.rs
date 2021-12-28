@@ -1,3 +1,4 @@
+use crate::cards::card::CactusKevCard;
 use crate::cards::card_error::CardError;
 use crate::{
     Card, Rank, Standard52, Suit, ACE, CLUBS, DIAMONDS, EIGHT, FIVE, FOUR, HEARTS, JACK, KING,
@@ -7,7 +8,6 @@ use bitvec::field::BitField;
 use bitvec::prelude::{BitArray, BitSlice, BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
-use crate::cards::card::CactusKevCard;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);

@@ -1,6 +1,6 @@
+use crate::cards::card::CactusKevCard;
 use crate::games::poker::alt::lookups;
 use std::fmt;
-use crate::cards::card::CactusKevCard;
 
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Ord, PartialOrd, Hash)]

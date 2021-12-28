@@ -1,6 +1,6 @@
-use crate::cards::card::CactusKevCard;
 use super::lookups;
-use crate::games::poker::alt::holdem::{HandRank};
+use crate::cards::card::CactusKevCard;
+use crate::games::poker::alt::holdem::HandRank;
 
 #[allow(clippy::comparison_chain, dead_code)]
 fn findit(key: usize) -> usize {
@@ -109,12 +109,10 @@ pub fn eval_7cards_kev_array(cards: &[&CactusKevCard; 7]) -> HandRank {
 
 #[cfg(test)]
 mod tests {
-    use crate::games::poker::alt::holdem::{
-        hand_rank_to_class, HandRank, HandRankClass,
-    };
+    use crate::cards::card::CactusKevCard;
+    use crate::games::poker::alt::holdem::{hand_rank_to_class, HandRank, HandRankClass};
     use crate::games::poker::alt::vsup_deck::VSupDeck;
     use std::collections::HashMap;
-    use crate::cards::card::CactusKevCard;
 
     use super::eval_5cards_kev_array;
 
