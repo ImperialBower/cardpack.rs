@@ -114,7 +114,7 @@ impl VSupCard {
     ///  cdhs = suit of card
     ///  b = bit turned on depending on value of card
     #[must_use]
-    pub fn card_to_deck_number(&self) -> CactusKevCard {
+    pub fn get_cactus_kev_card(&self) -> CactusKevCard {
         let value: u32 = match self.value {
             VSupValue::Two => 0,
             VSupValue::Three => 1,
@@ -166,7 +166,7 @@ mod vsup_card_tests {
         let vsup_card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
         let expected = 268442665;
 
-        assert_eq!(vsup_card.card_to_deck_number(), expected);
+        assert_eq!(vsup_card.get_cactus_kev_card(), expected);
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod vsup_card_tests {
         let vsup_card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
 
         println!("{}", vsup_card);
-        println!("{}", vsup_card.card_to_deck_number());
-        println!("{:032b}", vsup_card.card_to_deck_number());
+        println!("{}", vsup_card.get_cactus_kev_card());
+        println!("{:032b}", vsup_card.get_cactus_kev_card());
     }
 }

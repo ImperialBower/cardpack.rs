@@ -82,20 +82,20 @@ impl BitCard {
 
     #[must_use]
     pub fn get_rank(&self) -> Rank {
-        match format!("{:b}", self.get_rank_bitslice()).as_str() {
-            "[00010000, 00000000]" => Rank::new(ACE),
-            "[00001000, 00000000]" => Rank::new(KING),
-            "[00000100, 00000000]" => Rank::new(QUEEN),
-            "[00000010, 00000000]" => Rank::new(JACK),
-            "[00000001, 00000000]" => Rank::new(TEN),
-            "[00000000, 10000000]" => Rank::new(NINE),
-            "[00000000, 01000000]" => Rank::new(EIGHT),
-            "[00000000, 00100000]" => Rank::new(SEVEN),
-            "[00000000, 00010000]" => Rank::new(SIX),
-            "[00000000, 00001000]" => Rank::new(FIVE),
-            "[00000000, 00000100]" => Rank::new(FOUR),
-            "[00000000, 00000010]" => Rank::new(THREE),
-            "[00000000, 00000001]" => Rank::new(TWO),
+        match self.get_rank_bitslice().trailing_zeros() {
+            12 => Rank::new(ACE),
+            11 => Rank::new(KING),
+            10 => Rank::new(QUEEN),
+            9 => Rank::new(JACK),
+            8 => Rank::new(TEN),
+            7 => Rank::new(NINE),
+            6 => Rank::new(EIGHT),
+            5 => Rank::new(SEVEN),
+            4 => Rank::new(SIX),
+            3 => Rank::new(FIVE),
+            2 => Rank::new(FOUR),
+            1 => Rank::new(THREE),
+            0 => Rank::new(TWO),
             _ => Rank::default(),
         }
     }
@@ -107,11 +107,11 @@ impl BitCard {
 
     #[must_use]
     pub fn get_suit(&self) -> Suit {
-        match format!("{:04b}", self.get_suit_bitslice()).as_str() {
-            "[0001]" => Suit::new(SPADES),
-            "[0010]" => Suit::new(HEARTS),
-            "[0100]" => Suit::new(DIAMONDS),
-            "[1000]" => Suit::new(CLUBS),
+        match self.get_suit_bitslice().load_le::<u8>() {
+            1 => Suit::new(SPADES),
+            2 => Suit::new(HEARTS),
+            4 => Suit::new(DIAMONDS),
+            8 => Suit::new(CLUBS),
             _ => Suit::default(),
         }
     }
@@ -120,6 +120,14 @@ impl BitCard {
     #[must_use]
     pub fn get_suit_bitslice(&self) -> &BitSlice<Msb0, u8> {
         &self.0[16..20]
+    }
+
+    // TODO: HACK
+    #[must_use]
+    pub fn get_suit_binary_signature(&self) -> u32 {
+        // This is the way!
+        // self.get_suit_bitslice().load_le::<u8>() as u32
+        self.get_suit().binary_signature()
     }
 
     #[must_use]
@@ -526,6 +534,18 @@ mod bit_card_tests {
 
         let card: BitCard = BitCard::from_index("KC").unwrap();
         assert_eq!("[1000]", format!("{:04b}", card.get_suit_bitslice()));
+    }
+
+    #[test]
+    fn get_suit_binary_signature() {
+        let card: BitCard = BitCard::from_index("AC").unwrap();
+        let expected = Suit::new(CLUBS);
+
+        let actual = card.get_suit_binary_signature();
+
+        // println!(">>> {:?}", card.get_suit_bitslice().domain());
+
+        assert_eq!(actual, expected.binary_signature());
     }
 
     #[test]

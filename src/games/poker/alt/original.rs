@@ -127,7 +127,7 @@ mod tests {
         // the deck cards into it
         for i in 0..52 {
             let card = deck.draw().ok().unwrap();
-            cards[i] = card.card_to_deck_number();
+            cards[i] = card.get_cactus_kev_card();
         }
 
         let mut rank_class_count: HashMap<HandRankClass, usize> = HashMap::new();
