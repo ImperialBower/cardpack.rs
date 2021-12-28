@@ -73,6 +73,36 @@ impl VSupCard {
         VSupCard { value, suit }
     }
 
+    /// translates a value between 0 and 51 to a Card. Used internally.
+    pub fn create_card_for_value(value: u8) -> VSupCard {
+        let suit = match value / 13 {
+            0 => VSupSuit::Spades,
+            1 => VSupSuit::Hearts,
+            2 => VSupSuit::Diamonds,
+            3 => VSupSuit::Clubs,
+            _ => panic!("Unexpected suit conversion number"),
+        };
+
+        let value = match value % 13 {
+            0 => VSupValue::Two,
+            1 => VSupValue::Three,
+            2 => VSupValue::Four,
+            3 => VSupValue::Five,
+            4 => VSupValue::Six,
+            5 => VSupValue::Seven,
+            6 => VSupValue::Eight,
+            7 => VSupValue::Nine,
+            8 => VSupValue::Ten,
+            9 => VSupValue::Jack,
+            10 => VSupValue::Queen,
+            11 => VSupValue::King,
+            12 => VSupValue::Ace,
+            _ => panic!("Unexpected value conversion number"),
+        };
+
+        VSupCard::new(value, suit)
+    }
+
     /// Converts a card to a `CactusKevCard`, which is a convenient binary representation:
     ///
     ///  +--------+--------+--------+--------+

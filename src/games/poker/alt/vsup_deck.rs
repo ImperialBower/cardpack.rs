@@ -1,4 +1,4 @@
-use crate::games::poker::alt::vsup_card::{VSupCard, VSupSuit, VSupValue};
+use crate::games::poker::alt::vsup_card::VSupCard;
 
 pub struct VSupDeck {
     count_dealt: usize,
@@ -9,36 +9,6 @@ pub struct VSupDeck {
 
 pub enum DeckError {
     NotEnoughCards,
-}
-
-/// translates a value between 0 and 51 to a Card. Used internally.
-fn create_card_for_value(value: u8) -> VSupCard {
-    let suit = match value / 13 {
-        0 => VSupSuit::Spades,
-        1 => VSupSuit::Hearts,
-        2 => VSupSuit::Diamonds,
-        3 => VSupSuit::Clubs,
-        _ => panic!("Unexpected suit conversion number"),
-    };
-
-    let value = match value % 13 {
-        0 => VSupValue::Two,
-        1 => VSupValue::Three,
-        2 => VSupValue::Four,
-        3 => VSupValue::Five,
-        4 => VSupValue::Six,
-        5 => VSupValue::Seven,
-        6 => VSupValue::Eight,
-        7 => VSupValue::Nine,
-        8 => VSupValue::Ten,
-        9 => VSupValue::Jack,
-        10 => VSupValue::Queen,
-        11 => VSupValue::King,
-        12 => VSupValue::Ace,
-        _ => panic!("Unexpected value conversion number"),
-    };
-
-    VSupCard::new(value, suit)
 }
 
 /// A deck can be dealt from and shuffled.
@@ -69,7 +39,7 @@ impl VSupDeck {
             let value = self.cards[self.count_dealt];
             self.count_dealt += 1;
 
-            let card = create_card_for_value(value);
+            let card = VSupCard::create_card_for_value(value);
             Ok(card)
         }
     }
