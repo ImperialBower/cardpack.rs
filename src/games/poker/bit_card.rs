@@ -122,12 +122,10 @@ impl BitCard {
         &self.0[16..20]
     }
 
-    // TODO: HACK
     #[must_use]
     pub fn get_suit_binary_signature(&self) -> u32 {
-        // This is the way!
-        // self.get_suit_bitslice().load_le::<u8>() as u32
-        self.get_suit().binary_signature()
+        let s = self.get_suit_bitslice().load_le::<u8>() as u32;
+        s << 12
     }
 
     #[must_use]
@@ -322,7 +320,7 @@ mod bit_card_tests {
     }
 
     #[test]
-    fn from_u64() {
+    fn from_cactus_kev_card() {
         let ace_spades: u32 = 268442665;
         let s = "00010000 00000000 00011100 00101001".to_string();
         let actual = BitCard::from_cactus_kev_card(ace_spades);
@@ -384,7 +382,7 @@ mod bit_card_tests {
     #[case("4♣", 295429)]
     #[case("3♣", 164099)]
     #[case("2♣", 98306)]
-    fn from_u64__comprehensive(#[case] expected: &'static str, #[case] input: u32) {
+    fn from_cactus_kev_card__comprehensive(#[case] expected: &'static str, #[case] input: u32) {
         let actual = BitCard::from_cactus_kev_card(input);
         assert_eq!(actual, BitCard::from_index(expected).unwrap());
     }
@@ -533,16 +531,17 @@ mod bit_card_tests {
         assert_eq!("[1000]", format!("{:04b}", card.get_suit_bitslice()));
     }
 
-    #[test]
-    fn get_suit_binary_signature() {
-        let card: BitCard = BitCard::from_index("AC").unwrap();
-        let expected = Suit::new(CLUBS);
+    #[rstest]
+    #[case("2♠", 4096)]
+    #[case("2H", 8192)]
+    #[case("2D", 16384)]
+    #[case("2C", 32768)]
+    fn get_suit_binary_signature(#[case] index: &'static str, #[case] expected: u32) {
+        let card: Card = Standard52::card_from_index(index);
+        let bit_card: BitCard = BitCard::from_index(index).unwrap();
 
-        let actual = card.get_suit_binary_signature();
-
-        // println!(">>> {:?}", card.get_suit_bitslice().domain());
-
-        assert_eq!(actual, expected.binary_signature());
+        assert_eq!(bit_card.get_suit_binary_signature(), expected);
+        assert_eq!(bit_card.get_suit_binary_signature(), card.suit.binary_signature());
     }
 
     #[test]
