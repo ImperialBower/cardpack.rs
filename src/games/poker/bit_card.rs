@@ -156,12 +156,9 @@ impl BitCard {
         Card::new(self.get_rank(), self.get_suit())
     }
 
-    /// TODO: Hack
-    ///
-    /// Really want to be able to calculate this value on its own.
     #[must_use]
     pub fn to_cactus_kev_card(&self) -> CactusKevCard {
-        self.to_card().to_cactus_kev_card()
+        self.as_bitslice().load_be::<u32>()
     }
 
     // Private methods
