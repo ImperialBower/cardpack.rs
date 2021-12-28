@@ -138,6 +138,5 @@ mod vsop_card_tests {
         println!("{}", card);
         println!("{}", card.card_to_deck_number());
         println!("{:032b}", card.card_to_deck_number());
-
     }
 }
