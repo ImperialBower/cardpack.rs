@@ -12,7 +12,6 @@ pub enum VSupSuit {
 }
 
 impl VSupSuit {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn short_string(&self) -> &'static str {
         match *self {
             VSupSuit::Spades => "s",
@@ -23,7 +22,6 @@ impl VSupSuit {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Ord, PartialOrd, Hash)]
 pub enum VSupValue {
     Two,
@@ -43,7 +41,6 @@ pub enum VSupValue {
 }
 
 impl VSupValue {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn short_string(&self) -> &'static str {
         match *self {
             VSupValue::Two => "2",
@@ -72,7 +69,6 @@ pub struct VSupCard {
 }
 
 impl VSupCard {
-    #[allow(dead_code)]
     pub fn new(value: VSupValue, suit: VSupSuit) -> VSupCard {
         VSupCard { value, suit }
     }
@@ -87,7 +83,6 @@ impl VSupCard {
     ///  r = value of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
     ///  cdhs = suit of card
     ///  b = bit turned on depending on value of card
-    #[allow(clippy::cast_lossless, dead_code, clippy::trivially_copy_pass_by_ref)]
     #[must_use]
     pub fn card_to_deck_number(&self) -> CactusKevCard {
         let value: u32 = match self.value {
@@ -105,10 +100,11 @@ impl VSupCard {
             VSupValue::King => 11,
             VSupValue::Ace => 12,
         };
+        #[allow(clippy::cast_lossless)]
         let prime: u32 = lookups::PRIMES[value as usize] as u32;
         let suit: u32 = match self.suit {
-            VSupSuit::Hearts => 0x1000,
-            VSupSuit::Spades => 0x2000,
+            VSupSuit::Spades => 0x1000,
+            VSupSuit::Hearts => 0x2000,
             VSupSuit::Diamonds => 0x4000,
             VSupSuit::Clubs => 0x8000,
         };
@@ -127,5 +123,21 @@ impl fmt::Display for VSupCard {
             self.value.short_string(),
             self.suit.short_string()
         )
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod vsop_card_tests {
+    use super::*;
+
+    #[test]
+    fn scratch() {
+        let card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
+
+        println!("{}", card);
+        println!("{}", card.card_to_deck_number());
+        println!("{:032b}", card.card_to_deck_number());
+
     }
 }

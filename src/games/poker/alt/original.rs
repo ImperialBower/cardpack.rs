@@ -24,7 +24,6 @@ fn findit(key: usize) -> usize {
 
 /// Returns a value between (1 to 7462 inclusive), where 1 is the best. It is called original because of the old handRank convention.
 //TODO: make this line less fugly?
-#[allow(clippy::trivially_copy_pass_by_ref, dead_code)]
 fn eval_5cards_kev_original(
     c1: &CactusKevCard,
     c2: &CactusKevCard,
@@ -49,7 +48,6 @@ fn eval_5cards_kev_original(
 
 // no array used -> for bench purposes
 
-#[allow(clippy::trivially_copy_pass_by_ref, dead_code)]
 pub fn eval_5cards_kev(
     c1: &CactusKevCard,
     c2: &CactusKevCard,
@@ -61,13 +59,11 @@ pub fn eval_5cards_kev(
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 
-#[allow(dead_code)]
 pub fn eval_5cards_kev_array(cards: &[&CactusKevCard; 5]) -> HandRank {
     let kev_rank = eval_5cards_kev_original(cards[0], cards[1], cards[2], cards[3], cards[4]);
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 
-#[allow(dead_code)]
 pub fn eval_6cards_kev_array(cards: &[&CactusKevCard; 6]) -> HandRank {
     let mut tmp;
     let mut best = 0;
@@ -89,7 +85,6 @@ pub fn eval_6cards_kev_array(cards: &[&CactusKevCard; 6]) -> HandRank {
     best
 }
 
-#[allow(dead_code)]
 pub fn eval_7cards_kev_array(cards: &[&CactusKevCard; 7]) -> HandRank {
     let mut tmp;
     let mut best = 0;

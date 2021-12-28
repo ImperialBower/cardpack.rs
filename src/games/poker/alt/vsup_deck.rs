@@ -1,6 +1,5 @@
 use crate::games::poker::alt::vsup_card::{VSupCard, VSupSuit, VSupValue};
 
-#[allow(dead_code)]
 pub struct VSupDeck {
     count_dealt: usize,
     // TODO: consider turning this into a Vec<Card>, for iterator
@@ -8,13 +7,11 @@ pub struct VSupDeck {
     cards: [u8; 52],
 }
 
-#[allow(dead_code)]
 pub enum DeckError {
     NotEnoughCards,
 }
 
 /// translates a value between 0 and 51 to a Card. Used internally.
-#[allow(dead_code)]
 fn create_card_for_value(value: u8) -> VSupCard {
     let suit = match value / 13 {
         0 => VSupSuit::Spades,
@@ -49,7 +46,6 @@ impl VSupDeck {
     //TODO: a deck containing multiple sets of cards? When 52*3 is needed.
 
     /// Returns a deck where all cards are sorted by Suit, then by Value.
-    #[allow(dead_code)]
     pub fn new_unshuffled() -> VSupDeck {
         let mut d = VSupDeck {
             count_dealt: 0,
@@ -66,7 +62,6 @@ impl VSupDeck {
     }
 
     /// An attempt to get a card from the deck. There might not be enough.
-    #[allow(dead_code)]
     pub fn draw(&mut self) -> Result<VSupCard, DeckError> {
         if self.count_dealt + 1 > 52 {
             Err(DeckError::NotEnoughCards)
@@ -80,7 +75,6 @@ impl VSupDeck {
     }
 
     /// An attempt to get n cards from the deck wrapped in a Vec. There might not be enough.
-    #[allow(dead_code)]
     pub fn draw_n(&mut self, n: usize) -> Result<Vec<VSupCard>, DeckError> {
         if self.count_dealt + n > 52 {
             Err(DeckError::NotEnoughCards)

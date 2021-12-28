@@ -1,5 +1,4 @@
-#![allow(clippy::unreadable_literal)]
-
+#![allow(clippy::trivially_copy_pass_by_ref, clippy::unreadable_literal, dead_code)]
 pub mod holdem;
 pub mod lookups;
 pub mod original;

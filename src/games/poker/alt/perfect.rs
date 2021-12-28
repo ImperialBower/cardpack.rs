@@ -2,14 +2,12 @@ use super::lookups;
 use crate::games::poker::alt::holdem::{HandRank, HAND_RANK_COUNT};
 use crate::games::poker::alt::vsup_card::VSupCard;
 
-#[allow(dead_code)]
 fn simulate_32bit_precision(u: usize) -> usize {
     let mask = 0xffff_ffff;
     u & mask
 }
 
 // don't use this.
-#[allow(dead_code)]
 pub fn find_fast(something: usize) -> usize {
     let mut u = simulate_32bit_precision(something);
 
@@ -24,7 +22,6 @@ pub fn find_fast(something: usize) -> usize {
     simulate_32bit_precision(a ^ (lookups::HASH_ADJUST[b] as usize))
 }
 
-#[allow(dead_code)]
 pub fn eval_5cards(cards: [&VSupCard; 5]) -> HandRank {
     let c1 = cards[0].card_to_deck_number();
     let c2 = cards[1].card_to_deck_number();
@@ -50,7 +47,6 @@ pub fn eval_5cards(cards: [&VSupCard; 5]) -> HandRank {
 }
 
 // don't use this.
-#[allow(dead_code)]
 pub fn eval_7cards(cards: [&VSupCard; 7]) -> HandRank {
     let mut tmp;
     let mut best = 0;
