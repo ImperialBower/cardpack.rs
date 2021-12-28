@@ -1,3 +1,5 @@
+use crate::games::poker::alt::holdem::CactusKevCard;
+use crate::games::poker::alt::lookups;
 use std::fmt;
 
 #[allow(dead_code)]
@@ -73,6 +75,46 @@ impl VSupCard {
     #[allow(dead_code)]
     pub fn new(value: VSupValue, suit: VSupSuit) -> VSupCard {
         VSupCard { value, suit }
+    }
+
+    /// Converts a card to a `CactusKevCard`, which is a convenient binary representation:
+    ///
+    ///  +--------+--------+--------+--------+
+    ///  |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
+    ///  +--------+--------+--------+--------+
+    ///
+    ///  p = prime number of value (deuce=2,trey=3,four=5,five=7,...,ace=41)
+    ///  r = value of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
+    ///  cdhs = suit of card
+    ///  b = bit turned on depending on value of card
+    #[allow(clippy::cast_lossless, dead_code, clippy::trivially_copy_pass_by_ref)]
+    #[must_use]
+    pub fn card_to_deck_number(&self) -> CactusKevCard {
+        let value: u32 = match self.value {
+            VSupValue::Two => 0,
+            VSupValue::Three => 1,
+            VSupValue::Four => 2,
+            VSupValue::Five => 3,
+            VSupValue::Six => 4,
+            VSupValue::Seven => 5,
+            VSupValue::Eight => 6,
+            VSupValue::Nine => 7,
+            VSupValue::Ten => 8,
+            VSupValue::Jack => 9,
+            VSupValue::Queen => 10,
+            VSupValue::King => 11,
+            VSupValue::Ace => 12,
+        };
+        let prime: u32 = lookups::PRIMES[value as usize] as u32;
+        let suit: u32 = match self.suit {
+            VSupSuit::Hearts => 0x1000,
+            VSupSuit::Spades => 0x2000,
+            VSupSuit::Diamonds => 0x4000,
+            VSupSuit::Clubs => 0x8000,
+        };
+        let bits: u32 = 1 << (16 + value);
+
+        prime | value << 8 | suit | bits
     }
 }
 
