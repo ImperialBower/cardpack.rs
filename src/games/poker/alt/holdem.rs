@@ -16,10 +16,6 @@ pub enum HandRankClass {
     StraightFlush,
 }
 
-/// A card encoded using the bit pattern described in Cactus Kev's
-/// [article](http://www.suffecool.net/poker/evaluator.html).
-pub type CactusKevCard = u32;
-
 /// A value representing the strength of a hand. The higher, the better.
 /// The numbers go from 0 to 7461 inclusive.
 pub type HandRank = u16; //TODO: struct HandRank(u16); //TODO: pub?

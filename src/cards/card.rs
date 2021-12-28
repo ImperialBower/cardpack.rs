@@ -8,6 +8,10 @@ use crate::Named;
 
 pub const BLANK: &str = "blank";
 
+/// A card encoded using the bit pattern described in Cactus Kev's
+/// [article](http://www.suffecool.net/poker/evaluator.html).
+pub type CactusKevCard = u32;
+
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a `Suit`, `weight`, which is an integer that controls how a card is sorted
 /// in a `Pile` or as a part of a `Vector`, and index, which is a short `String`
@@ -16,7 +20,7 @@ pub const BLANK: &str = "blank";
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     /// Used by the Pile struct to sort Cards.
-    pub weight: u64,
+    pub weight: u32,
     /// The identity indicator in the corner of a playing card, such as `AS` for ace of spades.
     pub index: String,
     pub suit: Suit,
@@ -73,7 +77,7 @@ impl Card {
     /// then by `Suit`, such that a 2 of spades is lower than a 3 of clubs. While Card.weight
     /// prioritizes by `Suit` and then by `Rank`.
     #[must_use]
-    pub fn count(&self) -> u64 {
+    pub fn count(&self) -> u32 {
         (self.suit.weight - 1) + (self.rank.weight * 4) + 1
     }
 
@@ -97,8 +101,8 @@ impl Card {
     /// ```
     /// This is used for Poker hand evaluation.
     #[must_use]
-    pub fn binary_signature(&self) -> u64 {
-        let suit: u64 = self.suit.binary_signature();
+    pub fn to_cactus_kev_card(&self) -> CactusKevCard {
+        let suit: u32 = self.suit.binary_signature();
         let bits = 1 << (16 + self.rank.weight);
         let rank_eight = self.rank.weight << 8;
 
@@ -111,8 +115,8 @@ impl Card {
         println!("{}:", self.index);
         println!(
             "     {:032b} {}",
-            self.binary_signature(),
-            self.binary_signature()
+            self.to_cactus_kev_card(),
+            self.to_cactus_kev_card()
         );
         println!(
             "     {:032b} {} < Suit binary_signature",
@@ -129,7 +133,7 @@ impl Card {
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rank: &Rank) -> u64 {
+    fn determine_weight(suit: &Suit, rank: &Rank) -> u32 {
         (suit.weight * 1000) + rank.weight
     }
 }
@@ -143,7 +147,7 @@ impl Default for Card {
 
 impl fmt::Binary for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Binary::fmt(&self.binary_signature(), f)
+        fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
     }
 }
 
@@ -170,7 +174,7 @@ impl Named for Card {
         format!("{} {}", rank, suit)
     }
 
-    fn default_weight(&self) -> u64 {
+    fn default_weight(&self) -> u32 {
         Card::determine_weight(&self.suit, &self.rank)
     }
 }
@@ -333,10 +337,10 @@ mod card_tests {
     }
 
     #[test]
-    fn binary_signature() {
+    fn to_cactus_kev_card() {
         let card = Card::from_index_strings(KING, DIAMONDS);
 
-        assert_eq!(card.binary_signature(), 134236965);
+        assert_eq!(card.to_cactus_kev_card(), 134236965);
     }
 
     #[test]

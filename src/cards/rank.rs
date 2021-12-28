@@ -94,8 +94,8 @@ pub const BLANK_RANK: &str = "_";
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
-    pub weight: u64,
-    pub prime: u64,
+    pub weight: u32,
+    pub prime: u32,
     pub name: FluentName,
 }
 
@@ -127,7 +127,7 @@ impl Rank {
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: u64) -> Rank {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Rank {
         let name = FluentName::new(name);
         Rank {
             weight,
@@ -137,7 +137,7 @@ impl Rank {
     }
 
     #[must_use]
-    pub fn new_with_weight_and_prime(name: &'static str, weight: u64, prime: u64) -> Rank {
+    pub fn new_with_weight_and_prime(name: &'static str, weight: u32, prime: u32) -> Rank {
         Rank {
             weight,
             prime,
@@ -160,7 +160,7 @@ impl Rank {
         #[allow(clippy::cast_possible_wrap, clippy::into_iter_on_ref)]
         for (i, &elem) in s.into_iter().enumerate() {
             let weight = (s.len() - 1) - i;
-            v.push(Rank::new_with_weight(elem, weight as u64));
+            v.push(Rank::new_with_weight(elem, weight as u32));
         }
         v
     }

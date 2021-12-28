@@ -82,12 +82,12 @@ pub trait Named {
     }
 
     /// Returns the default weight for a name. Weight is used to sort cards.
-    fn default_weight(&self) -> u64 {
+    fn default_weight(&self) -> u32 {
         let weight = self.fluent_value(FLUENT_WEIGHT_SECTION, &US_ENGLISH);
         weight.parse().unwrap_or(0)
     }
 
-    fn default_prime(&self) -> u64 {
+    fn default_prime(&self) -> u32 {
         let prime = self.fluent_value(FLUENT_PRIME_SECTION, &US_ENGLISH);
         prime.parse().unwrap_or(0)
     }

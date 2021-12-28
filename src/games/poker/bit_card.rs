@@ -7,6 +7,7 @@ use bitvec::field::BitField;
 use bitvec::prelude::{BitArray, BitSlice, BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
+use crate::cards::card::CactusKevCard;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BitCard(BitArray<Msb0, [u8; 4]>);
@@ -43,7 +44,7 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn from_u64(integer: u64) -> BitCard {
+    pub fn from_cactus_kev_card(integer: CactusKevCard) -> BitCard {
         let mut bc: BitCard = BitCard::default();
         bc.0[..32].store_be(integer);
         bc
@@ -151,8 +152,8 @@ impl BitCard {
     ///
     /// Really want to be able to calculate this value on its own.
     #[must_use]
-    pub fn to_u64(&self) -> u64 {
-        self.to_card().binary_signature()
+    pub fn to_cactus_kev_card(&self) -> CactusKevCard {
+        self.to_card().to_cactus_kev_card()
     }
 
     // Private methods
@@ -317,9 +318,9 @@ mod bit_card_tests {
 
     #[test]
     fn from_u64() {
-        let ace_spades: u64 = 268442665;
+        let ace_spades: u32 = 268442665;
         let s = "00010000 00000000 00011100 00101001".to_string();
-        let actual = BitCard::from_u64(ace_spades);
+        let actual = BitCard::from_cactus_kev_card(ace_spades);
 
         assert_eq!(actual.display(true), s);
         assert_eq!(actual, BitCard::from_index("A♤").unwrap());
@@ -378,8 +379,8 @@ mod bit_card_tests {
     #[case("4♣", 295429)]
     #[case("3♣", 164099)]
     #[case("2♣", 98306)]
-    fn from_u64__comprehensive(#[case] expected: &'static str, #[case] input: u64) {
-        let actual = BitCard::from_u64(input);
+    fn from_u64__comprehensive(#[case] expected: &'static str, #[case] input: u32) {
+        let actual = BitCard::from_cactus_kev_card(input);
         assert_eq!(actual, BitCard::from_index(expected).unwrap());
     }
 
@@ -387,23 +388,23 @@ mod bit_card_tests {
     fn from_u64__comprehensive_too() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let actual = BitCard::from_u64(card.binary_signature());
+            let actual = BitCard::from_cactus_kev_card(card.to_cactus_kev_card());
             assert_eq!(actual.to_card(), card);
         }
     }
 
     // TODO
     #[test]
-    fn to_u64() {
+    fn to_cactus_kev_card() {
         let ace_spades = BitCard::from_index("AS").unwrap();
-        let expected: u64 = 268442665;
+        let expected: u32 = 268442665;
 
         // println!("{:?}", ace_spades.get_rank_bit_slice().domain());
         // println!("{:?}", ace_spades.get_suit_bit_slice().domain());
         // println!("{:?}", ace_spades.get_bit_slice().domain());
         println!("{:#}", ace_spades.as_bitslice());
 
-        assert_eq!(ace_spades.to_u64(), expected);
+        assert_eq!(ace_spades.to_cactus_kev_card(), expected);
     }
 
     /// Round trip tests between `Card` and `BitCard`.
@@ -411,7 +412,7 @@ mod bit_card_tests {
     fn to_card() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let bit_card = BitCard::from_u64(card.binary_signature());
+            let bit_card = BitCard::from_cactus_kev_card(card.to_cactus_kev_card());
             assert_eq!(bit_card.to_card(), card);
 
             let bit_card = BitCard::from_card(&card);

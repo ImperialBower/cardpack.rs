@@ -29,7 +29,7 @@ pub const BLANK_SUIT: &str = "blank";
 /// Supports internationalization through fluent template files.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
-    pub weight: u64,
+    pub weight: u32,
     pub name: FluentName,
 }
 
@@ -44,7 +44,7 @@ impl Suit {
     }
 
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: u64) -> Suit {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Suit {
         Suit {
             weight,
             name: FluentName::new(name),
@@ -53,7 +53,7 @@ impl Suit {
 
     /// Used to generate `Card`'s binary signature.
     #[must_use]
-    pub fn binary_signature(&self) -> u64 {
+    pub fn binary_signature(&self) -> u32 {
         match self.weight {
             4 => 0x1000,
             3 => 0x2000,
@@ -74,11 +74,11 @@ impl Suit {
     }
 
     #[allow(clippy::cast_possible_wrap)]
-    fn top_down_value(len: usize, i: usize) -> u64 {
-        (len - i) as u64
+    fn top_down_value(len: usize, i: usize) -> u32 {
+        (len - i) as u32
     }
 
-    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> u64) -> Vec<Suit> {
+    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> u32) -> Vec<Suit> {
         let mut v: Vec<Suit> = Vec::new();
 
         #[allow(clippy::into_iter_on_ref)]

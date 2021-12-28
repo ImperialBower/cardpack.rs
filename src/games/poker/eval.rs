@@ -83,9 +83,9 @@ mod eval_tests {
 
         let _sorted = sort_by_suit(&pile);
 
-        let mut and: u64 = 0xF000;
+        let mut and: u32 = 0xF000;
         for card in pile.cards() {
-            let bin = card.binary_signature();
+            let bin = card.to_cactus_kev_card();
             // println!("    {:032b}", and);
             // println!("  + {:032b}", bin);
             // println!("    ================================");

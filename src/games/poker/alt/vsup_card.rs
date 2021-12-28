@@ -1,6 +1,6 @@
-use crate::games::poker::alt::holdem::CactusKevCard;
 use crate::games::poker::alt::lookups;
 use std::fmt;
+use crate::cards::card::CactusKevCard;
 
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Ord, PartialOrd, Hash)]
@@ -158,15 +158,32 @@ impl fmt::Display for VSupCard {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod vsop_card_tests {
+mod vsup_card_tests {
     use super::*;
 
     #[test]
-    fn scratch() {
-        let card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
+    fn card_to_deck_number() {
+        let vsup_card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
+        let expected = 268442665;
 
-        println!("{}", card);
-        println!("{}", card.card_to_deck_number());
-        println!("{:032b}", card.card_to_deck_number());
+        assert_eq!(vsup_card.card_to_deck_number(), expected);
+    }
+
+    #[test]
+    fn create_card_for_value() {
+        let expected = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
+
+        let actual = VSupCard::create_card_for_value(12);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn scratch() {
+        let vsup_card = VSupCard::new(VSupValue::Ace, VSupSuit::Spades);
+
+        println!("{}", vsup_card);
+        println!("{}", vsup_card.card_to_deck_number());
+        println!("{:032b}", vsup_card.card_to_deck_number());
     }
 }

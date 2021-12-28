@@ -18,7 +18,7 @@ fn main() {
 
     println!("{}", king_spades);
     println!("{}", r);
-    println!("{}", ks.binary_signature());
+    println!("{}", ks.to_cactus_kev_card());
 
     let asd = king_spades.get_rank_bitslice().load::<u64>();
     println!(">>> {}", asd);
