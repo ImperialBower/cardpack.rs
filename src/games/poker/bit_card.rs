@@ -124,7 +124,7 @@ impl BitCard {
 
     #[must_use]
     pub fn get_suit_binary_signature(&self) -> u32 {
-        let s = self.get_suit_bitslice().load_le::<u8>() as u32;
+        let s = self.get_suit_bitslice().load_le::<u32>();
         s << 12
     }
 
@@ -541,7 +541,10 @@ mod bit_card_tests {
         let bit_card: BitCard = BitCard::from_index(index).unwrap();
 
         assert_eq!(bit_card.get_suit_binary_signature(), expected);
-        assert_eq!(bit_card.get_suit_binary_signature(), card.suit.binary_signature());
+        assert_eq!(
+            bit_card.get_suit_binary_signature(),
+            card.suit.binary_signature()
+        );
     }
 
     #[test]
