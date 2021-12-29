@@ -134,6 +134,16 @@ impl BitCard {
     }
 
     #[must_use]
+    pub fn and(&self, card: &BitCard) -> BitVec<Msb0, u8> {
+        self.as_bitslice().to_bitvec() | card.as_bitslice().to_bitvec()
+    }
+
+    #[must_use]
+    pub fn or(&self, card: &BitCard) -> BitVec<Msb0, u8> {
+        self.as_bitslice().to_bitvec() & card.as_bitslice().to_bitvec()
+    }
+
+    #[must_use]
     pub fn or_rank_bitslice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
         self.get_rank_bitslice().to_bitvec() | bc.to_bitvec()
     }
