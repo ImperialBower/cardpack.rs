@@ -91,6 +91,15 @@ impl BitCards {
     }
 
     #[must_use]
+    pub fn and_suit_bitslice(&self) -> BitVec<Msb0, u8> {
+        let mut v = BitVec::new();
+        for bit_card in self.values() {
+            v = bit_card.and_suit_bitslice(&v);
+        }
+        v
+    }
+
+    #[must_use]
     pub fn or_suit_bit_slice(&self) -> BitVec<Msb0, u8> {
         let mut v = BitVec::new();
         for bit_card in self.values() {
