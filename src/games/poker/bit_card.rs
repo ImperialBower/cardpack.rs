@@ -139,6 +139,11 @@ impl BitCard {
     }
 
     #[must_use]
+    pub fn and_suit_bitslice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.get_suit_bitslice().to_bitvec() & bc.to_bitvec()
+    }
+
+    #[must_use]
     pub fn or_suit_bitslice(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
         self.get_suit_bitslice().to_bitvec() | bc.to_bitvec()
     }
@@ -559,6 +564,16 @@ mod bit_card_tests {
         let result = ace_spades.or_rank_bitslice(&king_spades.get_rank_bitslice());
 
         assert_eq!(format!("{}", result), "[00011000, 00000000]");
+    }
+
+    #[test]
+    fn and_suit_bitslice() {
+        let king_spades: BitCard = BitCard::from_index("KS").unwrap();
+        let queen_spades: BitCard = BitCard::from_index("QS").unwrap();
+
+        let actual = king_spades.or_suit_bitslice(&queen_spades.get_suit_bitslice());
+
+        assert_eq!("[0001]", format!("{:04b}", actual));
     }
 
     #[test]

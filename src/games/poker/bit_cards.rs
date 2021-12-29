@@ -1,12 +1,17 @@
+use crate::cards::card::CactusKevCard;
 use crate::cards::card_error::CardError;
 use crate::games::poker::bit_card::BitCard;
-use crate::Standard52;
+use crate::{games, Standard52};
 use bitvec::prelude::{BitVec, Msb0};
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct BitCards(Vec<BitCard>);
+
+// 00000000 00000000 11110000 00000000
+#[allow(dead_code)]
+const SUITS_FILTER: u32 = 0xf000;
 
 impl BitCards {
     #[must_use]
@@ -30,6 +35,14 @@ impl BitCards {
             cards.push(BitCard::from_card(&card));
         }
         Ok(cards)
+    }
+
+    #[must_use]
+    pub fn to_cactus_kev_cards(&self) -> Vec<CactusKevCard> {
+        self.0
+            .iter()
+            .map(games::poker::bit_card::BitCard::to_cactus_kev_card)
+            .collect()
     }
 
     #[must_use]
@@ -142,6 +155,22 @@ mod bit_cards_tests {
     use super::*;
 
     #[test]
+    fn to_cactus_kev_cards() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+        let ckc = cards.to_cactus_kev_cards();
+
+        assert_eq!(
+            *ckc.get(0).unwrap(),
+            cards.get(0).unwrap().to_cactus_kev_card()
+        );
+        assert_eq!(
+            *ckc.get(4).unwrap(),
+            cards.get(4).unwrap().to_cactus_kev_card()
+        );
+        assert_eq!(ckc.get(5), None);
+    }
+
+    #[test]
     fn get() {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
 
@@ -232,6 +261,56 @@ mod bit_cards_tests {
 
         // println!("{:#}", cards);
         assert_eq!(format!("{}", cards), expected);
+    }
+
+    fn shift_16(
+        c1: &CactusKevCard,
+        c2: &CactusKevCard,
+        c3: &CactusKevCard,
+        c4: &CactusKevCard,
+        c5: &CactusKevCard,
+    ) -> usize {
+        ((c1 | c2 | c3 | c4 | c5) as usize) >> 16
+    }
+
+    // fn stream(cards: &BitCards) -> usize {
+    //     cards.into_iter().map(|&c| c.unwrap().to_cactus_kev_card()).sum()
+    // }
+
+    fn flush_hunt(
+        c1: &CactusKevCard,
+        c2: &CactusKevCard,
+        c3: &CactusKevCard,
+        c4: &CactusKevCard,
+        c5: &CactusKevCard,
+    ) -> bool {
+        (c1 & c2 & c3 & c4 & c5 & SUITS_FILTER) != 0
+    }
+
+    #[test]
+    fn hand_rank() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        let q = shift_16(
+            &cards.get(0).unwrap().to_cactus_kev_card(),
+            &cards.get(1).unwrap().to_cactus_kev_card(),
+            &cards.get(2).unwrap().to_cactus_kev_card(),
+            &cards.get(3).unwrap().to_cactus_kev_card(),
+            &cards.get(4).unwrap().to_cactus_kev_card(),
+        );
+
+        println!("{}", q);
+        // 00000000 00000000 11110000 00000000
+        println!("{}", SUITS_FILTER);
+
+        let f = flush_hunt(
+            &cards.get(0).unwrap().to_cactus_kev_card(),
+            &cards.get(1).unwrap().to_cactus_kev_card(),
+            &cards.get(2).unwrap().to_cactus_kev_card(),
+            &cards.get(3).unwrap().to_cactus_kev_card(),
+            &cards.get(4).unwrap().to_cactus_kev_card(),
+        );
+        println!("{}", f);
     }
 
     #[test]
