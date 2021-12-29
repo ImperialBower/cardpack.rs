@@ -84,7 +84,7 @@ impl BitCards {
     #[must_use]
     pub fn or_rank_bit_slice(&self) -> BitVec<Msb0, u8> {
         let mut v = BitVec::new();
-        for bit_card in self.values() {
+        for bit_card in self.iter() {
             v = bit_card.or_rank_bitslice(&v);
         }
         v
@@ -93,7 +93,7 @@ impl BitCards {
     #[must_use]
     pub fn and_suit_bitslice(&self) -> BitVec<Msb0, u8> {
         let mut v = BitVec::new();
-        for bit_card in self.values() {
+        for bit_card in self.iter() {
             v = bit_card.and_suit_bitslice(&v);
         }
         v
@@ -102,7 +102,7 @@ impl BitCards {
     #[must_use]
     pub fn or_suit_bit_slice(&self) -> BitVec<Msb0, u8> {
         let mut v = BitVec::new();
-        for bit_card in self.values() {
+        for bit_card in self.iter() {
             v = bit_card.or_suit_bitslice(&v);
         }
         v
@@ -112,7 +112,7 @@ impl BitCards {
         self.0.push(bit_card);
     }
 
-    pub fn values(&self) -> impl Iterator<Item = &BitCard> {
+    pub fn iter(&self) -> impl Iterator<Item = &BitCard> {
         self.0.iter()
     }
 }
@@ -300,26 +300,20 @@ mod bit_cards_tests {
     fn hand_rank() {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
 
-        let q = shift_16(
-            &cards.get(0).unwrap().to_cactus_kev_card(),
-            &cards.get(1).unwrap().to_cactus_kev_card(),
-            &cards.get(2).unwrap().to_cactus_kev_card(),
-            &cards.get(3).unwrap().to_cactus_kev_card(),
-            &cards.get(4).unwrap().to_cactus_kev_card(),
-        );
+        let c1: &CactusKevCard = &cards.get(0).unwrap().to_cactus_kev_card();
+        let c2: &CactusKevCard = &cards.get(1).unwrap().to_cactus_kev_card();
+        let c3: &CactusKevCard = &cards.get(2).unwrap().to_cactus_kev_card();
+        let c4: &CactusKevCard = &cards.get(3).unwrap().to_cactus_kev_card();
+        let c5: &CactusKevCard = &cards.get(4).unwrap().to_cactus_kev_card();
 
-        println!("{}", q);
+        let q = shift_16(c1, c2, c3, c4, c5);
+
+        println!("q = {}", q);
         // 00000000 00000000 11110000 00000000
-        println!("{}", SUITS_FILTER);
+        println!("SUITS_FILTER = {}", SUITS_FILTER);
 
-        let f = flush_hunt(
-            &cards.get(0).unwrap().to_cactus_kev_card(),
-            &cards.get(1).unwrap().to_cactus_kev_card(),
-            &cards.get(2).unwrap().to_cactus_kev_card(),
-            &cards.get(3).unwrap().to_cactus_kev_card(),
-            &cards.get(4).unwrap().to_cactus_kev_card(),
-        );
-        println!("{}", f);
+        let f = flush_hunt(c1, c2, c3, c4, c5);
+        println!("f = {}", f);
     }
 
     #[test]
