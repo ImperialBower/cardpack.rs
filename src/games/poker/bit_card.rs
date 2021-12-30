@@ -134,13 +134,13 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn and(&self, card: &BitCard) -> BitVec<Msb0, u8> {
-        self.as_bitslice().to_bitvec() | card.as_bitslice().to_bitvec()
+    pub fn and(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.as_bitslice().to_bitvec() | bc.to_bitvec()
     }
 
     #[must_use]
-    pub fn or(&self, card: &BitCard) -> BitVec<Msb0, u8> {
-        self.as_bitslice().to_bitvec() & card.as_bitslice().to_bitvec()
+    pub fn or(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
+        self.as_bitslice().to_bitvec() & bc.to_bitvec()
     }
 
     #[must_use]

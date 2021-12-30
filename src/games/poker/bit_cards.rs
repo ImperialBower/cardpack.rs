@@ -4,6 +4,7 @@ use crate::games::poker::bit_card::BitCard;
 use crate::{games, Standard52};
 use bitvec::prelude::{BitVec, Msb0};
 use std::fmt::{Display, Formatter};
+use bitvec::field::BitField;
 use wyz::FmtForward;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
@@ -79,6 +80,34 @@ impl BitCards {
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    #[must_use]
+    pub fn and(&self) -> BitVec<Msb0, u8> {
+        let mut v = BitVec::new();
+        for bit_card in self.iter() {
+            v = bit_card.and(&v);
+        }
+        v
+    }
+
+    #[must_use]
+    pub fn and_to_usize(&self) -> usize {
+        self.and().as_bitslice().load_be::<usize>()
+    }
+
+    #[must_use]
+    pub fn or(&self) -> BitVec<Msb0, u8> {
+        let mut v = BitVec::new();
+        for bit_card in self.iter() {
+            v = bit_card.or(&v);
+        }
+        v
+    }
+
+    #[must_use]
+    pub fn or_to_usize(&self) -> usize {
+        self.or().as_bitslice().load_be::<usize>()
     }
 
     #[must_use]
@@ -307,8 +336,9 @@ mod bit_cards_tests {
         let c5: &CactusKevCard = &cards.get(4).unwrap().to_cactus_kev_card();
 
         let q = shift_16(c1, c2, c3, c4, c5);
+        let q2 = cards.or_to_usize();
 
-        println!("q = {}", q);
+        println!("q = {} {}", q, q2);
         // 00000000 00000000 11110000 00000000
         println!("SUITS_FILTER = {}", SUITS_FILTER);
 
