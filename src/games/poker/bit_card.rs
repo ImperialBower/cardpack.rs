@@ -140,7 +140,7 @@ impl BitCard {
 
     #[must_use]
     pub fn or(&self, bc: &BitSlice<Msb0, u8>) -> BitVec<Msb0, u8> {
-        self.as_bitslice().to_bitvec() & bc.to_bitvec()
+        self.as_bitslice().to_bitvec() | bc.to_bitvec()
     }
 
     #[must_use]

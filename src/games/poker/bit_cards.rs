@@ -1,10 +1,10 @@
-use crate::cards::card::CactusKevCard;
 use crate::cards::card_error::CardError;
 use crate::games::poker::bit_card::BitCard;
+use crate::games::poker::cactus_kev_cards::CactusKevCards;
 use crate::{games, Standard52};
+use bitvec::field::BitField;
 use bitvec::prelude::{BitVec, Msb0};
 use std::fmt::{Display, Formatter};
-use bitvec::field::BitField;
 use wyz::FmtForward;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
@@ -39,11 +39,13 @@ impl BitCards {
     }
 
     #[must_use]
-    pub fn to_cactus_kev_cards(&self) -> Vec<CactusKevCard> {
-        self.0
-            .iter()
-            .map(games::poker::bit_card::BitCard::to_cactus_kev_card)
-            .collect()
+    pub fn to_cactus_kev_cards(&self) -> CactusKevCards {
+        CactusKevCards::new(
+            self.0
+                .iter()
+                .map(games::poker::bit_card::BitCard::to_cactus_kev_card)
+                .collect(),
+        )
     }
 
     #[must_use]
@@ -191,6 +193,7 @@ impl IntoIterator for BitCards {
 #[allow(non_snake_case)]
 mod bit_cards_tests {
     use super::*;
+    use crate::cards::card::CactusKevCard;
 
     #[test]
     fn to_cactus_kev_cards() {
@@ -336,7 +339,7 @@ mod bit_cards_tests {
         let c5: &CactusKevCard = &cards.get(4).unwrap().to_cactus_kev_card();
 
         let q = shift_16(c1, c2, c3, c4, c5);
-        let q2 = cards.or_to_usize();
+        let q2 = cards.or_to_usize() >> 16;
 
         println!("q = {} {}", q, q2);
         // 00000000 00000000 11110000 00000000
