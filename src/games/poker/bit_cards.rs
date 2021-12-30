@@ -193,7 +193,7 @@ impl IntoIterator for BitCards {
 #[allow(non_snake_case)]
 mod bit_cards_tests {
     use super::*;
-    use crate::cards::card::CactusKevCard;
+    use crate::games::poker::cactus_kev_card::CKC;
 
     #[test]
     fn to_cactus_kev_cards() {
@@ -304,13 +304,7 @@ mod bit_cards_tests {
         assert_eq!(format!("{}", cards), expected);
     }
 
-    fn shift_16(
-        c1: &CactusKevCard,
-        c2: &CactusKevCard,
-        c3: &CactusKevCard,
-        c4: &CactusKevCard,
-        c5: &CactusKevCard,
-    ) -> usize {
+    fn shift_16(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> usize {
         ((c1 | c2 | c3 | c4 | c5) as usize) >> 16
     }
 
@@ -318,13 +312,7 @@ mod bit_cards_tests {
     //     cards.into_iter().map(|&c| c.unwrap().to_cactus_kev_card()).sum()
     // }
 
-    fn flush_hunt(
-        c1: &CactusKevCard,
-        c2: &CactusKevCard,
-        c3: &CactusKevCard,
-        c4: &CactusKevCard,
-        c5: &CactusKevCard,
-    ) -> bool {
+    fn flush_hunt(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> bool {
         (c1 & c2 & c3 & c4 & c5 & SUITS_FILTER) != 0
     }
 
@@ -332,11 +320,11 @@ mod bit_cards_tests {
     fn hand_rank() {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
 
-        let c1: &CactusKevCard = &cards.get(0).unwrap().to_cactus_kev_card();
-        let c2: &CactusKevCard = &cards.get(1).unwrap().to_cactus_kev_card();
-        let c3: &CactusKevCard = &cards.get(2).unwrap().to_cactus_kev_card();
-        let c4: &CactusKevCard = &cards.get(3).unwrap().to_cactus_kev_card();
-        let c5: &CactusKevCard = &cards.get(4).unwrap().to_cactus_kev_card();
+        let c1: &CKC = &cards.get(0).unwrap().to_cactus_kev_card();
+        let c2: &CKC = &cards.get(1).unwrap().to_cactus_kev_card();
+        let c3: &CKC = &cards.get(2).unwrap().to_cactus_kev_card();
+        let c4: &CKC = &cards.get(3).unwrap().to_cactus_kev_card();
+        let c5: &CKC = &cards.get(4).unwrap().to_cactus_kev_card();
 
         let q = shift_16(c1, c2, c3, c4, c5);
         let q2 = cards.or_to_usize() >> 16;

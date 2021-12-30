@@ -6,6 +6,7 @@ use crate::{
 };
 use bitvec::field::BitField;
 use bitvec::prelude::{BitArray, BitSlice, BitVec, Msb0};
+use std::fmt;
 use std::fmt::{Display, Formatter};
 use wyz::FmtForward;
 
@@ -220,6 +221,12 @@ impl Default for BitCard {
     }
 }
 
+impl fmt::Binary for BitCard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
+    }
+}
+
 /// ```txt
 /// +--------+--------+--------+--------+
 /// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
@@ -288,6 +295,7 @@ impl Display for AnnotatedBitCard {
 #[allow(non_snake_case)]
 mod bit_card_tests {
     use super::*;
+    use crate::games::poker::cactus_kev_card::ckc;
     use crate::{Standard52, Suit};
     use rstest::rstest;
 
@@ -314,7 +322,7 @@ mod bit_card_tests {
         let standard52 = Standard52::default();
         for card in standard52.deck {
             let cactusKevCard: BitCard = BitCard::from_card(&card);
-            let s = format!("{:032b}", card).to_string();
+            let s = format!("{:032b}", cactusKevCard).to_string();
             assert_eq!(s, cactusKevCard.display(false));
         }
     }
@@ -406,7 +414,7 @@ mod bit_card_tests {
     fn from_u64__comprehensive_too() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let actual = BitCard::from_cactus_kev_card(card.to_cactus_kev_card());
+            let actual = BitCard::from_cactus_kev_card(ckc::from_card(&card));
             assert_eq!(actual.to_card(), card);
         }
     }
@@ -416,7 +424,7 @@ mod bit_card_tests {
         let standard52 = Standard52::new_shuffled();
         for card in standard52.deck {
             let bit_card = BitCard::from_card(&card);
-            assert_eq!(bit_card.to_cactus_kev_card(), card.to_cactus_kev_card());
+            assert_eq!(bit_card.to_cactus_kev_card(), ckc::from_card(&card));
         }
     }
 
@@ -425,7 +433,7 @@ mod bit_card_tests {
     fn to_card() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let bit_card = BitCard::from_cactus_kev_card(card.to_cactus_kev_card());
+            let bit_card = BitCard::from_cactus_kev_card(ckc::from_card(&card));
             assert_eq!(bit_card.to_card(), card);
 
             let bit_card = BitCard::from_card(&card);

@@ -47,8 +47,6 @@ impl CactusKevCards {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod cactus_kev_cards_tests {
-    use super::*;
-    use crate::games::poker::alt::original::eval_5cards_kev_array;
     use crate::games::poker::bit_cards::BitCards;
 
     #[test]

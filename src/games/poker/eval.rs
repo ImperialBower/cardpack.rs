@@ -68,6 +68,7 @@ pub fn pile_by_spread_key(_spread: u8, _pile: &Pile) -> Result<Pile, CardError> 
 #[allow(non_snake_case)]
 mod eval_tests {
     use super::*;
+    use crate::games::poker::cactus_kev_card::ckc;
     use crate::Standard52;
     use rstest::rstest;
 
@@ -85,7 +86,7 @@ mod eval_tests {
 
         let mut and: u32 = 0xF000;
         for card in pile.cards() {
-            let bin = card.to_cactus_kev_card();
+            let bin = ckc::from_card(&card);
             // println!("    {:032b}", and);
             // println!("  + {:032b}", bin);
             // println!("    ================================");

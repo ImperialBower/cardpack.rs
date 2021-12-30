@@ -99,6 +99,7 @@ pub fn eval_7cards_kev_array(cards: &[&CKC; 7]) -> HandRank {
 mod tests {
     use crate::games::poker::alt::holdem::{hand_rank_to_class, HandRank, HandRankClass};
     use crate::games::poker::alt::vsup_deck::VSupDeck;
+    use crate::games::poker::cactus_kev_card::CKC;
     use std::collections::HashMap;
 
     use super::eval_5cards_kev_array;
@@ -108,7 +109,7 @@ mod tests {
     #[test]
     fn evaluate_all_possible_5_card_combinations() {
         let mut deck = VSupDeck::new_unshuffled();
-        let mut cards: [CactusKevCard; 52] = [0; 52];
+        let mut cards: [CKC; 52] = [0; 52];
 
         // this could be made faster, by creating a function that works on raw-card-representations and translating
         // the deck cards into it
@@ -121,7 +122,7 @@ mod tests {
         let mut rank_count: HashMap<HandRank, bool> = HashMap::new();
 
         let dummy_kev_value = 0;
-        let mut current_hand: [&CactusKevCard; 5] = [&dummy_kev_value; 5];
+        let mut current_hand: [&CKC; 5] = [&dummy_kev_value; 5];
 
         // 2,598,960 unique poker hands
         for i1 in 0..52 {

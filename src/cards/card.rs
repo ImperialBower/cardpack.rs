@@ -185,9 +185,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{
-        ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, TWO,
-    };
+    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, QUEEN, SPADES, TWO};
     use std::cell::Cell;
 
     // region impl tests
@@ -335,13 +333,6 @@ mod card_tests {
         assert_eq!(Card::from_index_strings(ACE, SPADES), aces);
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
-    }
-
-    #[test]
-    fn to_cactus_kev_card() {
-        let card = Card::from_index_strings(KING, DIAMONDS);
-
-        assert_eq!(card.to_cactus_kev_card(), 134236965);
     }
 
     // #[test]
