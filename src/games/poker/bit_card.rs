@@ -1,5 +1,5 @@
-use crate::cards::card::CactusKevCard;
 use crate::cards::card_error::CardError;
+use crate::games::poker::cactus_kev_card::CKC;
 use crate::{
     Card, Rank, Standard52, Suit, ACE, CLUBS, DIAMONDS, EIGHT, FIVE, FOUR, HEARTS, JACK, KING,
     NINE, QUEEN, SEVEN, SIX, SPADES, TEN, THREE, TWO,
@@ -44,7 +44,7 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn from_cactus_kev_card(integer: CactusKevCard) -> BitCard {
+    pub fn from_cactus_kev_card(integer: CKC) -> BitCard {
         let mut bc: BitCard = BitCard::default();
         bc.0[..32].store_be(integer);
         bc
@@ -170,7 +170,7 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn to_cactus_kev_card(&self) -> CactusKevCard {
+    pub fn to_cactus_kev_card(&self) -> CKC {
         self.as_bitslice().load_be::<u32>()
     }
 

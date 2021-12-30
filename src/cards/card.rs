@@ -11,7 +11,7 @@ pub const BLANK: &str = "blank";
 /// A card encoded using the bit pattern described in Cactus Kev's
 /// [article](http://www.suffecool.net/poker/evaluator.html).
 #[allow(clippy::module_name_repetitions)]
-pub type CactusKevCard = u32;
+// pub type CactusKevCard = u32;
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a `Suit`, `weight`, which is an integer that controls how a card is sorted
@@ -101,30 +101,30 @@ impl Card {
     /// b = bit turned on depending on rank of card
     /// ```
     /// This is used for Poker hand evaluation.
-    #[must_use]
-    pub fn to_cactus_kev_card(&self) -> CactusKevCard {
-        let suit: u32 = self.suit.binary_signature();
-        let bits = 1 << (16 + self.rank.weight);
-        let rank_eight = self.rank.weight << 8;
+    // #[must_use]
+    // pub fn to_cactus_kev_card(&self) -> CactusKevCard {
+    //     let suit: u32 = self.suit.binary_signature();
+    //     let bits = 1 << (16 + self.rank.weight);
+    //     let rank_eight = self.rank.weight << 8;
+    //
+    //     // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
+    //
+    //     bits | self.rank.prime | rank_eight | suit
+    // }
 
-        // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
-
-        bits | self.rank.prime | rank_eight | suit
-    }
-
-    pub fn debug(&self) {
-        println!("{}:", self.index);
-        println!(
-            "     {:032b} {}",
-            self.to_cactus_kev_card(),
-            self.to_cactus_kev_card()
-        );
-        println!(
-            "     {:032b} {} < Suit binary_signature",
-            self.suit.binary_signature(),
-            self.suit.binary_signature()
-        );
-    }
+    // pub fn debug(&self) {
+    //     println!("{}:", self.index);
+    //     println!(
+    //         "     {:032b} {}",
+    //         self.to_cactus_kev_card(),
+    //         self.to_cactus_kev_card()
+    //     );
+    //     println!(
+    //         "     {:032b} {} < Suit binary_signature",
+    //         self.suit.binary_signature(),
+    //         self.suit.binary_signature()
+    //     );
+    // }
 
     // Private methods
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
@@ -146,11 +146,11 @@ impl Default for Card {
     }
 }
 
-impl fmt::Binary for Card {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
-    }
-}
+// impl fmt::Binary for Card {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
+//     }
+// }
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -344,14 +344,14 @@ mod card_tests {
         assert_eq!(card.to_cactus_kev_card(), 134236965);
     }
 
-    #[test]
-    fn fmt_binary() {
-        assert_eq!(
-            format!(
-                "King of Diamonds as binary is: {:032b}",
-                Card::from_index_strings(KING, DIAMONDS)
-            ),
-            "King of Diamonds as binary is: 00001000000000000100101100100101"
-        );
-    }
+    // #[test]
+    // fn fmt_binary() {
+    //     assert_eq!(
+    //         format!(
+    //             "King of Diamonds as binary is: {:032b}",
+    //             Card::from_index_strings(KING, DIAMONDS)
+    //         ),
+    //         "King of Diamonds as binary is: 00001000000000000100101100100101"
+    //     );
+    // }
 }

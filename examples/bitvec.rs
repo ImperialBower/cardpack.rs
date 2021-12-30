@@ -1,6 +1,7 @@
 use bitvec::field::BitField;
 use bitvec::prelude::{BitVec, Msb0};
 use cardpack::games::poker::bit_card::{AnnotatedBitCard, BitCard};
+use cardpack::games::poker::cactus_kev_card::ckc;
 use cardpack::Standard52;
 
 fn main() {
@@ -18,7 +19,7 @@ fn main() {
 
     println!("{}", king_spades);
     println!("{}", r);
-    println!("{}", ks.to_cactus_kev_card());
+    println!("{}", ckc::from_card(&ks));
 
     let asd = king_spades.get_rank_bitslice().load::<u64>();
     println!(">>> {}", asd);
@@ -33,8 +34,8 @@ fn main() {
         println!("{} {} {}", card, rbs, bss);
     }
 
-    let standard52 = Standard52::default();
-    for card in standard52.deck {
-        card.debug();
-    }
+    // let standard52 = Standard52::default();
+    // for card in standard52.deck {
+    //     card.debug();
+    // }
 }

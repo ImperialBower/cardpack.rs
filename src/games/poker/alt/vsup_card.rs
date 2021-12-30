@@ -1,5 +1,5 @@
-use crate::cards::card::CactusKevCard;
 use crate::games::poker::alt::lookups;
+use crate::games::poker::cactus_kev_card::CKC;
 use std::fmt;
 
 #[allow(dead_code)]
@@ -114,7 +114,7 @@ impl VSupCard {
     ///  cdhs = suit of card
     ///  b = bit turned on depending on value of card
     #[must_use]
-    pub fn get_cactus_kev_card(&self) -> CactusKevCard {
+    pub fn get_cactus_kev_card(&self) -> CKC {
         let value: u32 = match self.value {
             VSupValue::Two => 0,
             VSupValue::Three => 1,

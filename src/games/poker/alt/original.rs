@@ -1,6 +1,6 @@
 use super::lookups;
-use crate::cards::card::CactusKevCard;
 use crate::games::poker::alt::holdem::HandRank;
+use crate::games::poker::cactus_kev_card::CKC;
 
 #[allow(clippy::comparison_chain, dead_code)]
 fn findit(key: usize) -> usize {
@@ -25,13 +25,7 @@ fn findit(key: usize) -> usize {
 
 /// Returns a value between (1 to 7462 inclusive), where 1 is the best. It is called original because of the old handRank convention.
 //TODO: make this line less fugly?
-fn eval_5cards_kev_original(
-    c1: &CactusKevCard,
-    c2: &CactusKevCard,
-    c3: &CactusKevCard,
-    c4: &CactusKevCard,
-    c5: &CactusKevCard,
-) -> HandRank {
+fn eval_5cards_kev_original(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> HandRank {
     let q: usize = ((c1 | c2 | c3 | c4 | c5) as usize) >> 16;
 
     if (c1 & c2 & c3 & c4 & c5 & 0xf000) != 0 {
@@ -49,28 +43,22 @@ fn eval_5cards_kev_original(
 
 // no array used -> for bench purposes
 
-pub fn eval_5cards_kev(
-    c1: &CactusKevCard,
-    c2: &CactusKevCard,
-    c3: &CactusKevCard,
-    c4: &CactusKevCard,
-    c5: &CactusKevCard,
-) -> HandRank {
+pub fn eval_5cards_kev(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> HandRank {
     let kev_rank = eval_5cards_kev_original(c1, c2, c3, c4, c5);
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 
-pub fn eval_5cards_kev_array(cards: &[&CactusKevCard; 5]) -> HandRank {
+pub fn eval_5cards_kev_array(cards: &[&CKC; 5]) -> HandRank {
     let kev_rank = eval_5cards_kev_original(cards[0], cards[1], cards[2], cards[3], cards[4]);
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 
-pub fn eval_6cards_kev_array(cards: &[&CactusKevCard; 6]) -> HandRank {
+pub fn eval_6cards_kev_array(cards: &[&CKC; 6]) -> HandRank {
     let mut tmp;
     let mut best = 0;
 
     let dummy_kev_value = 0;
-    let mut subhand: [&CactusKevCard; 5] = [&dummy_kev_value; 5];
+    let mut subhand: [&CKC; 5] = [&dummy_kev_value; 5];
 
     for ids in &lookups::PERM_6 {
         for i in 0..5 {
@@ -86,12 +74,12 @@ pub fn eval_6cards_kev_array(cards: &[&CactusKevCard; 6]) -> HandRank {
     best
 }
 
-pub fn eval_7cards_kev_array(cards: &[&CactusKevCard; 7]) -> HandRank {
+pub fn eval_7cards_kev_array(cards: &[&CKC; 7]) -> HandRank {
     let mut tmp;
     let mut best = 0;
 
     let dummy_kev_value = 0;
-    let mut subhand: [&CactusKevCard; 5] = [&dummy_kev_value; 5];
+    let mut subhand: [&CKC; 5] = [&dummy_kev_value; 5];
 
     for ids in &lookups::PERM_7 {
         for i in 0..5 {
@@ -109,7 +97,6 @@ pub fn eval_7cards_kev_array(cards: &[&CactusKevCard; 7]) -> HandRank {
 
 #[cfg(test)]
 mod tests {
-    use crate::cards::card::CactusKevCard;
     use crate::games::poker::alt::holdem::{hand_rank_to_class, HandRank, HandRankClass};
     use crate::games::poker::alt::vsup_deck::VSupDeck;
     use std::collections::HashMap;
