@@ -1,6 +1,11 @@
 /// A card encoded using the bit pattern described in Cactus Kev's
 /// [article](http://www.suffecool.net/poker/evaluator.html).
 pub type CKC = u32;
+pub type HandRank = u16;
+
+// 00000000 00000000 11110000 00000000
+#[allow(dead_code)]
+pub const SUITS_FILTER: u32 = 0xf000;
 
 pub mod ckc {
     use crate::games::poker::cactus_kev_card::CKC;

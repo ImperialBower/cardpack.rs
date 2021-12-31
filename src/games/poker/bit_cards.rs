@@ -1,4 +1,6 @@
 use crate::cards::card_error::CardError;
+use crate::games::poker::alt::holdem::HandRank;
+use crate::games::poker::alt::lookups;
 use crate::games::poker::bit_card::BitCard;
 use crate::games::poker::cactus_kev_cards::CactusKevCards;
 use crate::{games, Standard52};
@@ -9,10 +11,6 @@ use wyz::FmtForward;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct BitCards(Vec<BitCard>);
-
-// 00000000 00000000 11110000 00000000
-#[allow(dead_code)]
-const SUITS_FILTER: u32 = 0xf000;
 
 impl BitCards {
     #[must_use]
@@ -146,6 +144,15 @@ impl BitCards {
     pub fn iter(&self) -> impl Iterator<Item = &BitCard> {
         self.0.iter()
     }
+
+    #[must_use]
+    pub fn flush_hand_rank(&self) -> HandRank {
+        let i = self.or_to_usize() >> 16;
+        if i > 7936 {
+            return 0;
+        }
+        lookups::FLUSHES[i] as HandRank
+    }
 }
 
 impl Default for BitCards {
@@ -193,7 +200,7 @@ impl IntoIterator for BitCards {
 #[allow(non_snake_case)]
 mod bit_cards_tests {
     use super::*;
-    use crate::games::poker::cactus_kev_card::CKC;
+    use crate::games::poker::cactus_kev_card::{CKC, SUITS_FILTER};
 
     #[test]
     fn to_cactus_kev_cards() {
@@ -314,6 +321,13 @@ mod bit_cards_tests {
 
     fn flush_hunt(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> bool {
         (c1 & c2 & c3 & c4 & c5 & SUITS_FILTER) != 0
+    }
+
+    #[test]
+    fn flush_hand_rank() {
+        let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
+
+        assert_eq!(1, cards.flush_hand_rank());
     }
 
     #[test]
