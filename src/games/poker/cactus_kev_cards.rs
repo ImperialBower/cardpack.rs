@@ -54,7 +54,6 @@ mod cactus_kev_cards_tests {
         let cards = BitCards::from_index("AS KS QS JS TS").unwrap();
         let ckc = cards.to_cactus_kev_cards().into_five_array().unwrap();
 
-        println!("{:?}", ckc);
-        // println!("{:?}", eval_5cards_kev_array(&ckc));
+        assert_eq!(ckc.len(), 5)
     }
 }
