@@ -1,8 +1,11 @@
 use crate::cards::card_error::CardError;
 use crate::games::poker::alt::lookups;
 use crate::games::poker::cactus_kev_card::{ckc, HandRank, CKC, SUITS_FILTER};
-use crate::Standard52;
+use crate::{Pile, Standard52};
+use std::cmp::Ordering;
 use std::convert::TryInto;
+
+pub const POSSIBLE_COMBINATIONS: usize = 7937;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct CactusKevCards(Vec<CKC>);
@@ -31,37 +34,91 @@ impl CactusKevCards {
         Ok(cards)
     }
 
+    pub fn from_pile(standard52: &Standard52, pile: Pile) -> Result<CactusKevCards, CardError> {
+        let c = standard52.pile_from_pile(pile);
+        if c.is_err() {
+            return Err(CardError::InvalidCard);
+        }
+        let mut cards = CactusKevCards::default();
+        for card in c.unwrap() {
+            cards.push(ckc::from_card(&card));
+        }
+        Ok(cards)
+    }
+
+    /// # Panics
+    ///
+    /// Only if `Standard52` is very foobared.
+    #[must_use]
+    pub fn deal5() -> CactusKevCards {
+        let mut standard52 = Standard52::new_shuffled();
+        let pile = standard52.draw(5).unwrap();
+        CactusKevCards::from_pile(&standard52, pile).unwrap()
+    }
+
     #[must_use]
     pub fn eval_5cards(&self) -> HandRank {
         if !self.is_complete_hand() {
             return 0;
         }
-        let i = self.or_shift_16();
+        let i = self.or_rank_bits();
 
         if self.is_flush() {
             return lookups::FLUSHES[i] as HandRank;
         }
 
+        let s = CactusKevCards::unique5(i);
+        if s != 0 {
+            return s;
+        }
+
+        // It's not a flush and the cards aren't unique (straight or high card).
+        self.last_pass()
+    }
+
+    fn last_pass(&self) -> HandRank {
+        let i = CactusKevCards::find_it(self.multiply_primes());
+        lookups::VALUES[i] as HandRank
+    }
+
+    /// Based on [this](https://github.com/vsupalov/pokereval-rs/blob/d244030715560dbae38c68dbcd09244d5285b518/src/original.rs#L6)
+    /// which is in turn based on [find fast method](http://suffe.cool/poker/code/pokerlib.c) from Cactus Kev's original C code.
+    ///
+    /// TODO: Refactor to [Rust-PHF](https://github.com/rust-phf/rust-phf)
+    fn find_it(key: usize) -> usize {
+        let mut low = 0;
+        let mut high = 4887;
+        let mut mid;
+
+        while low <= high {
+            mid = (high + low) >> 1; // divide by two
+
+            let product = lookups::PRODUCTS[mid] as usize;
+            match key.cmp(&product) {
+                Ordering::Less => high = mid - 1,
+                Ordering::Greater => low = mid + 1,
+                Ordering::Equal => return mid,
+            }
+        }
         0
-
-        // let q: usize = ((c1 | c2 | c3 | c4 | c5) as usize) >> 16;
-
-        // if (c1 & c2 & c3 & c4 & c5 & 0xf000) != 0 {
-        //     return lookups::FLUSHES[q] as HandRank;
-        // }
-        // let s = lookups::UNIQUE_5[q] as HandRank;
-        // if s != 0 {
-        //     return s;
-        // }
-        //
-        // let q = ((c1 & 0xff) * (c2 & 0xff) * (c3 & 0xff) * (c4 & 0xff) * (c5 & 0xff)) as usize;
-        // let lookup = findit(q);
-        // lookups::VALUES[lookup] as HandRank
     }
 
     #[must_use]
     pub fn get(&self, index: usize) -> Option<&CKC> {
         self.0.get(index)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &CKC> {
+        self.0.iter()
+    }
+
+    #[must_use]
+    pub fn unique5(index: usize) -> HandRank {
+        if index > POSSIBLE_COMBINATIONS {
+            0
+        } else {
+            lookups::UNIQUE_5[index] as HandRank
+        }
     }
 
     /// # Errors
@@ -73,7 +130,7 @@ impl CactusKevCards {
     ///
     /// Shouldn't be able to panic. (fingers crossed)
     ///
-    pub fn into_five_array(&self) -> Result<[CKC; 5], CardError> {
+    pub fn to_five_array(&self) -> Result<[CKC; 5], CardError> {
         match self.len() {
             0..=4 => Err(CardError::NotEnoughCards),
             5 => Ok(self.0.clone().try_into().unwrap()),
@@ -104,12 +161,34 @@ impl CactusKevCards {
         self.0.len()
     }
 
+    #[must_use]
+    pub fn multiply_primes(&self) -> usize {
+        let mut r: usize = 1;
+        for p in self.primes() {
+            let q = p as usize;
+            r *= q;
+        }
+        r
+    }
+
+    /// Returns a vector of all the prime bits of the CKC.
+    #[must_use]
+    pub fn primes(&self) -> Vec<u32> {
+        let mut v: Vec<u32> = Vec::new();
+        for c in self.iter() {
+            v.push(c & 0xff);
+        }
+        v
+    }
+
     pub fn push(&mut self, ckc: CKC) {
         self.0.push(ckc);
     }
 
+    /// Returns a value that is made up of performing an or operation on all of the
+    /// rank bit flags of the `CactusKevCard`.
     #[must_use]
-    pub fn or_shift_16(&self) -> usize {
+    pub fn or_rank_bits(&self) -> usize {
         if !self.is_complete_hand() {
             return 0;
         }
@@ -127,7 +206,9 @@ impl Default for CactusKevCards {
 #[allow(non_snake_case)]
 mod cactus_kev_cards_tests {
     use super::*;
-    use crate::games::poker::alt::original::eval_5cards_kev_array;
+    use crate::games::poker::alt::original::{
+        cactus_kevs_original_eval_5cards, eval_5cards_kev_array,
+    };
     use crate::games::poker::cactus_kev_card::CKC;
 
     #[test]
@@ -147,10 +228,25 @@ mod cactus_kev_cards_tests {
     }
 
     #[test]
+    fn eval_5cards_pair() {
+        let cards = CactusKevCards::from_index("AS AH QS JS TS").unwrap();
+
+        let expected = cactus_kevs_original_eval_5cards(
+            cards.get(0).unwrap(),
+            cards.get(1).unwrap(),
+            cards.get(2).unwrap(),
+            cards.get(3).unwrap(),
+            cards.get(4).unwrap(),
+        );
+
+        assert_eq!(expected, cards.eval_5cards());
+    }
+
+    #[test]
     fn into_five_array() {
         let ckc = CactusKevCards::from_index("AS KS QS JS TS").unwrap();
 
-        let a = ckc.into_five_array().unwrap();
+        let a = ckc.to_five_array().unwrap();
 
         assert_eq!(a.len(), 5);
         assert_eq!(ckc.get(0).unwrap(), &a[0]);
@@ -190,6 +286,6 @@ mod cactus_kev_cards_tests {
     fn or_shift_16() {
         let ckc = CactusKevCards::from_index("AS KS QS JS TS").unwrap();
 
-        assert_eq!(ckc.or_shift_16(), 7936);
+        assert_eq!(ckc.or_rank_bits(), 7936);
     }
 }

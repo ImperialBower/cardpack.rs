@@ -25,7 +25,13 @@ fn findit(key: usize) -> usize {
 
 /// Returns a value between (1 to 7462 inclusive), where 1 is the best. It is called original because of the old handRank convention.
 //TODO: make this line less fugly?
-fn eval_5cards_kev_original(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> HandRank {
+pub fn cactus_kevs_original_eval_5cards(
+    c1: &CKC,
+    c2: &CKC,
+    c3: &CKC,
+    c4: &CKC,
+    c5: &CKC,
+) -> HandRank {
     let q: usize = ((c1 | c2 | c3 | c4 | c5) as usize) >> 16;
 
     if (c1 & c2 & c3 & c4 & c5 & 0xf000) != 0 {
@@ -44,12 +50,13 @@ fn eval_5cards_kev_original(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) ->
 // no array used -> for bench purposes
 
 pub fn eval_5cards_kev(c1: &CKC, c2: &CKC, c3: &CKC, c4: &CKC, c5: &CKC) -> HandRank {
-    let kev_rank = eval_5cards_kev_original(c1, c2, c3, c4, c5);
+    let kev_rank = cactus_kevs_original_eval_5cards(c1, c2, c3, c4, c5);
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 
 pub fn eval_5cards_kev_array(cards: &[&CKC; 5]) -> HandRank {
-    let kev_rank = eval_5cards_kev_original(cards[0], cards[1], cards[2], cards[3], cards[4]);
+    let kev_rank =
+        cactus_kevs_original_eval_5cards(cards[0], cards[1], cards[2], cards[3], cards[4]);
     7461 - (kev_rank - 1) as HandRank //let's change this to be (0 to 7461 inclusive), with 7461 being the best
 }
 

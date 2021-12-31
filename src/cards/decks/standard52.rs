@@ -73,6 +73,34 @@ impl Standard52 {
         Ok(pile)
     }
 
+    /// # Errors
+    ///
+    /// Will return `DeckError::PilePackMismatch` if `Pile` passed contains a card that isn't
+    /// in the `Standard52` deck.
+    pub fn pile_from_pile(&self, pile: Pile) -> Result<Pile, DeckError> {
+        let mut r = Pile::default();
+        for card in pile.into_iter() {
+            if self.is_valid_card(&card) {
+                r.add(card);
+            } else {
+                return Err(DeckError::PilePackMismatch);
+            }
+        }
+        Ok(r)
+    }
+
+    pub fn draw(&mut self, x: usize) -> Option<Pile> {
+        if x > self.deck.len() || x < 1  {
+            None
+        } else {
+            let mut cards = Pile::default();
+            for _ in 0..x {
+                cards.add(self.deck.draw_first()?);
+            }
+            Some(cards)
+        }
+    }
+
     #[must_use]
     pub fn to_index(&self) -> String {
         self.deck.to_index()
@@ -105,6 +133,11 @@ impl Standard52 {
         } else {
             Card::new(rank, suit)
         }
+    }
+
+    #[must_use]
+    pub fn is_valid_card(&self, card: &Card) -> bool {
+        self.pack.contains(card)
     }
 
     fn rank_str_from_index(card_str: &'static str) -> &'static str {

@@ -1,7 +1,6 @@
 use crate::cards::card_error::CardError;
 use crate::{Card, Pile, Suit};
 use std::collections::HashMap;
-// use std::collections::HashMap;
 
 pub struct CardsBySuit {
     pub suit: Suit,
