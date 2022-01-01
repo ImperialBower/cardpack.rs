@@ -65,7 +65,7 @@ impl Standard52 {
             let card = Standard52::card_from_index(index);
 
             if card.is_valid() {
-                pile.add(card);
+                pile.push(card);
             } else {
                 return Err(DeckError::InvalidIndex);
             }
@@ -79,9 +79,9 @@ impl Standard52 {
     /// in the `Standard52` deck.
     pub fn pile_from_pile(&self, pile: Pile) -> Result<Pile, DeckError> {
         let mut r = Pile::default();
-        for card in pile.into_iter() {
+        for card in pile {
             if self.is_valid_card(&card) {
-                r.add(card);
+                r.push(card);
             } else {
                 return Err(DeckError::PilePackMismatch);
             }
@@ -90,12 +90,12 @@ impl Standard52 {
     }
 
     pub fn draw(&mut self, x: usize) -> Option<Pile> {
-        if x > self.deck.len() || x < 1  {
+        if x > self.deck.len() || x < 1 {
             None
         } else {
             let mut cards = Pile::default();
             for _ in 0..x {
-                cards.add(self.deck.draw_first()?);
+                cards.push(self.deck.draw_first()?);
             }
             Some(cards)
         }

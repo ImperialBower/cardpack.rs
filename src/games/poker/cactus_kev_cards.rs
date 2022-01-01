@@ -1,9 +1,11 @@
 use crate::cards::card_error::CardError;
+use crate::cards::decks::standard52;
 use crate::games::poker::alt::lookups;
 use crate::games::poker::cactus_kev_card::{ckc, HandRank, CKC, SUITS_FILTER};
 use crate::{Pile, Standard52};
 use std::cmp::Ordering;
 use std::convert::TryInto;
+use std::fmt;
 
 pub const POSSIBLE_COMBINATIONS: usize = 7937;
 
@@ -34,26 +36,17 @@ impl CactusKevCards {
         Ok(cards)
     }
 
-    pub fn from_pile(standard52: &Standard52, pile: Pile) -> Result<CactusKevCards, CardError> {
-        let c = standard52.pile_from_pile(pile);
-        if c.is_err() {
-            return Err(CardError::InvalidCard);
-        }
-        let mut cards = CactusKevCards::default();
-        for card in c.unwrap() {
-            cards.push(ckc::from_card(&card));
-        }
-        Ok(cards)
-    }
-
     /// # Panics
     ///
     /// Only if `Standard52` is very foobared.
     #[must_use]
-    pub fn deal5() -> CactusKevCards {
-        let mut standard52 = Standard52::new_shuffled();
+    pub fn deal5(standard52: &mut standard52::Standard52) -> CactusKevCards {
         let pile = standard52.draw(5).unwrap();
-        CactusKevCards::from_pile(&standard52, pile).unwrap()
+        let mut cards = CactusKevCards::default();
+        for card in pile {
+            cards.push(ckc::from_card(&card));
+        }
+        cards
     }
 
     #[must_use]
@@ -171,6 +164,16 @@ impl CactusKevCards {
         r
     }
 
+    /// Returns a value that is made up of performing an or operation on all of the
+    /// rank bit flags of the `CactusKevCard`.
+    #[must_use]
+    pub fn or_rank_bits(&self) -> usize {
+        if !self.is_complete_hand() {
+            return 0;
+        }
+        ((self.0[0] | self.0[1] | self.0[2] | self.0[3] | self.0[4]) as usize) >> 16
+    }
+
     /// Returns a vector of all the prime bits of the CKC.
     #[must_use]
     pub fn primes(&self) -> Vec<u32> {
@@ -185,20 +188,27 @@ impl CactusKevCards {
         self.0.push(ckc);
     }
 
-    /// Returns a value that is made up of performing an or operation on all of the
-    /// rank bit flags of the `CactusKevCard`.
     #[must_use]
-    pub fn or_rank_bits(&self) -> usize {
-        if !self.is_complete_hand() {
-            return 0;
+    pub fn to_pile(&self) -> Pile {
+        let mut pile = Pile::default();
+
+        for card in &self.0 {
+            pile.push(ckc::to_card(card));
         }
-        ((self.0[0] | self.0[1] | self.0[2] | self.0[3] | self.0[4]) as usize) >> 16
+
+        pile.sort()
     }
 }
 
 impl Default for CactusKevCards {
     fn default() -> Self {
         CactusKevCards::new(Vec::new())
+    }
+}
+
+impl fmt::Display for CactusKevCards {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_pile().to_symbol_index())
     }
 }
 
@@ -210,6 +220,21 @@ mod cactus_kev_cards_tests {
         cactus_kevs_original_eval_5cards, eval_5cards_kev_array,
     };
     use crate::games::poker::cactus_kev_card::CKC;
+
+    #[test]
+    fn deal5() {
+        let standard52 = &mut standard52::Standard52::new_shuffled();
+        let hand1 = CactusKevCards::deal5(standard52);
+        let hand2 = CactusKevCards::deal5(standard52);
+
+        println!(
+            "{} {} {} {}",
+            hand1,
+            hand1.eval_5cards(),
+            hand2,
+            hand2.eval_5cards()
+        );
+    }
 
     #[test]
     fn eval_5cards() {

@@ -1,5 +1,5 @@
-use crate::Card;
 use crate::cards::pile::Pile;
+use crate::Card;
 
 /// A Pack is an immutable pile of cards. Packs are designed to be a flexible representation of
 /// a deck, stack, discard pile, or hand.

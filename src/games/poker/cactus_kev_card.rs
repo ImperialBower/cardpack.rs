@@ -8,6 +8,7 @@ pub type HandRank = u16;
 pub const SUITS_FILTER: u32 = 0xf000;
 
 pub mod ckc {
+    use crate::games::poker::bit_card::BitCard;
     use crate::games::poker::cactus_kev_card::CKC;
     use crate::Card;
 
@@ -32,6 +33,11 @@ pub mod ckc {
         // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
 
         bits | card.rank.prime | rank_eight | suit
+    }
+
+    #[must_use]
+    pub fn to_card(ckc: &CKC) -> Card {
+        BitCard::from_cactus_kev_card(ckc).to_card()
     }
 }
 

@@ -45,9 +45,9 @@ impl BitCard {
     }
 
     #[must_use]
-    pub fn from_cactus_kev_card(integer: CKC) -> BitCard {
+    pub fn from_cactus_kev_card(integer: &CKC) -> BitCard {
         let mut bc: BitCard = BitCard::default();
-        bc.0[..32].store_be(integer);
+        bc.0[..32].store_be(*integer);
         bc
     }
 
@@ -346,7 +346,7 @@ mod bit_card_tests {
     fn from_cactus_kev_card() {
         let ace_spades: u32 = 268442665;
         let s = "00010000 00000000 00011100 00101001".to_string();
-        let actual = BitCard::from_cactus_kev_card(ace_spades);
+        let actual = BitCard::from_cactus_kev_card(&ace_spades);
 
         assert_eq!(actual.display(true), s);
         assert_eq!(actual, BitCard::from_index("A♤").unwrap());
@@ -406,7 +406,7 @@ mod bit_card_tests {
     #[case("3♣", 164099)]
     #[case("2♣", 98306)]
     fn from_cactus_kev_card__comprehensive(#[case] expected: &'static str, #[case] input: u32) {
-        let actual = BitCard::from_cactus_kev_card(input);
+        let actual = BitCard::from_cactus_kev_card(&input);
         assert_eq!(actual, BitCard::from_index(expected).unwrap());
     }
 
@@ -414,7 +414,7 @@ mod bit_card_tests {
     fn from_u64__comprehensive_too() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let actual = BitCard::from_cactus_kev_card(ckc::from_card(&card));
+            let actual = BitCard::from_cactus_kev_card(&ckc::from_card(&card));
             assert_eq!(actual.to_card(), card);
         }
     }
@@ -433,7 +433,7 @@ mod bit_card_tests {
     fn to_card() {
         let standard52 = Standard52::default();
         for card in standard52.deck {
-            let bit_card = BitCard::from_cactus_kev_card(ckc::from_card(&card));
+            let bit_card = BitCard::from_cactus_kev_card(&ckc::from_card(&card));
             assert_eq!(bit_card.to_card(), card);
 
             let bit_card = BitCard::from_card(&card);

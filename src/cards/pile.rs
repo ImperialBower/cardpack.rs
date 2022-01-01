@@ -20,8 +20,8 @@ use crate::Named;
 /// let mut pile = cardpack::Pile::default();
 /// let ace_of_spades = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::SPADES);
 /// let ace_of_hearts = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::HEARTS);
-/// pile.add(ace_of_spades);
-/// pile.add(ace_of_hearts);
+/// pile.push(ace_of_spades);
+/// pile.push(ace_of_hearts);
 /// pile.shuffle();
 /// ```
 
@@ -63,7 +63,7 @@ impl Pile {
     }
 
     /// Places the Card at the bottom (end) of the Pile.
-    pub fn add(&mut self, elem: Card) {
+    pub fn push(&mut self, elem: Card) {
         self.0.push(elem);
     }
 
@@ -191,7 +191,7 @@ impl Pile {
         } else {
             let mut cards = Pile::default();
             for _ in 0..x {
-                cards.add(self.draw_first()?);
+                cards.push(self.draw_first()?);
             }
             Some(cards)
         }
@@ -219,7 +219,7 @@ impl Pile {
     fn fold_in(&mut self, suits: &[Suit], ranks: &[Rank]) {
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new(*rank, *suit));
+                self.push(Card::new(*rank, *suit));
             }
         }
     }
@@ -286,7 +286,7 @@ impl Pile {
         for index in indexes {
             let card = self.card_by_index(index);
             match card {
-                Some(c) => pile.add(c.clone()),
+                Some(c) => pile.push(c.clone()),
                 _ => return None,
             }
         }
@@ -535,13 +535,13 @@ impl Pile {
 
         // Generate Major Arcana
         for (_, rank) in major_arcana_ranks.iter().enumerate() {
-            cards.add(Card::new(*rank, *major_arcana_suit));
+            cards.push(Card::new(*rank, *major_arcana_suit));
         }
 
         // Generate Minor Arcana
         for (_, suit) in arcana_suits_enumerator {
             for (_, rank) in minor_arcana_ranks.iter().enumerate() {
-                cards.add(Card::new(*rank, *suit));
+                cards.push(Card::new(*rank, *suit));
             }
         }
 
@@ -577,7 +577,7 @@ impl FromIterator<Card> for Pile {
     fn from_iter<T: IntoIterator<Item = Card>>(iter: T) -> Self {
         let mut c = Pile::default();
         for i in iter {
-            c.add(i);
+            c.push(i);
         }
         c
     }
@@ -603,8 +603,8 @@ mod card_deck_tests {
         let qclubs = Card::from_index_strings(QUEEN, CLUBS);
         let qhearts = Card::from_index_strings(QUEEN, HEARTS);
         let mut expected = Pile::default();
-        expected.add(qclubs.clone());
-        expected.add(qhearts.clone());
+        expected.push(qclubs.clone());
+        expected.push(qhearts.clone());
 
         let actual = Pile::new_from_vector(vec![qclubs, qhearts]);
 
