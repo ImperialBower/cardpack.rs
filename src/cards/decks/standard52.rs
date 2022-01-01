@@ -75,6 +75,19 @@ impl Standard52 {
 
     /// # Errors
     ///
+    /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
+    pub fn pile_from_index_validated(&mut self, card_str: &'static str) -> Result<Pile, DeckError> {
+        let pile = Standard52::pile_from_index(card_str);
+        if pile.is_err() {
+            return pile;
+        }
+
+        // TODO: finish me
+        pile
+    }
+
+    /// # Errors
+    ///
     /// Will return `DeckError::PilePackMismatch` if `Pile` passed contains a card that isn't
     /// in the `Standard52` deck.
     pub fn pile_from_pile(&self, pile: Pile) -> Result<Pile, DeckError> {

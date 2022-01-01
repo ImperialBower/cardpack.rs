@@ -89,43 +89,6 @@ impl Card {
         !self.rank.is_blank() && !self.suit.is_blank()
     }
 
-    /// Creates [Cactus Kev's Hand Evaluator](http://suffe.cool/poker/evaluator.html) value.
-    /// ```txt
-    /// +--------+--------+--------+--------+
-    /// |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
-    /// +--------+--------+--------+--------+
-    ///
-    /// p = prime number of rank (deuce=2,trey=3,four=5,...,ace=41)
-    /// r = rank of card (deuce=0,trey=1,four=2,five=3,...,ace=12)
-    /// cdhs = suit of card (bit turned on based on suit of card)
-    /// b = bit turned on depending on rank of card
-    /// ```
-    /// This is used for Poker hand evaluation.
-    // #[must_use]
-    // pub fn to_cactus_kev_card(&self) -> CactusKevCard {
-    //     let suit: u32 = self.suit.binary_signature();
-    //     let bits = 1 << (16 + self.rank.weight);
-    //     let rank_eight = self.rank.weight << 8;
-    //
-    //     // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
-    //
-    //     bits | self.rank.prime | rank_eight | suit
-    // }
-
-    // pub fn debug(&self) {
-    //     println!("{}:", self.index);
-    //     println!(
-    //         "     {:032b} {}",
-    //         self.to_cactus_kev_card(),
-    //         self.to_cactus_kev_card()
-    //     );
-    //     println!(
-    //         "     {:032b} {} < Suit binary_signature",
-    //         self.suit.binary_signature(),
-    //         self.suit.binary_signature()
-    //     );
-    // }
-
     // Private methods
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
         let rank = rank.index_default();

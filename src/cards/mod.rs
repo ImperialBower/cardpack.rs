@@ -5,3 +5,5 @@ pub mod pack;
 pub mod pile;
 pub mod rank;
 pub mod suit;
+pub mod pile_map;
+pub mod pile_set;
