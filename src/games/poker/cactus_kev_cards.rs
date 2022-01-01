@@ -1,13 +1,29 @@
 use crate::cards::card_error::CardError;
 use crate::cards::decks::standard52;
 use crate::games::poker::alt::lookups;
-use crate::games::poker::cactus_kev_card::{ckc, HandRank, CKC, SUITS_FILTER};
+use crate::games::poker::cactus_kev_card::{ckc, CKC, SUITS_FILTER};
 use crate::{Pile, Standard52};
 use std::cmp::Ordering;
 use std::convert::TryInto;
 use std::fmt;
 
 pub const POSSIBLE_COMBINATIONS: usize = 7937;
+
+pub type HandRankValue = u16;
+
+#[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum HandRank {
+    StraightFlush,
+    FourOfAKind,
+    FullHouse,
+    Flush,
+    Straight,
+    ThreeOfAKind,
+    TwoPair,
+    Pair,
+    HighCard,
+    Invalid,
+}
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct CactusKevCards(Vec<CKC>);
@@ -50,14 +66,14 @@ impl CactusKevCards {
     }
 
     #[must_use]
-    pub fn eval_5cards(&self) -> HandRank {
+    pub fn eval_5cards(&self) -> HandRankValue {
         if !self.is_complete_hand() {
             return 0;
         }
         let i = self.or_rank_bits();
 
         if self.is_flush() {
-            return lookups::FLUSHES[i] as HandRank;
+            return lookups::FLUSHES[i] as HandRankValue;
         }
 
         let s = CactusKevCards::unique5(i);
@@ -69,9 +85,9 @@ impl CactusKevCards {
         self.last_pass()
     }
 
-    fn last_pass(&self) -> HandRank {
+    fn last_pass(&self) -> HandRankValue {
         let i = CactusKevCards::find_it(self.multiply_primes());
-        lookups::VALUES[i] as HandRank
+        lookups::VALUES[i] as HandRankValue
     }
 
     /// Based on [this](https://github.com/vsupalov/pokereval-rs/blob/d244030715560dbae38c68dbcd09244d5285b518/src/original.rs#L6)
@@ -106,11 +122,11 @@ impl CactusKevCards {
     }
 
     #[must_use]
-    pub fn unique5(index: usize) -> HandRank {
+    pub fn unique5(index: usize) -> HandRankValue {
         if index > POSSIBLE_COMBINATIONS {
             0
         } else {
-            lookups::UNIQUE_5[index] as HandRank
+            lookups::UNIQUE_5[index] as HandRankValue
         }
     }
 
@@ -198,6 +214,35 @@ impl CactusKevCards {
 
         pile.sort()
     }
+
+    /// Takes in a calculated `HandRankValue` and returns the `HandRank`.
+    ///
+    /// 7462 possible combination of hands:
+    ///
+    ///   10 straight-flushes
+    ///  156 four of a kinds
+    ///  156 full houses
+    /// 1277 flushes
+    ///   10 straights
+    ///  858 three of a kinds
+    ///  858 two pairs
+    /// 2860 pairs
+    /// 1277 high cards
+    #[must_use]
+    pub fn get_hand_rank(hrv: &HandRankValue) -> HandRank {
+        match *hrv {
+            1..=10 => HandRank::StraightFlush,
+            11..=166 => HandRank::FourOfAKind,
+            167..=322 => HandRank::FullHouse,
+            323..=1599 => HandRank::Flush,
+            1600..=1609 => HandRank::Straight,
+            1610..=2467 => HandRank::ThreeOfAKind,
+            2468..=3325 => HandRank::TwoPair,
+            3326..=6185 => HandRank::Pair,
+            6186..=7462 => HandRank::HighCard,
+            _ => HandRank::Invalid,
+        }
+    }
 }
 
 impl Default for CactusKevCards {
@@ -220,6 +265,7 @@ mod cactus_kev_cards_tests {
         cactus_kevs_original_eval_5cards, eval_5cards_kev_array,
     };
     use crate::games::poker::cactus_kev_card::CKC;
+    use rstest::rstest;
 
     #[test]
     fn deal5() {
@@ -312,5 +358,40 @@ mod cactus_kev_cards_tests {
         let ckc = CactusKevCards::from_index("AS KS QS JS TS").unwrap();
 
         assert_eq!(ckc.or_rank_bits(), 7936);
+    }
+
+    #[rstest]
+    #[case("A♠ K♠ Q♠ J♠ T♠", 1, HandRank::StraightFlush)]
+    #[case("A♣ 2♣ 3♣ 4♣ 5♣", 10, HandRank::StraightFlush)]
+    #[case("A♠ A♥ A♦ A♣ K♠", 11, HandRank::FourOfAKind)]
+    #[case("2♠ 2♥ 2♦ 2♣ 3♠", 166, HandRank::FourOfAKind)]
+    #[case("A♠ A♥ A♦ K♠ K♦", 167, HandRank::FullHouse)]
+    #[case("2♠ 2♥ 2♦ 3♠ 3♦", 322, HandRank::FullHouse)]
+    #[case("A♠ K♠ Q♠ J♠ 9♠", 323, HandRank::Flush)]
+    #[case("2♣ 3♣ 4♣ 5♣ 7♣", 1599, HandRank::Flush)]
+    #[case("A♣ K♠ Q♠ J♠ T♠", 1600, HandRank::Straight)]
+    #[case("A♥ 2♣ 3♣ 4♣ 5♣", 1609, HandRank::Straight)]
+    #[case("A♠ A♥ A♦ K♠ Q♣", 1610, HandRank::ThreeOfAKind)]
+    #[case("2♠ 2♥ 2♦ 3♠ 4♣", 2467, HandRank::ThreeOfAKind)]
+    #[case("A♠ A♥ K♦ K♠ Q♣", 2468, HandRank::TwoPair)]
+    #[case("3♠ 3♥ 2♦ 2♠ 4♣", 3325, HandRank::TwoPair)]
+    #[case("A♠ A♥ K♠ Q♠ J♠", 3326, HandRank::Pair)]
+    #[case("2♠ 2♥ 3♠ 4♠ 5♠", 6185, HandRank::Pair)]
+    #[case("A♠ K♠ Q♠ J♠ 9♣", 6186, HandRank::HighCard)]
+    #[case("2♣ 3♣ 4♣ 5♥ 7♣", 7462, HandRank::HighCard)]
+    fn get_hand_rank(
+        #[case] index: &'static str,
+        #[case] expected_hand_rank_value: HandRankValue,
+        #[case] hand_rank: HandRank,
+    ) {
+        let hand = CactusKevCards::from_index(index).unwrap();
+
+        let actual_hand_rank_value = hand.eval_5cards();
+
+        assert_eq!(expected_hand_rank_value, actual_hand_rank_value);
+        assert_eq!(
+            hand_rank,
+            CactusKevCards::get_hand_rank(&expected_hand_rank_value)
+        );
     }
 }
