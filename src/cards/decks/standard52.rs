@@ -80,6 +80,8 @@ impl Standard52 {
     /// # Errors
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
+    /// Will return `DeckError::DuplicateCard` if the index has the same `Card` more
+    /// than once.
     ///
     /// # Panics
     ///
@@ -95,7 +97,7 @@ impl Standard52 {
         for card in pile.unwrap() {
             let inserted = pile_set.insert(card);
             if !inserted {
-                return Err(DeckError::InvalidIndex);
+                return Err(DeckError::DuplicateCard);
             }
         }
 
