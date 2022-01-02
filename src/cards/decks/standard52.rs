@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
+use crate::cards::pile_set::PileSet;
 use crate::cards::rank::{Rank, BLANK_RANK};
 use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
@@ -73,17 +74,32 @@ impl Standard52 {
         Ok(pile)
     }
 
+    /// Validating method that takes a `Standard52` index string and returns a `Pile`,
+    /// making sure that there are no duplicate valid cards in the string.
+    ///
     /// # Errors
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
-    pub fn pile_from_index_validated(&mut self, card_str: &'static str) -> Result<Pile, DeckError> {
+    ///
+    /// # Panics
+    ///
+    /// Should not be possible.
+    #[allow(clippy::question_mark)]
+    pub fn pile_from_index_validated(card_str: &'static str) -> Result<Pile, DeckError> {
+        let mut pile_set = PileSet::default();
         let pile = Standard52::pile_from_index(card_str);
         if pile.is_err() {
             return pile;
         }
 
-        // TODO: finish me
-        pile
+        for card in pile.unwrap() {
+            let inserted = pile_set.insert(card);
+            if !inserted {
+                return Err(DeckError::InvalidIndex);
+            }
+        }
+
+        Ok(pile_set.to_pile())
     }
 
     /// # Errors
@@ -180,7 +196,7 @@ impl Standard52 {
         for suit in Suit::generate_french_suits() {
             let cards_by_suit = pile.cards_by_suit(suit);
             if !cards_by_suit.is_empty() {
-                sorted.insert(suit, Pile::new_from_vector(cards_by_suit));
+                sorted.insert(suit, Pile::from_vector(cards_by_suit));
             }
         }
 

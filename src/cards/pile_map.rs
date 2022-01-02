@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use crate::{Card, Named, Pile};
+use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Default, Hash, PartialEq)]
 pub struct PileMap(BTreeMap<String, Card>);

@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use crate::{Card, Pile, Standard52};
+use std::collections::HashSet;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PileSet(HashSet<Card>);
@@ -102,5 +102,31 @@ impl PileSet {
             return None;
         }
         self.take(&card)
+    }
+
+    #[must_use]
+    pub fn to_pile(&self) -> Pile {
+        let mut pile: Pile = Pile::from_vector(self.clone().into_iter().collect::<Vec<_>>());
+        pile.sort_in_place();
+        pile
+    }
+}
+
+impl FromIterator<Card> for PileSet {
+    fn from_iter<T: IntoIterator<Item = Card>>(iter: T) -> Self {
+        let mut c = PileSet::default();
+        for i in iter {
+            c.insert(i);
+        }
+        c
+    }
+}
+
+impl IntoIterator for PileSet {
+    type Item = Card;
+    type IntoIter = std::collections::hash_set::IntoIter<Card>;
+
+    fn into_iter(self) -> std::collections::hash_set::IntoIter<Card> {
+        self.0.into_iter()
     }
 }

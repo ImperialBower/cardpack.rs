@@ -238,7 +238,7 @@ impl BridgeBoard {
             .map(|s| self.pack.cards().card_by_index(s.as_str()).unwrap().clone())
             .collect();
 
-        Pile::new_from_vector(coll)
+        Pile::from_vector(coll)
     }
 
     fn splice_suit_in(s: &str, suit: char) -> Vec<String> {
