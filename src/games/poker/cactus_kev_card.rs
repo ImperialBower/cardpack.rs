@@ -9,7 +9,7 @@ pub const SUITS_FILTER: u32 = 0xf000;
 pub mod ckc {
     use crate::games::poker::bit_card::BitCard;
     use crate::games::poker::cactus_kev_card::CKC;
-    use crate::Card;
+    use crate::{Card, Standard52};
 
     /// Creates [Cactus Kev's Hand Evaluator](http://suffe.cool/poker/evaluator.html) value.
     /// ```txt
@@ -32,6 +32,16 @@ pub mod ckc {
         // println!("{} | {} | {} | {}", bits, self.rank.prime, rank_eight, suit);
 
         bits | card.rank.prime | rank_eight | suit
+    }
+
+    #[must_use]
+    pub fn from_index(index: &'static str) -> Option<CKC> {
+        let card = Standard52::card_from_index(index);
+        if card.is_valid() {
+            Some(from_card(&card))
+        } else {
+            None
+        }
     }
 
     #[must_use]

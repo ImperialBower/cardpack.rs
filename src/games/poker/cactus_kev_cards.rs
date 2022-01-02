@@ -94,7 +94,8 @@ impl CactusKevCards {
     /// which is in turn based on [find fast method](http://suffe.cool/poker/code/pokerlib.c) from Cactus Kev's original C code.
     ///
     /// TODO: Refactor to [Rust-PHF](https://github.com/rust-phf/rust-phf)
-    fn find_it(key: usize) -> usize {
+    #[must_use]
+    pub fn find_it(key: usize) -> usize {
         let mut low = 0;
         let mut high = 4887;
         let mut mid;
@@ -205,6 +206,18 @@ impl CactusKevCards {
     }
 
     #[must_use]
+    pub fn sort(&self) -> CactusKevCards {
+        let mut cards = self.clone();
+        cards.sort_in_place();
+        cards
+    }
+
+    pub fn sort_in_place(&mut self) {
+        self.0.sort_unstable();
+        self.0.reverse();
+    }
+
+    #[must_use]
     pub fn to_pile(&self) -> Pile {
         let mut pile = Pile::default();
 
@@ -261,10 +274,7 @@ impl fmt::Display for CactusKevCards {
 #[allow(non_snake_case)]
 mod cactus_kev_cards_tests {
     use super::*;
-    use crate::games::poker::alt::original::{
-        cactus_kevs_original_eval_5cards, eval_5cards_kev_array,
-    };
-    use crate::games::poker::cactus_kev_card::CKC;
+    use crate::games::poker::alt::original::cactus_kevs_original_eval_5cards;
     use rstest::rstest;
 
     #[test]
@@ -332,22 +342,6 @@ mod cactus_kev_cards_tests {
         assert_eq!(ckc.get(2).unwrap(), &a[2]);
         assert_eq!(ckc.get(3).unwrap(), &a[3]);
         assert_eq!(ckc.get(4).unwrap(), &a[4]);
-    }
-
-    #[test]
-    fn into_five_ref_array() {
-        let ckc = CactusKevCards::from_index("AS KS QS JS TS").unwrap();
-
-        let mut hand: [&CKC; 5] = [&0; 5];
-        hand[0] = &ckc.get(0).unwrap();
-        hand[1] = &ckc.get(1).unwrap();
-        hand[2] = &ckc.get(2).unwrap();
-        hand[3] = &ckc.get(3).unwrap();
-        hand[4] = &ckc.get(4).unwrap();
-
-        let rank = eval_5cards_kev_array(&hand);
-
-        println!("{}", rank);
     }
 
     #[test]
