@@ -3,7 +3,5 @@ pub mod card_error;
 pub mod decks;
 pub mod pack;
 pub mod pile;
-pub mod pile_map;
-pub mod pile_set;
 pub mod rank;
 pub mod suit;

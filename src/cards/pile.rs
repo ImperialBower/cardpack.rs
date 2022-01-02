@@ -594,7 +594,7 @@ impl IntoIterator for Pile {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod card_deck_tests {
+mod pile_tests {
     use super::*;
     use crate::cards::suit::{MAJOR_ARCANA, SPADES};
 

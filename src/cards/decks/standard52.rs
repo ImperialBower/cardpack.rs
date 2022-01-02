@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
-use crate::cards::pile_set::PileSet;
+use crate::cards::decks::standard52_set::Standard52Set;
 use crate::cards::rank::{Rank, BLANK_RANK};
 use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
@@ -77,6 +77,8 @@ impl Standard52 {
     /// Validating method that takes a `Standard52` index string and returns a `Pile`,
     /// making sure that there are no duplicate valid cards in the string.
     ///
+    /// This method is doing a lot :-P
+    ///
     /// # Errors
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
@@ -88,7 +90,7 @@ impl Standard52 {
     /// Should not be possible.
     #[allow(clippy::question_mark)]
     pub fn pile_from_index_validated(card_str: &'static str) -> Result<Pile, DeckError> {
-        let mut pile_set = PileSet::default();
+        let mut pile_set = Standard52Set::default();
         let pile = Standard52::pile_from_index(card_str);
         if pile.is_err() {
             return pile;
