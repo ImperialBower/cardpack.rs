@@ -299,7 +299,7 @@ mod cactus_kev_cards_tests {
     }
 
     #[test]
-    fn eval_5cards_pair() {
+    fn eval_5cards__pair() {
         let cards = CactusKevCards::from_index("AS AH QS JS TS").unwrap();
 
         let expected = cactus_kevs_original_eval_5cards(
@@ -311,6 +311,13 @@ mod cactus_kev_cards_tests {
         );
 
         assert_eq!(expected, cards.eval_5cards());
+    }
+
+    #[test]
+    fn eval_5cards__invalid_index() {
+        let hand = CactusKevCards::from_index("A♠ A♠ Q♠ J♠ T♠").unwrap();
+
+        assert_eq!(0, hand.eval_5cards());
     }
 
     #[test]
@@ -392,6 +399,16 @@ mod cactus_kev_cards_tests {
         assert_eq!(
             hand_rank,
             CactusKevCards::get_hand_rank(&expected_hand_rank_value)
+        );
+    }
+
+    #[test]
+    fn get_hand_rank__invalid_index() {
+        let hand = CactusKevCards::from_index("A♠ A♠ Q♠ J♠ T♠").unwrap();
+
+        assert_eq!(
+            HandRank::Invalid,
+            CactusKevCards::get_hand_rank(&hand.eval_5cards())
         );
     }
 }
