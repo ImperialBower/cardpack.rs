@@ -1,5 +1,4 @@
 use crate::cards::card_error::CardError;
-use crate::cards::decks::standard52;
 use crate::games::poker::cactus_kev_card::{ckc, CKC};
 use crate::games::poker::cactus_kev_cards::CactusKevCards;
 use crate::{Pile, Standard52};
@@ -31,19 +30,6 @@ impl CactusKevSet {
             cards.insert(ckc::from_card(&card));
         }
         Ok(cards)
-    }
-
-    /// # Panics
-    ///
-    /// Only if `Standard52` is very foobared.
-    #[must_use]
-    pub fn deal5(standard52: &mut standard52::Standard52) -> CactusKevSet {
-        let pile = standard52.draw(5).unwrap();
-        let mut cards = CactusKevSet::default();
-        for card in pile {
-            cards.insert(ckc::from_card(&card));
-        }
-        cards
     }
 
     #[must_use]
@@ -138,21 +124,6 @@ impl IntoIterator for CactusKevSet {
 mod cactus_kev_set_tests {
     use super::*;
     use crate::games::poker::alt::original::cactus_kevs_original_eval_5cards;
-
-    #[test]
-    fn deal5() {
-        let standard52 = &mut standard52::Standard52::new_shuffled();
-        let hand1 = CactusKevSet::deal5(standard52);
-        let hand2 = CactusKevSet::deal5(standard52);
-
-        println!(
-            "{} {} {} {}",
-            hand1,
-            hand1.to_cactus_kev_cards().eval_5cards(),
-            hand2,
-            hand2.to_cactus_kev_cards().eval_5cards()
-        );
-    }
 
     #[test]
     fn eval_5cards() {
