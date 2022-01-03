@@ -8,11 +8,6 @@ use crate::Named;
 
 pub const BLANK: &str = "blank";
 
-/// A card encoded using the bit pattern described in Cactus Kev's
-/// [article](http://www.suffecool.net/poker/evaluator.html).
-#[allow(clippy::module_name_repetitions)]
-// pub type CactusKevCard = u32;
-
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
 /// a `Suit`, `weight`, which is an integer that controls how a card is sorted
 /// in a `Pile` or as a part of a `Vector`, and index, which is a short `String`
