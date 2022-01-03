@@ -90,20 +90,20 @@ impl Standard52 {
     /// Should not be possible.
     #[allow(clippy::question_mark)]
     pub fn pile_from_index_validated(card_str: &'static str) -> Result<Pile, DeckError> {
-        let mut pile_set = Standard52Set::default();
+        let mut set = Standard52Set::default();
         let pile = Standard52::pile_from_index(card_str);
         if pile.is_err() {
             return pile;
         }
 
         for card in pile.unwrap() {
-            let inserted = pile_set.insert(card);
+            let inserted = set.insert(card);
             if !inserted {
                 return Err(DeckError::DuplicateCard);
             }
         }
 
-        Ok(pile_set.to_pile())
+        Ok(set.to_pile())
     }
 
     /// # Errors
