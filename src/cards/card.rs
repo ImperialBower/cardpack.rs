@@ -104,12 +104,6 @@ impl Default for Card {
     }
 }
 
-// impl fmt::Binary for Card {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
-//     }
-// }
-
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.index)
@@ -292,15 +286,4 @@ mod card_tests {
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
     }
-
-    // #[test]
-    // fn fmt_binary() {
-    //     assert_eq!(
-    //         format!(
-    //             "King of Diamonds as binary is: {:032b}",
-    //             Card::from_index_strings(KING, DIAMONDS)
-    //         ),
-    //         "King of Diamonds as binary is: 00001000000000000100101100100101"
-    //     );
-    // }
 }
