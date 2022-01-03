@@ -225,7 +225,7 @@ impl CactusKevCards {
             pile.push(ckc::to_card(card));
         }
 
-        pile.sort()
+        pile
     }
 
     /// Takes in a calculated `HandRankValue` and returns the `HandRank`.
