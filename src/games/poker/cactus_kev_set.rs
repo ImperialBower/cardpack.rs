@@ -124,18 +124,19 @@ impl IntoIterator for CactusKevSet {
 mod cactus_kev_set_tests {
     use super::*;
     use crate::games::poker::alt::original::cactus_kevs_original_eval_5cards;
+    use crate::games::poker::hand_rank::HandRank;
 
     #[test]
     fn eval_5cards() {
         assert_eq!(
-            1,
+            HandRank::new(1),
             CactusKevSet::from_index("AS KS QS JS TS")
                 .unwrap()
                 .to_cactus_kev_cards()
                 .eval_5cards()
         );
         assert_eq!(
-            1,
+            HandRank::new(1),
             CactusKevSet::from_index("AH KH QH JH TH")
                 .unwrap()
                 .to_cactus_kev_cards()
@@ -155,14 +156,14 @@ mod cactus_kev_set_tests {
             cards.get_from_index("TS").unwrap(),
         );
 
-        assert_eq!(expected, cards.to_cactus_kev_cards().eval_5cards());
+        assert_eq!(expected, cards.to_cactus_kev_cards().eval_5cards().value);
     }
 
     #[test]
     fn eval_5cards__invalid_index() {
         let hand = CactusKevSet::from_index("A♠ A♠ Q♠ J♠ T♠").unwrap();
 
-        assert_eq!(0, hand.to_cactus_kev_cards().eval_5cards());
+        assert_eq!(0, hand.to_cactus_kev_cards().eval_5cards().value);
     }
 
     #[test]

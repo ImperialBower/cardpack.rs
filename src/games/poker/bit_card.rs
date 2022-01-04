@@ -221,6 +221,15 @@ impl Default for BitCard {
     }
 }
 
+/// **Usage:**
+/// ```
+/// use cardpack::games::poker::bit_card::BitCard;
+///
+/// let actual = BitCard::from_index("K♦").unwrap();
+/// println!("{:032b}", actual);
+/// ```
+/// Prints out: `00001000000000000100101100100101`.
+///
 impl fmt::Binary for BitCard {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Binary::fmt(&self.to_cactus_kev_card(), f)
