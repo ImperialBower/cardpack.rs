@@ -1,10 +1,11 @@
 use crate::cards::card_error::CardError;
-use crate::games::poker::alt::lookups;
-use crate::games::poker::cactus_kev_card::CKC;
+use crate::games::poker::cactus_kev_card::{ckc, CKC};
 use crate::games::poker::cactus_kev_cards::CactusKevCards;
-use crate::games::poker::hand_rank::HandRank;
+use crate::games::poker::hand_rank::{HandRank, HandRankName};
+use crate::games::poker::vsupalov::lookups;
 use crate::Pile;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fmt;
 
 pub const POSSIBLE_COMBINATIONS: usize = 7937;
@@ -130,6 +131,51 @@ impl CactusKevHand {
         }
         HandRank::new(lookups::UNIQUE_5[index])
     }
+
+    /// Performs the verification of
+    /// [Cactus Kev's Hand Rank breakdown](https://suffe.cool/poker/evaluator.html).
+    ///
+    #[must_use]
+    pub fn all_possible_combos() -> (HashMap<HandRankName, usize>, HashMap<HandRank, bool>) {
+        let mut rank_class_count: HashMap<HandRankName, usize> = HashMap::new();
+        let mut rank_count: HashMap<HandRank, bool> = HashMap::new();
+
+        let dummy_kev_value: CKC = 0;
+        let mut current_hand: [CKC; 5] = [dummy_kev_value; 5];
+
+        // 2,598,960 unique poker hands
+        for i1 in 0..52 {
+            for i2 in (i1 + 1)..52 {
+                for i3 in (i2 + 1)..52 {
+                    for i4 in (i3 + 1)..52 {
+                        for i5 in (i4 + 1)..52 {
+                            current_hand[0] = ckc::DECK[i1];
+                            current_hand[1] = ckc::DECK[i2];
+                            current_hand[2] = ckc::DECK[i3];
+                            current_hand[3] = ckc::DECK[i4];
+                            current_hand[4] = ckc::DECK[i5];
+
+                            let ckc_hand = CactusKevHand::new(current_hand);
+
+                            let rank = ckc_hand.eval();
+
+                            // mark the rank in the map
+                            rank_count.entry(rank).or_insert(true);
+                        }
+                    }
+                }
+            }
+        }
+
+        for key in rank_count.keys() {
+            let rank_class = key.name.clone();
+
+            let count = rank_class_count.entry(rank_class).or_insert(0);
+            *count += 1;
+        }
+
+        (rank_class_count, rank_count)
+    }
 }
 
 impl fmt::Display for CactusKevHand {
@@ -143,7 +189,7 @@ impl fmt::Display for CactusKevHand {
 #[allow(non_snake_case)]
 mod cactus_kev_hand_tests {
     use super::*;
-    use crate::games::poker::hand_rank::{HandRankName, HandRankValue};
+    use crate::games::poker::hand_rank::HandRankValue;
     use crate::Standard52;
     use rstest::rstest;
 
@@ -259,6 +305,47 @@ mod cactus_kev_hand_tests {
         assert_eq!(
             "A♠ A♠ Q♠ J♠ T♠ HandRank { value: 0, name: Invalid }",
             format!("{}", CactusKevHand::from_index("AS AS QS JS TS").unwrap())
+        );
+    }
+
+    #[test]
+    fn eval_on_all_possible_combinations() {
+        let (rank_class_count, rank_count) = CactusKevHand::all_possible_combos();
+
+        // There should be 7462 unique ranks
+        assert_eq!(rank_count.len(), 7462);
+
+        assert_eq!(
+            *rank_class_count.get(&HandRankName::HighCard).unwrap(),
+            1277
+        );
+
+        assert_eq!(*rank_class_count.get(&HandRankName::Pair).unwrap(), 2860);
+
+        assert_eq!(*rank_class_count.get(&HandRankName::TwoPair).unwrap(), 858);
+
+        assert_eq!(
+            *rank_class_count.get(&HandRankName::ThreeOfAKind).unwrap(),
+            858
+        );
+
+        assert_eq!(*rank_class_count.get(&HandRankName::Straight).unwrap(), 10);
+
+        assert_eq!(*rank_class_count.get(&HandRankName::Flush).unwrap(), 1277);
+
+        assert_eq!(
+            *rank_class_count.get(&HandRankName::FullHouse).unwrap(),
+            156
+        );
+
+        assert_eq!(
+            *rank_class_count.get(&HandRankName::FourOfAKind).unwrap(),
+            156
+        );
+
+        assert_eq!(
+            *rank_class_count.get(&HandRankName::StraightFlush).unwrap(),
+            10
         );
     }
 }

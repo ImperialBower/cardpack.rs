@@ -123,8 +123,8 @@ impl IntoIterator for CactusKevSet {
 #[allow(non_snake_case)]
 mod cactus_kev_set_tests {
     use super::*;
-    use crate::games::poker::alt::original::cactus_kevs_original_eval_5cards;
     use crate::games::poker::hand_rank::HandRank;
+    use crate::games::poker::vsupalov::original::cactus_kevs_original_eval_5cards;
 
     #[test]
     fn eval_5cards() {

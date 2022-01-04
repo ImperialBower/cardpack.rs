@@ -1,4 +1,4 @@
-use crate::games::poker::alt::vsup_card::VSupCard;
+use crate::games::poker::vsupalov::vsup_card::VSupCard;
 
 pub struct VSupDeck {
     count_dealt: usize,

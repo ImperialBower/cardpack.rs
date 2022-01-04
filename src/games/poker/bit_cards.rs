@@ -1,8 +1,8 @@
 use crate::cards::card_error::CardError;
-use crate::games::poker::alt::holdem::HandRank;
-use crate::games::poker::alt::lookups;
 use crate::games::poker::bit_card::BitCard;
 use crate::games::poker::cactus_kev_cards::CactusKevCards;
+use crate::games::poker::vsupalov::holdem::HandRank;
+use crate::games::poker::vsupalov::lookups;
 use crate::{games, Standard52};
 use bitvec::field::BitField;
 use bitvec::prelude::{BitVec, Msb0};

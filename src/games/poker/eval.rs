@@ -1,4 +1,3 @@
-use crate::cards::card_error::CardError;
 use crate::{Card, Pile, Suit};
 use std::collections::HashMap;
 
@@ -58,41 +57,13 @@ pub fn sort_by_suit(_pile: &Pile) -> HashMap<Suit, Pile> {
     sorted
 }
 
-#[allow(clippy::missing_errors_doc)]
-pub fn pile_by_spread_key(_spread: u8, _pile: &Pile) -> Result<Pile, CardError> {
-    Ok(Pile::default())
-}
-
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod eval_tests {
     use super::*;
-    use crate::games::poker::cactus_kev_card::ckc;
-    use crate::Standard52;
-    use rstest::rstest;
 
     #[test]
     fn spread57() {
         assert_eq!(Spread57::XOOXXXX as u8, 79);
-    }
-
-    #[rstest]
-    #[case("2S 3S 9S TS QS JH Ac")]
-    fn to_a_flush(#[case] input: &'static str) {
-        let pile = Standard52::pile_from_index(input).unwrap();
-
-        let _sorted = sort_by_suit(&pile);
-
-        let mut and: u32 = 0xF000;
-        for card in pile.cards() {
-            let bin = ckc::from_card(&card);
-            // println!("    {:032b}", and);
-            // println!("  + {:032b}", bin);
-            // println!("    ================================");
-            and = and & bin;
-            // println!("    {:032b}", and);
-            // println!();
-        }
-        assert_eq!(and, 0);
     }
 }

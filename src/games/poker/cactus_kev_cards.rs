@@ -1,9 +1,9 @@
 use crate::cards::card_error::CardError;
 use crate::cards::decks::standard52;
-use crate::games::poker::alt::lookups;
 use crate::games::poker::cactus_kev_card::{ckc, CKC, SUITS_FILTER};
 use crate::games::poker::cactus_kev_hand::CactusKevHand;
 use crate::games::poker::hand_rank::HandRank;
+use crate::games::poker::vsupalov::lookups;
 use crate::{Pile, Standard52};
 use std::convert::TryInto;
 use std::fmt;
@@ -39,7 +39,10 @@ impl CactusKevCards {
 
     /// # Panics
     ///
-    /// Only if `Standard52` is very foobared.
+    /// Will panic if there aren't five cards available in the passed in `Standard52`
+    /// deck.
+    ///
+    /// TODO: Improve me
     #[must_use]
     pub fn deal5(standard52: &mut standard52::Standard52) -> CactusKevCards {
         let pile = standard52.draw(5).unwrap();
@@ -80,14 +83,54 @@ impl CactusKevCards {
         }
         let array = array.unwrap();
 
-        println!("START:  {}", self);
-
         let mut best = HandRank::default();
-        let mut best_hand =  CactusKevHand::default();
+        let mut best_hand = CactusKevHand::default();
         let dummy_kev_value: CKC = 0;
         let mut subhand: [CKC; 5] = [dummy_kev_value; 5];
 
         for ids in &lookups::PERM_6 {
+            for i in 0..5 {
+                subhand[i] = array[ids[i] as usize];
+            }
+            let hand = CactusKevHand::new(subhand);
+
+            let hand_rank = hand.eval();
+
+            if hand_rank > best {
+                best = hand_rank;
+                best_hand = hand;
+            }
+        }
+
+        Ok(best_hand)
+    }
+
+    /// # Errors
+    ///
+    /// Will return `CardError::NotEnoughCards` if there are less than seven cards.
+    ///
+    /// Will return `CardError::TooManyCards` if there are more than seven cards.
+    ///
+    /// # Panics
+    ///
+    /// Shouldn't be able to panic. (fingers crossed)
+    ///
+    #[allow(clippy::unnecessary_unwrap)]
+    pub fn eval_7cards(&self) -> Result<CactusKevHand, CardError> {
+        let array = self.to_seven_array();
+        if array.is_err() {
+            return Err(array.unwrap_err());
+        }
+        let array = array.unwrap();
+
+        println!("START:  {}", self);
+
+        let mut best = HandRank::default();
+        let mut best_hand = CactusKevHand::default();
+        let dummy_kev_value: CKC = 0;
+        let mut subhand: [CKC; 5] = [dummy_kev_value; 5];
+
+        for ids in &lookups::PERM_7 {
             for i in 0..5 {
                 subhand[i] = array[ids[i] as usize];
             }
@@ -160,6 +203,24 @@ impl CactusKevCards {
         match self.len() {
             0..=5 => Err(CardError::NotEnoughCards),
             6 => Ok(self.0.clone().try_into().unwrap()),
+            _ => Err(CardError::TooManyCards),
+        }
+    }
+
+    /// # Errors
+    ///
+    /// Will return `CardError::NotEnoughCards` if there are less than six cards.
+    ///
+    /// Will return `CardError::TooManyCards` if there are more than six cards.
+    ///
+    /// # Panics
+    ///
+    /// Shouldn't be able to panic. (fingers crossed)
+    ///
+    pub fn to_seven_array(&self) -> Result<[CKC; 7], CardError> {
+        match self.len() {
+            0..=6 => Err(CardError::NotEnoughCards),
+            7 => Ok(self.0.clone().try_into().unwrap()),
             _ => Err(CardError::TooManyCards),
         }
     }
@@ -241,8 +302,8 @@ impl fmt::Display for CactusKevCards {
 #[allow(non_snake_case)]
 mod cactus_kev_cards_tests {
     use super::*;
-    use crate::games::poker::alt::original::cactus_kevs_original_eval_5cards;
     use crate::games::poker::hand_rank::{HandRankName, HandRankValue};
+    use crate::games::poker::vsupalov::original::cactus_kevs_original_eval_5cards;
     use rstest::rstest;
 
     #[test]
@@ -276,31 +337,6 @@ mod cactus_kev_cards_tests {
         );
     }
 
-    // #[rstest]
-    // #[case("9H AH KH QH JH TH", "AH KH QH JH TH")]
-    // fn eval_6cards(#[case] index: &'static str, #[case] best_index: &'static str) {
-    //     let hand = CactusKevCards::from_index(index)
-    //         .unwrap()
-    //         .eval_6cards()
-    //         .unwrap();
-    //
-    //     // let expected = CactusKevHand::from_index(best_index).unwrap();
-    //
-    //     // assert_eq!(hand, expected);
-    // }
-
-    #[test]
-    fn eval_6cards() {
-        let ckcs =  CactusKevCards::from_index("9H AH KH QH JH TH")
-            .unwrap();
-        let hand = ckcs.eval_6cards().unwrap();
-
-        let expected = CactusKevHand::from_index("AH KH QH JH TH")
-            .unwrap();
-
-        assert_eq!(hand, expected);
-    }
-
     #[test]
     fn eval_5cards__pair() {
         let cards = CactusKevCards::from_index("AS AH QS JS TS").unwrap();
@@ -323,8 +359,44 @@ mod cactus_kev_cards_tests {
         assert_eq!(0, hand.eval_5cards().value);
     }
 
+    #[rstest]
+    #[case("9H AH KH QH JH TH", "AH KH QH JH TH")]
+    #[case("9H AH KS QH JD TH", "A♥ K♠ Q♥ J♦ T♥")]
+    #[case("9H AH KS QH JD TH", "A♥ K♠ Q♥ J♦ T♥")]
+    #[case("9H TD KS QH 9D TH", "9H TD KS 9D TH")]
+    fn eval_6cards__many(#[case] index: &'static str, #[case] best_index: &'static str) {
+        let hand = CactusKevCards::from_index(index)
+            .unwrap()
+            .eval_6cards()
+            .unwrap();
+
+        let expected = CactusKevHand::from_index(best_index).unwrap();
+
+        assert_eq!(hand, expected);
+    }
+
     #[test]
-    fn into_five_array() {
+    fn eval_6cards() {
+        let ckcs = CactusKevCards::from_index("9H AH KH QH JH TH").unwrap();
+        let hand = ckcs.eval_6cards().unwrap();
+
+        let expected = CactusKevHand::from_index("AH KH QH JH TH").unwrap();
+
+        assert_eq!(hand, expected);
+    }
+
+    #[test]
+    fn eval_7cards() {
+        let ckcs = CactusKevCards::from_index("TD 9H AH KH QH JH TH").unwrap();
+        let hand = ckcs.eval_7cards().unwrap();
+
+        let expected = CactusKevHand::from_index("AH KH QH JH TH").unwrap();
+
+        assert_eq!(hand, expected);
+    }
+
+    #[test]
+    fn to_five_array() {
         let ckc = CactusKevCards::from_index("AS KS QS JS TS").unwrap();
 
         let a = ckc.to_five_array().unwrap();
@@ -335,6 +407,37 @@ mod cactus_kev_cards_tests {
         assert_eq!(ckc.get(2).unwrap(), &a[2]);
         assert_eq!(ckc.get(3).unwrap(), &a[3]);
         assert_eq!(ckc.get(4).unwrap(), &a[4]);
+    }
+
+    #[test]
+    fn to_six_array() {
+        let ckc = CactusKevCards::from_index("9H AS KS QS JS TS").unwrap();
+
+        let a = ckc.to_six_array().unwrap();
+
+        assert_eq!(a.len(), 6);
+        assert_eq!(ckc.get(0).unwrap(), &a[0]);
+        assert_eq!(ckc.get(1).unwrap(), &a[1]);
+        assert_eq!(ckc.get(2).unwrap(), &a[2]);
+        assert_eq!(ckc.get(3).unwrap(), &a[3]);
+        assert_eq!(ckc.get(4).unwrap(), &a[4]);
+        assert_eq!(ckc.get(5).unwrap(), &a[5]);
+    }
+
+    #[test]
+    fn to_seven_array() {
+        let ckc = CactusKevCards::from_index("9H AS KS QS JS TS 2H").unwrap();
+
+        let a = ckc.to_seven_array().unwrap();
+
+        assert_eq!(a.len(), 7);
+        assert_eq!(ckc.get(0).unwrap(), &a[0]);
+        assert_eq!(ckc.get(1).unwrap(), &a[1]);
+        assert_eq!(ckc.get(2).unwrap(), &a[2]);
+        assert_eq!(ckc.get(3).unwrap(), &a[3]);
+        assert_eq!(ckc.get(4).unwrap(), &a[4]);
+        assert_eq!(ckc.get(5).unwrap(), &a[5]);
+        assert_eq!(ckc.get(6).unwrap(), &a[6]);
     }
 
     #[test]

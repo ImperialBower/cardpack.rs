@@ -1,5 +1,5 @@
-use crate::games::poker::alt::lookups;
 use crate::games::poker::cactus_kev_card::CKC;
+use crate::games::poker::vsupalov::lookups;
 use std::fmt;
 
 #[allow(dead_code)]

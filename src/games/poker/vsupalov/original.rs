@@ -1,6 +1,6 @@
 use super::lookups;
-use crate::games::poker::alt::holdem::HandRank;
 use crate::games::poker::cactus_kev_card::CKC;
+use crate::games::poker::vsupalov::holdem::HandRank;
 
 #[allow(clippy::comparison_chain, dead_code)]
 fn findit(key: usize) -> usize {
@@ -104,16 +104,16 @@ pub fn eval_7cards_kev_array(cards: &[&CKC; 7]) -> HandRank {
 
 #[cfg(test)]
 mod tests {
-    use crate::games::poker::alt::holdem::{hand_rank_to_class, HandRank, HandRankClass};
-    use crate::games::poker::alt::vsup_deck::VSupDeck;
     use crate::games::poker::cactus_kev_card::CKC;
+    use crate::games::poker::vsupalov::holdem::{hand_rank_to_class, HandRank, HandRankClass};
+    use crate::games::poker::vsupalov::vsup_deck::VSupDeck;
     use std::collections::HashMap;
 
     use super::eval_5cards_kev_array;
 
     // TODO: this is not really specific to this evaluation method. It could as well live in the library tests folder
     // the reason it is here, is due to the internal representation hackage which got ditched
-    #[test]
+    // #[test]
     fn evaluate_all_possible_5_card_combinations() {
         let mut deck = VSupDeck::new_unshuffled();
         let mut cards: [CKC; 52] = [0; 52];
