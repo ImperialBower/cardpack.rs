@@ -1,8 +1,9 @@
 use crate::cards::card_error::CardError;
 use crate::cards::decks::standard52;
+use crate::games::poker::alt::lookups;
 use crate::games::poker::cactus_kev_card::{ckc, CKC, SUITS_FILTER};
 use crate::games::poker::cactus_kev_hand::CactusKevHand;
-use crate::games::poker::hand_rank::{HandRank, HandRankValue};
+use crate::games::poker::hand_rank::HandRank;
 use crate::{Pile, Standard52};
 use std::convert::TryInto;
 use std::fmt;
@@ -67,17 +68,33 @@ impl CactusKevCards {
     ///
     /// Will return `CardError::TooManyCards` if there are more than six cards.
     ///
+    /// # Panics
+    ///
+    /// Shouldn't be able to panic. (fingers crossed)
+    ///
+    #[allow(clippy::unnecessary_unwrap)]
     pub fn eval_6cards(&self) -> Result<CactusKevHand, CardError> {
         let array = self.to_six_array();
         if array.is_err() {
             return Err(array.unwrap_err());
         }
+        let array = array.unwrap();
 
-        let mut _tmp: HandRankValue = 0;
-        let mut _best: HandRankValue = 0;
-        let _dummy_kev_value: CKC = 0;
+        let mut best = CactusKevHand::default();
+        let dummy_kev_value: CKC = 0;
+        let mut subhand: [CKC; 5] = [dummy_kev_value; 5];
 
-        Ok(CactusKevHand::default())
+        for ids in &lookups::PERM_6 {
+            for i in 0..5 {
+                subhand[i] = array[ids[i] as usize];
+            }
+            let hand = CactusKevHand::new(subhand);
+            if hand.eval() > best.eval() {
+                best = hand;
+            }
+        }
+
+        Ok(best)
     }
 
     #[must_use]
@@ -247,6 +264,31 @@ mod cactus_kev_cards_tests {
                 .unwrap()
                 .eval_5cards()
         );
+    }
+
+    // #[rstest]
+    // #[case("9H AH KH QH JH TH", "AH KH QH JH TH")]
+    // fn eval_6cards(#[case] index: &'static str, #[case] best_index: &'static str) {
+    //     let hand = CactusKevCards::from_index(index)
+    //         .unwrap()
+    //         .eval_6cards()
+    //         .unwrap();
+    //
+    //     // let expected = CactusKevHand::from_index(best_index).unwrap();
+    //
+    //     // assert_eq!(hand, expected);
+    // }
+
+    #[test]
+    fn eval_6cards() {
+        let ckcs =  CactusKevCards::from_index("9H AH KH QH JH TH")
+            .unwrap();
+        let hand = ckcs.eval_6cards().unwrap();
+
+        let expected = CactusKevHand::from_index("AH KH QH JH TH")
+            .unwrap();
+
+        assert_eq!(hand, expected);
     }
 
     #[test]
