@@ -80,7 +80,10 @@ impl CactusKevCards {
         }
         let array = array.unwrap();
 
-        let mut best = CactusKevHand::default();
+        println!("START:  {}", self);
+
+        let mut best = HandRank::default();
+        let mut best_hand =  CactusKevHand::default();
         let dummy_kev_value: CKC = 0;
         let mut subhand: [CKC; 5] = [dummy_kev_value; 5];
 
@@ -89,12 +92,19 @@ impl CactusKevCards {
                 subhand[i] = array[ids[i] as usize];
             }
             let hand = CactusKevHand::new(subhand);
-            if hand.eval() > best.eval() {
-                best = hand;
+
+            println!("SUBHAND:   {}", hand);
+
+            let hand_rank = hand.eval();
+
+            if hand_rank > best {
+                best = hand_rank;
+                best_hand = hand;
             }
+            println!("BEST HAND: {}", best_hand);
         }
 
-        Ok(best)
+        Ok(best_hand)
     }
 
     #[must_use]
