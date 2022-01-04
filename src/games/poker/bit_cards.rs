@@ -1,7 +1,8 @@
 use crate::cards::card_error::CardError;
 use crate::games::poker::bit_card::BitCard;
 use crate::games::poker::cactus_kev_cards::CactusKevCards;
-use crate::games::poker::vsupalov::holdem::HandRank;
+// use crate::games::poker::vsupalov::holdem::HandRank;
+use crate::games::poker::hand_rank::HandRankValue;
 use crate::games::poker::vsupalov::lookups;
 use crate::{games, Standard52};
 use bitvec::field::BitField;
@@ -146,12 +147,12 @@ impl BitCards {
     }
 
     #[must_use]
-    pub fn flush_hand_rank(&self) -> HandRank {
+    pub fn flush_hand_rank(&self) -> HandRankValue {
         let i = self.or_to_usize() >> 16;
         if i > 7936 {
             return 0;
         }
-        lookups::FLUSHES[i] as HandRank
+        lookups::FLUSHES[i] as HandRankValue
     }
 }
 

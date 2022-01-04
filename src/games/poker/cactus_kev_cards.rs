@@ -303,7 +303,6 @@ impl fmt::Display for CactusKevCards {
 mod cactus_kev_cards_tests {
     use super::*;
     use crate::games::poker::hand_rank::{HandRankName, HandRankValue};
-    use crate::games::poker::vsupalov::original::cactus_kevs_original_eval_5cards;
     use rstest::rstest;
 
     #[test]
@@ -341,15 +340,7 @@ mod cactus_kev_cards_tests {
     fn eval_5cards__pair() {
         let cards = CactusKevCards::from_index("AS AH QS JS TS").unwrap();
 
-        let expected = cactus_kevs_original_eval_5cards(
-            cards.get(0).unwrap(),
-            cards.get(1).unwrap(),
-            cards.get(2).unwrap(),
-            cards.get(3).unwrap(),
-            cards.get(4).unwrap(),
-        );
-
-        assert_eq!(expected, cards.eval_5cards().value);
+        assert_eq!(3381, cards.eval_5cards().value);
     }
 
     #[test]

@@ -315,6 +315,9 @@ mod cactus_kev_hand_tests {
         // There should be 7462 unique ranks
         assert_eq!(rank_count.len(), 7462);
 
+        // Verifies the numbers from
+        // [Cactus Kev's Hand Rank breakdown](https://suffe.cool/poker/evaluator.html).
+
         assert_eq!(
             *rank_class_count.get(&HandRankName::HighCard).unwrap(),
             1277
