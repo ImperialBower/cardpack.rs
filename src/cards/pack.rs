@@ -1,4 +1,5 @@
 use crate::cards::pile::Pile;
+use crate::Card;
 
 /// A Pack is an immutable pile of cards. Packs are designed to be a flexible representation of
 /// a deck, stack, discard pile, or hand.
@@ -45,6 +46,12 @@ impl Pack {
     #[must_use]
     pub fn cards(&self) -> &Pile {
         &self.cards
+    }
+
+    /// Returns true if the passed in `Card` is a part of the `Pack`.
+    #[must_use]
+    pub fn contains(&self, card: &Card) -> bool {
+        self.cards.contains(card)
     }
 
     pub fn canasta_deck() -> Pack {

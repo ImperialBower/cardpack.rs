@@ -9,13 +9,14 @@ use crate::Named;
 pub const BLANK: &str = "blank";
 
 /// `Card` is the core struct in the library. A Card is made up of a Rank,
-/// a Suit and weight, which is an integer that controls how a card is sorted
-/// in a Pile or as a part of a Vector.
+/// a `Suit`, `weight`, which is an integer that controls how a card is sorted
+/// in a `Pile` or as a part of a `Vector`, and index, which is a short `String`
+/// representation of the card, suitable for serialization in text format.
 ///
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Card {
     /// Used by the Pile struct to sort Cards.
-    pub weight: isize,
+    pub weight: u32,
     /// The identity indicator in the corner of a playing card, such as `AS` for ace of spades.
     pub index: String,
     pub suit: Suit,
@@ -23,12 +24,9 @@ pub struct Card {
 }
 
 impl Card {
-    /// Instantiates a new Card with the default weight as defined in the fluent
-    /// templates.
+    /// Instantiates a Card with the weight determined by the passed in Rank and Suit.
     #[must_use]
-    pub fn new(rank: &'static str, suit: &'static str) -> Card {
-        let suit = Suit::new(suit);
-        let rank = Rank::new(rank);
+    pub fn new(rank: Rank, suit: Suit) -> Card {
         let weight = Card::determine_weight(&suit, &rank);
         let index = Card::determine_index(&suit, &rank);
         Card {
@@ -39,18 +37,10 @@ impl Card {
         }
     }
 
-    /// Instantiates a Card with the weight determined by the passed in Rank and
-    /// Suit.
+    /// Instantiates a new Card with the default weight as defined in the fluent templates.
     #[must_use]
-    pub fn new_from_structs(rank: Rank, suit: Suit) -> Card {
-        let weight = Card::determine_weight(&suit, &rank);
-        let index = Card::determine_index(&suit, &rank);
-        Card {
-            weight,
-            index,
-            suit,
-            rank,
-        }
+    pub fn from_index_strings(rank: &'static str, suit: &'static str) -> Card {
+        Card::new(Rank::new(rank), Suit::new(suit))
     }
 
     /// Returns a Symbol String for the Card.
@@ -76,7 +66,15 @@ impl Card {
 
     #[must_use]
     pub fn blank_card() -> Card {
-        Card::new(BLANK, BLANK)
+        Card::from_index_strings(BLANK, BLANK)
+    }
+
+    /// A unique index of a `Card` relative to other cards in a `Pile` prioritized by `Rank` and
+    /// then by `Suit`, such that a 2 of spades is lower than a 3 of clubs. While Card.weight
+    /// prioritizes by `Suit` and then by `Rank`.
+    #[must_use]
+    pub fn count(&self) -> u32 {
+        (self.suit.weight - 1) + (self.rank.weight * 4) + 1
     }
 
     /// A valid Card is one where the Rank and Suit are not blank.
@@ -94,14 +92,15 @@ impl Card {
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
-    fn determine_weight(suit: &Suit, rank: &Rank) -> isize {
+    fn determine_weight(suit: &Suit, rank: &Rank) -> u32 {
         (suit.weight * 1000) + rank.weight
     }
 }
 
+/// Defaults to a blank `Card`.
 impl Default for Card {
     fn default() -> Card {
-        Card::new(BLANK, BLANK)
+        Card::from_index_strings(BLANK, BLANK)
     }
 }
 
@@ -128,7 +127,7 @@ impl Named for Card {
         format!("{} {}", rank, suit)
     }
 
-    fn default_weight(&self) -> isize {
+    fn default_weight(&self) -> u32 {
         Card::determine_weight(&self.suit, &self.rank)
     }
 }
@@ -138,7 +137,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, HEARTS, JACK, QUEEN, SPADES};
+    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, QUEEN, SPADES, TWO};
     use std::cell::Cell;
 
     // region impl tests
@@ -146,70 +145,76 @@ mod card_tests {
     #[test]
     fn new() {
         let expected = Card {
-            weight: 4014,
+            weight: 4012,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
             suit: Suit::new(SPADES),
         };
 
-        assert_eq!(expected, Card::new(ACE, SPADES));
+        assert_eq!(expected, Card::from_index_strings(ACE, SPADES));
     }
 
     #[test]
     fn new_from_structs() {
         let expected = Card {
-            weight: 4014,
+            weight: 4012,
             index: "AS".to_string(),
             rank: Rank::new(ACE),
             suit: Suit::new(SPADES),
         };
 
-        assert_eq!(
-            expected,
-            Card::new_from_structs(Rank::new(ACE), Suit::new(SPADES))
-        );
+        assert_eq!(expected, Card::new(Rank::new(ACE), Suit::new(SPADES)));
+    }
+
+    #[test]
+    fn count() {
+        assert_eq!(52, Card::from_index_strings(ACE, SPADES).count());
+        assert_eq!(1, Card::from_index_strings(TWO, CLUBS).count());
+        assert_eq!(2, Card::from_index_strings(TWO, DIAMONDS).count());
     }
 
     #[test]
     fn index() {
-        let card = Card::new(QUEEN, CLUBS);
+        let card = Card::from_index_strings(QUEEN, CLUBS);
 
         assert_eq!(card.index(&GERMAN), "DK".to_string());
     }
 
     #[test]
     fn symbol() {
-        let card = Card::new(QUEEN, HEARTS);
+        let card = Card::from_index_strings(QUEEN, HEARTS);
 
         assert_eq!(card.symbol(&GERMAN), "D♥".to_string());
     }
 
     #[test]
     fn symbol_colorized() {
-        let card = Card::new(QUEEN, HEARTS);
+        let card = Card::from_index_strings(QUEEN, HEARTS);
 
         assert_eq!(card.symbol_colorized(&GERMAN), "D♥".red().to_string());
     }
 
     #[test]
     fn is_valid() {
-        assert!(Card::new(QUEEN, CLUBS).is_valid())
+        assert!(Card::from_index_strings(QUEEN, CLUBS).is_valid())
     }
 
     #[test]
     fn is_valid__false() {
-        assert!(!Card::new("", "").is_valid());
-        assert!(!Card::new(QUEEN, BLANK_SUIT).is_valid());
-        assert!(!Card::new(BLANK_RANK, CLUBS).is_valid());
-        assert!(!Card::new(BLANK_RANK, BLANK_SUIT).is_valid());
-        assert!(!Card::new(" ", BLANK_SUIT).is_valid());
+        assert!(!Card::from_index_strings("", "").is_valid());
+        assert!(!Card::from_index_strings(QUEEN, BLANK_SUIT).is_valid());
+        assert!(!Card::from_index_strings(BLANK_RANK, CLUBS).is_valid());
+        assert!(!Card::from_index_strings(BLANK_RANK, BLANK_SUIT).is_valid());
+        assert!(!Card::from_index_strings(" ", BLANK_SUIT).is_valid());
     }
 
     #[test]
     fn default() {
         let card = Card::default();
 
-        assert_eq!(-1001, card.weight);
+        // println!("{:?}", card);
+
+        assert_eq!(0, card.weight);
         assert_eq!("__".to_string(), card.index);
         assert_eq!("__".to_string(), card.index_default());
         assert_eq!("__".to_string(), card.symbol(&US_ENGLISH));
@@ -223,15 +228,15 @@ mod card_tests {
 
     #[test]
     fn named__name() {
-        let jack = Card::new(JACK, SPADES);
+        let jack = Card::from_index_strings(JACK, SPADES);
 
         assert_eq!(&"JS".to_string(), jack.name());
     }
 
     #[test]
     fn named__default_weight() {
-        let original = Card::new(ACE, SPADES);
-        let mut ace = Card::new(ACE, SPADES);
+        let original = Card::from_index_strings(ACE, SPADES);
+        let mut ace = Card::from_index_strings(ACE, SPADES);
         assert_eq!(ace.weight, ace.default_weight());
 
         let weight = ace.weight;
@@ -243,7 +248,7 @@ mod card_tests {
 
     #[test]
     fn named__index() {
-        let jack = Card::new(JACK, SPADES);
+        let jack = Card::from_index_strings(JACK, SPADES);
 
         assert_eq!("JS".to_string(), jack.index(&US_ENGLISH));
         assert_eq!("BS".to_string(), jack.index(&GERMAN));
@@ -252,7 +257,7 @@ mod card_tests {
 
     #[test]
     fn named__long() {
-        let ace = Card::new(ACE, SPADES);
+        let ace = Card::from_index_strings(ACE, SPADES);
 
         assert_eq!("Ace Spades".to_string(), ace.long(&US_ENGLISH));
         assert_eq!("Ass Spaten".to_string(), ace.long(&GERMAN));
@@ -263,13 +268,13 @@ mod card_tests {
 
     #[test]
     fn card_cell() {
-        let ace_of_spades = Card::new(ACE, SPADES);
+        let ace_of_spades = Card::from_index_strings(ACE, SPADES);
         let blank = Card::default();
         let cell = Cell::new(ace_of_spades.clone());
 
         let aces = cell.take();
 
-        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(Card::from_index_strings(ACE, SPADES), aces);
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
 
@@ -277,7 +282,7 @@ mod card_tests {
 
         let aces = cell.take();
 
-        assert_eq!(Card::new(ACE, SPADES), aces);
+        assert_eq!(Card::from_index_strings(ACE, SPADES), aces);
         assert_eq!(blank, cell.take());
         assert_eq!(blank, cell.take());
     }

@@ -64,11 +64,12 @@ pub const BLANK_RANK: &str = "_";
 /// ```
 /// let ace = cardpack::Rank {
 ///     weight: 1,
+///     prime: 19,
 ///     name: cardpack::fluent_name::FluentName::new(cardpack::ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
-/// at the and of a Suit (unless there are any Cards with negative weights).
+/// at the end of a Suit (unless there are any Cards with negative weights).
 ///
 /// # ``Rank::new()`` with a value string
 /// ```
@@ -90,10 +91,11 @@ pub const BLANK_RANK: &str = "_";
 /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
 ///
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Rank {
     /// Used by the Pile struct to sort Cards by their Suit and Rank.
-    pub weight: isize,
+    pub weight: u32,
+    pub prime: u32,
     pub name: FluentName,
 }
 
@@ -112,6 +114,7 @@ impl Rank {
         let name = FluentName::new(name);
         Rank {
             weight: name.default_weight(),
+            prime: name.default_prime(),
             name,
         }
     }
@@ -124,9 +127,20 @@ impl Rank {
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: isize) -> Rank {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Rank {
+        let name = FluentName::new(name);
         Rank {
             weight,
+            prime: name.default_prime(),
+            name,
+        }
+    }
+
+    #[must_use]
+    pub fn new_with_weight_and_prime(name: &'static str, weight: u32, prime: u32) -> Rank {
+        Rank {
+            weight,
+            prime,
             name: FluentName::new(name),
         }
     }
@@ -143,10 +157,14 @@ impl Rank {
     pub fn from_array(s: &[&'static str]) -> Vec<Rank> {
         let mut v: Vec<Rank> = Vec::new();
 
-        #[allow(clippy::cast_possible_wrap, clippy::into_iter_on_ref)]
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::cast_possible_wrap,
+            clippy::into_iter_on_ref
+        )]
         for (i, &elem) in s.into_iter().enumerate() {
-            let weight = (s.len() + 1) - i;
-            v.push(Rank::new_with_weight(elem, weight as isize));
+            let weight = (s.len() - 1) - i;
+            v.push(Rank::new_with_weight(elem, weight as u32));
         }
         v
     }
@@ -230,6 +248,27 @@ impl Rank {
     }
 }
 
+/// Defaults to a blank `Rank`.
+impl Default for Rank {
+    fn default() -> Rank {
+        Rank::new(BLANK_RANK)
+    }
+}
+
+/// Allows for the Rank to be displayed as a binary value based upon it's prime field.
+/// This will be used for Cactus Kev style hand evaluation.
+/// ```
+/// let king = cardpack::Rank::new(cardpack::KING);
+/// assert_eq!(format!("King as binary is: {:06b}", king), "King as binary is: 100101");
+/// ```
+impl fmt::Binary for Rank {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let val = self.prime;
+
+        fmt::Binary::fmt(&val, f)
+    }
+}
+
 impl fmt::Display for Rank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name.index(&US_ENGLISH))
@@ -278,7 +317,8 @@ mod rank_tests {
     #[test]
     fn new() {
         let expected = Rank {
-            weight: 9,
+            weight: 7,
+            prime: 19,
             name: FluentName::new(NINE),
         };
 
@@ -307,8 +347,8 @@ mod rank_tests {
     #[test]
     fn to_vec() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_weight(KING, 3));
-        expected.push(Rank::new_with_weight(QUEEN, 2));
+        expected.push(Rank::new_with_weight(KING, 1));
+        expected.push(Rank::new_with_weight(QUEEN, 0));
 
         assert_eq!(expected, Rank::from_array(&[KING, QUEEN]));
     }
@@ -341,19 +381,19 @@ mod rank_tests {
     #[test]
     fn generate_canasta_ranks() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_weight(TWO, 14));
-        expected.push(Rank::new_with_weight(ACE, 13));
-        expected.push(Rank::new_with_weight(KING, 12));
-        expected.push(Rank::new_with_weight(QUEEN, 11));
-        expected.push(Rank::new_with_weight(JACK, 10));
-        expected.push(Rank::new_with_weight(TEN, 9));
-        expected.push(Rank::new_with_weight(NINE, 8));
-        expected.push(Rank::new_with_weight(EIGHT, 7));
-        expected.push(Rank::new_with_weight(SEVEN, 6));
-        expected.push(Rank::new_with_weight(SIX, 5));
-        expected.push(Rank::new_with_weight(FIVE, 4));
-        expected.push(Rank::new_with_weight(FOUR, 3));
-        expected.push(Rank::new_with_weight(THREE, 2));
+        expected.push(Rank::new_with_weight(TWO, 12));
+        expected.push(Rank::new_with_weight(ACE, 11));
+        expected.push(Rank::new_with_weight(KING, 10));
+        expected.push(Rank::new_with_weight(QUEEN, 9));
+        expected.push(Rank::new_with_weight(JACK, 8));
+        expected.push(Rank::new_with_weight(TEN, 7));
+        expected.push(Rank::new_with_weight(NINE, 6));
+        expected.push(Rank::new_with_weight(EIGHT, 5));
+        expected.push(Rank::new_with_weight(SEVEN, 4));
+        expected.push(Rank::new_with_weight(SIX, 3));
+        expected.push(Rank::new_with_weight(FIVE, 2));
+        expected.push(Rank::new_with_weight(FOUR, 1));
+        expected.push(Rank::new_with_weight(THREE, 0));
 
         assert_eq!(expected, Rank::generate_canasta_ranks());
     }
@@ -361,12 +401,12 @@ mod rank_tests {
     #[test]
     fn generate_euchre_ranks() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_weight(ACE, 7));
-        expected.push(Rank::new_with_weight(KING, 6));
-        expected.push(Rank::new_with_weight(QUEEN, 5));
-        expected.push(Rank::new_with_weight(JACK, 4));
-        expected.push(Rank::new_with_weight(TEN, 3));
-        expected.push(Rank::new_with_weight(NINE, 2));
+        expected.push(Rank::new_with_weight(ACE, 5));
+        expected.push(Rank::new_with_weight(KING, 4));
+        expected.push(Rank::new_with_weight(QUEEN, 3));
+        expected.push(Rank::new_with_weight(JACK, 2));
+        expected.push(Rank::new_with_weight(TEN, 1));
+        expected.push(Rank::new_with_weight(NINE, 0));
 
         assert_eq!(expected, Rank::generate_euchre_ranks());
     }
@@ -394,12 +434,12 @@ mod rank_tests {
     #[test]
     fn generate_pinochle_ranks() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_weight(ACE, 7));
-        expected.push(Rank::new_with_weight(TEN, 6));
-        expected.push(Rank::new_with_weight(KING, 5));
-        expected.push(Rank::new_with_weight(QUEEN, 4));
-        expected.push(Rank::new_with_weight(JACK, 3));
-        expected.push(Rank::new_with_weight(NINE, 2));
+        expected.push(Rank::new_with_weight(ACE, 5));
+        expected.push(Rank::new_with_weight(TEN, 4));
+        expected.push(Rank::new_with_weight(KING, 3));
+        expected.push(Rank::new_with_weight(QUEEN, 2));
+        expected.push(Rank::new_with_weight(JACK, 1));
+        expected.push(Rank::new_with_weight(NINE, 0));
 
         assert_eq!(expected, Rank::generate_pinochle_ranks());
     }
@@ -423,15 +463,15 @@ mod rank_tests {
     #[test]
     fn generate_short_deck_ranks() {
         let mut expected: Vec<Rank> = Vec::new();
-        expected.push(Rank::new_with_weight(ACE, 10));
-        expected.push(Rank::new_with_weight(KING, 9));
-        expected.push(Rank::new_with_weight(QUEEN, 8));
-        expected.push(Rank::new_with_weight(JACK, 7));
-        expected.push(Rank::new_with_weight(TEN, 6));
-        expected.push(Rank::new_with_weight(NINE, 5));
-        expected.push(Rank::new_with_weight(EIGHT, 4));
-        expected.push(Rank::new_with_weight(SEVEN, 3));
-        expected.push(Rank::new_with_weight(SIX, 2));
+        expected.push(Rank::new_with_weight(ACE, 8));
+        expected.push(Rank::new_with_weight(KING, 7));
+        expected.push(Rank::new_with_weight(QUEEN, 6));
+        expected.push(Rank::new_with_weight(JACK, 5));
+        expected.push(Rank::new_with_weight(TEN, 4));
+        expected.push(Rank::new_with_weight(NINE, 3));
+        expected.push(Rank::new_with_weight(EIGHT, 2));
+        expected.push(Rank::new_with_weight(SEVEN, 1));
+        expected.push(Rank::new_with_weight(SIX, 0));
 
         assert_eq!(expected, Rank::generate_short_deck_ranks());
     }
@@ -439,10 +479,35 @@ mod rank_tests {
     #[test]
     fn revise_value() {
         let mut ace = Rank::new(ACE);
-        assert_eq!(14, ace.weight);
+        assert_eq!(12, ace.weight);
 
         ace.weight = 3;
 
         assert_eq!(3, ace.weight);
+    }
+
+    #[test]
+    fn fmt_binary() {
+        let king = Rank::new(KING);
+        let jack = Rank::new(JACK);
+        let five = Rank::new(FIVE);
+
+        assert_eq!(
+            format!("King as binary is: {:08b}", king),
+            "King as binary is: 00100101"
+        );
+        assert_eq!(
+            format!("Jack as binary is: {:08b}", jack),
+            "Jack as binary is: 00011101"
+        );
+        assert_eq!(
+            format!("Five as binary is: {:08b}", five),
+            "Five as binary is: 00000111"
+        );
+    }
+
+    #[test]
+    fn default() {
+        assert_eq!(Rank::default(), Rank::new(BLANK_RANK));
     }
 }

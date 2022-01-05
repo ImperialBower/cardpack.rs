@@ -27,9 +27,9 @@ pub const BLANK_SUIT: &str = "blank";
 
 /// Suit struct for a playing card. Made up of the suit's name, letter, and symbol.
 /// Supports internationalization through fluent template files.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Suit {
-    pub weight: isize,
+    pub weight: u32,
     pub name: FluentName,
 }
 
@@ -44,10 +44,22 @@ impl Suit {
     }
 
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: isize) -> Suit {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Suit {
         Suit {
             weight,
             name: FluentName::new(name),
+        }
+    }
+
+    /// Used to generate `Card`'s binary signature.
+    #[must_use]
+    pub fn binary_signature(&self) -> u32 {
+        match self.weight {
+            4 => 0x1000,
+            3 => 0x2000,
+            2 => 0x4000,
+            1 => 0x8000,
+            _ => 0xF000,
         }
     }
 
@@ -61,12 +73,12 @@ impl Suit {
         self.name.fluent_value(FLUENT_SYMBOL_SECTION, &US_ENGLISH)
     }
 
-    #[allow(clippy::cast_possible_wrap)]
-    fn top_down_value(len: usize, i: usize) -> isize {
-        (len - i) as isize
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+    fn top_down_value(len: usize, i: usize) -> u32 {
+        (len - i) as u32
     }
 
-    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> isize) -> Vec<Suit> {
+    fn from_array_gen(s: &[&'static str], f: impl Fn(usize, usize) -> u32) -> Vec<Suit> {
         let mut v: Vec<Suit> = Vec::new();
 
         #[allow(clippy::into_iter_on_ref)]
@@ -85,10 +97,10 @@ impl Suit {
     #[must_use]
     pub fn from_french_deck_index(symbol: char) -> Suit {
         match symbol {
-            '♠' | 'S' | 's' => Suit::new(SPADES),
-            '♥' | 'H' | 'h' => Suit::new(HEARTS),
-            '♦' | 'D' | 'd' => Suit::new(DIAMONDS),
-            '♣' | 'C' | 'c' => Suit::new(CLUBS),
+            '♤' | '♠' | 'S' | 's' => Suit::new(SPADES),
+            '♡' | '♥' | 'H' | 'h' => Suit::new(HEARTS),
+            '♢' | '♦' | 'D' | 'd' => Suit::new(DIAMONDS),
+            '♧' | '♣' | 'C' | 'c' => Suit::new(CLUBS),
             '🃟' | 'T' | 't' => Suit::new(TRUMP),
             _ => Suit::new(BLANK_SUIT),
         }
@@ -107,6 +119,13 @@ impl Suit {
     #[must_use]
     pub fn generate_skat_suits() -> Vec<Suit> {
         Suit::from_array(&[EICHEL, LAUB, HERZ, SHELLEN])
+    }
+}
+
+/// Defaults to a blank `Suit`.
+impl Default for Suit {
+    fn default() -> Suit {
+        Suit::new(BLANK_SUIT)
     }
 }
 
@@ -159,6 +178,14 @@ mod suit_tests {
         assert_eq!(expected, Suit::new_with_weight(SPADES, 4));
     }
 
+    #[test]
+    fn binary_signature() {
+        assert_eq!(4096, Suit::new(SPADES).binary_signature());
+        assert_eq!(8192, Suit::new(HEARTS).binary_signature());
+        assert_eq!(16384, Suit::new(DIAMONDS).binary_signature());
+        assert_eq!(32768, Suit::new(CLUBS).binary_signature());
+    }
+
     #[rstest]
     #[case('♠', Suit::new(SPADES))]
     #[case('S', Suit::new(SPADES))]
@@ -182,7 +209,7 @@ mod suit_tests {
     }
 
     #[test]
-    fn part1ial_eq() {
+    fn partial_eq() {
         assert_ne!(
             Suit::new_with_weight(SPADES, 3),
             Suit::new_with_weight(SPADES, 4)
@@ -268,5 +295,10 @@ mod suit_tests {
         wands.weight = 3;
 
         assert_eq!(3, wands.weight);
+    }
+
+    #[test]
+    fn default() {
+        assert_eq!(Suit::default(), Suit::new(BLANK_SUIT));
     }
 }

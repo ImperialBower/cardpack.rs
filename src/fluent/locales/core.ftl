@@ -1,6 +1,6 @@
 # Default
 blank-symbol = _
-blank-weight = -1
+blank-weight = 0
 blank-long = _____
 blank-index = _
 
@@ -22,21 +22,37 @@ hearts-weight = 3
 diamonds-weight = 2
 clubs-weight = 1
 
-big-joker-weight = 100
-little-joker-weight = 50
-ace-weight = 14
-king-weight = 13
-queen-weight = 12
-jack-weight = 11
-ten-weight = 10
-nine-weight = 9
-eight-weight = 8
-seven-weight = 7
-six-weight = 6
-five-weight = 5
-four-weight = 4
-three-weight = 3
-two-weight = 2
+big-joker-weight = 14
+little-joker-weight = 13
+ace-weight = 12
+king-weight = 11
+queen-weight = 10
+jack-weight = 9
+ten-weight = 8
+nine-weight = 7
+eight-weight = 6
+seven-weight = 5
+six-weight = 4
+five-weight = 3
+four-weight = 2
+three-weight = 1
+two-weight = 0
+
+big-joker-prime=47
+little-joker-prime=43
+ace-prime = 41
+king-prime = 37
+queen-prime = 31
+jack-prime = 29
+ten-prime = 23
+nine-prime = 19
+eight-prime = 17
+seven-prime = 13
+six-prime = 11
+five-prime = 7
+four-prime = 5
+three-prime = 3
+two-prime = 2
 
 # Skat Deck
 eichel-symbol = ♣

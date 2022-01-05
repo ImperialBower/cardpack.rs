@@ -18,18 +18,19 @@ use crate::Named;
 /// # Usage:
 /// ```
 /// let mut pile = cardpack::Pile::default();
-/// let ace_of_spades = cardpack::Card::new(cardpack::ACE, cardpack::SPADES);
-/// let ace_of_hearts = cardpack::Card::new(cardpack::ACE, cardpack::HEARTS);
-/// pile.add(ace_of_spades);
-/// pile.add(ace_of_hearts);
+/// let ace_of_spades = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::SPADES);
+/// let ace_of_hearts = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::HEARTS);
+/// pile.push(ace_of_spades);
+/// pile.push(ace_of_hearts);
 /// pile.shuffle();
+/// ```
 
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Pile(Vec<Card>);
 
 impl Pile {
     #[must_use]
-    pub fn new_from_vector(v: Vec<Card>) -> Pile {
+    pub fn from_vector(v: Vec<Card>) -> Pile {
         Pile(v)
     }
 
@@ -62,7 +63,7 @@ impl Pile {
     }
 
     /// Places the Card at the bottom (end) of the Pile.
-    pub fn add(&mut self, elem: Card) {
+    pub fn push(&mut self, elem: Card) {
         self.0.push(elem);
     }
 
@@ -190,7 +191,7 @@ impl Pile {
         } else {
             let mut cards = Pile::default();
             for _ in 0..x {
-                cards.add(self.draw_first()?);
+                cards.push(self.draw_first()?);
             }
             Some(cards)
         }
@@ -218,7 +219,7 @@ impl Pile {
     fn fold_in(&mut self, suits: &[Suit], ranks: &[Rank]) {
         for (_, suit) in suits.iter().enumerate() {
             for (_, rank) in ranks.iter().enumerate() {
-                self.add(Card::new_from_structs(*rank, *suit));
+                self.push(Card::new(*rank, *suit));
             }
         }
     }
@@ -246,6 +247,15 @@ impl Pile {
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    #[must_use]
+    pub fn map_by_rank_count(&self) -> HashMap<Rank, usize> {
+        let mut mappie: HashMap<Rank, usize> = HashMap::new();
+        for card in self.cards() {
+            *mappie.entry(card.rank).or_insert(0) += 1;
+        }
+        mappie
     }
 
     /// Takes a `Pile` and returns a `HashMap` with the key as each `Suit` in the `Pile` with the values
@@ -276,7 +286,7 @@ impl Pile {
         for index in indexes {
             let card = self.card_by_index(index);
             match card {
-                Some(c) => pile.add(c.clone()),
+                Some(c) => pile.push(c.clone()),
                 _ => return None,
             }
         }
@@ -340,7 +350,7 @@ impl Pile {
 
     #[must_use]
     pub fn short_index_for_suit(&self, suit: Suit) -> String {
-        let cards = Pile::new_from_vector(self.cards_by_suit(suit));
+        let cards = Pile::from_vector(self.cards_by_suit(suit));
 
         suit.symbol().as_str().to_owned() + " " + &cards.rank_indexes_with_separator(" ")
     }
@@ -400,9 +410,9 @@ impl Pile {
 
     #[must_use]
     pub fn jokers() -> Pile {
-        let big_joker = Card::new(BIG_JOKER, TRUMP);
-        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
-        Pile::new_from_vector(vec![big_joker, little_joker])
+        let big_joker = Card::from_index_strings(BIG_JOKER, TRUMP);
+        let little_joker = Card::from_index_strings(LITTLE_JOKER, TRUMP);
+        Pile::from_vector(vec![big_joker, little_joker])
     }
 
     #[must_use]
@@ -420,20 +430,20 @@ impl Pile {
     pub fn canasta_single_deck() -> Pile {
         let mut cards: Pile = Pile::canasta_base_single_deck();
 
-        cards.remove_card(&Card::new(THREE, HEARTS));
-        cards.remove_card(&Card::new(THREE, DIAMONDS));
+        cards.remove_card(&Card::from_index_strings(THREE, HEARTS));
+        cards.remove_card(&Card::from_index_strings(THREE, DIAMONDS));
 
         cards.prepend(&Pile::canasta_red_threes());
         cards
     }
 
     fn canasta_red_threes() -> Pile {
-        let mut three_hearts = Card::new(THREE, HEARTS);
-        let mut three_diamonds = Card::new(THREE, DIAMONDS);
+        let mut three_hearts = Card::from_index_strings(THREE, HEARTS);
+        let mut three_diamonds = Card::from_index_strings(THREE, DIAMONDS);
         three_hearts.weight = 100_001;
         three_diamonds.weight = 100_000;
 
-        Pile::new_from_vector(vec![three_hearts, three_diamonds])
+        Pile::from_vector(vec![three_hearts, three_diamonds])
     }
 
     #[must_use]
@@ -443,7 +453,9 @@ impl Pile {
 
         let mut cards: Pile = Pile::default();
         cards.fold_in(&suits, &ranks);
-        cards.prepend(&Pile::new_from_vector(vec![Card::new(BIG_JOKER, TRUMP)]));
+        cards.prepend(&Pile::from_vector(vec![Card::from_index_strings(
+            BIG_JOKER, TRUMP,
+        )]));
         cards
     }
 
@@ -501,8 +513,8 @@ impl Pile {
     #[must_use]
     pub fn spades_deck() -> Pile {
         let mut deck = Pile::french_deck();
-        deck.remove_card(&Card::new(TWO, CLUBS));
-        deck.remove_card(&Card::new(TWO, DIAMONDS));
+        deck.remove_card(&Card::from_index_strings(TWO, CLUBS));
+        deck.remove_card(&Card::from_index_strings(TWO, DIAMONDS));
         let jokers = Pile::jokers();
 
         deck.prepend(&jokers);
@@ -523,13 +535,13 @@ impl Pile {
 
         // Generate Major Arcana
         for (_, rank) in major_arcana_ranks.iter().enumerate() {
-            cards.add(Card::new_from_structs(*rank, *major_arcana_suit));
+            cards.push(Card::new(*rank, *major_arcana_suit));
         }
 
         // Generate Minor Arcana
         for (_, suit) in arcana_suits_enumerator {
             for (_, rank) in minor_arcana_ranks.iter().enumerate() {
-                cards.add(Card::new_from_structs(*rank, *suit));
+                cards.push(Card::new(*rank, *suit));
             }
         }
 
@@ -549,7 +561,7 @@ impl Pile {
 
 impl Default for Pile {
     fn default() -> Self {
-        Pile::new_from_vector(Vec::new())
+        Pile::from_vector(Vec::new())
     }
 }
 
@@ -565,7 +577,7 @@ impl FromIterator<Card> for Pile {
     fn from_iter<T: IntoIterator<Item = Card>>(iter: T) -> Self {
         let mut c = Pile::default();
         for i in iter {
-            c.add(i);
+            c.push(i);
         }
         c
     }
@@ -582,19 +594,19 @@ impl IntoIterator for Pile {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod card_deck_tests {
+mod pile_tests {
     use super::*;
     use crate::cards::suit::{MAJOR_ARCANA, SPADES};
 
     #[test]
     fn new_from_vector() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
         let mut expected = Pile::default();
-        expected.add(qclubs.clone());
-        expected.add(qhearts.clone());
+        expected.push(qclubs.clone());
+        expected.push(qhearts.clone());
 
-        let actual = Pile::new_from_vector(vec![qclubs, qhearts]);
+        let actual = Pile::from_vector(vec![qclubs, qhearts]);
 
         assert_eq!(expected, actual);
     }
@@ -611,13 +623,13 @@ mod card_deck_tests {
 
     #[test]
     fn append() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let big_joker = Card::new(BIG_JOKER, TRUMP);
-        let little_joker = Card::new(LITTLE_JOKER, TRUMP);
-        let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let big_joker = Card::from_index_strings(BIG_JOKER, TRUMP);
+        let little_joker = Card::from_index_strings(LITTLE_JOKER, TRUMP);
+        let mut to_deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
         let from_deck = Pile::jokers();
-        let expected = Pile::new_from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
+        let expected = Pile::from_vector(vec![qclubs, qhearts, big_joker, little_joker]);
 
         to_deck.append(&from_deck);
 
@@ -627,7 +639,7 @@ mod card_deck_tests {
     #[test]
     fn card_by_index() {
         let deck = Pile::spades_deck();
-        let expected = Card::new(LITTLE_JOKER, TRUMP);
+        let expected = Card::from_index_strings(LITTLE_JOKER, TRUMP);
 
         let card = deck.card_by_index("JLT").unwrap();
 
@@ -637,7 +649,7 @@ mod card_deck_tests {
     #[test]
     fn card_by_index__ne() {
         let deck = Pile::spades_deck();
-        let fool_index = Card::new(FOOL, MAJOR_ARCANA).index_default();
+        let fool_index = Card::from_index_strings(FOOL, MAJOR_ARCANA).index_default();
 
         // Verifies that the index for a card in the tarot deck isn't in a spades deck.
         assert!(deck.card_by_index(fool_index.as_str()).is_none());
@@ -645,10 +657,10 @@ mod card_deck_tests {
 
     #[test]
     fn cards() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
         let expected = vec![qclubs.clone(), qhearts.clone()];
-        let pile = Pile::new_from_vector(expected.clone());
+        let pile = Pile::from_vector(expected.clone());
 
         let v = pile.cards();
 
@@ -657,13 +669,13 @@ mod card_deck_tests {
 
     #[test]
     fn cards_by_suit() {
-        let qh = Card::new(QUEEN, HEARTS);
-        let jh = Card::new(JACK, HEARTS);
-        let qc = Card::new(QUEEN, CLUBS);
-        let jc = Card::new(JACK, CLUBS);
+        let qh = Card::from_index_strings(QUEEN, HEARTS);
+        let jh = Card::from_index_strings(JACK, HEARTS);
+        let qc = Card::from_index_strings(QUEEN, CLUBS);
+        let jc = Card::from_index_strings(JACK, CLUBS);
         let expected = vec![qc.clone(), jc.clone()];
 
-        let pile = Pile::new_from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
+        let pile = Pile::from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
 
         let v = pile.cards_by_suit(qc.suit);
 
@@ -672,11 +684,11 @@ mod card_deck_tests {
 
     #[test]
     fn short_index_by_suit() {
-        let qh = Card::new(QUEEN, HEARTS);
-        let jh = Card::new(JACK, HEARTS);
-        let qc = Card::new(QUEEN, CLUBS);
-        let jc = Card::new(JACK, CLUBS);
-        let pile = Pile::new_from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
+        let qh = Card::from_index_strings(QUEEN, HEARTS);
+        let jh = Card::from_index_strings(JACK, HEARTS);
+        let qc = Card::from_index_strings(QUEEN, CLUBS);
+        let jc = Card::from_index_strings(JACK, CLUBS);
+        let pile = Pile::from_vector(vec![jh.clone(), jc.clone(), qh.clone(), qc.clone()]);
 
         let expected = String::from("♥ Q J");
         let actual = pile.short_index_for_suit(qh.suit);
@@ -688,9 +700,9 @@ mod card_deck_tests {
 
     #[test]
     fn contains() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(deck.contains(&qclubs));
         assert!(deck.contains(&qhearts));
@@ -714,15 +726,14 @@ mod card_deck_tests {
 
     #[test]
     fn draw() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let qspades = Card::new(QUEEN, SPADES);
-        let mut deck =
-            Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone(), qspades.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let qspades = Card::from_index_strings(QUEEN, SPADES);
+        let mut deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone(), qspades.clone()]);
 
         assert_eq!(
             deck.draw(2).unwrap(),
-            Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()])
+            Pile::from_vector(vec![qclubs.clone(), qhearts.clone()])
         );
         assert_eq!(1, deck.len());
     }
@@ -746,9 +757,9 @@ mod card_deck_tests {
 
     #[test]
     fn draw_first() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let mut deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(deck.draw_first().unwrap(), qclubs);
         assert_eq!(1, deck.len());
@@ -761,9 +772,9 @@ mod card_deck_tests {
 
     #[test]
     fn draw_last() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let mut deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(deck.draw_last().unwrap(), qhearts);
         assert_eq!(1, deck.len());
@@ -776,9 +787,9 @@ mod card_deck_tests {
 
     #[test]
     fn first() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(deck.first().unwrap(), &qclubs);
     }
@@ -790,9 +801,9 @@ mod card_deck_tests {
 
     #[test]
     fn get() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let gotten = deck.get(1);
 
@@ -801,8 +812,8 @@ mod card_deck_tests {
 
     #[test]
     fn get_random() {
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qhearts.clone()]);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qhearts.clone()]);
 
         let gotten = deck.get_random();
 
@@ -812,9 +823,9 @@ mod card_deck_tests {
     #[test]
     fn last() {
         let zero = Pile::default();
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert!(zero.last().is_none());
         assert_eq!(deck.last().unwrap(), &qhearts);
@@ -823,12 +834,24 @@ mod card_deck_tests {
     #[test]
     fn len() {
         let zero = Pile::default();
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(zero.len(), 0);
         assert_eq!(deck.len(), 2);
+    }
+
+    #[test]
+    fn map_by_rank_count() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
+            .unwrap();
+        let mappie = pile.map_by_rank_count();
+
+        assert_eq!(*mappie.get(&Rank::new(QUEEN)).unwrap(), 4);
+        assert_eq!(*mappie.get(&Rank::new(NINE)).unwrap(), 1);
+        assert!(mappie.get(&Rank::new(EIGHT)).is_none());
     }
 
     #[test]
@@ -861,9 +884,9 @@ mod card_deck_tests {
     #[test]
     fn pile_by_index() {
         let deck = Pile::french_deck();
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let expected = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let expected = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let actual = deck.pile_by_index(&["QC", "QH"]);
 
@@ -882,9 +905,9 @@ mod card_deck_tests {
 
     #[test]
     fn position() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         assert_eq!(0, deck.position(&qclubs).unwrap());
         assert_eq!(1, deck.position(&qhearts).unwrap());
@@ -892,13 +915,13 @@ mod card_deck_tests {
 
     #[test]
     fn prepend() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let big_joker = Card::new(BIG_JOKER, SPADES);
-        let little_joker = Card::new(LITTLE_JOKER, SPADES);
-        let mut to_deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
-        let from_deck = Pile::new_from_vector(vec![big_joker.clone(), little_joker.clone()]);
-        let expected = Pile::new_from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let big_joker = Card::from_index_strings(BIG_JOKER, SPADES);
+        let little_joker = Card::from_index_strings(LITTLE_JOKER, SPADES);
+        let mut to_deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let from_deck = Pile::from_vector(vec![big_joker.clone(), little_joker.clone()]);
+        let expected = Pile::from_vector(vec![big_joker, little_joker, qclubs, qhearts]);
 
         to_deck.prepend(&from_deck);
 
@@ -908,11 +931,11 @@ mod card_deck_tests {
     // todo
     #[test]
     fn ranks() {
-        let qc = Card::new(QUEEN, CLUBS);
-        let qh = Card::new(QUEEN, HEARTS);
-        let jh = Card::new(JACK, HEARTS);
+        let qc = Card::from_index_strings(QUEEN, CLUBS);
+        let qh = Card::from_index_strings(QUEEN, HEARTS);
+        let jh = Card::from_index_strings(JACK, HEARTS);
         let expected: Vec<Rank> = vec![qc.clone().rank, jh.clone().rank];
-        let deck = Pile::new_from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
+        let deck = Pile::from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
 
         assert_eq!(expected, deck.ranks());
     }
@@ -929,11 +952,11 @@ mod card_deck_tests {
 
     #[test]
     fn rank_indexes__shuffled() {
-        let qc = Card::new(QUEEN, CLUBS);
-        let qh = Card::new(QUEEN, HEARTS);
-        let jh = Card::new(JACK, HEARTS);
+        let qc = Card::from_index_strings(QUEEN, CLUBS);
+        let qh = Card::from_index_strings(QUEEN, HEARTS);
+        let jh = Card::from_index_strings(JACK, HEARTS);
         let expected = "QJ".to_string();
-        let deck = Pile::new_from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
+        let deck = Pile::from_vector(vec![jh.clone(), qc.clone(), qh.clone()]);
 
         let actual = deck.rank_indexes();
 
@@ -952,9 +975,9 @@ mod card_deck_tests {
 
     #[test]
     fn remove() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let mut deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let removed = deck.remove(0);
 
@@ -964,9 +987,9 @@ mod card_deck_tests {
 
     #[test]
     fn remove_card() {
-        let qclubs = Card::new(QUEEN, CLUBS);
-        let qhearts = Card::new(QUEEN, HEARTS);
-        let mut deck = Pile::new_from_vector(vec![qclubs.clone(), qhearts.clone()]);
+        let qclubs = Card::from_index_strings(QUEEN, CLUBS);
+        let qhearts = Card::from_index_strings(QUEEN, HEARTS);
+        let mut deck = Pile::from_vector(vec![qclubs.clone(), qhearts.clone()]);
 
         let removed = deck.remove_card(&qclubs);
 
@@ -1121,18 +1144,18 @@ mod card_deck_tests {
     fn short_deck() {
         let deck = Pile::short_deck();
 
-        assert!(!deck.contains(&Card::new(FIVE, CLUBS)));
-        assert!(!deck.contains(&Card::new(TWO, CLUBS)));
-        assert!(!deck.contains(&Card::new(TWO, DIAMONDS)));
-        assert!(!deck.contains(&Card::new(TWO, SPADES)));
+        assert!(!deck.contains(&Card::from_index_strings(FIVE, CLUBS)));
+        assert!(!deck.contains(&Card::from_index_strings(TWO, CLUBS)));
+        assert!(!deck.contains(&Card::from_index_strings(TWO, DIAMONDS)));
+        assert!(!deck.contains(&Card::from_index_strings(TWO, SPADES)));
     }
 
     #[test]
     fn spades_deck() {
         let deck = Pile::spades_deck();
 
-        assert!(!deck.contains(&Card::new(TWO, CLUBS)));
-        assert!(!deck.contains(&Card::new(TWO, DIAMONDS)));
-        assert!(deck.contains(&Card::new(TWO, SPADES)));
+        assert!(!deck.contains(&Card::from_index_strings(TWO, CLUBS)));
+        assert!(!deck.contains(&Card::from_index_strings(TWO, DIAMONDS)));
+        assert!(deck.contains(&Card::from_index_strings(TWO, SPADES)));
     }
 }

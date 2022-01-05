@@ -1,10 +1,15 @@
+use std::collections::HashMap;
 use std::fmt;
 
 use crate::cards::decks::deck_error::DeckError;
+use crate::cards::decks::standard52_set::Standard52Set;
 use crate::cards::rank::{Rank, BLANK_RANK};
 use crate::cards::suit::Suit;
 use crate::{Card, Pack, Pile};
 
+/// `Standard52` is a representation of a deck of cards used to play
+/// most versions of poker. It is useful to determine if a `Card` belongs
+/// in the deck and to deserialize Cards, Piles and decks from index strings.
 #[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Standard52 {
     pub pack: Pack,
@@ -40,20 +45,92 @@ impl Standard52 {
     ///
     /// Will return `DeckError::InvalidIndex` if passed in index is incomplete.
     pub fn from_index(card_str: &'static str) -> Result<Standard52, DeckError> {
-        let mut pile = Pile::default();
-        for index in card_str.split_whitespace() {
-            pile.add(Standard52::card_from_index(index));
-        }
-
         let standard52 = Standard52 {
             pack: Pack::french_deck(),
-            deck: pile,
+            deck: Standard52::pile_from_index(card_str)?,
         };
 
         if standard52.is_complete() {
             Ok(standard52)
         } else {
             Err(DeckError::InvalidIndex)
+        }
+    }
+
+    /// # Errors
+    ///
+    /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
+    pub fn pile_from_index(card_str: &'static str) -> Result<Pile, DeckError> {
+        let mut pile = Pile::default();
+        for index in card_str.split_whitespace() {
+            let card = Standard52::card_from_index(index);
+
+            if card.is_valid() {
+                pile.push(card);
+            } else {
+                return Err(DeckError::InvalidIndex);
+            }
+        }
+        Ok(pile)
+    }
+
+    /// Validating method that takes a `Standard52` index string and returns a `Pile`,
+    /// making sure that there are no duplicate valid cards in the string.
+    ///
+    /// This method is doing a lot :-P
+    ///
+    /// # Errors
+    ///
+    /// Will return `DeckError::InvalidIndex` if passed in index is invalid.
+    /// Will return `DeckError::DuplicateCard` if the index has the same `Card` more
+    /// than once.
+    ///
+    /// # Panics
+    ///
+    /// Should not be possible.
+    #[allow(clippy::question_mark)]
+    pub fn pile_from_index_validated(card_str: &'static str) -> Result<Pile, DeckError> {
+        let mut set = Standard52Set::default();
+        let pile = Standard52::pile_from_index(card_str);
+        if pile.is_err() {
+            return pile;
+        }
+
+        for card in pile.unwrap() {
+            let inserted = set.insert(card);
+            if !inserted {
+                return Err(DeckError::DuplicateCard);
+            }
+        }
+
+        Ok(set.to_pile())
+    }
+
+    /// # Errors
+    ///
+    /// Will return `DeckError::PilePackMismatch` if `Pile` passed contains a card that isn't
+    /// in the `Standard52` deck.
+    pub fn pile_from_pile(&self, pile: Pile) -> Result<Pile, DeckError> {
+        let mut r = Pile::default();
+        for card in pile {
+            if self.is_valid_card(&card) {
+                r.push(card);
+            } else {
+                return Err(DeckError::PilePackMismatch);
+            }
+        }
+        Ok(r)
+    }
+
+    pub fn draw(&mut self, x: usize) -> Option<Pile> {
+        if x > self.deck.len() || x < 1 {
+            None
+        } else {
+            let mut cards = Pile::default();
+            for _ in 0..x {
+                cards.push(self.deck.draw_first()?);
+            }
+            Some(cards)
         }
     }
 
@@ -87,8 +164,13 @@ impl Standard52 {
         if rank.is_blank() || suit.is_blank() {
             Card::blank_card()
         } else {
-            Card::new_from_structs(rank, suit)
+            Card::new(rank, suit)
         }
+    }
+
+    #[must_use]
+    pub fn is_valid_card(&self, card: &Card) -> bool {
+        self.pack.contains(card)
     }
 
     fn rank_str_from_index(card_str: &'static str) -> &'static str {
@@ -103,6 +185,40 @@ impl Standard52 {
             return '_';
         }
         card_str.char_indices().nth(1).unwrap().1
+    }
+
+    // Suit HashMap Functions
+
+    /// Returns `HashMap` of Piles of Cards sorted by the Standard52 Suits.
+    ///
+    /// <https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.entry//>
+    /// <https://www.reddit.com/r/rust/comments/9xho3i/i_have_a_hashmap_that_pairs_strings_with_vectors//>
+    #[must_use]
+    pub fn sort_by_suit(pile: &Pile) -> HashMap<Suit, Pile> {
+        let mut sorted: HashMap<Suit, Pile> = HashMap::new();
+
+        for suit in Suit::generate_french_suits() {
+            let cards_by_suit = pile.cards_by_suit(suit);
+            if !cards_by_suit.is_empty() {
+                sorted.insert(suit, Pile::from_vector(cards_by_suit));
+            }
+        }
+
+        sorted
+    }
+
+    /// Returns true if five or more cards in a `Pile` are of the same `Suit`.
+    ///
+    /// NOTE: This method is non optimal and is primarily for verification purposes.
+    #[must_use]
+    pub fn is_flush(pile: &Pile) -> bool {
+        let hash_map = Standard52::sort_by_suit(pile);
+        for c in hash_map.values() {
+            if c.len() > 4 {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -126,7 +242,7 @@ impl fmt::Display for Standard52 {
 #[allow(non_snake_case)]
 mod standard52_tests {
     use super::*;
-    use crate::{DIAMONDS, FIVE, FOUR, SPADES, THREE, TWO};
+    use crate::{CLUBS, DIAMONDS, FIVE, FOUR, HEARTS, KING, QUEEN, SPADES, TEN, THREE, TWO};
     use rstest::rstest;
 
     #[test]
@@ -136,11 +252,11 @@ mod standard52_tests {
         let mut standard52 = Standard52::from_index(index_string).unwrap();
 
         assert_eq!(
-            Card::new(TWO, SPADES),
+            Card::from_index_strings(TWO, SPADES),
             standard52.deck.draw_first().unwrap()
         );
         assert_eq!(
-            Card::new(THREE, DIAMONDS),
+            Card::from_index_strings(THREE, DIAMONDS),
             standard52.deck.draw_first().unwrap()
         );
     }
@@ -192,12 +308,40 @@ mod standard52_tests {
     }
 
     #[test]
-    fn from_index_shuffled__invalid_symbol_index() {
+    fn from_index__invalid_index__invalid_index_error() {
         let index = "8 4♣ K♥ Q♦ K♦ 8♥ 5♦ T♣ 9♦ J♣ T♠ 2♠ 4♥ 2♦ 3♠ 5♥ 3♦ A♣ T♥ 7♠ 4♠ K♠ 5♠ 7♣ A♥ K♣ J♠ A♠ Q♥ 2♣ 6♦ J♦ 6♠ 8♠ T♦ 9♠ 7♦ 8♦ 7♥ Q♣ 4♦ 9♣ J♥ 3♣ 6♥ 5♣ A♦ 3♥ 6♣ Q♠ 2♥ 9♥";
 
-        let standard52 = Standard52::from_index(index);
+        let actual_error = Standard52::from_index(index).unwrap_err();
 
-        assert!(standard52.is_err());
+        assert_eq!(actual_error, DeckError::InvalidIndex);
+    }
+
+    #[test]
+    fn pile_from_index() {
+        let index_string = "2S 3D QS KH 3C 3S TC";
+
+        let pile = Standard52::pile_from_index(index_string);
+
+        assert!(pile.is_ok());
+        let pile = pile.unwrap();
+        assert_eq!(pile.cards().len(), 7);
+        assert!(pile.contains(&Card::from_index_strings(TWO, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, DIAMONDS)));
+        assert!(pile.contains(&Card::from_index_strings(QUEEN, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(KING, HEARTS)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, CLUBS)));
+        assert!(pile.contains(&Card::from_index_strings(THREE, SPADES)));
+        assert!(pile.contains(&Card::from_index_strings(TEN, CLUBS)));
+    }
+
+    /// <https://zhauniarovich.com/post/2021/2021-01-testing-errors-in-rust//>
+    #[test]
+    fn pile_from_index__invalid_index__invalid_index_error() {
+        let index = "2S 3D QS K 3C 3S TC";
+
+        let actual_error = Standard52::pile_from_index(index).unwrap_err();
+
+        assert_eq!(actual_error, DeckError::InvalidIndex);
     }
 
     #[test]
@@ -243,15 +387,15 @@ mod standard52_tests {
     }
 
     #[rstest]
-    #[case("2S", Card::new(TWO, SPADES))]
-    #[case("2s", Card::new(TWO, SPADES))]
-    #[case("2♠", Card::new(TWO, SPADES))]
-    #[case("3S", Card::new(THREE, SPADES))]
-    #[case("3♠", Card::new(THREE, SPADES))]
-    #[case("4♠", Card::new(FOUR, SPADES))]
-    #[case("4S", Card::new(FOUR, SPADES))]
-    #[case("5♠", Card::new(FIVE, SPADES))]
-    #[case("5S", Card::new(FIVE, SPADES))]
+    #[case("2S", Card::from_index_strings(TWO, SPADES))]
+    #[case("2s", Card::from_index_strings(TWO, SPADES))]
+    #[case("2♠", Card::from_index_strings(TWO, SPADES))]
+    #[case("3S", Card::from_index_strings(THREE, SPADES))]
+    #[case("3♠", Card::from_index_strings(THREE, SPADES))]
+    #[case("4♠", Card::from_index_strings(FOUR, SPADES))]
+    #[case("4S", Card::from_index_strings(FOUR, SPADES))]
+    #[case("5♠", Card::from_index_strings(FIVE, SPADES))]
+    #[case("5S", Card::from_index_strings(FIVE, SPADES))]
     fn card_from_index(#[case] input: &'static str, #[case] expected: Card) {
         assert_eq!(expected, Standard52::card_from_index(input));
     }
@@ -265,5 +409,43 @@ mod standard52_tests {
     #[case("")]
     fn card_from_index__invalid_index(#[case] input: &'static str) {
         assert_eq!(Card::blank_card(), Standard52::card_from_index(input));
+    }
+
+    #[test]
+    fn sort_by_suit() {
+        let pile = Standard52::pile_from_index("2S 3S 9S TS QS JH Ac").unwrap();
+
+        let sorted = Standard52::sort_by_suit(&pile);
+
+        assert!(sorted.contains_key(&Suit::new(SPADES)));
+        assert!(sorted.contains_key(&Suit::new(HEARTS)));
+        assert!(sorted.contains_key(&Suit::new(CLUBS)));
+        assert!(!sorted.contains_key(&Suit::new(DIAMONDS)));
+    }
+
+    #[rstest]
+    #[case("2S 3S 9S TS QS")]
+    fn to_a_flush(#[case] input: &'static str) {
+        let pile = Standard52::pile_from_index(input).unwrap();
+
+        let _sorted = Standard52::sort_by_suit(&pile);
+    }
+
+    #[rstest]
+    #[case("2S 3S 9S TS QS")]
+    #[case("2S 3S 9S TS QS AH QD")]
+    fn is_flush(#[case] input: &'static str) {
+        assert!(Standard52::is_flush(
+            &Standard52::pile_from_index(input).unwrap()
+        ));
+    }
+
+    #[rstest]
+    #[case("2S 3S 9D TS QS")]
+    #[case("2S 3S 9S TD QS AH QD")]
+    fn is_flush__false(#[case] input: &'static str) {
+        assert!(!Standard52::is_flush(
+            &Standard52::pile_from_index(input).unwrap()
+        ));
     }
 }
