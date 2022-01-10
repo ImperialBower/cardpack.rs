@@ -43,6 +43,16 @@ impl Card {
         Card::new(Rank::new(rank), Suit::new(suit))
     }
 
+    #[must_use]
+    pub fn to_rank_weight(&self) -> Card {
+        Card {
+            weight: self.rank.weight,
+            index: self.index.clone(),
+            suit: self.suit,
+            rank: self.rank,
+        }
+    }
+
     /// Returns a Symbol String for the Card.
     #[must_use]
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
@@ -164,6 +174,11 @@ mod card_tests {
         };
 
         assert_eq!(expected, Card::new(Rank::new(ACE), Suit::new(SPADES)));
+    }
+
+    #[test]
+    fn to_rank_weight() {
+
     }
 
     #[test]
