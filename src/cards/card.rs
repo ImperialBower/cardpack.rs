@@ -184,7 +184,12 @@ mod card_tests {
     }
 
     #[test]
-    fn to_rank_weight() {}
+    fn to_rank_weight() {
+        let card = Card::new(Rank::new(ACE), Suit::new(SPADES));
+        let rank_weighted_card = card.to_rank_weight();
+
+        assert_eq!(rank_weighted_card.weight, 12004);
+    }
 
     #[test]
     fn count() {
