@@ -43,10 +43,12 @@ impl Card {
         Card::new(Rank::new(rank), Suit::new(suit))
     }
 
+    /// Returns a Card where the sorting emphasizes its `Rank` weight over its `Suit` weight.
+    /// So `K♥ A♥ A♠ K♠` would return `A♠ A♥ K♠ K♥` instead of `A♠ K♠ A♥ K♥`.
     #[must_use]
     pub fn to_rank_weight(&self) -> Card {
         Card {
-            weight: self.rank.weight,
+            weight: Card::determine_rank_weight(&self.suit, &self.rank),
             index: self.index.clone(),
             suit: self.suit,
             rank: self.rank,
@@ -99,6 +101,11 @@ impl Card {
         let rank = rank.index_default();
         let suit = suit.index_default();
         format!("{}{}", rank, suit)
+    }
+
+    /// Prioritizes sorting by Suit and then by Rank.
+    fn determine_rank_weight(suit: &Suit, rank: &Rank) -> u32 {
+        (rank.weight * 1000) + suit.weight
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
@@ -177,9 +184,7 @@ mod card_tests {
     }
 
     #[test]
-    fn to_rank_weight() {
-
-    }
+    fn to_rank_weight() {}
 
     #[test]
     fn count() {
