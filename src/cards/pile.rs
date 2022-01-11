@@ -355,6 +355,9 @@ impl Pile {
         suit.symbol().as_str().to_owned() + " " + &cards.rank_indexes_with_separator(" ")
     }
 
+    /// Returns a Vector of index strings, one for each `Suit` in the `Pile`, that starts with
+    /// the `Card's` `Suit` symbol followed by the `Rank` for each `Card` in the `Pile`.
+    /// This is useful for creating displays such as the ones in Bridge columns.
     #[must_use]
     pub fn short_suit_indexes(&self) -> Vec<String> {
         self.sort()
@@ -371,6 +374,8 @@ impl Pile {
         self.short_suit_indexes().join("\n")
     }
 
+    /// Returns a new, sorted `Pile`. Sorting is determined by the weight set for
+    /// each `Card` in the `Pile`.
     #[must_use]
     pub fn shuffle(&self) -> Pile {
         let mut shuffled = self.clone();
@@ -392,6 +397,29 @@ impl Pile {
     pub fn sort_in_place(&mut self) {
         self.0.sort();
         self.0.reverse();
+    }
+
+    /// Takes the entire Pile and returns a new Pile where the cards in it are Rank weighted first
+    /// instead of Suit weighted first. Useful for when displays need to sort by Rank.
+    ///
+    /// ```
+    /// use cardpack::{Card, CLUBS, HEARTS, JACK, QUEEN, Pile};
+    ///
+    /// let qh = Card::from_index_strings(QUEEN, HEARTS);
+    /// let jh = Card::from_index_strings(JACK, HEARTS);
+    /// let qc = Card::from_index_strings(QUEEN, CLUBS);
+    /// let jc = Card::from_index_strings(JACK, CLUBS);
+    ///
+    /// let pile = Pile::from_vector(vec![qh, jh, jc, qc]);
+    /// let rank_weighted = pile.convert_to_rank_sort();
+    ///
+    /// println!("{}", rank_weighted.sort());
+    /// ```
+    /// This will print out `QH QC JH JC`.
+    ///
+    #[must_use]
+    pub fn convert_to_rank_sort(&self) -> Pile {
+        self.0.iter().map(Card::to_rank_weight).collect()
     }
 
     /// Returns a sorted collection of the unique Suits in a Pile.
@@ -680,6 +708,23 @@ mod pile_tests {
         let v = pile.cards_by_suit(qc.suit);
 
         assert_eq!(expected, v);
+
+        format!("{}", pile.convert_to_rank_sort().sort());
+    }
+
+    #[test]
+    fn convert_to_rank_sort() {
+        let qh = Card::from_index_strings(QUEEN, HEARTS);
+        let jh = Card::from_index_strings(JACK, HEARTS);
+        let qc = Card::from_index_strings(QUEEN, CLUBS);
+        let jc = Card::from_index_strings(JACK, CLUBS);
+
+        let pile = Pile::from_vector(vec![qh, jh, jc, qc]);
+
+        assert_eq!(
+            "QH QC JH JC",
+            format!("{}", pile.convert_to_rank_sort().sort())
+        );
     }
 
     #[test]
