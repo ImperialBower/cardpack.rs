@@ -113,3 +113,10 @@ internationalization. Current languages supported are
 ## Dev Dependencies
 
 * [rstest](https://github.com/la10736/rstest) - Fixture-based test framework for Rust
+
+## TODO
+
+* [Hanafuda](https://en.wikipedia.org/wiki/Hanafuda)
+  * [고스톱 (Go-Stop)](https://en.wikipedia.org/wiki/Go-Stop)
+    * [nbry/go-stop-rust](https://github.com/nbry/go-stop-rust)
+  * [Sakura](https://en.wikipedia.org/wiki/Sakura_(card_game))
