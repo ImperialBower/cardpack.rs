@@ -260,6 +260,37 @@ impl Pile {
 
     /// Takes a `Pile` and returns a `HashMap` with the key as each `Suit` in the `Pile` with the values
     /// as a `Pile` of the cards for that Suit.
+    ///
+    /// TODO: Make generic
+    #[must_use]
+    pub fn map_by_rank(&self) -> HashMap<Rank, Pile> {
+        // WONDERING IF THIS WAY IS BETTER
+        // pub fn map_by_rank(&self) -> HashMap<Rank, Pile> {
+        //     let mut s: HashMap<Rank, Pile> = HashMap::default();
+        //     for card in self.clone().into_iter() {
+        //         if s.contains_key(&card.rank) {
+        //             s.get_mut(&card.rank).unwrap().push(card);
+        //         } else {
+        //             s.insert(card.rank, Pile::from_vector(vec![card]));
+        //         }
+        //     }
+        //     s
+        // }
+        let mut mappie: HashMap<Rank, Pile> = HashMap::new();
+        for rank in self.ranks() {
+            let pile = self
+                .0
+                .clone()
+                .into_iter()
+                .filter(|c| c.rank == rank)
+                .collect();
+            mappie.insert(rank, pile);
+        }
+        mappie
+    }
+
+    /// Takes a `Pile` and returns a `HashMap` with the key as each `Suit` in the `Pile` with the values
+    /// as a `Pile` of the cards for that Suit.
     #[must_use]
     pub fn map_by_suit(&self) -> HashMap<Suit, Pile> {
         let mut mappie: HashMap<Suit, Pile> = HashMap::new();
@@ -348,6 +379,16 @@ impl Pile {
         }
     }
 
+    /// Returns a `Pile` with a geometric binary shift operation performed on the
+    /// existing one. Used for frequency sorting on a `Pile` of `Cards`.
+    #[must_use]
+    pub fn shift_rank_weight_left(&self, i: usize) -> Pile {
+        self.clone()
+            .into_iter()
+            .map(|c| c.shift_rank_weight_left(i))
+            .collect()
+    }
+
     #[must_use]
     pub fn short_index_for_suit(&self, suit: Suit) -> String {
         let cards = Pile::from_vector(self.cards_by_suit(suit));
@@ -399,6 +440,21 @@ impl Pile {
         self.0.reverse();
     }
 
+    /// Takes the existing `Pile` and returns a new one with a sort emphasizing
+    /// the frequency of the cards passed in. The more `Cards` of a specific
+    /// `Rank`, the higher the weight each `Card` is given.
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
+    pub fn sort_by_frequency(&self) -> Pile {
+        let mut v: Vec<Pile> = Vec::default();
+        let mappie = self.map_by_rank();
+        for rank in mappie.keys() {
+            let un = mappie.get(rank).unwrap();
+            v.push(un.shift_rank_weight_left(un.len()));
+        }
+        Pile::pile_on(v).sort()
+    }
+
     /// Takes the entire Pile and returns a new Pile where the cards in it are Rank weighted first
     /// instead of Suit weighted first. Useful for when displays need to sort by Rank.
     ///
@@ -411,14 +467,14 @@ impl Pile {
     /// let jc = Card::from_index_strings(JACK, CLUBS);
     ///
     /// let pile = Pile::from_vector(vec![qh, jh, jc, qc]);
-    /// let rank_weighted = pile.convert_to_rank_sort();
+    /// let rank_weighted = pile.convert_to_rank_weighted();
     ///
     /// println!("{}", rank_weighted.sort());
     /// ```
     /// This will print out `QH QC JH JC`.
     ///
     #[must_use]
-    pub fn convert_to_rank_sort(&self) -> Pile {
+    pub fn convert_to_rank_weighted(&self) -> Pile {
         self.0.iter().map(Card::to_rank_weight).collect()
     }
 
@@ -709,7 +765,7 @@ mod pile_tests {
 
         assert_eq!(expected, v);
 
-        format!("{}", pile.convert_to_rank_sort().sort());
+        format!("{}", pile.convert_to_rank_weighted().sort());
     }
 
     #[test]
@@ -723,7 +779,7 @@ mod pile_tests {
 
         assert_eq!(
             "QH QC JH JC",
-            format!("{}", pile.convert_to_rank_sort().sort())
+            format!("{}", pile.convert_to_rank_weighted().sort())
         );
     }
 
@@ -897,6 +953,22 @@ mod pile_tests {
         assert_eq!(*mappie.get(&Rank::new(QUEEN)).unwrap(), 4);
         assert_eq!(*mappie.get(&Rank::new(NINE)).unwrap(), 1);
         assert!(mappie.get(&Rank::new(EIGHT)).is_none());
+    }
+
+    #[test]
+    fn pile_by_rank() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["QS", "9S", "QC", "QH", "QD"])
+            .unwrap();
+
+        let ranked = pile.map_by_rank();
+        let queens = ranked.get(&Rank::new(QUEEN)).unwrap();
+        let nines = ranked.get(&Rank::new(NINE)).unwrap();
+        let eights = ranked.get(&Rank::new(EIGHT));
+
+        assert_eq!(queens.len(), 4);
+        assert_eq!(nines.len(), 1);
+        assert!(eights.is_none());
     }
 
     #[test]
@@ -1119,6 +1191,28 @@ mod pile_tests {
         let sig = deck.to_symbol_index();
 
         assert_eq!("JB🃟 JL🃟 A♠ K♠".to_string(), sig);
+    }
+
+    #[test]
+    fn sort_by_frequency__two_pair() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["9C", "QS", "9S", "TD", "TH"])
+            .unwrap();
+
+        let actual = pile.sort_by_frequency();
+
+        assert_eq!("T♥ T♦ 9♠ 9♣ Q♠", actual.to_symbol_index())
+    }
+
+    #[test]
+    fn sort_by_frequency__full_house() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["AD", "2C", "AS", "2S", "2H"])
+            .unwrap();
+
+        let actual = pile.sort_by_frequency();
+
+        assert_eq!("2♠ 2♥ 2♣ A♠ A♦", actual.to_symbol_index())
     }
 
     #[test]

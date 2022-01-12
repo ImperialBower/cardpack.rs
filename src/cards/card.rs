@@ -55,6 +55,19 @@ impl Card {
         }
     }
 
+    /// Returns a version of the `Card`, with a geometric `Rank` weighted operation
+    /// has been performed on it.
+    #[must_use]
+    pub fn shift_rank_weight_left(&self, i: usize) -> Card {
+        let rank_weight = Card::determine_rank_weight(&self.suit, &self.rank);
+        Card {
+            weight: rank_weight << (i * i),
+            index: self.index.clone(),
+            suit: self.suit,
+            rank: self.rank,
+        }
+    }
+
     /// Returns a Symbol String for the Card.
     #[must_use]
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
@@ -105,7 +118,7 @@ impl Card {
 
     /// Prioritizes sorting by Suit and then by Rank.
     fn determine_rank_weight(suit: &Suit, rank: &Rank) -> u32 {
-        (rank.weight * 1000) + suit.weight
+        ((rank.weight + 2) * 1000) + suit.weight
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
@@ -154,7 +167,9 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, QUEEN, SPADES, TWO};
+    use crate::{
+        ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, TWO,
+    };
     use std::cell::Cell;
 
     // region impl tests
@@ -184,11 +199,43 @@ mod card_tests {
     }
 
     #[test]
+    fn shift_weight_left() {
+        let ace = Card::new(Rank::new(ACE), Suit::new(SPADES));
+        let ace_hearts = Card::new(Rank::new(ACE), Suit::new(HEARTS));
+        let king = Card::new(Rank::new(KING), Suit::new(SPADES));
+        let deuce = Card::new(Rank::new(TWO), Suit::new(SPADES));
+
+        let ace_shift_one = ace.shift_rank_weight_left(1);
+        let ace_hearts_shift_one = ace_hearts.shift_rank_weight_left(1);
+        let ace_hearts_shift_four = ace_hearts.shift_rank_weight_left(4);
+        let king_shift_one = king.shift_rank_weight_left(1);
+        let deuce_shift_two = deuce.shift_rank_weight_left(2);
+
+        assert_eq!(ace_shift_one.weight, 28008);
+        assert_eq!(ace_hearts_shift_one.weight, 28006);
+        assert_eq!(ace_hearts_shift_four.weight, 917700608);
+        assert_eq!(king_shift_one.weight, 26008);
+        assert_eq!(deuce_shift_two.weight, 32064);
+        assert!(ace_shift_one.weight > ace_hearts_shift_one.weight);
+        assert!(ace_hearts_shift_one.weight > king_shift_one.weight);
+        assert!(king_shift_one.weight < deuce_shift_two.weight);
+        assert!(king_shift_one.weight > ace.weight);
+    }
+
+    #[test]
     fn to_rank_weight() {
         let card = Card::new(Rank::new(ACE), Suit::new(SPADES));
         let rank_weighted_card = card.to_rank_weight();
 
-        assert_eq!(rank_weighted_card.weight, 12004);
+        assert_eq!(rank_weighted_card.weight, 14004);
+    }
+
+    #[test]
+    fn to_rank_weight_deuce() {
+        let card = Card::new(Rank::new(TWO), Suit::new(SPADES));
+        let rank_weighted_card = card.to_rank_weight();
+
+        assert_eq!(rank_weighted_card.weight, 2004);
     }
 
     #[test]
@@ -236,8 +283,6 @@ mod card_tests {
     #[test]
     fn default() {
         let card = Card::default();
-
-        // println!("{:?}", card);
 
         assert_eq!(0, card.weight);
         assert_eq!("__".to_string(), card.index);
