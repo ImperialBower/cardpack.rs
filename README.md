@@ -100,6 +100,7 @@ internationalization. Current languages supported are
 * [ascclemens/cards](https://github.com/ascclemens/cards)
 * [locka99/deckofcards-rs](https://github.com/locka99/deckofcards-rs)
 * [vsupalov/cards-rs](https://github.com/vsupalov/cards-rs)
+* [droundy/bridge-cards](https://github.com/droundy/bridge-cards)
 * Tarot Libraries
   * [lawreka/ascii-tarot](https://github.com/lawreka/ascii-tarot)
   * [pietdaniel/tarot](https://github.com/pietdaniel/tarot)
