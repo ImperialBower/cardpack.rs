@@ -179,7 +179,7 @@ impl Rank {
             "K" | "k" => Rank::new(KING),
             "Q" | "q" => Rank::new(QUEEN),
             "J" | "j" => Rank::new(JACK),
-            "T" | "0" | "10" => Rank::new(TEN),
+            "T" | "t" | "0" | "10" => Rank::new(TEN),
             "9" => Rank::new(NINE),
             "8" => Rank::new(EIGHT),
             "7" => Rank::new(SEVEN),
@@ -365,6 +365,7 @@ mod rank_tests {
     #[case("J", Rank::new(JACK))]
     #[case("j", Rank::new(JACK))]
     #[case("T", Rank::new(TEN))]
+    #[case("t", Rank::new(TEN))]
     #[case("10", Rank::new(TEN))]
     #[case("0", Rank::new(TEN))]
     #[case("9", Rank::new(NINE))]
