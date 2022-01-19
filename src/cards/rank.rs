@@ -175,10 +175,10 @@ impl Rank {
         match index {
             "JB" => Rank::new(BIG_JOKER),
             "JL" => Rank::new(LITTLE_JOKER),
-            "A" => Rank::new(ACE),
-            "K" => Rank::new(KING),
-            "Q" => Rank::new(QUEEN),
-            "J" => Rank::new(JACK),
+            "A" | "a" => Rank::new(ACE),
+            "K" | "k" => Rank::new(KING),
+            "Q" | "q" => Rank::new(QUEEN),
+            "J" | "j" => Rank::new(JACK),
             "T" | "0" | "10" => Rank::new(TEN),
             "9" => Rank::new(NINE),
             "8" => Rank::new(EIGHT),
@@ -357,9 +357,13 @@ mod rank_tests {
     #[case("JB", Rank::new(BIG_JOKER))]
     #[case("JL", Rank::new(LITTLE_JOKER))]
     #[case("A", Rank::new(ACE))]
+    #[case("a", Rank::new(ACE))]
     #[case("K", Rank::new(KING))]
+    #[case("k", Rank::new(KING))]
     #[case("Q", Rank::new(QUEEN))]
+    #[case("q", Rank::new(QUEEN))]
     #[case("J", Rank::new(JACK))]
+    #[case("j", Rank::new(JACK))]
     #[case("T", Rank::new(TEN))]
     #[case("10", Rank::new(TEN))]
     #[case("0", Rank::new(TEN))]
