@@ -1216,6 +1216,17 @@ mod pile_tests {
     }
 
     #[test]
+    fn sort_by_frequency__straight() {
+        let pile = Pile::french_deck()
+            .pile_by_index(&["8C", "AD", "2H", "4H", "9S"])
+            .unwrap();
+
+        let actual = pile.sort_by_frequency();
+
+        assert_eq!("A♦ 9♠ 8♣ 4♥ 2♥", actual.to_symbol_index())
+    }
+
+    #[test]
     fn suits() {
         let deck = Pile::french_deck();
         let expected: Vec<Suit> = vec![

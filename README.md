@@ -119,5 +119,6 @@ internationalization. Current languages supported are
 
 * [Hanafuda](https://en.wikipedia.org/wiki/Hanafuda)
   * [고스톱 (Go-Stop)](https://en.wikipedia.org/wiki/Go-Stop)
+    * [Go-Stop - The Cards](https://www.sloperama.com/gostop/cards.html)
     * [nbry/go-stop-rust](https://github.com/nbry/go-stop-rust)
   * [Sakura](https://en.wikipedia.org/wiki/Sakura_(card_game))
