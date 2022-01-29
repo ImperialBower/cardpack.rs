@@ -192,6 +192,27 @@ impl Rank {
         }
     }
 
+    /// Returns a Rank entity based on its index string.
+    #[must_use]
+    pub fn from_french_deck_char(index: char) -> Rank {
+        match index {
+            'A' | 'a' => Rank::new(ACE),
+            'K' | 'k' => Rank::new(KING),
+            'Q' | 'q' => Rank::new(QUEEN),
+            'J' | 'j' => Rank::new(JACK),
+            'T' | 't' | '0' => Rank::new(TEN),
+            '9' => Rank::new(NINE),
+            '8' => Rank::new(EIGHT),
+            '7' => Rank::new(SEVEN),
+            '6' => Rank::new(SIX),
+            '5' => Rank::new(FIVE),
+            '4' => Rank::new(FOUR),
+            '3' => Rank::new(THREE),
+            '2' => Rank::new(TWO),
+            _ => Rank::new(BLANK_RANK),
+        }
+    }
+
     #[must_use]
     pub fn generate_canasta_ranks() -> Vec<Rank> {
         Rank::from_array(&[
@@ -351,6 +372,32 @@ mod rank_tests {
         expected.push(Rank::new_with_weight(QUEEN, 0));
 
         assert_eq!(expected, Rank::from_array(&[KING, QUEEN]));
+    }
+
+    #[rstest]
+    #[case('A', Rank::new(ACE))]
+    #[case('a', Rank::new(ACE))]
+    #[case('K', Rank::new(KING))]
+    #[case('k', Rank::new(KING))]
+    #[case('Q', Rank::new(QUEEN))]
+    #[case('q', Rank::new(QUEEN))]
+    #[case('J', Rank::new(JACK))]
+    #[case('j', Rank::new(JACK))]
+    #[case('T', Rank::new(TEN))]
+    #[case('t', Rank::new(TEN))]
+    #[case('0', Rank::new(TEN))]
+    #[case('9', Rank::new(NINE))]
+    #[case('8', Rank::new(EIGHT))]
+    #[case('7', Rank::new(SEVEN))]
+    #[case('6', Rank::new(SIX))]
+    #[case('5', Rank::new(FIVE))]
+    #[case('4', Rank::new(FOUR))]
+    #[case('3', Rank::new(THREE))]
+    #[case('2', Rank::new(TWO))]
+    #[case('_', Rank::new(BLANK_RANK))]
+    #[case(' ', Rank::new(BLANK_RANK))]
+    fn from_french_deck_char(#[case] input: char, #[case] expected: Rank) {
+        assert_eq!(expected, Rank::from_french_deck_char(input));
     }
 
     #[rstest]
