@@ -157,9 +157,32 @@ impl Standard52 {
     }
 
     #[must_use]
-    pub fn card_from_index(card_str: &'static str) -> Card {
-        let rank = Rank::from_french_deck_index(Standard52::rank_str_from_index(card_str));
-        let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index(card_str));
+    pub fn card_from_index(index: &'static str) -> Card {
+        let rank = Rank::from_french_deck_index(Standard52::rank_str_from_index(index));
+        let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index(index));
+
+        if rank.is_blank() || suit.is_blank() {
+            Card::blank_card()
+        } else {
+            Card::new(rank, suit)
+        }
+    }
+
+    #[must_use]
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn card_from_string(index: String) -> Card {
+        let char_vec: Vec<char> = index.chars().collect();
+
+        let mut rank = Rank::default();
+        let mut suit = Suit::default();
+
+        if let Some(r) = char_vec.get(0) {
+            rank = Rank::from_french_deck_char(*r);
+        }
+
+        if let Some(s) = char_vec.get(1) {
+            suit = Suit::from_french_deck_index(*s);
+        }
 
         if rank.is_blank() || suit.is_blank() {
             Card::blank_card()
@@ -409,6 +432,31 @@ mod standard52_tests {
     #[case("")]
     fn card_from_index__invalid_index(#[case] input: &'static str) {
         assert_eq!(Card::blank_card(), Standard52::card_from_index(input));
+    }
+
+    #[rstest]
+    #[case(String::from("2S"), Card::from_index_strings(TWO, SPADES))]
+    #[case(String::from("2s"), Card::from_index_strings(TWO, SPADES))]
+    #[case(String::from("2♠"), Card::from_index_strings(TWO, SPADES))]
+    #[case(String::from("3S"), Card::from_index_strings(THREE, SPADES))]
+    #[case(String::from("3♠"), Card::from_index_strings(THREE, SPADES))]
+    #[case(String::from("4♠"), Card::from_index_strings(FOUR, SPADES))]
+    #[case(String::from("4S"), Card::from_index_strings(FOUR, SPADES))]
+    #[case(String::from("5♠"), Card::from_index_strings(FIVE, SPADES))]
+    #[case(String::from("5S"), Card::from_index_strings(FIVE, SPADES))]
+    fn card_from_string(#[case] input: String, #[case] expected: Card) {
+        assert_eq!(expected, Standard52::card_from_string(input));
+    }
+
+    #[rstest]
+    #[case(String::from("XX"))]
+    #[case(String::from("2X"))]
+    #[case(String::from("XS"))]
+    #[case(String::from("  "))]
+    #[case(String::from(" "))]
+    #[case(String::from(""))]
+    fn card_from_string__invalid_index(#[case] input: String) {
+        assert_eq!(Card::blank_card(), Standard52::card_from_string(input));
     }
 
     #[test]
