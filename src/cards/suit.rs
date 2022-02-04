@@ -52,6 +52,9 @@ impl Suit {
     }
 
     /// Used to generate `Card`'s binary signature.
+    ///
+    /// This is the value that is used to generate [Cactus Kev](https://suffe.cool/poker/evaluator.html)
+    /// numbers.
     #[must_use]
     pub fn binary_signature(&self) -> u32 {
         match self.weight {
@@ -59,6 +62,19 @@ impl Suit {
             3 => 0x2000,
             2 => 0x4000,
             1 => 0x8000,
+            _ => 0xF000,
+        }
+    }
+
+    /// Revised version of the `binary_signature()` method that inverts the weight for easier sorting.
+    /// Has no effect on the generated card ranks, but does make sorting easier.
+    #[must_use]
+    pub fn binary_signature_revised(&self) -> u32 {
+        match self.weight {
+            1 => 0x1000,
+            2 => 0x2000,
+            3 => 0x4000,
+            4 => 0x8000,
             _ => 0xF000,
         }
     }
@@ -184,6 +200,14 @@ mod suit_tests {
         assert_eq!(8192, Suit::new(HEARTS).binary_signature());
         assert_eq!(16384, Suit::new(DIAMONDS).binary_signature());
         assert_eq!(32768, Suit::new(CLUBS).binary_signature());
+    }
+
+    #[test]
+    fn binary_signature_revised() {
+        assert_eq!(32768, Suit::new(SPADES).binary_signature_revised());
+        assert_eq!(16384, Suit::new(HEARTS).binary_signature_revised());
+        assert_eq!(8192, Suit::new(DIAMONDS).binary_signature_revised());
+        assert_eq!(4096, Suit::new(CLUBS).binary_signature_revised());
     }
 
     #[rstest]
