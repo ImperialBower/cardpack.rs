@@ -122,3 +122,4 @@ internationalization. Current languages supported are
     * [Go-Stop - The Cards](https://www.sloperama.com/gostop/cards.html)
     * [nbry/go-stop-rust](https://github.com/nbry/go-stop-rust)
   * [Sakura](https://en.wikipedia.org/wiki/Sakura_(card_game))
+* [Cinch](https://en.wikipedia.org/wiki/Cinch_(card_game))
