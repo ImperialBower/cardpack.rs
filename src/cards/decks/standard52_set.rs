@@ -6,7 +6,7 @@ pub struct Standard52Set(HashSet<Card>);
 
 impl Standard52Set {
     #[must_use]
-    pub fn new(pile: Pile) -> Standard52Set {
+    pub fn new(pile: Pile) -> Self {
         let mut pile_set = Standard52Set::default();
         for card in pile {
             pile_set.insert(card);
@@ -15,8 +15,8 @@ impl Standard52Set {
     }
 
     #[must_use]
-    pub fn standard52() -> Standard52Set {
-        Standard52Set::new(Pile::french_deck())
+    pub fn standard52() -> Self {
+        Self::new(Pile::french_deck())
     }
 
     #[must_use]

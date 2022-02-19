@@ -30,13 +30,13 @@ pub struct Pile(Vec<Card>);
 
 impl Pile {
     #[must_use]
-    pub fn from_vector(v: Vec<Card>) -> Pile {
-        Pile(v)
+    pub fn from_vector(v: Vec<Card>) -> Self {
+        Self(v)
     }
 
     /// Takes a reference to an Array of Piles and consolidates them into a single Pile of Cards.
     #[must_use]
-    pub fn pile_on(piles: Vec<Pile>) -> Pile {
+    pub fn pile_on(piles: Vec<Pile>) -> Self {
         piles.into_iter().flatten().collect()
     }
 
@@ -51,15 +51,15 @@ impl Pile {
     /// This creates and shuffles a Pile made up of six traditional French decks, which would be
     /// suitable for a casino blackjack table.
     ///
-    pub fn pile_up<F>(x: usize, f: F) -> Pile
+    pub fn pile_up<F>(x: usize, f: F) -> Self
     where
-        F: Fn() -> Pile,
+        F: Fn() -> Self,
     {
         let mut pile: Vec<Pile> = Vec::new();
         for _ in 0..x {
             pile.push(f());
         }
-        Pile::pile_on(pile)
+        Self::pile_on(pile)
     }
 
     /// Places the Card at the bottom (end) of the Pile.
