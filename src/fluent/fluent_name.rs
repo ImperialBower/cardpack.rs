@@ -16,11 +16,11 @@ pub struct FluentName(&'static str);
 
 impl FluentName {
     #[must_use]
-    pub fn new(name: &'static str) -> FluentName {
+    pub fn new(name: &'static str) -> Self {
         if name.trim().is_empty() {
-            FluentName(BLANK)
+            Self(BLANK)
         } else {
-            FluentName(name)
+            Self(name)
         }
     }
 }

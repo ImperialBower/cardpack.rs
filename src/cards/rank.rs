@@ -110,9 +110,9 @@ impl Rank {
     /// let king = cardpack::Rank::new(cardpack::HERMIT);
     /// ```
     #[must_use]
-    pub fn new(name: &'static str) -> Rank {
+    pub fn new(name: &'static str) -> Self {
         let name = FluentName::new(name);
-        Rank {
+        Self {
             weight: name.default_weight(),
             prime: name.default_prime(),
             name,
@@ -127,9 +127,9 @@ impl Rank {
     /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
     /// ```
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: u32) -> Rank {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Self {
         let name = FluentName::new(name);
-        Rank {
+        Self {
             weight,
             prime: name.default_prime(),
             name,
@@ -137,8 +137,8 @@ impl Rank {
     }
 
     #[must_use]
-    pub fn new_with_weight_and_prime(name: &'static str, weight: u32, prime: u32) -> Rank {
-        Rank {
+    pub fn new_with_weight_and_prime(name: &'static str, weight: u32, prime: u32) -> Self {
+        Self {
             weight,
             prime,
             name: FluentName::new(name),
@@ -171,7 +171,7 @@ impl Rank {
 
     /// Returns a Rank entity based on its index string.
     #[must_use]
-    pub fn from_french_deck_index(index: &'static str) -> Rank {
+    pub fn from_french_deck_index(index: &'static str) -> Self {
         match index {
             "JB" => Rank::new(BIG_JOKER),
             "JL" => Rank::new(LITTLE_JOKER),

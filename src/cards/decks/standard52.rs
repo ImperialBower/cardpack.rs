@@ -34,8 +34,8 @@ impl Standard52 {
     }
 
     #[must_use]
-    pub fn new_shuffled() -> Standard52 {
-        Standard52 {
+    pub fn new_shuffled() -> Self {
+        Self {
             pack: Pack::french_deck(),
             deck: Pile::french_deck().shuffle(),
         }
@@ -162,7 +162,7 @@ impl Standard52 {
         let suit = Suit::from_french_deck_index(Standard52::suit_char_from_index(index));
 
         if rank.is_blank() || suit.is_blank() {
-            Card::blank_card()
+            Card::default()
         } else {
             Card::new(rank, suit)
         }
@@ -185,7 +185,7 @@ impl Standard52 {
         }
 
         if rank.is_blank() || suit.is_blank() {
-            Card::blank_card()
+            Card::default()
         } else {
             Card::new(rank, suit)
         }
@@ -431,7 +431,7 @@ mod standard52_tests {
     #[case(" ")]
     #[case("")]
     fn card_from_index__invalid_index(#[case] input: &'static str) {
-        assert_eq!(Card::blank_card(), Standard52::card_from_index(input));
+        assert_eq!(Card::default(), Standard52::card_from_index(input));
     }
 
     #[rstest]
@@ -456,7 +456,7 @@ mod standard52_tests {
     #[case(String::from(" "))]
     #[case(String::from(""))]
     fn card_from_string__invalid_index(#[case] input: String) {
-        assert_eq!(Card::blank_card(), Standard52::card_from_string(input));
+        assert_eq!(Card::default(), Standard52::card_from_string(input));
     }
 
     #[test]

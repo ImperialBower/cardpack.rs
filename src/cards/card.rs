@@ -26,10 +26,10 @@ pub struct Card {
 impl Card {
     /// Instantiates a Card with the weight determined by the passed in Rank and Suit.
     #[must_use]
-    pub fn new(rank: Rank, suit: Suit) -> Card {
+    pub fn new(rank: Rank, suit: Suit) -> Self {
         let weight = Card::determine_weight(&suit, &rank);
         let index = Card::determine_index(&suit, &rank);
-        Card {
+        Self {
             weight,
             index,
             suit,
@@ -39,15 +39,15 @@ impl Card {
 
     /// Instantiates a new Card with the default weight as defined in the fluent templates.
     #[must_use]
-    pub fn from_index_strings(rank: &'static str, suit: &'static str) -> Card {
-        Card::new(Rank::new(rank), Suit::new(suit))
+    pub fn from_index_strings(rank: &'static str, suit: &'static str) -> Self {
+        Self::new(Rank::new(rank), Suit::new(suit))
     }
 
     /// Returns a Card where the sorting emphasizes its `Rank` weight over its `Suit` weight.
     /// So `K♥ A♥ A♠ K♠` would return `A♠ A♥ K♠ K♥` instead of `A♠ K♠ A♥ K♥`.
     #[must_use]
-    pub fn to_rank_weight(&self) -> Card {
-        Card {
+    pub fn to_rank_weight(&self) -> Self {
+        Self {
             weight: Card::determine_rank_weight(&self.suit, &self.rank),
             index: self.index.clone(),
             suit: self.suit,
@@ -58,9 +58,9 @@ impl Card {
     /// Returns a version of the `Card`, with a geometric `Rank` weighted operation
     /// has been performed on it.
     #[must_use]
-    pub fn shift_rank_weight_left(&self, i: usize) -> Card {
+    pub fn shift_rank_weight_left(&self, i: usize) -> Self {
         let rank_weight = Card::determine_rank_weight(&self.suit, &self.rank);
-        Card {
+        Self {
             weight: rank_weight << (i * i),
             index: self.index.clone(),
             suit: self.suit,
@@ -90,8 +90,9 @@ impl Card {
     }
 
     #[must_use]
-    pub fn blank_card() -> Card {
-        Card::from_index_strings(BLANK, BLANK)
+    #[deprecated(since = "0.4.15", note = "Use Card::default()")]
+    pub fn blank_card() -> Self {
+        Self::from_index_strings(BLANK, BLANK)
     }
 
     /// A unique index of a `Card` relative to other cards in a `Pile` prioritized by `Rank` and

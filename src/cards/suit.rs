@@ -35,17 +35,17 @@ pub struct Suit {
 
 impl Suit {
     #[must_use]
-    pub fn new(name_str: &'static str) -> Suit {
+    pub fn new(name_str: &'static str) -> Self {
         let name = FluentName::new(name_str);
-        Suit {
+        Self {
             weight: name.default_weight(),
             name,
         }
     }
 
     #[must_use]
-    pub fn new_with_weight(name: &'static str, weight: u32) -> Suit {
-        Suit {
+    pub fn new_with_weight(name: &'static str, weight: u32) -> Self {
+        Self {
             weight,
             name: FluentName::new(name),
         }

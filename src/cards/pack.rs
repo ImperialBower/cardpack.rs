@@ -30,8 +30,8 @@ pub struct Pack {
 }
 
 impl Pack {
-    fn new(cards: Pile) -> Pack {
-        Pack { cards }
+    fn new(cards: Pile) -> Self {
+        Self { cards }
     }
 
     /// Returns true of the combined Cards from the passed in Vector match the Cards in the Pack.
@@ -54,51 +54,51 @@ impl Pack {
         self.cards.contains(card)
     }
 
-    pub fn canasta_deck() -> Pack {
+    pub fn canasta_deck() -> Self {
         let pile = Pile::pile_up(2, Pile::canasta_single_deck);
         let pile = pile.sort();
-        Pack::new(pile)
+        Self::new(pile)
     }
 
     #[must_use]
-    pub fn euchre_deck() -> Pack {
-        Pack::new(Pile::euchre_deck())
+    pub fn euchre_deck() -> Self {
+        Self::new(Pile::euchre_deck())
     }
 
-    pub fn hand_and_foot_deck() -> Pack {
+    pub fn hand_and_foot_deck() -> Self {
         let pile = Pile::pile_up(5, Pile::canasta_base_single_deck);
         let pile = pile.sort();
-        Pack::new(pile)
+        Self::new(pile)
     }
 
     #[must_use]
-    pub fn french_deck() -> Pack {
-        Pack::new(Pile::french_deck())
+    pub fn french_deck() -> Self {
+        Self::new(Pile::french_deck())
     }
 
     #[must_use]
-    pub fn french_deck_with_jokers() -> Pack {
-        Pack::new(Pile::french_deck_with_jokers())
+    pub fn french_deck_with_jokers() -> Self {
+        Self::new(Pile::french_deck_with_jokers())
     }
 
     #[must_use]
-    pub fn pinochle_deck() -> Pack {
-        Pack::new(Pile::pinochle_deck())
+    pub fn pinochle_deck() -> Self {
+        Self::new(Pile::pinochle_deck())
     }
 
     #[must_use]
-    pub fn short_deck() -> Pack {
-        Pack::new(Pile::short_deck())
+    pub fn short_deck() -> Self {
+        Self::new(Pile::short_deck())
     }
 
     #[must_use]
-    pub fn skat_deck() -> Pack {
-        Pack::new(Pile::skat_deck())
+    pub fn skat_deck() -> Self {
+        Self::new(Pile::skat_deck())
     }
 
     #[must_use]
-    pub fn spades_deck() -> Pack {
-        Pack::new(Pile::spades_deck())
+    pub fn spades_deck() -> Self {
+        Self::new(Pile::spades_deck())
     }
 }
 

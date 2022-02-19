@@ -62,7 +62,7 @@ impl BridgeBoard {
     ///
     /// Will panic if an invalid PBN deal string is passed in.
     #[must_use]
-    pub fn from_pbn_deal(deal: &str) -> BridgeBoard {
+    pub fn from_pbn_deal(deal: &str) -> Self {
         let (direction, pbn) = BridgeBoard::split_on_direction(deal);
 
         let mut dir_iter = pbn.split_whitespace();
