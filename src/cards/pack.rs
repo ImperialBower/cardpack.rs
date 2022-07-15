@@ -100,6 +100,11 @@ impl Pack {
     pub fn spades_deck() -> Self {
         Self::new(Pile::spades_deck())
     }
+
+    #[must_use]
+    pub fn tarot_deck() -> Self {
+        Self::new(Pile::tarot_deck())
+    }
 }
 
 #[cfg(test)]
