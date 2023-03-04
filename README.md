@@ -1,6 +1,6 @@
 # cardpack.rs
 
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE-APACHE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE)
 [![Build and Test](https://github.com/ContractBridge/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ContractBridge/cardpack.rs/actions/workflows/CI.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
