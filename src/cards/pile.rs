@@ -72,6 +72,11 @@ impl Pile {
         self.0.append(&mut other.0.clone());
     }
 
+    /// Places the card at the given index
+    pub fn insert(&mut self, index: usize, elem: Card) {
+        self.0.insert(index, elem);
+    }
+
     /// Returns a simple string representation of the Cards in the Pile based upon the
     /// default language local, which is `US_ENGLISH`.
     #[must_use]
