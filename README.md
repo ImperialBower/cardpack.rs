@@ -1,7 +1,7 @@
 # cardpack.rs
 
-[![LICENSE](https://img.shields.io/badge/license-AGPL3.0-blue.svg)](LICENSE)
-![Build Status](https://github.com/ContractBridge/cardpack.rs/actions/workflows/basic.yaml/badge.svg)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE)
+[![Build and Test](https://github.com/ContractBridge/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ContractBridge/cardpack.rs/actions/workflows/CI.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
 <!--[![Coverage Status](https://coveralls.io/repos/github/ContractBridge/cardpack.rs/badge.svg?branch=main)](https://coveralls.io/github/ContractBridge/cardpack.rs?branch=main)-->
