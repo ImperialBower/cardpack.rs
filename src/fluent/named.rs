@@ -24,7 +24,7 @@ pub trait Named {
 
     /// This is the core method for getting fluent values. the index, long, and default weight
     /// methods are all just methods simplifying the call to this method.
-    fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
+    fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> std::string::String {
         let id = format!("{}-{}", self.name(), key_section);
         LOCALES.lookup(lid, id.as_str())
     }
