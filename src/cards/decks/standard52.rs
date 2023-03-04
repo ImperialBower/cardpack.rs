@@ -176,7 +176,7 @@ impl Standard52 {
         let mut rank = Rank::default();
         let mut suit = Suit::default();
 
-        if let Some(r) = char_vec.get(0) {
+        if let Some(r) = char_vec.first() {
             rank = Rank::from_french_deck_char(*r);
         }
 

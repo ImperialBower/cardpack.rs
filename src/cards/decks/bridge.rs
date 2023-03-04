@@ -208,7 +208,7 @@ impl BridgeBoard {
         let indexes = mappie.get(suit);
         match indexes {
             Some(hand) => hand.rank_indexes(),
-            None => "".to_string(),
+            None => String::new(),
         }
     }
 
@@ -217,7 +217,7 @@ impl BridgeBoard {
 
         let mut v: Vec<String> = Vec::new();
         v.append(&mut BridgeBoard::splice_suit_in(
-            rawsuits.get(0).unwrap(),
+            rawsuits.first().unwrap(),
             'S',
         ));
         v.append(&mut BridgeBoard::splice_suit_in(
