@@ -157,8 +157,8 @@ impl Pile {
             let suitname = card.suit.name.long(&US_ENGLISH);
             let rangname = card.rank.name.long(&GERMAN);
             let rankname = card.rank.name.long(&US_ENGLISH);
-            println!("      {} of {} ", rankname, suitname);
-            println!("      {} von {} ", rangname, anzugname);
+            println!("      {rankname} of {suitname} ");
+            println!("      {rangname} von {anzugname} ");
         }
         self.demo_short();
     }
@@ -168,20 +168,20 @@ impl Pile {
 
         for lang in languages {
             println!();
-            print!("   Short Symbols in {:<5}: ", format!("{}", lang));
+            print!("   Short Symbols in {:<5}: ", format!("{lang}"));
             print!("{}", self.to_symbol_index_locale(lang));
         }
 
         for lang in languages {
             println!();
-            print!("   Short Letters in {:<5}: ", format!("{}", lang));
+            print!("   Short Letters in {:<5}: ", format!("{lang}"));
             print!("{}", self.to_index_locale(lang));
         }
 
         println!();
         print!("   Shuffle Deck:           ");
         let shuffled = self.shuffle();
-        print!("{}", shuffled);
+        print!("{shuffled}");
 
         println!();
         print!("   Sort Deck:              ");
@@ -641,7 +641,7 @@ impl Pile {
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
         strings
             .iter()
-            .map(|s| format!("{} ", s))
+            .map(|s| format!("{s} "))
             .collect::<String>()
             .trim_end()
             .to_string()
@@ -658,7 +658,7 @@ impl Default for Pile {
 impl fmt::Display for Pile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.to_index();
-        write!(f, "{}", sig)
+        write!(f, "{sig}")
     }
 }
 

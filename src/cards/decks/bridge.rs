@@ -191,7 +191,7 @@ impl BridgeBoard {
         let west = BridgeBoard::hand_to_pbn_deal_segment(&self.west);
         let north = BridgeBoard::hand_to_pbn_deal_segment(&self.north);
         let east = BridgeBoard::hand_to_pbn_deal_segment(&self.east);
-        format!("S:{} {} {} {}", south, west, north, east)
+        format!("S:{south} {west} {north} {east}")
     }
 
     fn hand_to_pbn_deal_segment(hand: &Pile) -> String {
@@ -201,7 +201,7 @@ impl BridgeBoard {
         let diamonds = BridgeBoard::get_suit_string(&Suit::new(DIAMONDS), &mappie);
         let clubs = BridgeBoard::get_suit_string(&Suit::new(CLUBS), &mappie);
 
-        format!("{}.{}.{}.{}", spades, hearts, diamonds, clubs)
+        format!("{spades}.{hearts}.{diamonds}.{clubs}")
     }
 
     fn get_suit_string(suit: &Suit, mappie: &HashMap<Suit, Pile>) -> String {
@@ -245,7 +245,7 @@ impl BridgeBoard {
         let mut v: Vec<String> = Vec::new();
 
         for c in s.chars() {
-            v.push(format!("{}{}", c, suit));
+            v.push(format!("{c}{suit}"));
         }
         v
     }
@@ -273,7 +273,7 @@ impl Default for BridgeBoard {
 impl fmt::Display for BridgeBoard {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.to_pbn_deal();
-        write!(f, "{}", sig)
+        write!(f, "{sig}")
     }
 }
 

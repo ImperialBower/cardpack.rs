@@ -257,7 +257,7 @@ impl Default for Standard52 {
 impl fmt::Display for Standard52 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sig = self.to_index();
-        write!(f, "{}", sig)
+        write!(f, "{sig}")
     }
 }
 

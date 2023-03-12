@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str::FromStr;
 
 use crate::fluent_name::FluentName;
 use crate::Named;
