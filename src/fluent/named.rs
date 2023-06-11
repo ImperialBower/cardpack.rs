@@ -1,6 +1,6 @@
 use fluent_templates::{static_loader, Loader};
-use unic_langid::{langid, LanguageIdentifier};
 use log::error;
+use unic_langid::{langid, LanguageIdentifier};
 
 static_loader! {
     pub static LOCALES = {
@@ -31,7 +31,7 @@ pub trait Named {
             None => {
                 error!("Invalid Fluent Template text_id: {}", lid);
                 String::from("_")
-            },
+            }
             Some(s) => s,
         }
     }
