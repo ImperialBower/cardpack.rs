@@ -1,5 +1,6 @@
 use fluent_templates::{static_loader, Loader};
 use unic_langid::{langid, LanguageIdentifier};
+use log::error;
 
 static_loader! {
     pub static LOCALES = {
@@ -26,7 +27,13 @@ pub trait Named {
     /// methods are all just methods simplifying the call to this method.
     fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> std::string::String {
         let id = format!("{}-{}", self.name(), key_section);
-        LOCALES.lookup(lid, id.as_str())
+        match LOCALES.lookup(lid, id.as_str()) {
+            None => {
+                error!("Invalid Fluent Template text_id: {}", lid);
+                String::from("_")
+            },
+            Some(s) => s,
+        }
     }
 
     /// Returns the value of the names' index in the fluent templates.
