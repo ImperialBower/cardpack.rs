@@ -73,7 +73,7 @@ impl Card {
     pub fn symbol(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
-        format!("{}{}", rank, suit)
+        format!("{rank}{suit}")
     }
 
     /// Returns a Symbol String for the Card in the traditional colors for the Suits.
@@ -82,10 +82,10 @@ impl Card {
         let rank = self.rank.index(lid);
         let suit = self.suit.symbol();
         match self.suit.name() {
-            "hearts" | "herz" | "diamonds" => format!("{}{}", rank, suit).red().to_string(),
-            "laub" => format!("{}{}", rank, suit).green().to_string(),
-            "schellen" => format!("{}{}", rank, suit).yellow().to_string(),
-            _ => format!("{}{}", rank, suit),
+            "hearts" | "herz" | "diamonds" => format!("{rank}{suit}").red().to_string(),
+            "laub" => format!("{rank}{suit}").green().to_string(),
+            "schellen" => format!("{rank}{suit}").yellow().to_string(),
+            _ => format!("{rank}{suit}"),
         }
     }
 
@@ -114,7 +114,7 @@ impl Card {
     fn determine_index(suit: &Suit, rank: &Rank) -> String {
         let rank = rank.index_default();
         let suit = suit.index_default();
-        format!("{}{}", rank, suit)
+        format!("{rank}{suit}")
     }
 
     /// Prioritizes sorting by Suit and then by Rank.
@@ -149,13 +149,13 @@ impl Named for Card {
     fn index(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.name.index(lid);
         let suit = self.suit.name.index(lid);
-        format!("{}{}", rank, suit)
+        format!("{rank}{suit}")
     }
 
     fn long(&self, lid: &LanguageIdentifier) -> String {
         let rank = self.rank.name.long(lid);
         let suit = self.suit.name.long(lid);
-        format!("{} {}", rank, suit)
+        format!("{rank} {suit}")
     }
 
     fn default_weight(&self) -> u32 {
