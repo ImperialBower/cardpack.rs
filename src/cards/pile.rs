@@ -3,6 +3,7 @@ use rand::thread_rng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
+use std::fmt::Write;
 use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
 
@@ -639,12 +640,11 @@ impl Pile {
 
     #[must_use]
     pub fn sig_generate_from_strings(strings: &[String]) -> String {
-        strings
-            .iter()
-            .map(|s| format!("{s} "))
-            .collect::<String>()
-            .trim_end()
-            .to_string()
+        let out = strings.iter().fold(String::new(), |mut output, s| {
+            let _ = write!(output, "{s} ");
+            output
+        });
+        out.trim_end().to_string()
     }
 }
 
