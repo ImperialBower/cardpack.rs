@@ -161,7 +161,7 @@ impl Named for Suit {
 #[allow(non_snake_case)]
 mod suit_tests {
     use super::*;
-    use crate::{GERMAN, US_ENGLISH};
+    use crate::GERMAN;
     use rstest::rstest;
 
     #[test]

@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Write;
-use std::iter::FromIterator;
 use unic_langid::LanguageIdentifier;
 
 use crate::cards::card::Card;
@@ -223,8 +222,8 @@ impl Pile {
     }
 
     fn fold_in(&mut self, suits: &[Suit], ranks: &[Rank]) {
-        for (_, suit) in suits.iter().enumerate() {
-            for (_, rank) in ranks.iter().enumerate() {
+        for suit in suits {
+            for rank in ranks {
                 self.push(Card::new(*rank, *suit));
             }
         }
@@ -624,13 +623,13 @@ impl Pile {
         let (_, major_arcana_suit) = arcana_suits_enumerator.next().unwrap();
 
         // Generate Major Arcana
-        for (_, rank) in major_arcana_ranks.iter().enumerate() {
+        for rank in &major_arcana_ranks {
             cards.push(Card::new(*rank, *major_arcana_suit));
         }
 
         // Generate Minor Arcana
         for (_, suit) in arcana_suits_enumerator {
-            for (_, rank) in minor_arcana_ranks.iter().enumerate() {
+            for rank in &minor_arcana_ranks {
                 cards.push(Card::new(*rank, *suit));
             }
         }
