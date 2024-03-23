@@ -306,7 +306,7 @@ impl Named for Rank {
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::{GERMAN, US_ENGLISH};
+    use crate::{GERMAN};
     use rstest::rstest;
 
     #[test]
