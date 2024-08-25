@@ -768,8 +768,6 @@ mod pile_tests {
         let v = pile.cards_by_suit(qc.suit);
 
         assert_eq!(expected, v);
-
-        format!("{}", pile.convert_to_rank_weighted().sort());
     }
 
     #[test]
