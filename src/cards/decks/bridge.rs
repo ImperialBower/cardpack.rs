@@ -136,11 +136,10 @@ impl BridgeBoard {
         table.has_bottom_boarder = false;
         table.separate_rows = false;
         table.style = TableStyle::empty();
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            contents,
-            2,
-            Alignment::Left,
-        )]));
+        table.add_row(Row::new(vec![TableCell::builder(contents)
+            .col_span(2)
+            .alignment(Alignment::Left)
+            .build()]));
         table.render()
     }
 
@@ -150,20 +149,25 @@ impl BridgeBoard {
         table.has_bottom_boarder = false;
         table.separate_rows = false;
         table.style = TableStyle::empty();
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            north,
-            2,
-            Alignment::Center,
-        )]));
+        table.add_row(Row::new(vec![TableCell::builder(north)
+            .col_span(2)
+            .alignment(Alignment::Center)
+            .build()]));
+
         table.add_row(Row::new(vec![
-            TableCell::new_with_alignment(west, 1, Alignment::Left),
-            TableCell::new_with_alignment(east, 1, Alignment::Left),
+            TableCell::builder(west)
+                .col_span(1)
+                .alignment(Alignment::Left)
+                .build(),
+            TableCell::builder(east)
+                .col_span(1)
+                .alignment(Alignment::Left)
+                .build(),
         ]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            south,
-            2,
-            Alignment::Center,
-        )]));
+        table.add_row(Row::new(vec![TableCell::builder(south)
+            .col_span(2)
+            .alignment(Alignment::Center)
+            .build()]));
         table.render()
     }
 
