@@ -1,5 +1,4 @@
 use fluent_templates::{static_loader, Loader};
-use log::error;
 use unic_langid::{langid, LanguageIdentifier};
 
 static_loader! {
@@ -25,15 +24,9 @@ pub trait Named {
 
     /// This is the core method for getting fluent values. the index, long, and default weight
     /// methods are all just methods simplifying the call to this method.
-    fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> std::string::String {
+    fn fluent_value(&self, key_section: &str, lid: &LanguageIdentifier) -> String {
         let id = format!("{}-{}", self.name(), key_section);
-        match LOCALES.lookup(lid, id.as_str()) {
-            None => {
-                error!("Invalid Fluent Template text_id: {}", lid);
-                String::from("_")
-            }
-            Some(s) => s,
-        }
+        LOCALES.lookup(lid, id.as_str())
     }
 
     /// Returns the value of the names' index in the fluent templates.
