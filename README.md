@@ -123,3 +123,4 @@ internationalization. Current languages supported are
     * [nbry/go-stop-rust](https://github.com/nbry/go-stop-rust)
   * [Sakura](https://en.wikipedia.org/wiki/Sakura_(card_game))
 * [Cinch](https://en.wikipedia.org/wiki/Cinch_(card_game))
+* [Zwickern](https://en.wikipedia.org/wiki/Zwickern)
