@@ -6,6 +6,10 @@
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
 <!--[![Coverage Status](https://coveralls.io/repos/github/ImperialBower/cardpack.rs/badge.svg?branch=main)](https://coveralls.io/github/ImperialBower/cardpack.rs?branch=main)-->
 
+# UPDATE
+
+I am currently working on a [completely revised version](https://github.com/forfailures/cardpack) of it using generics. 
+
 Generic pack of cards library written in Rust. The goals of the library include:
 
 * Various types of decks of cards.
