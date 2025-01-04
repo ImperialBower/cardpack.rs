@@ -8,8 +8,6 @@
 
 # UPDATE
 
-I am currently working on a [completely revised version](https://github.com/forfailures/cardpack) of it using generics. 
-
 Generic pack of cards library written in Rust. The goals of the library include:
 
 * Various types of decks of cards.
