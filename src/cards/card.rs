@@ -39,7 +39,7 @@ impl Card {
 
     /// Instantiates a new Card with the default weight as defined in the fluent templates.
     ///
-    /// Me not knowing about the  FromStr trait at the time. See also
+    /// Me not knowing about the  `FromStr` trait at the time. See also
     /// [Creating a Rust function that accepts String or &str](https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html/)
     #[must_use]
     pub fn from_index_strings(rank: &'static str, suit: &'static str) -> Self {
