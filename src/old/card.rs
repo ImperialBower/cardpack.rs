@@ -2,7 +2,7 @@ use colored::Colorize;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::named::Named;
+use crate::old::fluent::named::Named;
 use crate::old::rank::Rank;
 use crate::old::suit::Suit;
 
@@ -170,7 +170,7 @@ impl Named for Card {
 #[allow(non_snake_case)]
 mod card_tests {
     use super::*;
-    use crate::fluent::named::{GERMAN, US_ENGLISH};
+    use crate::old::fluent::named::{GERMAN, US_ENGLISH};
     use crate::prelude_old::{
         ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, TWO,
     };

@@ -1,8 +1,8 @@
 use crate::prelude_old::US_ENGLISH;
 use std::fmt;
 
-use crate::fluent::fluent_name::FluentName;
-use crate::fluent::named::Named;
+use crate::old::fluent::fluent_name::FluentName;
+use crate::old::fluent::named::Named;
 
 // Constants representing the internal identifier for a Rank inside the Fluent template files.
 // French Deck Ranks:

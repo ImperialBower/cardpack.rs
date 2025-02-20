@@ -2,6 +2,7 @@
 
 extern crate rand;
 
-pub mod fluent;
+pub mod common;
+pub mod localization;
 pub mod old;
 pub mod prelude_old;

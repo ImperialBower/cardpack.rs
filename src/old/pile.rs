@@ -1,14 +1,15 @@
+use rand::prelude::IndexedRandom;
+use rand::rng;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Write;
 use unic_langid::LanguageIdentifier;
 
-use crate::fluent::named::Named;
-use crate::fluent::named::{GERMAN, US_ENGLISH};
 use crate::old::card::Card;
+use crate::old::fluent::named::Named;
+use crate::old::fluent::named::{GERMAN, US_ENGLISH};
 #[allow(clippy::wildcard_imports)]
 use crate::old::rank::*;
 use crate::old::suit::{Suit, CLUBS, DIAMONDS, HEARTS, TRUMP};
@@ -240,7 +241,7 @@ impl Pile {
 
     #[must_use]
     pub fn get_random(&self) -> Option<&Card> {
-        self.0.choose(&mut rand::thread_rng())
+        self.0.choose(&mut rand::rng())
     }
 
     #[must_use]
@@ -434,7 +435,7 @@ impl Pile {
     }
 
     pub fn shuffle_in_place(&mut self) {
-        self.0.shuffle(&mut thread_rng());
+        self.0.shuffle(&mut rng());
     }
 
     #[must_use]

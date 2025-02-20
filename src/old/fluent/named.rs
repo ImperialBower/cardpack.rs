@@ -3,10 +3,10 @@ use unic_langid::{langid, LanguageIdentifier};
 
 static_loader! {
     pub static LOCALES = {
-        locales: "./src/fluent/locales",
+        locales: "./src/old/fluent/locales",
         fallback_language: "en-US",
         // A fluent resource that is shared with every locale.
-        core_locales: "./src/fluent/locales/core.ftl",
+        core_locales: "./src/old/fluent/locales/core.ftl",
     };
 }
 
@@ -35,8 +35,8 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::named::*;
-    /// use cardpack::fluent::fluent_name::*;
+    /// use cardpack::old::fluent::named::*;
+    /// use cardpack::old::fluent::fluent_name::*;
     ///
     /// let jack = FluentName::new("jack");
     /// println!("{}", jack.index(&GERMAN));
@@ -50,8 +50,8 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::named::*;
-    /// use cardpack::fluent::fluent_name::*;
+    /// use cardpack::old::fluent::named::*;
+    /// use cardpack::old::fluent::fluent_name::*;
     ///
     /// let ten = FluentName::new("ten");
     /// println!("{}", ten.index_default());
@@ -65,8 +65,8 @@ pub trait Named {
     ///
     /// ## Usage
     /// ```
-    /// use cardpack::fluent::named::*;
-    /// use cardpack::fluent::fluent_name::*;
+    /// use cardpack::old::fluent::named::*;
+    /// use cardpack::old::fluent::fluent_name::*;
     ///
     /// let queen = FluentName::new("big-joker");
     /// println!("{}", queen.long(&GERMAN));

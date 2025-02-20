@@ -19,8 +19,10 @@ path = "src/lib.rs"
 [dependencies]
 colored = "2.2"
 fluent-templates = "0.12"
-rand = "0.8.5"
+log = "0.4"
+rand = "0.9"
 term-table = "1.4.0"
+thiserror = "2.0"
 unic-langid = { version = "0.9.5", features = ["macros"] }
 
 [dev-dependencies]
