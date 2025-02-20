@@ -21,13 +21,9 @@ pub use crate::basic::types::card::Card;
 pub use crate::basic::types::deck::Deck;
 pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
-
 pub use crate::basic::types::traits::{Decked, DeckedBase};
-
 pub use crate::common::errors::CardError;
-pub use crate::localization::FluentName;
-
-pub use crate::localization::Named;
+pub use crate::localization::{FluentName, Named};
 
 pub use colored::Colorize;
 pub use std::str::FromStr;

@@ -72,6 +72,10 @@ impl DeckedBase for Skat {
         "Skat".to_string()
     }
 
+    fn fluent_name_base() -> String {
+        FLUENT_KEY_BASE_NAME_SKAT.to_string()
+    }
+
     fn fluent_deck_key() -> String {
         FLUENT_KEY_BASE_NAME_SKAT.to_string()
     }
@@ -83,6 +87,7 @@ mod basic__card__skat_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;
+    use crate::localization::{FluentName, Named};
 
     #[test]
     fn decked__deck() {
@@ -100,5 +105,21 @@ mod basic__card__skat_tests {
     #[test]
     fn decked__validate() {
         assert!(Deck::<Skat>::validate());
+    }
+
+    #[test]
+    fn fluent__name() {
+        let mut deck = Deck::<Skat>::deck();
+        let dause_eichel = deck.draw_first().unwrap();
+        let daus = dause_eichel.fluent_rank_name(&FluentName::DEUTSCH);
+        let eichel = dause_eichel.fluent_suit_name(&FluentName::DEUTSCH);
+        let deuce = dause_eichel.fluent_rank_name(&FluentName::US_ENGLISH);
+        let acorns = dause_eichel.fluent_suit_name(&FluentName::US_ENGLISH);
+
+        assert_eq!(deuce, "Dause");
+        assert_eq!(acorns, "Dause");
+        assert_eq!(daus, "Dause");
+        assert_eq!(eichel, "Dause");
+        assert_eq!(dause_eichel.fluent_name_default(), "Dause Eichel");
     }
 }

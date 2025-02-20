@@ -79,6 +79,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     /// TODO: HACK
     #[must_use]
     pub fn fluent_name(&self, lid: &LanguageIdentifier) -> String {
+        println!("fluent_name: {}", self.base_card);
         match self.base_card.suit.pip_type {
             PipType::Special => self.fluent_rank_name(lid).to_string(),
             PipType::Joker => {
