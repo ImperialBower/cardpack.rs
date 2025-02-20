@@ -19,11 +19,15 @@ path = "src/lib.rs"
 [dependencies]
 colored = "2.2"
 fluent-templates = "0.12"
+itertools = "0.14"
 log = "0.4"
 rand = "0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_yml = "0.0.12"
 term-table = "1.4.0"
 thiserror = "2.0"
 unic-langid = { version = "0.9.5", features = ["macros"] }
 
 [dev-dependencies]
+ckc-rs = "0.1.15"
 rstest = "0.24"

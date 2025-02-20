@@ -1,0 +1,624 @@
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 12
+    index: 'A'
+    symbol: 'A'
+    value: 14
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 11
+    index: '2'
+    symbol: '2'
+    value: 13
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 10
+    index: '3'
+    symbol: '3'
+    value: 12
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 9
+    index: '4'
+    symbol: '4'
+    value: 11
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 8
+    index: '5'
+    symbol: '5'
+    value: 10
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 7
+    index: '6'
+    symbol: '6'
+    value: 9
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 6
+    index: '7'
+    symbol: '7'
+    value: 8
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 5
+    index: '8'
+    symbol: '8'
+    value: 7
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 4
+    index: '9'
+    symbol: '9'
+    value: 6
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 3
+    index: 'T'
+    symbol: 'T'
+    value: 5
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 2
+    index: 'J'
+    symbol: 'J'
+    value: 4
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 1
+    index: 'Q'
+    symbol: 'Q'
+    value: 3
+- suit:
+    pip_type: Suit
+    weight: 3
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    pip_type: Rank
+    weight: 0
+    index: 'K'
+    symbol: 'K'
+    value: 2
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 12
+    index: 'A'
+    symbol: 'A'
+    value: 14
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 11
+    index: '2'
+    symbol: '2'
+    value: 13
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 10
+    index: '3'
+    symbol: '3'
+    value: 12
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 9
+    index: '4'
+    symbol: '4'
+    value: 11
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 8
+    index: '5'
+    symbol: '5'
+    value: 10
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 7
+    index: '6'
+    symbol: '6'
+    value: 9
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 6
+    index: '7'
+    symbol: '7'
+    value: 8
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 5
+    index: '8'
+    symbol: '8'
+    value: 7
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 4
+    index: '9'
+    symbol: '9'
+    value: 6
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 3
+    index: 'T'
+    symbol: 'T'
+    value: 5
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 2
+    index: 'J'
+    symbol: 'J'
+    value: 4
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 1
+    index: 'Q'
+    symbol: 'Q'
+    value: 3
+- suit:
+    pip_type: Suit
+    weight: 2
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    pip_type: Rank
+    weight: 0
+    index: 'K'
+    symbol: 'K'
+    value: 2
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 12
+    index: 'A'
+    symbol: 'A'
+    value: 14
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 11
+    index: '2'
+    symbol: '2'
+    value: 13
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 10
+    index: '3'
+    symbol: '3'
+    value: 12
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 9
+    index: '4'
+    symbol: '4'
+    value: 11
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 8
+    index: '5'
+    symbol: '5'
+    value: 10
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 7
+    index: '6'
+    symbol: '6'
+    value: 9
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 6
+    index: '7'
+    symbol: '7'
+    value: 8
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 5
+    index: '8'
+    symbol: '8'
+    value: 7
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 4
+    index: '9'
+    symbol: '9'
+    value: 6
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 3
+    index: 'T'
+    symbol: 'T'
+    value: 5
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 2
+    index: 'J'
+    symbol: 'J'
+    value: 4
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 1
+    index: 'Q'
+    symbol: 'Q'
+    value: 3
+- suit:
+    pip_type: Suit
+    weight: 1
+    index: 'D'
+    symbol: '♦'
+    value: 2
+  rank:
+    pip_type: Rank
+    weight: 0
+    index: 'K'
+    symbol: 'K'
+    value: 2
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 12
+    index: 'A'
+    symbol: 'A'
+    value: 14
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 11
+    index: '2'
+    symbol: '2'
+    value: 13
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 10
+    index: '3'
+    symbol: '3'
+    value: 12
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 9
+    index: '4'
+    symbol: '4'
+    value: 11
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 8
+    index: '5'
+    symbol: '5'
+    value: 10
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 7
+    index: '6'
+    symbol: '6'
+    value: 9
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 6
+    index: '7'
+    symbol: '7'
+    value: 8
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 5
+    index: '8'
+    symbol: '8'
+    value: 7
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 4
+    index: '9'
+    symbol: '9'
+    value: 6
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 3
+    index: 'T'
+    symbol: 'T'
+    value: 5
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 2
+    index: 'J'
+    symbol: 'J'
+    value: 4
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 1
+    index: 'Q'
+    symbol: 'Q'
+    value: 3
+- suit:
+    pip_type: Suit
+    weight: 0
+    index: 'C'
+    symbol: '♣'
+    value: 1
+  rank:
+    pip_type: Rank
+    weight: 0
+    index: 'K'
+    symbol: 'K'
+    value: 2
