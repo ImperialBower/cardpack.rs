@@ -107,7 +107,7 @@ impl DeckedBase for Standard52 {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_standard52_tests {
+mod basic__card__standard52_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::deck::Deck;

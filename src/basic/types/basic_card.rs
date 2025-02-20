@@ -10,8 +10,8 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::Read;
 
-/// I've created this intermediary struct to mak it easier to mix and match cards for related decks.
-/// Whilst `Card` needs to have be generic so that we can easily share processing code in collections,
+/// I've created this intermediary struct to make it easier to mix and match cards for related decks.
+/// Whilst `Card` needs to be generic so that we can easily share processing code in collections,
 /// the raw data in the `Cards` should be simple and flexible.
 ///
 /// [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
@@ -87,7 +87,7 @@ impl BasicCard {
         self.ckc_rank_bits() | self.ckc_rank_shift8() | self.ckc_get_prime()
     }
 
-    // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out alltogether?
+    // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out altogether?
     fn ckc_suit_number(&self) -> u32 {
         if self.suit.pip_type == PipType::Joker {
             return 0;
@@ -149,7 +149,7 @@ impl PartialOrd for BasicCard {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod basic__basic_card_tests {
+mod basic__types__basic_card_tests {
     use super::*;
     use crate::basic::decks::standard52::Standard52;
     use crate::basic::types::basic_card::BasicCard;

@@ -1,8 +1,8 @@
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::DeckedBase;
-use crate::localization::{FluentName, Named};
 use crate::common::errors::CardError;
+use crate::localization::{FluentName, Named};
 use colored::{Color, Colorize};
 use fluent_templates::LanguageIdentifier;
 use serde::{Deserialize, Serialize};
@@ -199,7 +199,7 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev6_card_tests {
+mod basic__types__card_tests {
     use super::*;
     use crate::basic::decks::cards::french::FrenchBasicCard;
     use crate::basic::decks::french::French;

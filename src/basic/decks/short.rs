@@ -79,7 +79,7 @@ impl DeckedBase for Short {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_short_tests {
+mod basic__card__short_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;

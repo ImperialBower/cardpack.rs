@@ -107,7 +107,7 @@ impl PinochleRank {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod decks__cards__french__tests {
+mod basic__decks__cards__french__tests {
     use super::*;
 
     #[test]

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Verbose output
+set -x
+
+cargo test
+cargo clippy
+cargo fmt
+cargo doc --no-deps
+open ./target/doc/cardpack/index.html

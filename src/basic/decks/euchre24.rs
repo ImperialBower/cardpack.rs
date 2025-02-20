@@ -68,7 +68,7 @@ impl DeckedBase for Euchre24 {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_euchre24_tests {
+mod basic__decks__euchre24_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;

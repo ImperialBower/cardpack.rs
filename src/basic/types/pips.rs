@@ -61,7 +61,7 @@ impl Display for Pip {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev6_pips_tests {
+mod basic__types__pips_tests {
     use super::*;
     use crate::basic::types::basic_card::BasicCard;
 

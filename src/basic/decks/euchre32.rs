@@ -76,7 +76,7 @@ impl DeckedBase for Euchre32 {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_euchre32_tests {
+mod basic__decks__euchre32_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::deck::Deck;

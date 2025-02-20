@@ -92,7 +92,7 @@ impl DeckedBase for Pinochle {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_pinochle_tests {
+mod basic__card__pinochle_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::deck::Deck;

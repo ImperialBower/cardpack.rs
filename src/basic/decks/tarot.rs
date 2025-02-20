@@ -114,18 +114,18 @@ impl DeckedBase for Tarot {
         "Tarot".to_string()
     }
 
-    fn fluent_deck_key() -> String {
+    fn fluent_name_base() -> String {
         FLUENT_KEY_BASE_NAME_TAROT.to_string()
     }
 
-    fn fluent_name_base() -> String {
+    fn fluent_deck_key() -> String {
         FLUENT_KEY_BASE_NAME_TAROT.to_string()
     }
 }
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev6_card_tarot_tests {
+mod basic__card__tarot_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;

@@ -1,5 +1,6 @@
 use crate::basic::decks::cards;
-use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
+use crate::basic::decks::cards::french::FrenchBasicCard;
+use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::deck::Deck;
@@ -81,13 +82,7 @@ impl DeckedBase for Spades {
     }
 
     fn colors() -> HashMap<Pip, Color> {
-        let mut mappie = HashMap::new();
-
-        mappie.insert(FrenchSuit::JOKER, Color::Blue);
-        mappie.insert(FrenchSuit::HEARTS, Color::Red);
-        mappie.insert(FrenchSuit::DIAMONDS, Color::Red);
-
-        mappie
+        French::colors()
     }
 
     fn deck_name() -> String {
@@ -101,7 +96,7 @@ impl DeckedBase for Spades {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev6_card_spades_tests {
+mod basic__card__spades_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;

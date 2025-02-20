@@ -151,7 +151,7 @@ impl DeckedBase for Canasta {
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
-mod rev5_card_canasta_tests {
+mod basic__decks__canasta_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;
@@ -164,7 +164,6 @@ mod rev5_card_canasta_tests {
         );
     }
 
-    /// TODO: WTF??!!
     #[test]
     pub fn ranks_index() {
         let pile = Deck::<Canasta>::deck().shuffled();
@@ -176,6 +175,7 @@ mod rev5_card_canasta_tests {
     }
 
     /// TODO: WTF??!!
+    /// TODO: WTF do I mean by WTF??? Don't do this.
     #[test]
     pub fn suits_index() {
         let pile = Deck::<Canasta>::deck().shuffled().into_pile();

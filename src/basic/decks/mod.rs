@@ -4,7 +4,7 @@ pub mod euchre24;
 pub mod euchre32;
 pub mod french;
 pub mod pinochle;
-mod razz;
+pub mod razz;
 pub mod short;
 pub mod skat;
 pub mod spades;
