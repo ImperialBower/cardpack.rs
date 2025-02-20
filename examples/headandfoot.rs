@@ -1,7 +1,7 @@
-use cardpack::prelude_old::*;
+use cardpack::prelude::*;
 
 fn main() {
-    let headfootdeck = Pack::hand_and_foot_deck();
+    let headfootdeck = Standard52Deck::decks(5);
 
-    headfootdeck.cards().demo();
+    headfootdeck.demo();
 }

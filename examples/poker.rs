@@ -1,19 +1,17 @@
-use cardpack::prelude_old::*;
+use cardpack::prelude::*;
 
 fn main() {
-    println!("Let's deal out a heads up hand of Texas Holdem:\n");
-    let pack = Pack::french_deck();
+    let deck = Deck::<Standard52>::deck();
+    let mut shuffled = deck.shuffled();
 
-    let mut shuffled = pack.cards().shuffle();
-    // TODO: Make it so that each player is dealt one card at a time.
-    let sb = shuffled.draw(2).unwrap();
-    let bb = shuffled.draw(2).unwrap();
+    let small_blind = shuffled.draw(2).unwrap().sort_by_rank();
+    let big_blind = shuffled.draw(2).unwrap().sort_by_rank();
 
-    println!("small blind: {}", sb.to_symbol_index());
-    println!("big blind:   {}", bb.to_symbol_index());
+    println!("small blind: {}", small_blind.to_string());
+    println!("big blind:   {}", big_blind.to_string());
 
     println!();
-    println!("flop : {}", shuffled.draw(3).unwrap().to_symbol_index());
-    println!("turn : {}", shuffled.draw(1).unwrap().to_symbol_index());
-    println!("river: {}", shuffled.draw(1).unwrap().to_symbol_index());
+    println!("flop : {}", shuffled.draw(3).unwrap().to_string());
+    println!("turn : {}", shuffled.draw(1).unwrap().to_string());
+    println!("river: {}", shuffled.draw(1).unwrap().to_string());
 }
