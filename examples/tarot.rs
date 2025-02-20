@@ -1,7 +1,7 @@
-use cardpack::Named;
+use cardpack::prelude_old::*;
 
 fn main() {
-    let deck = cardpack::Pile::tarot_deck();
+    let deck = Pile::tarot_deck();
 
     println!("Tarot Deck");
     display(&deck);
@@ -16,7 +16,7 @@ fn main() {
     deck.demo_short();
 }
 
-fn display(deck: &cardpack::Pile) {
+fn display(deck: &Pile) {
     for card in deck.values() {
         let suitname = card.suit.name.long_default();
 

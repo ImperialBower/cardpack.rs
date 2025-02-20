@@ -2,9 +2,9 @@ use colored::Colorize;
 use std::fmt;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::rank::Rank;
-use crate::cards::suit::Suit;
-use crate::Named;
+use crate::fluent::named::Named;
+use crate::old::rank::Rank;
+use crate::old::suit::Suit;
 
 pub const BLANK: &str = "blank";
 
@@ -37,9 +37,9 @@ impl Card {
         }
     }
 
-    /// Instantiates a new Card with the default weight as defined in the fluent templates.
+    /// Instantiates a new `Card` with the default weight as defined in the fluent templates.
     ///
-    /// Me not knowing about the  FromStr trait at the time. See also
+    /// Me not knowing about the `FromStr` trait at the time. See also
     /// [Creating a Rust function that accepts String or &str](https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html/)
     #[must_use]
     pub fn from_index_strings(rank: &'static str, suit: &'static str) -> Self {
@@ -171,7 +171,7 @@ impl Named for Card {
 mod card_tests {
     use super::*;
     use crate::fluent::named::{GERMAN, US_ENGLISH};
-    use crate::{
+    use crate::prelude_old::{
         ACE, BLANK_RANK, BLANK_SUIT, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, TWO,
     };
     use std::cell::Cell;

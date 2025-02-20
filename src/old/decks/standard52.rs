@@ -1,11 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use crate::cards::decks::deck_error::DeckError;
-use crate::cards::decks::standard52_set::Standard52Set;
-use crate::cards::rank::{Rank, BLANK_RANK};
-use crate::cards::suit::Suit;
-use crate::{Card, Pack, Pile};
+use crate::prelude_old::*;
 
 /// `Standard52` is a representation of a deck of cards used to play
 /// most versions of poker. It is useful to determine if a `Card` belongs
@@ -88,6 +84,8 @@ impl Standard52 {
     /// # Panics
     ///
     /// Should not be possible.
+    ///
+    /// # TODO: DUMB this is me not understanding the `FromStr` trait
     #[allow(clippy::question_mark)]
     pub fn pile_from_index_validated(card_str: &'static str) -> Result<Pile, DeckError> {
         let mut set = Standard52Set::default();
@@ -265,7 +263,9 @@ impl fmt::Display for Standard52 {
 #[allow(non_snake_case)]
 mod standard52_tests {
     use super::*;
-    use crate::{CLUBS, DIAMONDS, FIVE, FOUR, HEARTS, KING, QUEEN, SPADES, TEN, THREE, TWO};
+    use crate::prelude_old::{
+        CLUBS, DIAMONDS, FIVE, FOUR, HEARTS, KING, QUEEN, SPADES, TEN, THREE, TWO,
+    };
     use rstest::rstest;
 
     #[test]

@@ -1,5 +1,7 @@
+use cardpack::prelude_old::*;
+
 fn main() {
-    let canasta = cardpack::Pack::canasta_deck();
+    let canasta = Pack::canasta_deck();
 
     canasta.cards().demo();
 }

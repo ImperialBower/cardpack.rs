@@ -1,4 +1,6 @@
+use cardpack::prelude_old::*;
+
 fn main() {
-    let deck = cardpack::Pile::skat_deck();
+    let deck = Pile::skat_deck();
     deck.demo();
 }

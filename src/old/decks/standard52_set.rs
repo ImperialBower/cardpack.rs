@@ -1,4 +1,4 @@
-use crate::{Card, Pile, Standard52};
+use crate::prelude_old::*;
 use std::collections::HashSet;
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -135,7 +135,7 @@ impl IntoIterator for Standard52Set {
 #[allow(non_snake_case)]
 mod pile_set_tests {
     use super::*;
-    use crate::{CLUBS, CUPS, HEARTS, QUEEN, THREE};
+    use crate::prelude_old::{CLUBS, CUPS, HEARTS, QUEEN, THREE};
 
     #[test]
     fn new() {

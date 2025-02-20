@@ -1,9 +1,9 @@
 use std::fmt;
 
-use crate::cards::card::Card;
-use crate::cards::pack::Pack;
-use crate::cards::pile::Pile;
-use crate::cards::suit::{Suit, CLUBS, DIAMONDS, HEARTS, SPADES};
+use crate::old::card::Card;
+use crate::old::pack::Pack;
+use crate::old::pile::Pile;
+use crate::old::suit::{Suit, CLUBS, DIAMONDS, HEARTS, SPADES};
 use std::collections::HashMap;
 use term_table::row::Row;
 use term_table::table_cell::{Alignment, TableCell};

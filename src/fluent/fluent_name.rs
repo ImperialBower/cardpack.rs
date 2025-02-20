@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::Named;
+use crate::prelude_old::Named;
 
 const BLANK: &str = "blank";
 
@@ -44,7 +44,7 @@ mod fluent_tests {
 
     mod fluent_name_tests {
         use super::*;
-        use crate::{FLUENT_SYMBOL_SECTION, GERMAN, US_ENGLISH};
+        use crate::prelude_old::{FLUENT_SYMBOL_SECTION, GERMAN, US_ENGLISH};
 
         #[test]
         fn new() {

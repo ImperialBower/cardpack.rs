@@ -1,5 +1,4 @@
-use crate::cards::pile::Pile;
-use crate::Card;
+use crate::prelude_old::*;
 
 /// A Pack is an immutable pile of cards. Packs are designed to be a flexible representation of
 /// a deck, stack, discard pile, or hand.
@@ -8,7 +7,9 @@ use crate::Card;
 ///
 /// # Usage:
 /// ```
-/// let pack = cardpack::Pack::french_deck();
+/// use cardpack::prelude_old::*;
+///
+/// let pack = Pack::french_deck();
 ///
 /// let mut shuffled = pack.cards().shuffle();
 /// let sb = shuffled.draw(2).unwrap();

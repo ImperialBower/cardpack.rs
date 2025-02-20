@@ -1,12 +1,14 @@
+use cardpack::prelude_old::*;
+
 fn main() {
     println!("Let's show a Short Deck");
-    let pack = cardpack::Pack::short_deck();
+    let pack = Pack::short_deck();
 
     pack.cards().demo();
 
     println!();
     println!("Now, let's deal out a heads up hand of Short Deck Poker:\n");
-    let pack = cardpack::Pack::short_deck();
+    let pack = Pack::short_deck();
 
     let mut shuffled = pack.cards().shuffle();
     // TODO: Make it so that each player is dealt one card at a time.

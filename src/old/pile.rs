@@ -6,20 +6,22 @@ use std::fmt;
 use std::fmt::Write;
 use unic_langid::LanguageIdentifier;
 
-use crate::cards::card::Card;
-#[allow(clippy::wildcard_imports)]
-use crate::cards::rank::*;
-use crate::cards::suit::{Suit, CLUBS, DIAMONDS, HEARTS, TRUMP};
+use crate::fluent::named::Named;
 use crate::fluent::named::{GERMAN, US_ENGLISH};
-use crate::Named;
+use crate::old::card::Card;
+#[allow(clippy::wildcard_imports)]
+use crate::old::rank::*;
+use crate::old::suit::{Suit, CLUBS, DIAMONDS, HEARTS, TRUMP};
 
 /// A Pile is a sortable collection of Cards.
 ///
 /// # Usage:
 /// ```
-/// let mut pile = cardpack::Pile::default();
-/// let ace_of_spades = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::SPADES);
-/// let ace_of_hearts = cardpack::Card::from_index_strings(cardpack::ACE, cardpack::HEARTS);
+/// use cardpack::prelude_old::*;
+///
+/// let mut pile = Pile::default();
+/// let ace_of_spades = Card::from_index_strings(ACE, SPADES);
+/// let ace_of_hearts = Card::from_index_strings(ACE, HEARTS);
 /// pile.push(ace_of_spades);
 /// pile.push(ace_of_hearts);
 /// pile.shuffle();
@@ -45,7 +47,9 @@ impl Pile {
     ///
     /// # Usage:
     /// ```
-    /// let pile = cardpack::Pile::pile_up(6, cardpack::Pile::french_deck);
+    /// use cardpack::prelude_old::*;
+    ///
+    /// let pile = Pile::pile_up(6, Pile::french_deck);
     /// pile.shuffle();
     /// ```
     /// This creates and shuffles a Pile made up of six traditional French decks, which would be
@@ -464,7 +468,7 @@ impl Pile {
     /// instead of Suit weighted first. Useful for when displays need to sort by Rank.
     ///
     /// ```
-    /// use cardpack::{Card, CLUBS, HEARTS, JACK, QUEEN, Pile};
+    /// use cardpack::prelude_old::*;
     ///
     /// let qh = Card::from_index_strings(QUEEN, HEARTS);
     /// let jh = Card::from_index_strings(JACK, HEARTS);
@@ -684,7 +688,7 @@ impl IntoIterator for Pile {
 #[allow(non_snake_case)]
 mod pile_tests {
     use super::*;
-    use crate::cards::suit::{MAJOR_ARCANA, SPADES};
+    use crate::old::suit::{MAJOR_ARCANA, SPADES};
 
     #[test]
     fn new_from_vector() {

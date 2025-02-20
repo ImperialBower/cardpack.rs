@@ -1,4 +1,6 @@
+use cardpack::prelude_old::*;
+
 fn main() {
-    let deck = cardpack::Pile::pinochle_deck();
+    let deck = Pile::pinochle_deck();
     deck.demo();
 }

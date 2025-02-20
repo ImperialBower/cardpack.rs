@@ -1,6 +1,8 @@
+use cardpack::prelude_old::*;
+
 fn main() {
     println!("Let's deal out a heads up hand of Texas Holdem:\n");
-    let pack = cardpack::Pack::french_deck();
+    let pack = Pack::french_deck();
 
     let mut shuffled = pack.cards().shuffle();
     // TODO: Make it so that each player is dealt one card at a time.

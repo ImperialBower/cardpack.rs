@@ -1,8 +1,8 @@
+use crate::prelude_old::US_ENGLISH;
 use std::fmt;
 
-use crate::fluent_name::FluentName;
-use crate::Named;
-use crate::US_ENGLISH;
+use crate::fluent::fluent_name::FluentName;
+use crate::fluent::named::Named;
 
 // Constants representing the internal identifier for a Rank inside the Fluent template files.
 // French Deck Ranks:
@@ -62,10 +62,12 @@ pub const BLANK_RANK: &str = "_";
 ///
 /// # As an *instance* variable
 /// ```
-/// let ace = cardpack::Rank {
+/// use cardpack::prelude_old::*;
+///
+/// let ace = Rank {
 ///     weight: 1,
 ///     prime: 19,
-///     name: cardpack::fluent_name::FluentName::new(cardpack::ACE),
+///     name: FluentName::new(ACE),
 /// };
 /// ```
 /// This gives you maximum flexibility. Since the value of the Ace is 1, it will be sorted
@@ -73,20 +75,24 @@ pub const BLANK_RANK: &str = "_";
 ///
 /// # ``Rank::new()`` with a value string
 /// ```
-/// let king = cardpack::Rank::new(cardpack::KING);
+/// use cardpack::prelude_old::*;
+///
+/// let king = Rank::new(KING);
 /// ```
 /// This sets the weight for the Rank based upon the default value as set in its fluent template
 /// entry.
 ///
 /// # ``Rank::new_with_weight()``
 /// ```
-/// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+/// use cardpack::prelude_old::*;
+/// let king = Rank::new_with_weight(QUEEN, 12);
 /// ```
 /// Overrides the default weight for a Rank.
 ///
 /// # ``Rank::from_array()``
 /// ```
-/// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[cardpack::ACE, cardpack::TEN,]);
+/// use cardpack::prelude_old::*;
+/// let ranks: Vec<Rank> = Rank::from_array(&[ACE, TEN,]);
 /// ```
 /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
 /// low. This facilitates the easy creation of custom decks, such as pinochle.
@@ -107,7 +113,8 @@ impl Rank {
     ///
     /// ## Usage
     /// ```
-    /// let king = cardpack::Rank::new(cardpack::HERMIT);
+    /// use cardpack::prelude_old::*;
+    /// let king = Rank::new(HERMIT);
     /// ```
     #[must_use]
     pub fn new(name: &'static str) -> Self {
@@ -124,7 +131,9 @@ impl Rank {
     ///
     /// ## Usage
     /// ```
-    /// let king = cardpack::Rank::new_with_weight(cardpack::QUEEN, 12);
+    /// use cardpack::prelude_old::*;
+    ///
+    /// let king = Rank::new_with_weight(QUEEN, 12);
     /// ```
     #[must_use]
     pub fn new_with_weight(name: &'static str, weight: u32) -> Self {
@@ -147,9 +156,11 @@ impl Rank {
 
     /// ## Usage
     /// ```
-    /// let ranks: Vec<cardpack::Rank> = cardpack::Rank::from_array(&[
-    ///     cardpack::ACE, cardpack::TEN, cardpack::KING,
-    ///     cardpack::QUEEN, cardpack::JACK, cardpack::NINE]);
+    /// use cardpack::prelude_old::*;
+    ///
+    /// let ranks: Vec<Rank> = Rank::from_array(&[
+    ///     ACE, TEN, KING,
+    ///     QUEEN, JACK, NINE]);
     /// ```
     /// Returns a Vector of Ranks with their weights determined by the order they're passed in, high to
     /// low. This facilitates the easy creation of custom decks, such as for pinochle.
@@ -279,7 +290,9 @@ impl Default for Rank {
 /// Allows for the Rank to be displayed as a binary value based upon it's prime field.
 /// This will be used for Cactus Kev style hand evaluation.
 /// ```
-/// let king = cardpack::Rank::new(cardpack::KING);
+/// use cardpack::prelude_old::*;
+///
+/// let king = Rank::new(KING);
 /// assert_eq!(format!("King as binary is: {:06b}", king), "King as binary is: 100101");
 /// ```
 impl fmt::Binary for Rank {
@@ -306,7 +319,7 @@ impl Named for Rank {
 #[allow(non_snake_case)]
 mod rank_tests {
     use super::*;
-    use crate::GERMAN;
+    use crate::prelude_old::GERMAN;
     use rstest::rstest;
 
     #[test]
