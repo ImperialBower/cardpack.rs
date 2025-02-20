@@ -96,27 +96,7 @@ where
     // }
 
     fn demo(verbose: bool) {
-        let deck = Self::deck();
-        let shuffled = deck.shuffled();
-        let name = Self::deck_name();
-
-        println!();
-        println!("{name} Deck:          {}", deck.to_color_symbol_string());
-        println!("{name} Deck Index:    {}", deck.index());
-        println!(
-            "{name} Deck Shuffled: {}",
-            shuffled.to_color_symbol_string()
-        );
-
-        if verbose {
-            println!();
-            println!("Long in English and German:");
-
-            for card in deck {
-                let name = card.fluent_name_default();
-                println!("  {name} ");
-            }
-        }
+        Self::deck().demo_cards(verbose);
     }
 
     /// Warning on original version of the code.
