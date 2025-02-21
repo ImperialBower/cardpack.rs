@@ -25,6 +25,14 @@ where
 
 impl<DeckType: DeckedBase> Card<DeckType> {
     #[must_use]
+    pub fn new(base_card: BasicCard) -> Self {
+        Self {
+            base_card,
+            deck: PhantomData,
+        }
+    }
+
+    #[must_use]
     pub fn base(&self) -> BasicCard {
         self.base_card
     }
@@ -79,7 +87,6 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     /// TODO: HACK
     #[must_use]
     pub fn fluent_name(&self, lid: &LanguageIdentifier) -> String {
-        println!("fluent_name: {}", self.base_card);
         match self.base_card.suit.pip_type {
             PipType::Special => self.fluent_rank_name(lid).to_string(),
             PipType::Joker => {
@@ -204,6 +211,13 @@ mod basic__types__card_tests {
     use super::*;
     use crate::basic::decks::cards::french::FrenchBasicCard;
     use crate::basic::decks::french::French;
+
+    #[test]
+    fn new() {
+        let card = Card::<French>::new(FrenchBasicCard::ACE_SPADES);
+        assert_eq!(FrenchBasicCard::ACE_SPADES, card.base());
+        assert_eq!(card.to_string(), "A♠");
+    }
 
     #[test]
     fn is_blank() {
