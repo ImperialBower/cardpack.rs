@@ -11,6 +11,7 @@ pub use crate::basic::decks::french::*;
 // pub use crate::rev6::decks::hand_and_foot::*;
 // guess this is a form of hallucination.
 pub use crate::basic::decks::pinochle::*;
+pub use crate::basic::decks::razz::*;
 pub use crate::basic::decks::short::*;
 pub use crate::basic::decks::skat::*;
 pub use crate::basic::decks::spades::*;
@@ -24,6 +25,11 @@ pub use crate::basic::types::pips::{Pip, PipType};
 pub use crate::basic::types::traits::{Decked, DeckedBase};
 pub use crate::common::errors::CardError;
 pub use crate::localization::{FluentName, Named};
+
+// Macros
+pub use crate::card;
+pub use crate::cards;
+pub use crate::french_cards;
 
 pub use colored::Colorize;
 pub use std::str::FromStr;

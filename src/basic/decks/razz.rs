@@ -54,6 +54,12 @@ mod basic__decks__razz_tests {
     }
 
     #[test]
+    fn deck__draw() {
+        let mut deck = Deck::<Razz>::deck();
+        assert_eq!(deck.draw(3).unwrap().to_string(), "A♠ 2♠ 3♠");
+    }
+
+    #[test]
     fn decked__validate() {
         assert!(Deck::<Razz>::validate());
     }

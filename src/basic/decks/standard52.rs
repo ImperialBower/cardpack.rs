@@ -8,14 +8,6 @@ use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-#[macro_export]
-#[allow(clippy::pedantic)]
-macro_rules! cards {
-    ($card_str:expr) => {
-        Deck::<Standard52>::forgiving_from_str($card_str)
-    };
-}
-
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Standard52 {}
 #[allow(clippy::module_name_repetitions)]
@@ -106,10 +98,9 @@ impl DeckedBase for Standard52 {
 }
 
 #[cfg(test)]
-#[allow(non_snake_case, unused_imports)]
+#[allow(non_snake_case)]
 mod basic__card__standard52_tests {
     use super::*;
-    use crate::basic::decks::french::French;
     use crate::basic::types::deck::Deck;
     use crate::basic::types::traits::Decked;
 

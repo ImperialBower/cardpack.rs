@@ -9,6 +9,7 @@ edition = "2021"
 rust-version = "1.74"
 license = "Apache-2.0"
 exclude = [".github/workflows/*", "examples/*", ".gitignore", ".travis.yml", "Cargo.lock"]
+include = ["src/**", "Cargo.toml", "LICENSE-APACHE", "README.md", "src/basic/decks/yaml/*.yaml"]
 
 [lib]
 name = "cardpack"

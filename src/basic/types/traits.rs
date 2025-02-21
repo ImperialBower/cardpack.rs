@@ -7,6 +7,26 @@ use crate::basic::types::pips::Pip;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+pub trait CKCRevised {
+    #[must_use]
+    fn get_ckc_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_suit_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_bits(&self) -> u32;
+
+    #[must_use]
+    fn ckc_get_prime(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_shift8(&self) -> u32;
+}
+
 pub trait DeckedBase {
     fn base_vec() -> Vec<BasicCard>;
 

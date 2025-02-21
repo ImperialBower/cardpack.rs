@@ -516,6 +516,7 @@ mod basic__types__deck_tests {
     use crate::basic::decks::french::French;
     use crate::basic::decks::standard52::Standard52;
     use crate::basic::types::traits::DeckedBase;
+    use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
 
     #[test]
     fn basic_cards() {
@@ -770,5 +771,48 @@ mod basic__types__deck_tests {
         );
         assert!(deck.same(&deck_from_str));
         assert_eq!(deck, deck_from_str.sort());
+    }
+
+    /// This is just a copy of the `Tiny` example in the main docs.
+    #[test]
+    fn tiny_example() {
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Tiny {}
+
+        impl Tiny {
+            pub const DECK_SIZE: usize = 4;
+
+            pub const DECK: [BasicCard; Tiny::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+            ];
+        }
+
+        impl DeckedBase for Tiny {
+            fn base_vec() -> Vec<BasicCard> {
+                Tiny::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Tiny".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        let mut deck = Deck::<Tiny>::deck();
+        assert_eq!(deck.to_string(), "A♠ K♠ A♥ K♥");
+        assert_eq!(deck.draw_first().unwrap().to_string(), "A♠");
+        assert_eq!(deck.draw_last().unwrap().to_string(), "K♥");
+        assert_eq!(deck.len(), 2);
+        assert_eq!(deck.index(), "KS AH");
     }
 }
