@@ -1,17 +1,17 @@
 # Skat Deck
 # Suits
-name-suit-e = Eichel
-name-suit-l = Laub
-name-suit-h = Herz
-name-suit-s = Schellen
-name-suit-_ = Leer
+name-suit-skat-e = Eichel
+name-suit-skat-l = Laub
+name-suit-skat-h = Herz
+name-suit-skat-s = Schellen
+name-suit-skat-_ = Leer
 
 ## Ranks
-name-rank-d = Daus
-name-rank-z = Zehn
-name-rank-k = König
-name-rank-o = Ober
-name-rank-u = Unter
-name-rank-9 = Neun
-name-rank-8 = Acht
-name-rank-7 = Sieben
+name-rank-skat-d = Daus
+name-rank-skat-z = Zehn
+name-rank-skat-k = König
+name-rank-skat-o = Ober
+name-rank-skat-u = Unter
+name-rank-skat-9 = Neun
+name-rank-skat-8 = Acht
+name-rank-skat-7 = Sieben

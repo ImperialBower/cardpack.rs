@@ -1,17 +1,17 @@
 # Skat Deck
 # Suits
-name-suit-e = Acorns
-name-suit-l = Leaves
-name-suit-h = Hearts
-name-suit-s = Bells
-name-suit-_ = Leer
+name-suit-skat-e = Acorns
+name-suit-skat-l = Leaves
+name-suit-skat-h = Hearts
+name-suit-skat-s = Bells
+name-suit-skat-_ = Leer
 
 ## Ranks
-name-rank-d = Deuce
-name-rank-z = Ten
-name-rank-k = King
-name-rank-o = Over
-name-rank-u = Under
-name-rank-9 = Nine
-name-rank-8 = Eight
-name-rank-7 = Seven
+name-rank-skat-d = Deuce
+name-rank-skat-z = Ten
+name-rank-skat-k = King
+name-rank-skat-o = Over
+name-rank-skat-u = Under
+name-rank-skat-9 = Nine
+name-rank-skat-8 = Eight
+name-rank-skat-7 = Seven

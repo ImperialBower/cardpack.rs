@@ -116,10 +116,10 @@ mod basic__card__skat_tests {
         let deuce = dause_eichel.fluent_rank_name(&FluentName::US_ENGLISH);
         let acorns = dause_eichel.fluent_suit_name(&FluentName::US_ENGLISH);
 
-        assert_eq!(deuce, "Dause");
-        assert_eq!(acorns, "Dause");
-        assert_eq!(daus, "Dause");
-        assert_eq!(eichel, "Dause");
-        assert_eq!(dause_eichel.fluent_name_default(), "Dause Eichel");
+        assert_eq!(daus, "Daus");
+        assert_eq!(eichel, "Eichel");
+        assert_eq!(deuce, "Deuce");
+        assert_eq!(acorns, "Acorns");
+        assert_eq!(dause_eichel.fluent_name_default(), "Deuce of Acorns");
     }
 }
