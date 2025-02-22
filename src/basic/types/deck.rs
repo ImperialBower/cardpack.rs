@@ -402,14 +402,42 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Deck<DeckType> {
     // region Pips
     // TODO: Region to dd pips logic to `Pile`.
 
+    /// Converts the `Deck` into a [`Pile`], which can then filter on rank [`PipType`], which
+    /// then get converted back to a `Deck`.
+    ///
+    /// TODO: Mark this as an example of the abstraction pushing the limits.
+    ///
+    /// This example verifies that there are two `Jokers` in the
+    /// [`French`](crate::basic::decks::french::French) [`Deck`]
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = French::deck();
+    ///
+    /// assert_eq!(deck.cards_of_rank_pip_type(PipType::Joker).len(), 2);
+    /// ```
     #[must_use]
     pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-        // self.iter()
-        //     .filter(|card| card.base_card.rank.pip_type == pip_type)
-        //     .copied()
-        //     .collect()
-
         Self::from(self.into_pile().cards_of_rank_pip_type(pip_type))
+    }
+
+    /// Converts the `Deck` into a `[Pile`], which can then filter on suit `PipType`, which
+    /// then get converted back to a `Deck`.
+    ///
+    /// This example verifies that there are two `Jokers` in the
+    /// [`French`](crate::basic::decks::french::French) [`Deck`]
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = Tarot::deck();
+    ///
+    /// assert_eq!(deck.cards_of_suit_pip_type(PipType::Special).len(), 22);
+    /// ```
+    #[must_use]
+    pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
+        Self::from(self.into_pile().cards_of_suit_pip_type(pip_type))
     }
 
     // endregion
@@ -738,7 +766,7 @@ mod basic__types__deck_tests {
     // region Pips
 
     /// NOTE: CoPilot keeps recommending things that don't exist, such as `PipType::Face`. Is this
-    /// a primative form of halucination?
+    /// a primitive form of hallucination?
     #[test]
     fn cards_of_rank_pip_type() {
         let jokers = French::deck().cards_of_rank_pip_type(PipType::Joker);
