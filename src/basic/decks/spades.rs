@@ -5,7 +5,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::deck::Deck;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -94,19 +94,21 @@ impl DeckedBase for Spades {
     }
 }
 
+impl Decked<Spades> for Spades {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__spades_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
     use std::str::FromStr;
 
     #[test]
     fn from_str() {
         assert_eq!(
-            Deck::<Spades>::deck().to_string(),
+            Spades::deck().to_string(),
             "B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣"
         );
     }
@@ -125,6 +127,6 @@ mod basic__card__spades_tests {
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Spades>::validate());
+        assert!(Spades::validate());
     }
 }

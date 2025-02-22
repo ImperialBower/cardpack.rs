@@ -3,7 +3,7 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::cards::pinochle::PinochleBasicCard;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Deck, Standard52};
 use colored::Color;
 use std::collections::HashMap;
@@ -90,16 +90,18 @@ impl DeckedBase for Pinochle {
     }
 }
 
+impl Decked<Pinochle> for Pinochle {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__pinochle_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Pinochle>::validate());
+        assert!(Pinochle::validate());
     }
 }

@@ -42,39 +42,39 @@ fn main() -> Result<(), CardError> {
     let args = Args::parse();
 
     if args.tarot {
-        TarotDeck::demo(args.verbose);
+        Tarot::demo(args.verbose);
     }
 
     if args.canasta {
-        CanastaDeck::demo(args.verbose);
+        Canasta::demo(args.verbose);
     }
 
     if args.euchre {
-        Euchre24Deck::demo(args.verbose);
+        Euchre24::demo(args.verbose);
     }
 
     if args.manila {
-        ShortDeck::demo(args.verbose);
+        Short::demo(args.verbose);
     }
 
     if args.french {
-        FrenchDeck::demo(args.verbose);
+        French::demo(args.verbose);
     }
 
     if args.spades {
-        SpadesDeck::demo(args.verbose);
+        Spades::demo(args.verbose);
     }
 
     if args.pinochle {
-        PinochleDeck::demo(args.verbose);
+        Pinochle::demo(args.verbose);
     }
 
     if args.skat {
-        SkatDeck::demo(args.verbose);
+        Skat::demo(args.verbose);
     }
 
     if args.standard {
-        Standard52Deck::demo(args.verbose);
+        Standard52::demo(args.verbose);
     }
 
     Ok(())

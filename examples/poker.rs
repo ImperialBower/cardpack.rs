@@ -1,7 +1,7 @@
 use cardpack::prelude::*;
 
 fn main() {
-    let deck = Deck::<Standard52>::deck();
+    let deck = Standard52::deck();
     let mut shuffled = deck.shuffled();
 
     let small_blind = shuffled.draw(2).unwrap().sort_by_rank();

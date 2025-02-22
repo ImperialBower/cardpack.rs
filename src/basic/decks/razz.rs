@@ -1,5 +1,5 @@
 use crate::basic::decks::cards;
-use crate::prelude::{BasicCard, DeckedBase, Pip, Standard52};
+use crate::prelude::{BasicCard, Decked, DeckedBase, Pip, Standard52};
 use colored::Color;
 use std::collections::HashMap;
 
@@ -39,6 +39,8 @@ impl DeckedBase for Razz {
         cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
     }
 }
+
+impl Decked<Razz> for Razz {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

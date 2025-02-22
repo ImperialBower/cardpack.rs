@@ -3,7 +3,7 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::standard52::Standard52;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Deck};
 use colored::Color;
 use std::collections::HashMap;
@@ -66,23 +66,25 @@ impl DeckedBase for Euchre24 {
     }
 }
 
+impl Decked<Euchre24> for Euchre24 {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__decks__euchre24_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
 
     #[test]
     fn decked__deck() {
         assert_eq!(
-            Deck::<Euchre24>::deck().to_string(),
+            Euchre24::deck().to_string(),
             "A♠ K♠ Q♠ J♠ T♠ 9♠ A♥ K♥ Q♥ J♥ T♥ 9♥ A♦ K♦ Q♦ J♦ T♦ 9♦ A♣ K♣ Q♣ J♣ T♣ 9♣"
         );
     }
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Euchre24>::validate());
+        assert!(Euchre24::validate());
     }
 }

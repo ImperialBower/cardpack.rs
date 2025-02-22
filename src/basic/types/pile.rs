@@ -646,7 +646,7 @@ mod basic__types__pile_tests {
 
     #[test]
     pub fn suits() {
-        let pile = Deck::<French>::deck().shuffled().into_pile();
+        let pile = French::deck().shuffled().into_pile();
         let expected = vec![
             FrenchSuit::JOKER,
             FrenchSuit::SPADES,
@@ -669,7 +669,7 @@ mod basic__types__pile_tests {
 
     #[test]
     pub fn suits_index() {
-        let pile = Deck::<French>::deck().shuffled().into_pile();
+        let pile = French::deck().shuffled().into_pile();
         let expected = "J~S~H~D~C";
 
         let suits_index = pile.suits_index("~");
@@ -686,7 +686,7 @@ mod basic__types__pile_tests {
 
     #[test]
     pub fn suit_symbol_index() {
-        let pile = Deck::<French>::deck().shuffled().into_pile();
+        let pile = French::deck().shuffled().into_pile();
         let expected = "🃟~♠~♥~♦~♣";
 
         let suits_index = pile.suit_symbol_index("~");

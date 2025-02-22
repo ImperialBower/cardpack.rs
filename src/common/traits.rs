@@ -7,26 +7,6 @@ use crate::basic::types::pips::Pip;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-pub trait CKCRevised {
-    #[must_use]
-    fn get_ckc_number(&self) -> u32;
-
-    #[must_use]
-    fn ckc_rank_number(&self) -> u32;
-
-    #[must_use]
-    fn ckc_suit_number(&self) -> u32;
-
-    #[must_use]
-    fn ckc_rank_bits(&self) -> u32;
-
-    #[must_use]
-    fn ckc_get_prime(&self) -> u32;
-
-    #[must_use]
-    fn ckc_rank_shift8(&self) -> u32;
-}
-
 pub trait DeckedBase {
     fn base_vec() -> Vec<BasicCard>;
 
@@ -144,4 +124,27 @@ where
 
         deck == deck.clone().shuffled().sort()
     }
+}
+
+/// This is a trait of convenience to organize what needs to be done in order to create a revised
+/// [Cactus Kev](https://suffe.cool/poker/evaluator.html) number. I like having functional blocks
+/// like this organized in a functional way. Traits feel like a good way to do it.
+pub trait CKCRevised {
+    #[must_use]
+    fn get_ckc_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_suit_number(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_bits(&self) -> u32;
+
+    #[must_use]
+    fn ckc_get_prime(&self) -> u32;
+
+    #[must_use]
+    fn ckc_rank_shift8(&self) -> u32;
 }

@@ -1,7 +1,7 @@
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::{Pip, PipType};
-use crate::basic::types::traits::DeckedBase;
 use crate::common::errors::CardError;
+use crate::common::traits::DeckedBase;
 use crate::localization::{FluentName, Named};
 use colored::{Color, Colorize};
 use fluent_templates::LanguageIdentifier;

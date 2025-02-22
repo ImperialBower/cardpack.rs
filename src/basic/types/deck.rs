@@ -1,8 +1,8 @@
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
 use crate::common::errors::CardError;
+use crate::common::traits::DeckedBase;
 use crate::prelude::{Decked, Pile};
 use colored::Color;
 use rand::rng;
@@ -515,7 +515,7 @@ mod basic__types__deck_tests {
     use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchRank, FrenchSuit};
     use crate::basic::decks::french::French;
     use crate::basic::decks::standard52::Standard52;
-    use crate::basic::types::traits::DeckedBase;
+    use crate::common::traits::DeckedBase;
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
 
     #[test]
@@ -582,13 +582,13 @@ mod basic__types__deck_tests {
 
     #[test]
     fn into_hashset() {
-        let five_deck = Deck::<French>::decks(5);
+        let five_deck = French::decks(5);
 
         let hashset: HashSet<Card<French>> = five_deck.into_hashset();
         let deck = Deck::<French>::from(hashset);
 
         assert_eq!(five_deck.len(), 270);
-        assert_eq!(deck, Deck::<French>::deck());
+        assert_eq!(deck, French::deck());
     }
 
     #[test]
@@ -640,7 +640,7 @@ mod basic__types__deck_tests {
 
     #[test]
     fn position() {
-        let pile = Deck::<French>::deck();
+        let pile = French::deck();
 
         let card = Card::<French>::from_str("2♣").unwrap();
 
@@ -713,7 +713,7 @@ mod basic__types__deck_tests {
 
     #[test]
     fn decked__deck() {
-        let french = Deck::<French>::deck();
+        let french = French::deck();
         let standard52 = Deck::<Standard52>::deck();
 
         assert_eq!(french.len(), 54);
@@ -761,7 +761,7 @@ mod basic__types__deck_tests {
 
     #[test]
     fn to_string__from_str() {
-        let deck = Deck::<French>::deck();
+        let deck = French::deck();
         let deck_str = deck.to_string();
         let deck_from_str = Deck::<French>::from_str(&deck_str).unwrap().shuffled();
 

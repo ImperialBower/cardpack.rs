@@ -123,12 +123,14 @@ impl DeckedBase for Tarot {
     }
 }
 
+impl Decked<Tarot> for Tarot {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__tarot_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
     use std::str::FromStr;
 
     #[test]
@@ -141,6 +143,6 @@ mod basic__card__tarot_tests {
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Tarot>::validate());
+        assert!(Tarot::validate());
     }
 }

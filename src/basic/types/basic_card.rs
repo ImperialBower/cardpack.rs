@@ -1,6 +1,6 @@
 use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -72,11 +72,11 @@ impl BasicCard {
     pub fn is_blank(&self) -> bool {
         self.rank.index == '_' || self.suit.index == '_'
     }
+}
 
-    /// Used to generate the `BasicCard`'s binary signature, aka [Cactus Kev](https://suffe.cool/poker/evaluator.html)
-    /// number.
+impl CKCRevised for BasicCard {
     #[must_use]
-    pub fn get_ckc_number(&self) -> u32 {
+    fn get_ckc_number(&self) -> u32 {
         if self.is_blank() {
             return 0;
         }

@@ -12,8 +12,8 @@
 //!
 //! The structure of the library is the following:
 //!
-//! - [`Deck`](basic::types::deck::Deck) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](basic::types::traits::DeckedBase) trait
-//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](basic::types::traits::DeckedBase) trait.
+//! - [`Deck`](basic::types::deck::Deck) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](common::traits::DeckedBase) trait
+//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](common::traits::DeckedBase) trait.
 //!     - [`BasicCard`](basic::types::basic_card::BasicCard) - The basic data of a [`Card`](basic::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
 //!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](basic::types::card::Card).
 //!
@@ -29,6 +29,9 @@
 //! use cardpack::prelude::*;
 //!
 //! let mut french_deck = Deck::<French>::deck();
+//!
+//! // It's also possible to call the deck method directly on the specific generic implementing type:
+//! let mut french_deck = French::deck();
 //!
 //! assert_eq!(french_deck.len(), 54);
 //! assert_eq!(
@@ -145,7 +148,7 @@
 //! ## Custom Deck example:
 //!
 //! Here's a very simple example where we create a tiny deck with only the ace and kink ranks,
-//! and only the spades and hearts suits. Just for fun, we'll include macro for one `Tiny` card.
+//! and only the spades and hearts suits. Just for fun, we'll include a `tiny!` macro for one `Tiny` card.
 //!
 //! ```rust
 //! use std::collections::HashMap;
@@ -184,7 +187,28 @@
 //!     }
 //! }
 //!
-//! let mut deck = Deck::<Tiny>::deck();
+//! // Let's you call Decked methods directly on the Tiny type:
+//! impl Decked<Tiny> for Tiny {}
+//!
+//! macro_rules! tiny {
+//!     (AS) => {
+//!         Card::<Tiny>::new(FrenchBasicCard::ACE_SPADES)
+//!     };
+//!     (KS) => {
+//!         Card::<Tiny>::new(FrenchBasicCard::KING_SPADES)
+//!     };
+//!     (AH) => {
+//!         Card::<Tiny>::new(FrenchBasicCard::ACE_HEARTS)
+//!     };
+//!     (KH) => {
+//!         Card::<Tiny>::new(FrenchBasicCard::KING_HEARTS)
+//!     };
+//!     (__) => {
+//!         Card::<Tiny>::default()
+//!     };
+//! }
+//!
+//! let mut deck = Tiny::deck();
 //!
 //! assert_eq!(deck.to_string(), "A♠ K♠ A♥ K♥");
 //!
@@ -199,10 +223,10 @@
 //! assert_eq!(deck.index(), "KS AH");
 //!
 //! // Draw a remaining card:
-//! assert_eq!(deck.draw_first().unwrap().to_string(), "K♠");
+//! assert_eq!(deck.draw_first().unwrap(), tiny!(KS));
 //!
 //! // Draw the last card:
-//! assert_eq!(deck.draw_last().unwrap().to_string(), "A♥");
+//! assert_eq!(deck.draw_last().unwrap(), tiny!(AH));
 //!
 //! // And now the deck is empty:
 //! assert!(deck.draw_first().is_none());

@@ -390,7 +390,7 @@ mod basic__decks__cards__french__tests {
 
     #[test]
     fn serde__deck() {
-        let pile = Deck::<French>::deck().into_basic_cards();
+        let pile = French::deck().into_basic_cards();
         let yml = serde_yml::to_string(&pile).unwrap();
 
         let from_yml: Vec<BasicCard> = BasicCard::cards_from_str(&yml).unwrap();

@@ -2,7 +2,7 @@ use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Deck, Standard52};
 use colored::Color;
 use std::collections::HashMap;
@@ -77,22 +77,24 @@ impl DeckedBase for Short {
     }
 }
 
+impl Decked<Short> for Short {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__short_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
 
     #[test]
     fn deck() {
-        let deck = Deck::<Short>::deck();
+        let deck = Short::deck();
         assert_eq!(deck.len(), 36);
         assert_eq!(deck.to_string(), "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣");
     }
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Short>::validate());
+        assert!(Short::validate());
     }
 }

@@ -4,7 +4,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::deck::Deck;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -101,13 +101,15 @@ impl DeckedBase for French {
     }
 }
 
+impl Decked<French> for French {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__french__tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
     use std::str::FromStr;
 
     #[test]
@@ -128,7 +130,7 @@ mod basic__card__french__tests {
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<French>::validate());
+        assert!(French::validate());
     }
 
     #[test]

@@ -5,7 +5,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::deck::Deck;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
@@ -149,24 +149,26 @@ impl DeckedBase for Canasta {
     }
 }
 
+impl Decked<Canasta> for Canasta {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__decks__canasta_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
 
     #[test]
     fn decked__deck() {
         assert_eq!(
-            Deck::<Canasta>::deck().to_string(),
+            Canasta::deck().to_string(),
             "3♥ 3♥ 3♦ 3♦ B🃟 B🃟 L🃟 L🃟 2♠ 2♠ 2♥ 2♥ 2♦ 2♦ 2♣ 2♣ A♠ A♠ K♠ K♠ Q♠ Q♠ J♠ J♠ T♠ T♠ 9♠ 9♠ 8♠ 8♠ 7♠ 7♠ 6♠ 6♠ 5♠ 5♠ 4♠ 4♠ 3♠ 3♠ A♥ A♥ K♥ K♥ Q♥ Q♥ J♥ J♥ T♥ T♥ 9♥ 9♥ 8♥ 8♥ 7♥ 7♥ 6♥ 6♥ 5♥ 5♥ 4♥ 4♥ A♦ A♦ K♦ K♦ Q♦ Q♦ J♦ J♦ T♦ T♦ 9♦ 9♦ 8♦ 8♦ 7♦ 7♦ 6♦ 6♦ 5♦ 5♦ 4♦ 4♦ A♣ A♣ K♣ K♣ Q♣ Q♣ J♣ J♣ T♣ T♣ 9♣ 9♣ 8♣ 8♣ 7♣ 7♣ 6♣ 6♣ 5♣ 5♣ 4♣ 4♣ 3♣ 3♣"
         );
     }
 
     #[test]
     pub fn ranks_index() {
-        let pile = Deck::<Canasta>::deck().shuffled();
+        let pile = Canasta::deck().shuffled();
         let expected = "B~L~3~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
         let ranks_index = pile.into_pile().ranks_index("~");
@@ -178,7 +180,7 @@ mod basic__decks__canasta_tests {
     /// TODO: WTF do I mean by WTF??? Don't do this.
     #[test]
     pub fn suits_index() {
-        let pile = Deck::<Canasta>::deck().shuffled().into_pile();
+        let pile = Canasta::deck().shuffled().into_pile();
         let expected = "H~D~J~S~H~D~C~S~H~D~C";
 
         let ranks_index = pile.suits_index("~");
@@ -188,6 +190,6 @@ mod basic__decks__canasta_tests {
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Canasta>::validate());
+        assert!(Canasta::validate());
     }
 }

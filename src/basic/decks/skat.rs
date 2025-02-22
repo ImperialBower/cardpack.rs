@@ -3,7 +3,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::deck::Deck;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::DeckedBase;
+use crate::common::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
@@ -81,17 +81,19 @@ impl DeckedBase for Skat {
     }
 }
 
+impl Decked<Skat> for Skat {}
+
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__skat_tests {
     use super::*;
     use crate::basic::types::deck::Deck;
-    use crate::basic::types::traits::Decked;
+    use crate::common::traits::Decked;
     use crate::localization::{FluentName, Named};
 
     #[test]
     fn decked__deck() {
-        let deck = Deck::<Skat>::deck();
+        let deck = Skat::deck();
         assert_eq!(
             deck.to_string(),
             "D♣ Z♣ K♣ O♣ U♣ 9♣ 8♣ 7♣ D♠ Z♠ K♠ O♠ U♠ 9♠ 8♠ 7♠ D♥ Z♥ K♥ O♥ U♥ 9♥ 8♥ 7♥ D♦ Z♦ K♦ O♦ U♦ 9♦ 8♦ 7♦"
@@ -104,12 +106,12 @@ mod basic__card__skat_tests {
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Skat>::validate());
+        assert!(Skat::validate());
     }
 
     #[test]
     fn fluent__name() {
-        let mut deck = Deck::<Skat>::deck();
+        let mut deck = Skat::deck();
         let dause_eichel = deck.draw_first().unwrap();
         let daus = dause_eichel.fluent_rank_name(&FluentName::DEUTSCH);
         let eichel = dause_eichel.fluent_suit_name(&FluentName::DEUTSCH);
