@@ -377,7 +377,7 @@ impl FrenchRank {
 #[allow(non_snake_case)]
 mod basic__decks__cards__french__tests {
     use super::*;
-    use crate::prelude::{Deck, Decked, French};
+    use crate::prelude::{Decked, French};
 
     #[test]
     fn serde() {

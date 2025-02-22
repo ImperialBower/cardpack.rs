@@ -9,6 +9,7 @@ use crate::common::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
+/// [Canasta](https://en.wikipedia.org/wiki/Canasta) deck
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Canasta {}
 #[allow(clippy::module_name_repetitions)]

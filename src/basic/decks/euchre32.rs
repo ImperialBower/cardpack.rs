@@ -9,6 +9,9 @@ use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// This deck represents the most 32 card form of
+/// [Euchre](https://en.wikipedia.org/wiki/Euchre) with
+/// `A K Q J T 9 8 7` ranks.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Euchre32 {}
 

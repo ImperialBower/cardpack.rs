@@ -8,6 +8,9 @@ use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// [Manila, aka Six Plus aka Short-deck](https://en.wikipedia.org/wiki/Six-plus_hold_%27em)
+/// is a version of Texas Hold'em where the card Ranks of 2 through 5
+/// are removed from the deck.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Short {}
 

@@ -103,7 +103,6 @@ impl Decked<Standard52> for Standard52 {}
 #[allow(non_snake_case)]
 mod basic__card__standard52_tests {
     use super::*;
-    use crate::basic::types::deck::Deck;
     use crate::common::traits::Decked;
 
     #[test]

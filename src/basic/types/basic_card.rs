@@ -11,8 +11,18 @@ use std::fs::File;
 use std::io::Read;
 
 /// I've created this intermediary struct to make it easier to mix and match cards for related decks.
-/// Whilst `Card` needs to be generic so that we can easily share processing code in collections,
-/// the raw data in the `Cards` should be simple and flexible.
+/// Whilst [`Card`] needs to be generic so that we can easily share processing code in collections,
+/// the raw data in the [`BasicCard`] should be simple and flexible.
+///
+/// The [`BasicCard`] struct is organized so that the suit [`Pip`] is first, followed by the rank
+/// [`Pip`] so that the default sorting for a collection is done suit first.
+///
+/// **NOTE:**  The [`Ord`] and [`PartialOrd`] are customize so that the sorts are done in reverse
+/// order. This may be a mistake, since vectors are suboptimal taking from the beginning.
+///
+/// TODO RF: Structure the code so that the end of the vector is treated as the top of the deck
+/// in terms of how it is interacted with. So when you call `draw()` on a deck you are taking from
+/// the bottom of the vector.
 ///
 /// [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize)]
@@ -54,6 +64,8 @@ impl BasicCard {
         BasicCard::cards_from_str(&contents)
     }
 
+    ///
+    ///
     /// # Errors
     ///
     /// Throws an error for an invalid path of invalid data.
@@ -63,6 +75,20 @@ impl BasicCard {
         Ok(cards)
     }
 
+    /// The index is the most basic way to represent a `Card` as a `String` using
+    /// only basic characters. It is made up of the rank [`Pip`] index followed by the
+    /// suit [`Pip`] index.
+    ///
+    /// For example, the Jack of Diamonds index value is `JD`, while it's
+    /// display value is `J♦`:
+    ///
+    /// ```rust
+    /// use cardpack::prelude::*;
+    /// use std::str::FromStr;
+    ///
+    /// assert_eq!(FrenchBasicCard::JACK_DIAMONDS.index(), "JD");
+    /// assert_eq!(FrenchBasicCard::JACK_DIAMONDS.to_string(), "J♦");
+    /// ```
     #[must_use]
     pub fn index(&self) -> String {
         format!("{}{}", self.rank.index, self.suit.index)
