@@ -3,7 +3,7 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::Pip;
 use crate::common::errors::CardError;
 use crate::common::traits::DeckedBase;
-use crate::prelude::{Decked, Pile};
+use crate::prelude::{Decked, Pile, PipType};
 use colored::Color;
 use rand::rng;
 use rand::seq::SliceRandom;
@@ -397,6 +397,22 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Deck<DeckType> {
             .collect::<Vec<String>>()
             .join(" ")
     }
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region Pips
+    // TODO: Region to dd pips logic to `Pile`.
+
+    #[must_use]
+    pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+        // self.iter()
+        //     .filter(|card| card.base_card.rank.pip_type == pip_type)
+        //     .copied()
+        //     .collect()
+
+        Self::from(self.into_pile().cards_of_rank_pip_type(pip_type))
+    }
+
+    // endregion
 }
 
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Deck<DeckType> {
@@ -451,6 +467,13 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<Card<DeckType>
 impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<BasicCard>> for Deck<DeckType> {
     fn from(cards: Vec<BasicCard>) -> Self {
         let cards = Deck::<DeckType>::into_cards(&cards);
+        Self(cards)
+    }
+}
+
+impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Pile> for Deck<DeckType> {
+    fn from(pile: Pile) -> Self {
+        let cards = Deck::<DeckType>::into_cards(pile.v());
         Self(cards)
     }
 }
@@ -710,6 +733,20 @@ mod basic__types__deck_tests {
         assert_eq!(pile.sort_by_rank().to_string(), "8♣ 4♠ 2♠");
         assert_eq!(pile3.to_string(), "8♣ 4♠ 2♠");
     }
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region Pips
+
+    /// NOTE: CoPilot keeps recommending things that don't exist, such as `PipType::Face`. Is this
+    /// a primative form of halucination?
+    #[test]
+    fn cards_of_rank_pip_type() {
+        let jokers = French::deck().cards_of_rank_pip_type(PipType::Joker);
+
+        assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    // endregion
 
     #[test]
     fn decked__deck() {

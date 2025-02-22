@@ -1,5 +1,5 @@
 use crate::basic::types::combos::Combos;
-use crate::prelude::{BasicCard, Deck, DeckedBase, Pip};
+use crate::prelude::{BasicCard, Deck, DeckedBase, Pip, PipType};
 use itertools::Itertools;
 use rand::prelude::SliceRandom;
 use rand::rng;
@@ -41,6 +41,14 @@ impl Pile {
         }
     }
 
+    #[must_use]
+    pub fn filter_cards<F>(&self, filter: F) -> Self
+    where
+        F: Fn(&BasicCard) -> bool,
+    {
+        self.iter().filter(|&card| filter(card)).copied().collect()
+    }
+
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -51,12 +59,6 @@ impl Pile {
         pile.shuffle();
         pile
     }
-
-    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-    // region Pips
-    // TODO: Add pips `Pack` logic to `Pile`.
-    // endregion
-    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Combos
@@ -157,6 +159,29 @@ impl Pile {
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Pips
 
+    /// Here's the original code before being refactored into using the `filter_cards` closure,
+    ///
+    /// ```txt
+    /// #[must_use]
+    /// pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+    ///     self.iter()
+    ///         .filter(|card| card.rank.pip_type == pip_type)
+    ///         .cloned()
+    ///         .collect()
+    /// }
+    /// ```
+    #[must_use]
+    pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+        let rank_types_filter = |basic_card: &BasicCard| basic_card.rank.pip_type == pip_type;
+        self.filter_cards(rank_types_filter)
+    }
+
+    #[must_use]
+    pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
+        let rank_types_filter = |basic_card: &BasicCard| basic_card.suit.pip_type == pip_type;
+        self.filter_cards(rank_types_filter)
+    }
+
     fn extract_pips<F>(&self, f: F) -> Vec<Pip>
     where
         F: Fn(&BasicCard) -> Pip,
@@ -189,6 +214,8 @@ impl Pile {
         self.pip_index(|card| card.rank, joiner)
     }
 
+    /// TODO RF: Wouldn't it be easier to just return a vector, and if it's empty you know
+    /// there were none in the `Pile`.
     #[must_use]
     pub fn ranks_by_suit(&self, suit: Pip) -> Option<Vec<Pip>> {
         let ranks: Vec<Pip> = self
@@ -571,7 +598,23 @@ mod basic__types__pile_tests {
     // region Pips
 
     #[test]
-    pub fn ranks() {
+    fn cards_of_rank_pip_type() {
+        let pile = French::pile();
+        let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
+
+        assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    #[test]
+    fn cards_of_suit_pip_type() {
+        let pile = French::pile();
+        let jokers = pile.cards_of_suit_pip_type(PipType::Joker);
+
+        assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    #[test]
+    fn ranks() {
         let pile = Deck::<French>::pile().shuffled();
         let expected = vec![
             FrenchRank::BIG_JOKER,

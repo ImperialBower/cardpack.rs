@@ -186,6 +186,13 @@ mod basic__macros_tests {
     use crate::prelude::*;
 
     #[test]
+    fn french_cards() {
+        let hand = french_cards!("A♠ B🃟 Q♠ J♠ T♠");
+
+        assert_eq!("A♠ B🃟 Q♠ J♠ T♠", hand.to_string());
+    }
+
+    #[test]
     fn card__from_str() {
         assert_eq!(card!("A♠"), card!(AS));
         assert_eq!(card!("K♠"), card!(KS));
