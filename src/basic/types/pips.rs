@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+/// `PipType` is used to handle control flows for special, conditional processing of pips.
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
 )]
