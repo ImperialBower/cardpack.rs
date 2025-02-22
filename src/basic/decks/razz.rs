@@ -23,7 +23,7 @@ pub struct Razz {}
 
 impl DeckedBase for Razz {
     fn base_vec() -> Vec<BasicCard> {
-        BasicCard::cards_from_file("src/basic/decks/yaml/razz.yaml")
+        BasicCard::cards_from_yaml_file("src/basic/decks/yaml/razz.yaml")
             .unwrap_or_else(|_| Vec::default())
     }
 

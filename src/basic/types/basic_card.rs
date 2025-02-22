@@ -55,7 +55,7 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path of invalid data.
-    pub fn cards_from_file(file_path: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
+    pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
 
@@ -185,8 +185,8 @@ mod basic__types__basic_card_tests {
     use std::str::FromStr;
 
     #[test]
-    fn cards_from_file() {
-        let cards = BasicCard::cards_from_file("src/basic/decks/yaml/french.yaml").unwrap();
+    fn cards_from_yaml_file() {
+        let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
 
         assert_eq!(cards.len(), 54);
         assert_eq!(cards, Deck::<French>::base_vec())
