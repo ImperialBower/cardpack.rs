@@ -68,6 +68,8 @@
 //! assert_eq!(Card::<French>::new(FrenchBasicCard::QUEEN_HEARTS).fluent_name(&FluentName::DEUTSCH), "Dame Herzen");
 //! ```
 //!
+//! At some point I would love to add support for more languages.
+//!
 //! ## Standard 52 Card Deck
 //!
 //! A [`Standard52`](basic::decks::standard52::Standard52) deck is a

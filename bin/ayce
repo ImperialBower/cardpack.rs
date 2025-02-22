@@ -3,6 +3,7 @@
 # Verbose output
 set -x
 
+cargo clean
 cargo test
 cargo clippy
 cargo fmt

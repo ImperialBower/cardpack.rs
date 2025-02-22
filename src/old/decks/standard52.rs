@@ -1,7 +1,7 @@
+use crate::prelude::Pip;
+use crate::prelude_old::*;
 use std::collections::HashMap;
 use std::fmt;
-
-use crate::prelude_old::*;
 
 /// `Standard52` is a representation of a deck of cards used to play
 /// most versions of poker. It is useful to determine if a `Card` belongs
@@ -203,7 +203,7 @@ impl Standard52 {
 
     fn suit_char_from_index(card_str: &'static str) -> char {
         if card_str.len() < 2 {
-            return '_';
+            return Pip::BLANK_INDEX;
         }
         card_str.char_indices().nth(1).unwrap().1
     }

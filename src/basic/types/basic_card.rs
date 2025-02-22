@@ -94,9 +94,10 @@ impl BasicCard {
         format!("{}{}", self.rank.index, self.suit.index)
     }
 
+    /// Returns true if either the rank [`Pip`] or the suit [`Pip`] has a value of `_`,
     #[must_use]
     pub fn is_blank(&self) -> bool {
-        self.rank.index == '_' || self.suit.index == '_'
+        self.rank.index == Pip::BLANK_INDEX || self.suit.index == Pip::BLANK_INDEX
     }
 }
 

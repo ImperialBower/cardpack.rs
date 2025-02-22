@@ -1,4 +1,5 @@
 use crate::common::errors::CardError;
+use crate::prelude::Pip;
 use fluent_templates::{langid, static_loader, LanguageIdentifier, Loader};
 use std::fmt::Display;
 use std::str::FromStr;
@@ -101,7 +102,7 @@ pub trait Named<'a> {
     /// assert_eq!('B', jack.index_char(&FluentName::DEUTSCH));
     /// ```
     fn index_char(&self, lid: &LanguageIdentifier) -> char {
-        self.index(lid).chars().next().unwrap_or('_')
+        self.index(lid).chars().next().unwrap_or(Pip::BLANK_INDEX)
     }
 
     /// Returns the default, `US_ENGLISH` index value in the fluent templates.
