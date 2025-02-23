@@ -13,7 +13,59 @@ use std::hash::Hash;
 use std::str::FromStr;
 use std::vec::IntoIter;
 
-/// A `Pack` is a collection of `Cards` that are bound by a specific generic `DeckType`.
+/// A `Pack` is a is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
+/// collection of [`Cards`](crate::basic::types::card::Card) that are bound by a
+/// specific generic `DeckType`.
+///
+/// The magic behind all this is enabled by implementing the [`Decked`] and [`DeckedBase`] traits.
+/// [`DeckedBase`] defines the [`BasicCards`](crate::basic::types::basic_card::BasicCard) that
+/// hold the data that is in the [`Cards`](crate::basic::types::card::Card) of the `Deck`, and the
+/// [`Decked`] trait that ensures that only [`Cards`](crate::basic::types::card::Card) that fit
+/// the contract defined in the specific deck implementation trait, such as
+/// [`French`](crate::rev1::decks::french::French) for a traditional pack of cards, or
+/// or [`Pinochle`](crate::rev1::decks::pinochle::Pinochle). This makes it possible for the users
+/// to define a `Deck` of [`Cards`](crate::basic::types::card::Card) through simple strings. Here's
+/// an example:
+///
+/// ```
+/// use cardpack::prelude::*;
+/// use cardpack::prelude_old::Standard52;
+///
+/// let deck: Deck<Standard52> = Standard52::deck();
+///
+///
+///
+/// ```
+///
+/// whose specific implementations implement the [`Decked`](crate::rev2::types::traits::Decked) trait,
+/// which is made of a [`Vec`] of [`Cards`](Card) that implement the [`Ranked`], and [`Suited`] traits.
+/// Implementations of a specific type of `Pile` are stored in the [`decks`](crate::rev1::decks) module.
+///
+/// The most common deck is the [`French`](crate::rev1::decks::french::French) deck:
+///
+/// ```rust
+/// use cardpack::rev1_prelude::{Decked, French, Pile};
+/// let mut french_deck: Pile<French, French> = French::deck();
+///
+/// assert_eq!(french_deck.rank_index(" "), "A K Q J T 9 8 7 6 5 4 3 2");
+/// assert_eq!(french_deck.suit_symbol_index(), "♠ ♥ ♦ ♣");
+/// assert_eq!(french_deck.suit_index(), "S H D C");
+/// assert_eq!(french_deck.draw(5).to_string(), "A♠ K♠ Q♠ J♠ T♠");
+/// assert_eq!(french_deck.len(), 47);
+/// ```
+///
+/// The [`Modern`](crate::rev1::decks::modern::Modern) deck is simply the
+/// [`French`](crate::rev1::decks::french::French) deck with the addition of the big and little jokers,
+/// which belong to the joker suit.
+///
+/// ```rust
+/// use cardpack::rev1_prelude::{Decked, Modern, Pile};
+/// let modern_deck: Pile<Modern, Modern> = Modern::deck();
+///
+/// assert_eq!(modern_deck.rank_index(""), "BLAKQJT98765432");
+/// assert_eq!(modern_deck.suit_symbol_index(), "🃟 ♠ ♥ ♦ ♣");
+/// assert_eq!(modern_deck.suit_index(), "J S H D C");
+/// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct Deck<DeckType: DeckedBase>(Vec<Card<DeckType>>)
 where

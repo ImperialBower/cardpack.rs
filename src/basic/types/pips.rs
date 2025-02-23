@@ -49,6 +49,31 @@ pub enum PipType {
 ///
 /// Each [`BasicCard`] struct is made up of two `Pips`, one representing the suit of the card and another
 /// representing the rank.
+///
+/// Here's a basic example of `Pips` in action:
+///
+/// ```
+/// use cardpack::prelude::*;
+///
+/// let trey_of_hearts = BasicCard {
+///    suit: Pip {
+///         weight: 2,
+///         pip_type: PipType::Suit,
+///         index: 'H',
+///         symbol: '♥',
+///         value: 3,
+///     },
+///     rank: Pip {
+///         weight: 1,
+///         pip_type: PipType::Rank,
+///         index: '3',
+///         symbol: '3',
+///         value: 3,
+///     },
+/// };
+///
+/// assert_eq!(trey_of_hearts, FrenchBasicCard::TREY_HEARTS);
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Pip {
     pub weight: u32,
