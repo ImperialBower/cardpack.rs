@@ -182,6 +182,14 @@ impl Pile {
         self.filter_cards(rank_types_filter)
     }
 
+    #[must_use]
+    pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
+        let rank_types_filter = |basic_card: &BasicCard| {
+            basic_card.rank.pip_type == pip_type || basic_card.suit.pip_type == pip_type
+        };
+        self.filter_cards(rank_types_filter)
+    }
+
     fn extract_pips<F>(&self, f: F) -> Vec<Pip>
     where
         F: Fn(&BasicCard) -> Pip,
@@ -517,7 +525,7 @@ impl IntoIterator for Pile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
-    use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, Standard52};
+    use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, Standard52, Tarot};
     use std::str::FromStr;
 
     fn from_str(s: &str) -> Pile {
@@ -611,6 +619,18 @@ mod basic__types__pile_tests {
         let jokers = pile.cards_of_suit_pip_type(PipType::Joker);
 
         assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    #[test]
+    fn cards_with_pip_type() {
+        assert_eq!(
+            Tarot::pile().cards_with_pip_type(PipType::Special).len(),
+            22
+        );
+        assert_eq!(French::pile().cards_with_pip_type(PipType::Joker).len(), 2);
+        assert!(French::pile()
+            .cards_with_pip_type(PipType::Special)
+            .is_empty());
     }
 
     #[test]

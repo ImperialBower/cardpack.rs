@@ -440,6 +440,20 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Deck<DeckType> {
         Self::from(self.into_pile().cards_of_suit_pip_type(pip_type))
     }
 
+    /// Returns a `Deck` where either the suit or rank [`Pip`] have the specified [`PipType`].\
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert_eq!(Tarot::deck().cards_with_pip_type(PipType::Special).len(), 22);
+    /// assert_eq!(French::deck().cards_with_pip_type(PipType::Joker).len(), 2);
+    /// assert!(French::deck().cards_with_pip_type(PipType::Special).is_empty());
+    /// ```
+    #[must_use]
+    pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
+        Self::from(self.into_pile().cards_with_pip_type(pip_type))
+    }
+
     // endregion
 }
 
