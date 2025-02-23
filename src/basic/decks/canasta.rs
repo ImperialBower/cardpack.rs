@@ -170,7 +170,7 @@ mod basic__decks__canasta_tests {
     #[test]
     pub fn ranks_index() {
         let pile = Canasta::deck().shuffled();
-        let expected = "B~L~3~2~A~K~Q~J~T~9~8~7~6~5~4~3";
+        let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
         let ranks_index = pile.into_pile().ranks_index("~");
 

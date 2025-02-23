@@ -47,7 +47,7 @@ impl CanastaBasicCard {
 impl CanastaRank {
     pub const RED_TREY: Pip = Pip {
         pip_type: PipType::Rank,
-        weight: 14,
+        weight: 15,
         index: '3',
         symbol: '3',
         value: 3,

@@ -38,10 +38,21 @@ pub enum PipType {
 /// I could get the same results with a single struct. Eventually, I could see creating a card type
 /// that has an unlimited type of different pips stored in a vector. That's a TODO for after this
 /// version is done.
+///
+/// Each Pip is made up of the following fields:
+///
+/// - `weight`: A `u32` that is used for sorting.
+/// - `pip_type`: Used to classify the type of pip it is.
+/// - `index`: A `char` that is the key identifier for the `Pip`, such as 'A' for Ace.
+/// - `symbol`: A `char` that is the visual representation of the `Pip`, such as '♠' for Spades.
+/// - `value`: A `u32` that is used when a numerical valus is needed that is different than the `weight`.
+///
+/// Each [`BasicCard`] struct is made up of two `Pips`, one representing the suit of the card and another
+/// representing the rank.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Pip {
-    pub pip_type: PipType,
     pub weight: u32,
+    pub pip_type: PipType,
     pub index: char,
     pub symbol: char,
     pub value: u32,
@@ -68,12 +79,34 @@ impl Pip {
     #[must_use]
     pub fn new(pip_type: PipType, weight: u32, index: char, symbol: char) -> Self {
         Self {
-            pip_type,
             weight,
+            pip_type,
             index,
             symbol,
             ..Default::default()
         }
+    }
+
+    /// Factory method to update values as needed.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let expected = Pip {
+    ///     pip_type: PipType::Rank,
+    ///     weight: 12,
+    ///     index: 'A',
+    ///     symbol: 'A',
+    ///     value: 22,
+    /// };
+    ///
+    /// let updated_as: Pip = FrenchRank::ACE.update_value(22);
+    ///
+    /// assert_eq!(updated_as, expected);
+    /// ```
+    #[must_use]
+    pub fn update_value(&self, value: u32) -> Self {
+        Self { value, ..*self }
     }
 }
 
