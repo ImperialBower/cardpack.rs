@@ -8,8 +8,6 @@ use std::fmt;
 use std::fmt::Display;
 use std::hash::Hash;
 
-/// TODO: Implement [own iter](https://dev.to/wrongbyte/implementing-iterator-and-intoiterator-in-rust-3nio)
-/// instead of hack `v()`
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct Pile(Vec<BasicCard>);
 

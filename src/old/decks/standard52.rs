@@ -1,4 +1,3 @@
-use crate::prelude::Pip;
 use crate::prelude_old::*;
 use std::collections::HashMap;
 use std::fmt;
@@ -203,7 +202,7 @@ impl Standard52 {
 
     fn suit_char_from_index(card_str: &'static str) -> char {
         if card_str.len() < 2 {
-            return Pip::BLANK_INDEX;
+            return '_';
         }
         card_str.char_indices().nth(1).unwrap().1
     }
