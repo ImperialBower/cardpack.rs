@@ -3,9 +3,9 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
-use crate::basic::types::deck::Deck;
+use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
+use crate::basic::types::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -13,7 +13,7 @@ use std::hash::Hash;
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Spades {}
 #[allow(clippy::module_name_repetitions)]
-pub type SpadesDeck = Deck<Spades>;
+pub type SpadesDeck = Pile<Spades>;
 #[allow(clippy::module_name_repetitions)]
 pub type SpadesCard = Card<Spades>;
 
@@ -102,7 +102,7 @@ mod basic__card__spades_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
-    use crate::common::traits::Decked;
+    use crate::basic::types::traits::Decked;
     use std::str::FromStr;
 
     #[test]
@@ -120,7 +120,7 @@ mod basic__card__spades_tests {
 
     #[test]
     fn from_str__pile() {
-        let pile = Deck::<Spades>::from_str("2c 3c 4c");
+        let pile = Pile::<Spades>::from_str("2c 3c 4c");
 
         assert!(pile.is_err());
     }

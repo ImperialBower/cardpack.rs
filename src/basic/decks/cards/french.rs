@@ -393,7 +393,7 @@ mod basic__decks__cards__french__tests {
         let pile = French::deck().into_basic_cards();
         let yml = serde_yml::to_string(&pile).unwrap();
 
-        let from_yml: Vec<BasicCard> = BasicCard::cards_from_str(&yml).unwrap();
+        let from_yml: Vec<BasicCard> = BasicCard::cards_from_yaml_str(&yml).unwrap();
 
         assert_eq!(pile, from_yml);
     }

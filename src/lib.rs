@@ -1,19 +1,20 @@
 #![warn(clippy::pedantic)]
-#![allow(clippy::needless_doctest_main)]
+#![allow(clippy::struct_field_names)]
+#![allow(dead_code)]
 
 //! [Cardpack](https://crates.io/crates/cardpack) is a library to represent various decks of playing
 //! cards. The library is designed to support the following features:
 //!
 //! - Custom `Rank` and `Suit` [`Pips`](basic::types::pips::Pip).
-//! - Ability to sort a [`Deck`](basic::types::deck::Deck) of [`Cards`](basic::types::card::Card) in various ways.
+//! - Ability to sort a [`Deck`](basic::types::pile::Pile) of [`Cards`](basic::types::card::Card) in various ways.
 //! - Localization of card names using [fluent-templates](https://github.com/XAMPPRocky/fluent-templates).
 //!
 //! ## Overview
 //!
 //! The structure of the library is the following:
 //!
-//! - [`Deck`](basic::types::deck::Deck) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](common::traits::DeckedBase) trait
-//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](common::traits::DeckedBase) trait.
+//! - [`Pile`](basic::types::pile::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](basic::types::traits::DeckedBase) trait
+//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](basic::types::traits::DeckedBase) trait.
 //!     - [`BasicCard`](basic::types::basic_card::BasicCard) - The basic data of a [`Card`](basic::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
 //!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](basic::types::card::Card).
 //!
@@ -21,14 +22,14 @@
 //!
 //! ## French Deck
 //!
-//! The [`French`](basic::decks::french::French) deck is the foundation [`Deck`](basic::types::deck::Deck)
+//! The [`French`](basic::decks::french::French) deck is the foundation [`Deck`](basic::types::pile::Pile)
 //! of playing cards. It is made up of a collection of 54 `Cards` with 13 ranks in each of the four suits,
 //! and two jokers. Most of the other decks are made up on the [`French BasicCards`](basic::decks::cards::french::FrenchBasicCard).
 //!
 //! ```rust
 //! use cardpack::prelude::*;
 //!
-//! let mut french_deck = Deck::<French>::deck();
+//! let mut french_deck = Pile::<French>::deck();
 //!
 //! // It's also possible to call the deck method directly on the specific generic implementing type:
 //! let mut french_deck = French::deck();
@@ -78,7 +79,7 @@
 //! ```rust
 //! use cardpack::prelude::*;
 //!
-//! let mut standard52_deck = Deck::<Standard52>::deck();
+//! let mut standard52_deck = Pile::<Standard52>::deck();
 //!
 //! assert_eq!(standard52_deck.len(), 52);
 //! assert_eq!(
@@ -91,14 +92,14 @@
 //! assert_eq!(cards!("AS KS QS JS TS"), standard52_deck.draw(5).unwrap());
 //! ```
 //!
-//! By default, a [`Deck`](basic::types::deck::Deck) displays the suit symbols when you display the
+//! By default, a [`Deck`](basic::types::pile::Pile) displays the suit symbols when you display the
 //! values. It also has the ability to return the letter values, or what are called "index strings".
 //!
 //! ```rust
 //! use cardpack::prelude::*;
 //!
 //! assert_eq!(
-//!     Deck::<Standard52>::deck().index(),
+//!     Pile::<Standard52>::deck().index(),
 //!     "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C"
 //! );
 //! ```
@@ -107,14 +108,14 @@
 //! to facilitate sorting. If you wanted a deck for a game of poker where the lowest hand wins, you
 //! would need to create a separate deck file with the card's `Rank` weights inverted. The
 //! [`Razz Deck`](basic::decks::razz::Razz) is an example of this. It is also an example of
-//! how you can create a [`Deck`](basic::types::deck::Deck)  where the
+//! how you can create a [`Deck`](basic::types::pile::Pile)  where the
 //! [`BasicCard`](basic::types::basic_card::BasicCard) for the deck are generated programmatically
 //! in YAML instead using the power of [Serde](https://serde.rs/)
 //!
 //! ```
 //! use cardpack::prelude::*;
-//! assert_eq!(Deck::<Razz>::deck().draw(5).unwrap().to_string(), "A♠ 2♠ 3♠ 4♠ 5♠");
-//! assert_eq!(Deck::<Standard52>::deck().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
+//! assert_eq!(Pile::<Razz>::deck().draw(5).unwrap().to_string(), "A♠ 2♠ 3♠ 4♠ 5♠");
+//! assert_eq!(Pile::<Standard52>::deck().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 //! ```
 //!
 //! The raw YAML that was used to create the [`Razz Deck`](basic::decks::razz::Razz) is available
@@ -139,13 +140,12 @@
 //! ```
 //! use cardpack::prelude::*;
 //!
-//! let hand_and_foot_4players = Deck::<French>::decks(4);
+//! let hand_and_foot_4players = French::decks(4);
 //! assert_eq!(hand_and_foot_4players.len(), 216);
 //!
-//! let hand_and_foot_5players = Deck::<French>::decks(5);
+//! let hand_and_foot_5players = French::decks(5);
 //! assert_eq!(hand_and_foot_5players.len(), 270);
 //! ```
-//!
 //!
 //! ## Custom Deck example:
 //!
@@ -235,11 +235,10 @@
 //! assert!(deck.draw_last().is_none());
 //! ```
 
-extern crate rand;
+#![allow(clippy::needless_doctest_main)]
+#![doc = include_str!("../README.md")]
 
 pub mod basic;
 pub mod common;
 pub mod localization;
-pub mod old;
 pub mod prelude;
-pub mod prelude_old;

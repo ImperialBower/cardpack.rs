@@ -46,23 +46,23 @@ impl Decked<Razz> for Razz {}
 #[allow(non_snake_case, unused_imports)]
 mod basic__decks__razz_tests {
     use super::*;
-    use crate::prelude::{Deck, Decked, French};
+    use crate::prelude::{Decked, French, Pile};
 
     #[test]
     fn from_str() {
-        let deck = Deck::<Razz>::deck();
+        let deck = Pile::<Razz>::deck();
 
         assert_eq!(deck.to_string(), "A♠ 2♠ 3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ T♠ J♠ Q♠ K♠ A♥ 2♥ 3♥ 4♥ 5♥ 6♥ 7♥ 8♥ 9♥ T♥ J♥ Q♥ K♥ A♦ 2♦ 3♦ 4♦ 5♦ 6♦ 7♦ 8♦ 9♦ T♦ J♦ Q♦ K♦ A♣ 2♣ 3♣ 4♣ 5♣ 6♣ 7♣ 8♣ 9♣ T♣ J♣ Q♣ K♣");
     }
 
     #[test]
     fn deck__draw() {
-        let mut deck = Deck::<Razz>::deck();
+        let mut deck = Pile::<Razz>::deck();
         assert_eq!(deck.draw(3).unwrap().to_string(), "A♠ 2♠ 3♠");
     }
 
     #[test]
     fn decked__validate() {
-        assert!(Deck::<Razz>::validate());
+        assert!(Pile::<Razz>::validate());
     }
 }

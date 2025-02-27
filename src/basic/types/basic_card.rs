@@ -1,6 +1,6 @@
 use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
-use crate::common::traits::{CKCRevised, DeckedBase};
+use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -32,44 +32,24 @@ pub struct BasicCard {
 }
 
 impl BasicCard {
-    /// The original version of this code just passes the error down to the caller:
-    ///
-    /// ```
-    /// use std::error::Error;
-    /// use std::fs::File;
-    /// use std::io::Read;
-    /// use cardpack::prelude::*;
-    ///
-    /// fn cards_from_file(file_path: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
-    /// let mut file = File::open(file_path)?;
-    ///     let mut contents = String::new();
-    ///
-    ///     file.read_to_string(&mut contents)?;
-    ///
-    ///     BasicCard::cards_from_str(&contents)
-    /// }
-    /// ```
-    ///
-    /// In the revised version, we're going to log an error before continuing.
-    ///
     /// # Errors
     ///
-    /// Throws an error for an invalid path of invalid data.
+    /// Throws an error for an invalid path or invalid data.
     pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
 
         file.read_to_string(&mut contents)?;
 
-        BasicCard::cards_from_str(&contents)
+        BasicCard::cards_from_yaml_str(&contents)
     }
 
     ///
     ///
     /// # Errors
     ///
-    /// Throws an error for an invalid path of invalid data.
-    pub fn cards_from_str(yaml_str: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
+    /// Throws an error for an invalid path or invalid data.
+    pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
         let cards: Vec<BasicCard> = serde_yml::from_str(yaml_str)?;
 
         Ok(cards)
@@ -102,7 +82,6 @@ impl BasicCard {
 }
 
 impl CKCRevised for BasicCard {
-    #[must_use]
     fn get_ckc_number(&self) -> u32 {
         if self.is_blank() {
             return 0;
@@ -137,7 +116,6 @@ impl CKCRevised for BasicCard {
         }
     }
 
-    #[must_use]
     fn ckc_rank_shift8(&self) -> u32 {
         self.rank.weight << 8
     }
@@ -180,7 +158,7 @@ mod basic__types__basic_card_tests {
     use super::*;
     use crate::basic::decks::standard52::Standard52;
     use crate::basic::types::basic_card::BasicCard;
-    use crate::prelude::{Deck, Decked, French};
+    use crate::prelude::{Decked, French, Pile};
     use ckc_rs::CardNumber;
     use rstest::rstest;
     use std::str::FromStr;
@@ -190,7 +168,7 @@ mod basic__types__basic_card_tests {
         let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
 
         assert_eq!(cards.len(), 54);
-        assert_eq!(cards, Deck::<French>::base_vec())
+        assert_eq!(cards, Pile::<French>::base_vec())
     }
 
     #[test]

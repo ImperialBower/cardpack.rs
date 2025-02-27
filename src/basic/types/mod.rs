@@ -1,6 +1,7 @@
 pub mod basic_card;
+pub mod basic_pile;
 pub mod card;
 pub mod combos;
-pub mod deck;
 pub mod pile;
 pub mod pips;
+pub mod traits;

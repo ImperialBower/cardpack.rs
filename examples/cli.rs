@@ -3,7 +3,7 @@ use clap::Parser;
 
 /// Run all of the decks with 1 for each:
 ///
-/// `cargo run --example cli -- -temfkpsac -v`
+/// `cargo run --example cli2 -- -temfkpsac -v`
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -42,39 +42,39 @@ fn main() -> Result<(), CardError> {
     let args = Args::parse();
 
     if args.tarot {
-        Tarot::demo(args.verbose);
+        TarotDeck::demo(args.verbose);
     }
 
     if args.canasta {
-        Canasta::demo(args.verbose);
+        CanastaDeck::demo(args.verbose);
     }
 
     if args.euchre {
-        Euchre24::demo(args.verbose);
+        Euchre24Deck::demo(args.verbose);
     }
 
     if args.manila {
-        Short::demo(args.verbose);
+        ShortDeck::demo(args.verbose);
     }
 
     if args.french {
-        French::demo(args.verbose);
+        FrenchDeck::demo(args.verbose);
     }
 
     if args.spades {
-        Spades::demo(args.verbose);
+        SpadesDeck::demo(args.verbose);
     }
 
     if args.pinochle {
-        Pinochle::demo(args.verbose);
+        PinochleDeck::demo(args.verbose);
     }
 
     if args.skat {
-        Skat::demo(args.verbose);
+        SkatDeck::demo(args.verbose);
     }
 
     if args.standard {
-        Standard52::demo(args.verbose);
+        Standard52Deck::demo(args.verbose);
     }
 
     Ok(())

@@ -1,6 +1,5 @@
 # cardpack.rs
 
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE)
 [![Build and Test](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
@@ -17,20 +16,34 @@ Generic pack of cards library written in Rust. The goals of the library include:
 ## Usage
 
 ```rust
+use cardpack::prelude::*;
+
 fn main() {
-    let pack = cardpack::Pack::french_deck();
+  let mut pack = Standard52::deck();
 
-    let mut shuffled = pack.cards().shuffle();
-    let sb = shuffled.draw(2).unwrap();
-    let bb = shuffled.draw(2).unwrap();
+  pack.shuffle();
 
-    println!("small blind: {}", sb.by_symbol_index());
-    println!("big blind:   {}", bb.by_symbol_index());
+  // Deal no-limit hold'em hands for two players:
+  let small_blind = pack.draw(2).unwrap().sort_by_rank();
+  let big_blind = pack.draw(2).unwrap().sort_by_rank();
 
-    println!();
-    println!("flop : {}", shuffled.draw(3).unwrap().by_symbol_index());
-    println!("turn : {}", shuffled.draw(1).unwrap().by_symbol_index());
-    println!("river: {}", shuffled.draw(1).unwrap().by_symbol_index());
+  println!("small blind: {}", small_blind.to_string());
+  println!("big blind:   {}", big_blind.to_string());
+
+  let flop = pack.draw(3).unwrap();
+  let turn = pack.draw(1).unwrap();
+  let river = pack.draw(1).unwrap();
+
+  println!();
+  println!("flop : {}", flop.to_string());
+  println!("turn : {}", turn.to_string());
+  println!("river: {}", river.to_string());
+
+  // Now, let's validate that the cards when collected back together are a valid Standard52
+  // deck of cards.
+  let reconstituted_pile =
+          Pile::<Standard52>::pile_on(&*vec![pack, small_blind, big_blind, flop, turn, river]);
+  assert!(Standard52::deck().same(&reconstituted_pile));
 }
 ```
 
@@ -40,7 +53,7 @@ The library has several demo programs in the examples directory.
 
 For the traditional French Deck:
 
-```
+```shell
 $> cargo run --example traditional
 Long in English and German:
       Ace of Spades

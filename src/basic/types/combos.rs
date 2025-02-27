@@ -1,9 +1,10 @@
-use crate::basic::types::pile::Pile;
+use crate::basic::types::basic_pile::BasicPile;
+use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, Pip};
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
-pub struct Combos(Vec<Pile>);
+pub struct Combos(Vec<BasicPile>);
 
 impl Combos {
     /// OK, this refactoring is hot AF. This is what I am looking for when I refactor.
@@ -121,7 +122,7 @@ impl Combos {
     // region vector functions
 
     #[must_use]
-    pub fn get(&self, position: usize) -> Option<&Pile> {
+    pub fn get(&self, position: usize) -> Option<&BasicPile> {
         self.0.get(position)
     }
 
@@ -130,7 +131,7 @@ impl Combos {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Pile> {
+    pub fn iter(&self) -> std::slice::Iter<BasicPile> {
         self.0.iter()
     }
 
@@ -139,11 +140,11 @@ impl Combos {
         self.0.len()
     }
 
-    pub fn push(&mut self, pile: Pile) {
+    pub fn push(&mut self, pile: BasicPile) {
         self.0.push(pile);
     }
 
-    pub fn pop(&mut self) -> Option<Pile> {
+    pub fn pop(&mut self) -> Option<BasicPile> {
         self.0.pop()
     }
 
@@ -156,7 +157,7 @@ impl Combos {
     }
 
     #[must_use]
-    pub fn v(&self) -> &Vec<Pile> {
+    pub fn v(&self) -> &Vec<BasicPile> {
         &self.0
     }
 
@@ -176,26 +177,26 @@ impl Display for Combos {
     }
 }
 
-impl From<Vec<Pile>> for Combos {
-    fn from(v: Vec<Pile>) -> Self {
+impl From<Vec<BasicPile>> for Combos {
+    fn from(v: Vec<BasicPile>) -> Self {
         Self(v)
     }
 }
 
-impl From<&Vec<Pile>> for Combos {
-    fn from(v: &Vec<Pile>) -> Self {
+impl From<&Vec<BasicPile>> for Combos {
+    fn from(v: &Vec<BasicPile>) -> Self {
         Self(v.clone())
     }
 }
 
-impl FromIterator<Pile> for Combos {
-    fn from_iter<T: IntoIterator<Item = Pile>>(iter: T) -> Self {
+impl FromIterator<BasicPile> for Combos {
+    fn from_iter<T: IntoIterator<Item = BasicPile>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
     }
 }
 
 impl Iterator for Combos {
-    type Item = Pile;
+    type Item = BasicPile;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.pop()
@@ -203,8 +204,8 @@ impl Iterator for Combos {
 }
 
 impl<'a> IntoIterator for &'a Combos {
-    type Item = &'a Pile;
-    type IntoIter = std::slice::Iter<'a, Pile>;
+    type Item = &'a BasicPile;
+    type IntoIter = std::slice::Iter<'a, BasicPile>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -214,11 +215,11 @@ impl<'a> IntoIterator for &'a Combos {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__combos_tests {
     use super::*;
-    use crate::prelude::{Deck, Decked, DeckedBase, French, FrenchRank, Standard52};
+    use crate::prelude::{Decked, DeckedBase, French, FrenchRank, Pile, Standard52};
 
     #[test]
     fn connectors() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2).connectors();
 
         assert_eq!(combos.len(), 192);
@@ -230,7 +231,7 @@ mod basic__types__combos_tests {
 
     #[test]
     fn of_rank() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2).of_rank(FrenchRank::ACE);
 
         assert_eq!(combos.len(), 6);
@@ -242,7 +243,7 @@ mod basic__types__combos_tests {
 
     #[test]
     fn of_same_rank() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2).of_same_rank();
 
         assert_eq!(combos.len(), 78);
@@ -250,7 +251,7 @@ mod basic__types__combos_tests {
 
     #[test]
     fn of_same_rank_or_above() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2).of_same_rank_or_above(FrenchRank::KING);
 
         assert_eq!(
@@ -261,7 +262,7 @@ mod basic__types__combos_tests {
 
     #[test]
     fn suited() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2);
         let suited = combos.suited();
         let connectors = suited.connectors();
@@ -273,7 +274,7 @@ mod basic__types__combos_tests {
     // TODO: Why are these in the reverse order?
     #[test]
     fn unsuited() {
-        let pile: Pile = (&Deck::<Standard52>::deck()).into();
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2).unsuited();
         let mut connectors = combos.connectors();
         connectors.sort();
@@ -285,12 +286,12 @@ mod basic__types__combos_tests {
     #[test]
     fn from_vec() {
         let from = vec![
-            Deck::<French>::pile(),
-            Deck::<French>::pile(),
-            Deck::<French>::pile(),
+            Pile::<French>::basic_pile(),
+            Pile::<French>::basic_pile(),
+            Pile::<French>::basic_pile(),
         ];
 
-        let pile = Deck::<French>::pile();
+        let pile = Pile::<French>::basic_pile();
 
         let piles = Combos::from(from);
 

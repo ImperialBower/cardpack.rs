@@ -18,12 +18,12 @@ pub use crate::basic::decks::spades::*;
 pub use crate::basic::decks::standard52::*;
 pub use crate::basic::decks::tarot::*;
 pub use crate::basic::types::basic_card::BasicCard;
+pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
-pub use crate::basic::types::deck::Deck;
 pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
+pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase};
 pub use crate::common::errors::CardError;
-pub use crate::common::traits::{CKCRevised, Decked, DeckedBase};
 pub use crate::localization::{FluentName, Named};
 
 // Macros

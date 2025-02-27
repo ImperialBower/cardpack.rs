@@ -2,9 +2,9 @@ use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
-use crate::basic::types::deck::Deck;
+use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
+use crate::basic::types::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -12,7 +12,7 @@ use std::hash::Hash;
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct French {}
 #[allow(clippy::module_name_repetitions)]
-pub type FrenchDeck = Deck<French>;
+pub type FrenchDeck = Pile<French>;
 #[allow(clippy::module_name_repetitions)]
 pub type FrenchCard = Card<French>;
 
@@ -109,7 +109,7 @@ mod basic__card__french__tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
-    use crate::common::traits::Decked;
+    use crate::basic::types::traits::Decked;
     use std::str::FromStr;
 
     #[test]
@@ -122,7 +122,7 @@ mod basic__card__french__tests {
 
     #[test]
     fn from_str__pile() {
-        let pile = Deck::<French>::from_str("2c 3c 4c").unwrap();
+        let pile = Pile::<French>::from_str("2c 3c 4c").unwrap();
 
         assert_eq!(pile.len(), 3);
         assert_eq!(pile.to_string(), "2♣ 3♣ 4♣");
@@ -135,6 +135,6 @@ mod basic__card__french__tests {
 
     #[test]
     fn decked__deck_name() {
-        assert_eq!(Deck::<French>::deck_name(), "French");
+        assert_eq!(Pile::<French>::deck_name(), "French");
     }
 }

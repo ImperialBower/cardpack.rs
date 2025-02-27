@@ -3,8 +3,8 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::standard52::Standard52;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Deck};
+use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::prelude::{Card, Pile};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -16,7 +16,7 @@ use std::hash::Hash;
 pub struct Euchre32 {}
 
 #[allow(clippy::module_name_repetitions)]
-pub type Euchre32Deck = Deck<Euchre32>;
+pub type Euchre32Deck = Pile<Euchre32>;
 #[allow(clippy::module_name_repetitions)]
 pub type Euchre32Card = Card<Euchre32>;
 
@@ -84,8 +84,8 @@ impl Decked<Euchre32> for Euchre32 {}
 mod basic__decks__euchre32_tests {
     use super::*;
     use crate::basic::decks::french::French;
-    use crate::basic::types::deck::Deck;
-    use crate::common::traits::Decked;
+    use crate::basic::types::pile::Pile;
+    use crate::basic::types::traits::Decked;
 
     #[test]
     fn decked__deck() {

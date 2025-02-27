@@ -3,8 +3,8 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::cards::pinochle::PinochleBasicCard;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Deck, Standard52};
+use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::prelude::{Card, Pile, Standard52};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -13,7 +13,7 @@ use std::hash::Hash;
 pub struct Pinochle {}
 
 #[allow(clippy::module_name_repetitions)]
-pub type PinochleDeck = Deck<Pinochle>;
+pub type PinochleDeck = Pile<Pinochle>;
 #[allow(clippy::module_name_repetitions)]
 pub type PinochleCard = Card<Pinochle>;
 
@@ -97,8 +97,8 @@ impl Decked<Pinochle> for Pinochle {}
 mod basic__card__pinochle_tests {
     use super::*;
     use crate::basic::decks::french::French;
-    use crate::basic::types::deck::Deck;
-    use crate::common::traits::Decked;
+    use crate::basic::types::pile::Pile;
+    use crate::basic::types::traits::Decked;
 
     #[test]
     fn decked__validate() {

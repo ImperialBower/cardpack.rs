@@ -1,16 +1,16 @@
 use crate::basic::decks::cards::skat::{SkatBasicCard, SkatSuit, FLUENT_KEY_BASE_NAME_SKAT};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
-use crate::basic::types::deck::Deck;
+use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
+use crate::basic::types::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Skat {}
 #[allow(clippy::module_name_repetitions)]
-pub type SkatDeck = Deck<Skat>;
+pub type SkatDeck = Pile<Skat>;
 #[allow(clippy::module_name_repetitions)]
 pub type SkatCard = Card<Skat>;
 
@@ -87,8 +87,8 @@ impl Decked<Skat> for Skat {}
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__skat_tests {
     use super::*;
-    use crate::basic::types::deck::Deck;
-    use crate::common::traits::Decked;
+    use crate::basic::types::pile::Pile;
+    use crate::basic::types::traits::Decked;
     use crate::localization::{FluentName, Named};
 
     #[test]

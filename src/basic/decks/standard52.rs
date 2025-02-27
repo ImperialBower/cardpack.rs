@@ -2,8 +2,8 @@ use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Deck};
+use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::prelude::{Card, Pile};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -11,7 +11,7 @@ use std::hash::Hash;
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Standard52 {}
 #[allow(clippy::module_name_repetitions)]
-pub type Standard52Deck = Deck<Standard52>;
+pub type Standard52Deck = Pile<Standard52>;
 #[allow(clippy::module_name_repetitions)]
 pub type Standard52Card = Card<Standard52>;
 
@@ -103,7 +103,7 @@ impl Decked<Standard52> for Standard52 {}
 #[allow(non_snake_case)]
 mod basic__card__standard52_tests {
     use super::*;
-    use crate::common::traits::Decked;
+    use crate::basic::types::traits::Decked;
 
     #[test]
     fn decked__validate() {

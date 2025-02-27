@@ -1,13 +1,21 @@
 use crate::basic::decks::cards::french::FLUENT_KEY_BASE_NAME_FRENCH;
 use crate::basic::types::basic_card::BasicCard;
+pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
-pub use crate::basic::types::deck::Deck;
+use crate::basic::types::combos::Combos;
 pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use std::collections::HashMap;
+use itertools::Itertools;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 pub trait DeckedBase {
+    /// And just like that we have a `Pile`.
+    #[must_use]
+    fn basic_pile() -> BasicPile {
+        BasicPile::from(Self::base_vec())
+    }
+
     fn base_vec() -> Vec<BasicCard>;
 
     fn colors() -> HashMap<Pip, colored::Color>;
@@ -21,12 +29,6 @@ pub trait DeckedBase {
     }
 
     fn fluent_deck_key() -> String;
-
-    /// And just like that we have a `Pile`.
-    #[must_use]
-    fn pile() -> Pile {
-        Pile::from(Self::base_vec())
-    }
 }
 
 pub trait Decked<DeckType>: DeckedBase
@@ -34,8 +36,8 @@ where
     DeckType: Copy + Default + Ord + DeckedBase + Hash,
 {
     #[must_use]
-    fn deck() -> Deck<DeckType> {
-        Deck::<DeckType>::from(Self::deckvec())
+    fn deck() -> Pile<DeckType> {
+        Pile::<DeckType>::from(Self::deckvec())
     }
 
     /// This way of doing it from `CoPilot` is an interesting alternative to
@@ -47,8 +49,8 @@ where
     /// }
     /// ```
     #[must_use]
-    fn decks(count: usize) -> Deck<DeckType> {
-        Deck::<DeckType>::from(Self::deckvec().repeat(count))
+    fn decks(count: usize) -> Pile<DeckType> {
+        Pile::<DeckType>::from(Self::deckvec().repeat(count))
     }
 
     #[must_use]
@@ -147,4 +149,103 @@ pub trait CKCRevised {
 
     #[must_use]
     fn ckc_rank_shift8(&self) -> u32;
+}
+
+/// This trait is a kind of proof of concept for how easy it would be to lay a foundation for creating
+/// a [GTO (Game Theory Optimal)](https://www.888poker.com/magazine/strategy/beginners-guide-gto-poker)
+/// style poker solver. A foundation to that is around what they call poker ranges. Where, instead
+/// of trying to figure out exactly what hand an opponent has, you base your moves on what you
+/// believe is the range of hands that they player could have given their particular style.
+pub trait Ranged {
+    /// This started out passing a reference, but that didn't work when trying to implement it
+    /// with Pile, because the reference vanishes at the end of the call.
+    fn my_basic_pile(&self) -> BasicPile;
+
+    fn combos(&self, k: usize) -> Combos {
+        let mut hs: HashSet<BasicPile> = HashSet::new();
+
+        for combo in self.my_basic_pile().clone().into_iter().combinations(k) {
+            let mut pile = BasicPile::from(combo);
+            pile.sort();
+            hs.insert(pile);
+        }
+
+        let mut combos = hs.into_iter().collect::<Vec<_>>();
+
+        combos.sort();
+        Combos::from(combos)
+    }
+
+    fn combos_with_dups(&self, k: usize) -> Combos {
+        let mut combos = Combos::default();
+
+        for mut combo in self.my_basic_pile().clone().into_iter().combinations(k) {
+            combo.sort();
+            combos.push(BasicPile::from(combo));
+        }
+
+        combos.sort();
+        combos
+    }
+
+    fn all_of_rank(&self, rank: Pip) -> bool {
+        self.my_basic_pile().iter().all(|card| card.rank == rank)
+    }
+
+    fn all_of_same_rank(&self) -> bool {
+        if let Some(first_card) = self.my_basic_pile().v().first() {
+            self.my_basic_pile()
+                .iter()
+                .all(|card| card.rank == first_card.rank)
+        } else {
+            true
+        }
+    }
+
+    fn all_of_same_suit(&self) -> bool {
+        if let Some(first_card) = self.my_basic_pile().v().first() {
+            self.my_basic_pile()
+                .iter()
+                .all(|card| card.suit == first_card.suit)
+        } else {
+            true
+        }
+    }
+
+    /// I love how `CoPilot` can have the earlier version of the function from Pile and
+    /// completely ignore it and instead provide stuff with absolutely no rational:
+    ///
+    /// ```txt
+    /// pub fn is_connector(&self) -> bool {
+    ///     if self.len() < 3 {
+    ///         return false;
+    ///     }
+    ///
+    ///     let mut cards = self.0.clone();
+    ///     cards.sort();
+    ///
+    ///     for i in 1..cards.len() {
+    ///         if cards[i].rank as i32 - cards[i - 1].rank as i32 != 1 {
+    ///             return false;
+    ///         }
+    ///     }
+    ///
+    ///     true
+    /// }
+    /// ```
+    ///
+    /// I mean, why 3 for length? I don't even want to try to figure out why this code is.
+    ///
+    /// OK, the `core::slice::windows()` function is officially cool.
+    fn is_connector(&self) -> bool {
+        let mut pile = self.my_basic_pile().clone();
+        pile.sort_by_rank();
+        pile.v()
+            .windows(2)
+            .all(|w| w[0].rank.weight == w[1].rank.weight + 1)
+    }
+
+    fn of_same_or_greater_rank(&self, rank: Pip) -> bool {
+        self.my_basic_pile().iter().all(|card| card.rank >= rank)
+    }
 }

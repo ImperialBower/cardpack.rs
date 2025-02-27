@@ -10,12 +10,12 @@ use std::fmt::Display;
 ///
 /// let hand = french_cards!("A♠ B🃟 Q♠ J♠ T♠");
 ///
-/// let optimal_hand = match hand.into_pile().cards_of_suit_pip_type(PipType::Joker).len() {
+/// let optimal_hand = match hand.into_basic_pile().cards_of_suit_pip_type(PipType::Joker).len() {
 ///   0 => hand,
 ///   _ => find_optimal_hand(hand),
 /// };
 ///
-/// fn find_optimal_hand(hand: Deck<French>) -> Deck<French> {
+/// fn find_optimal_hand(hand: Pile<French>) -> Pile<French> {
 ///     // Logic that returns the best scoring version of the hand with the joker.
 ///     hand
 /// }
@@ -47,8 +47,8 @@ pub enum PipType {
 /// - `symbol`: A `char` that is the visual representation of the `Pip`, such as '♠' for Spades.
 /// - `value`: A `u32` that is used when a numerical valus is needed that is different than the `weight`.
 ///
-/// Each [`BasicCard`] struct is made up of two `Pips`, one representing the suit of the card and another
-/// representing the rank.
+/// Each [`BasicCard`](crate::basic::types::basic_card::BasicCard) struct is made up of two `Pips`, one
+/// representing the suit of the card and another for the rank.
 ///
 /// Here's a basic example of `Pips` in action:
 ///

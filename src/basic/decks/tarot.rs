@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct Tarot {}
 
 #[allow(clippy::module_name_repetitions)]
-pub type TarotDeck = Deck<Tarot>;
+pub type TarotDeck = Pile<Tarot>;
 #[allow(clippy::module_name_repetitions)]
 pub type TarotCard = Card<Tarot>;
 
@@ -129,8 +129,8 @@ impl Decked<Tarot> for Tarot {}
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__tarot_tests {
     use super::*;
-    use crate::basic::types::deck::Deck;
-    use crate::common::traits::Decked;
+    use crate::basic::types::pile::Pile;
+    use crate::basic::types::traits::Decked;
     use std::str::FromStr;
 
     #[test]

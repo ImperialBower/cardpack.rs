@@ -2,15 +2,34 @@
 #[allow(clippy::pedantic)]
 macro_rules! french_cards {
     ($card_str:expr) => {
-        Deck::<French>::forgiving_from_str($card_str)
+        Pile::<French>::forgiving_from_str($card_str)
     };
 }
 
+/// A macro to create a [Pile](crate::basic::types::pile::Pile) of
+/// [Standard52](crate::basic::decks::standard52::Standard52) cards from a string.
+///
+/// This is a tool of convenience that is a lot more forgiving than the standard `Pile::from_str`
+/// call. If the call doesn't recognize the string as Cards it will simply return an empty
+/// [Pile](crate::basic::types::pile::Pile).
+///
+/// ```
+/// use cardpack::prelude::*;
+/// assert_eq!(cards!("AC KC QC JC TC").to_string(), "A♣ K♣ Q♣ J♣ T♣");
+/// ```
+///
+/// For example, since the `Big Joker` isn't in the `Standard52` Deck, the `cards` macro will return
+/// an empty [Pile](crate::basic::types::pile::Pile):
+///
+/// ```
+/// use cardpack::prelude::*;
+/// assert!(cards!("A♠ B🃟 Q♠ J♠ T♠").to_string().is_empty());
+/// ```
 #[macro_export]
 #[allow(clippy::pedantic)]
 macro_rules! cards {
     ($card_str:expr) => {
-        Deck::<Standard52>::forgiving_from_str($card_str)
+        Pile::<Standard52>::forgiving_from_str($card_str)
     };
 }
 
@@ -184,6 +203,13 @@ macro_rules! card {
 #[allow(non_snake_case)]
 mod basic__macros_tests {
     use crate::prelude::*;
+
+    #[test]
+    fn cards() {
+        assert_eq!(cards!("AC KC QC JC TC").to_string(), "A♣ K♣ Q♣ J♣ T♣");
+        // Since the Big Joker isn't in the Standard52 Deck, the cards macro will return an empty Pile.
+        assert!(cards!("A♠ B🃟 Q♠ J♠ T♠").to_string().is_empty());
+    }
 
     #[test]
     fn french_cards() {

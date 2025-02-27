@@ -1,4 +1,4 @@
-use cardpack::prelude::{CardError, Deck, Decked, FrenchSuit, Pip, Standard52};
+use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -95,18 +95,18 @@ impl Display for BridgeDirection {
 #[allow(clippy::module_name_repetitions)]
 pub struct BridgeBoard {
     pub dealer: BridgeDirection,
-    pub pack: Deck<Standard52>,
-    pub south: Deck<Standard52>,
-    pub west: Deck<Standard52>,
-    pub north: Deck<Standard52>,
-    pub east: Deck<Standard52>,
+    pub pack: Pile<Standard52>,
+    pub south: Pile<Standard52>,
+    pub west: Pile<Standard52>,
+    pub north: Pile<Standard52>,
+    pub east: Pile<Standard52>,
     pub nw_vulnerable: bool,
     pub ew_vulnerable: bool,
 }
 
 impl BridgeBoard {
     pub fn deal() -> BridgeBoard {
-        let mut cards = Deck::<Standard52>::deck().shuffled();
+        let mut cards = Pile::<Standard52>::deck().shuffled();
         let pack = cards.clone();
 
         let dealer = BridgeDirection::random();
@@ -130,10 +130,10 @@ impl BridgeBoard {
 
     fn calculate_pbn(
         dealer: BridgeDirection,
-        south: &Deck<Standard52>,
-        west: &Deck<Standard52>,
-        north: &Deck<Standard52>,
-        east: &Deck<Standard52>,
+        south: &Pile<Standard52>,
+        west: &Pile<Standard52>,
+        north: &Pile<Standard52>,
+        east: &Pile<Standard52>,
     ) -> String {
         match dealer {
             BridgeDirection::N => {
@@ -196,7 +196,7 @@ impl BridgeBoard {
         board
     }
 
-    pub fn hand_to_pbn_deal_segment(hand: &Deck<Standard52>) -> String {
+    pub fn hand_to_pbn_deal_segment(hand: &Pile<Standard52>) -> String {
         let spades = BridgeBoard::get_suit_string(FrenchSuit::SPADES, &hand);
         let hearts = BridgeBoard::get_suit_string(FrenchSuit::HEARTS, &hand);
         let diamonds = BridgeBoard::get_suit_string(FrenchSuit::DIAMONDS, &hand);
@@ -205,20 +205,20 @@ impl BridgeBoard {
         format!("{spades}.{hearts}.{diamonds}.{clubs}")
     }
 
-    fn get_suit_string(suit: Pip, hand: &Deck<Standard52>) -> String {
-        hand.into_pile()
+    fn get_suit_string(suit: Pip, hand: &Pile<Standard52>) -> String {
+        hand.into_basic_pile()
             .ranks_index_by_suit(suit, "")
             .unwrap_or_else(|| String::new())
     }
 
     /// NOTE: index string is a really horrible name for something used in code. Index has too
     /// many implications.
-    pub fn pile_by_index(index: &str) -> Result<Deck<Standard52>, CardError> {
-        Deck::<Standard52>::from_str(index)
+    pub fn pile_by_index(index: &str) -> Result<Pile<Standard52>, CardError> {
+        Pile::<Standard52>::from_str(index)
     }
 
-    pub fn as_pile(&self) -> Deck<Standard52> {
-        let mut pile = Deck::<Standard52>::default();
+    pub fn as_pile(&self) -> Pile<Standard52> {
+        let mut pile = Pile::<Standard52>::default();
         pile.prepend(&self.south);
         pile.prepend(&self.west);
         pile.prepend(&self.north);
@@ -227,7 +227,7 @@ impl BridgeBoard {
         pile
     }
 
-    fn fold_in(&mut self, direction: &BridgeDirection, hand: Deck<Standard52>) {
+    fn fold_in(&mut self, direction: &BridgeDirection, hand: Pile<Standard52>) {
         match direction {
             BridgeDirection::S => self.south = hand.sort(),
             BridgeDirection::W => self.west = hand.sort(),
@@ -257,7 +257,7 @@ impl BridgeBoard {
         (direction, remainder)
     }
 
-    fn to_pile(&self, s: &str) -> Deck<Standard52> {
+    fn to_pile(&self, s: &str) -> Pile<Standard52> {
         let rawsuits: Vec<&str> = s.split('.').collect();
 
         let mut v: Vec<String> = Vec::new();
@@ -288,11 +288,11 @@ impl Default for BridgeBoard {
     fn default() -> Self {
         BridgeBoard {
             dealer: BridgeDirection::S,
-            pack: Deck::<Standard52>::deck(),
-            south: Deck::default(),
-            west: Deck::default(),
-            north: Deck::default(),
-            east: Deck::default(),
+            pack: Pile::<Standard52>::deck(),
+            south: Pile::default(),
+            west: Pile::default(),
+            north: Pile::default(),
+            east: Pile::default(),
             nw_vulnerable: false,
             ew_vulnerable: false,
         }
@@ -332,11 +332,11 @@ impl BridgeCompass {
         )
     }
 
-    fn cell_string(cards: Deck<Standard52>) -> String {
+    fn cell_string(cards: Pile<Standard52>) -> String {
         let mut v = Vec::<String>::new();
 
         match cards
-            .into_pile()
+            .into_basic_pile()
             .ranks_index_by_suit(FrenchSuit::SPADES, " ")
         {
             Some(index) => {
@@ -345,7 +345,7 @@ impl BridgeCompass {
             None => {}
         }
         match cards
-            .into_pile()
+            .into_basic_pile()
             .ranks_index_by_suit(FrenchSuit::HEARTS, " ")
         {
             Some(index) => {
@@ -354,7 +354,7 @@ impl BridgeCompass {
             None => {}
         }
         match cards
-            .into_pile()
+            .into_basic_pile()
             .ranks_index_by_suit(FrenchSuit::DIAMONDS, " ")
         {
             Some(index) => {
@@ -363,7 +363,7 @@ impl BridgeCompass {
             None => {}
         }
         match cards
-            .into_pile()
+            .into_basic_pile()
             .ranks_index_by_suit(FrenchSuit::CLUBS, " ")
         {
             Some(index) => {
@@ -564,7 +564,7 @@ mod bridge_tests {
 
     #[test]
     fn hand_to_pbn_deal_segment__unbalanced() {
-        let all_spades = Deck::<Standard52>::deck().draw(13).unwrap();
+        let all_spades = Pile::<Standard52>::deck().draw(13).unwrap();
         let expected = "AKQJT98765432...";
 
         let actual = BridgeBoard::hand_to_pbn_deal_segment(&all_spades);

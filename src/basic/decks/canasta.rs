@@ -3,9 +3,9 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
-use crate::basic::types::deck::Deck;
+use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::common::traits::{Decked, DeckedBase};
+use crate::basic::types::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Canasta {}
 #[allow(clippy::module_name_repetitions)]
-pub type CanastaDeck = Deck<Canasta>;
+pub type CanastaDeck = Pile<Canasta>;
 #[allow(clippy::module_name_repetitions)]
 pub type CanastaCard = Card<Canasta>;
 
@@ -156,8 +156,8 @@ impl Decked<Canasta> for Canasta {}
 #[allow(non_snake_case, unused_imports)]
 mod basic__decks__canasta_tests {
     use super::*;
-    use crate::basic::types::deck::Deck;
-    use crate::common::traits::Decked;
+    use crate::basic::types::pile::Pile;
+    use crate::basic::types::traits::Decked;
 
     #[test]
     fn decked__deck() {
@@ -172,7 +172,7 @@ mod basic__decks__canasta_tests {
         let pile = Canasta::deck().shuffled();
         let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
-        let ranks_index = pile.into_pile().ranks_index("~");
+        let ranks_index = pile.into_basic_pile().ranks_index("~");
 
         assert_eq!(ranks_index, expected);
     }
@@ -181,7 +181,7 @@ mod basic__decks__canasta_tests {
     /// TODO: WTF do I mean by WTF??? Don't do this.
     #[test]
     pub fn suits_index() {
-        let pile = Canasta::deck().shuffled().into_pile();
+        let pile = Canasta::deck().shuffled().into_basic_pile();
         let expected = "H~D~J~S~H~D~C~S~H~D~C";
 
         let ranks_index = pile.suits_index("~");
