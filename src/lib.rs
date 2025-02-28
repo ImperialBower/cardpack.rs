@@ -236,6 +236,10 @@
 //! // And now the deck is empty:
 //! assert!(deck.draw_first().is_none());
 //! assert!(deck.draw_last().is_none());
+//!
+//! // Of all the tests you could use to make sure that your deck is setup correctly, the most
+//! // fundamental is the validate method.
+//! assert!(Tiny::validate());
 //! ```
 
 #![allow(clippy::needless_doctest_main)]
