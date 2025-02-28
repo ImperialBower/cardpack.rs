@@ -389,14 +389,14 @@ impl TarotRank {
         pip_type: PipType::Rank,
         weight: 19,
         index: 'E',
-        symbol: '👑',
+        symbol: '👸',
         value: 20,
     };
     pub const EMPEROR: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 18,
         index: 'R',
-        symbol: '👑',
+        symbol: '🤴',
         value: 19,
     };
     pub const HIEROPHANT: Pip = Pip {

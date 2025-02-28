@@ -898,7 +898,7 @@ mod basic__types__deck_tests {
         let combinations = pile.combos(2);
         let dups = pile.combos_with_dups(2);
 
-        assert_eq!(combinations.len(), 1378);
+        assert_eq!(combinations.len(), 1456);
         assert_eq!(dups.len(), 5356);
     }
 

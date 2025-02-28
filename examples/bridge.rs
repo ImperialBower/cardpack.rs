@@ -1,3 +1,4 @@
+use cardpack::basic::types::traits::Ranged;
 use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};
 use std::fmt;
 use std::fmt::Display;
@@ -5,7 +6,6 @@ use std::str::FromStr;
 use term_table::row::Row;
 use term_table::table_cell::{Alignment, TableCell};
 use term_table::{Table, TableStyle};
-use cardpack::basic::types::traits::Ranged;
 
 fn main() {
     env_logger::init();
@@ -207,8 +207,7 @@ impl BridgeBoard {
     }
 
     fn get_suit_string(suit: Pip, hand: &Pile<Standard52>) -> String {
-        hand
-            .ranks_index_by_suit(suit, "")
+        hand.ranks_index_by_suit(suit, "")
             .unwrap_or_else(|| String::new())
     }
 
@@ -336,33 +335,25 @@ impl BridgeCompass {
     fn cell_string(cards: Pile<Standard52>) -> String {
         let mut v = Vec::<String>::new();
 
-        match cards
-            .ranks_index_by_suit(FrenchSuit::SPADES, " ")
-        {
+        match cards.ranks_index_by_suit(FrenchSuit::SPADES, " ") {
             Some(index) => {
                 v.push(format!("♠ {index}"));
             }
             None => {}
         }
-        match cards
-            .ranks_index_by_suit(FrenchSuit::HEARTS, " ")
-        {
+        match cards.ranks_index_by_suit(FrenchSuit::HEARTS, " ") {
             Some(index) => {
                 v.push(format!("♥ {index}"));
             }
             None => {}
         }
-        match cards
-            .ranks_index_by_suit(FrenchSuit::DIAMONDS, " ")
-        {
+        match cards.ranks_index_by_suit(FrenchSuit::DIAMONDS, " ") {
             Some(index) => {
                 v.push(format!("♦ {index}"));
             }
             None => {}
         }
-        match cards
-            .ranks_index_by_suit(FrenchSuit::CLUBS, " ")
-        {
+        match cards.ranks_index_by_suit(FrenchSuit::CLUBS, " ") {
             Some(index) => {
                 v.push(format!("♣ {index}"));
             }

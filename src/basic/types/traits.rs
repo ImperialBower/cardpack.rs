@@ -5,10 +5,11 @@ pub use crate::basic::types::card::Card;
 use crate::basic::types::combos::Combos;
 pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
+use crate::prelude::PipType;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use crate::prelude::PipType;
+use std::str::FromStr;
 
 pub trait DeckedBase {
     /// And just like that we have a `Pile`.
@@ -82,7 +83,7 @@ where
         Pile::<DeckType>::from(Self::deckvec().repeat(count))
     }
 
-    /// 
+    ///
     #[must_use]
     fn deckvec() -> Vec<Card<DeckType>> {
         let v = Card::<DeckType>::base_vec();
@@ -153,8 +154,9 @@ where
     #[must_use]
     fn validate() -> bool {
         let deck = Self::deck();
+        let deckfromstr = Pile::<DeckType>::from_str(&deck.to_string()).unwrap();
 
-        deck == deck.clone().shuffled().sort()
+        deck == deck.clone().shuffled().sort() && deck == deckfromstr
     }
 }
 
@@ -187,6 +189,13 @@ pub trait CKCRevised {
 /// of trying to figure out exactly what hand an opponent has, you base your moves on what you
 /// believe is the range of hands that they player could have given their particular style.
 pub trait Ranged {
+    /// This is the starting point for any entity enabling the `Ranged` trait. Since none of the
+    /// logic behind any of these methods requires the boundary provided by the generic [`Pile`] struct,
+    /// since it is based entirely on the raw data in the collection of [`BasicCard`]s in a
+    /// [`BasicPile`]. [`Pile`] is very useful for getting us to where we want to be, re a specific
+    /// collection of cards, but once there we can rid ourselves of its confinements and focus on
+    /// data.
+    ///
     /// This started out passing a reference, but that didn't work when trying to implement it
     /// with Pile, because the reference vanishes at the end of the call.
     fn my_basic_pile(&self) -> BasicPile;
@@ -195,8 +204,7 @@ pub trait Ranged {
         let mut hs: HashSet<BasicPile> = HashSet::new();
 
         for combo in self.my_basic_pile().clone().into_iter().combinations(k) {
-            let mut pile = BasicPile::from(combo);
-            pile.sort();
+            let pile = BasicPile::from(combo).sorted_by_rank();
             hs.insert(pile);
         }
 
@@ -209,12 +217,13 @@ pub trait Ranged {
     fn combos_with_dups(&self, k: usize) -> Combos {
         let mut combos = Combos::default();
 
-        for mut combo in self.my_basic_pile().clone().into_iter().combinations(k) {
-            combo.sort();
-            combos.push(BasicPile::from(combo));
+        for combo in self.my_basic_pile().clone().into_iter().combinations(k) {
+            let pile = BasicPile::from(combo).sorted_by_rank();
+            combos.push(pile);
         }
 
         combos.sort();
+        combos.reverse();
         combos
     }
 
@@ -286,7 +295,11 @@ pub trait Ranged {
     where
         F: Fn(&BasicCard) -> bool,
     {
-        self.my_basic_pile().iter().filter(|&card| filter(card)).copied().collect()
+        self.my_basic_pile()
+            .iter()
+            .filter(|&card| filter(card))
+            .copied()
+            .collect()
     }
 
     /// Returns a [`BasicPile`] filtering on rank [`PipType`].

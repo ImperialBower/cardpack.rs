@@ -214,6 +214,9 @@
 //!
 //! assert_eq!(deck.to_string(), "A♠ K♠ A♥ K♥");
 //!
+//! // Every deck comes with the Ranged trait automatically:
+//! assert_eq!(deck.combos(2).to_string(), "A♠ K♠, A♠ A♥, A♠ K♥, K♠ K♥, A♥ K♠, A♥ K♥");
+//!
 //! // Deal from the top of the deck:
 //! assert_eq!(deck.draw_first().unwrap().to_string(), "A♠");
 //!

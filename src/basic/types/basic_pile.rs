@@ -469,7 +469,7 @@ mod basic__types__pile_tests {
         let combinations = pile.combos(2);
         let dups = pile.combos_with_dups(2);
 
-        assert_eq!(combinations.len(), 1378);
+        assert_eq!(combinations.len(), 1456);
         assert_eq!(dups.len(), 5356);
     }
 
@@ -518,7 +518,7 @@ mod basic__types__pile_tests {
     #[test]
     fn cards_of_rank_pip_type() {
         let pile = French::basic_pile();
-            let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
+        let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
 
         assert_eq!(jokers.to_string(), "B🃟 L🃟");
     }
@@ -606,8 +606,7 @@ mod basic__types__pile_tests {
 
     #[test]
     pub fn ranks_index_by_suit() {
-        let pile = Pile::<French>::from_str("A♠ K♠ A♣ Q♣ K♥")
-            .unwrap();
+        let pile = Pile::<French>::from_str("A♠ K♠ A♣ Q♣ K♥").unwrap();
 
         assert_eq!(
             pile.ranks_index_by_suit(FrenchSuit::SPADES, "-").unwrap(),
