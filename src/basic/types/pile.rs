@@ -3,7 +3,7 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
-use crate::prelude::{BasicPile, Decked, PipType};
+use crate::prelude::{BasicPile, Decked};
 use colored::Color;
 use rand::rng;
 use rand::seq::SliceRandom;
@@ -15,14 +15,14 @@ use std::vec::IntoIter;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
 /// collection of [`Cards`](Card) that are bound by a
-/// specific generic `DeckType`.
+/// specific deck  type parameter.
 ///
 /// The magic behind all this is enabled by implementing the [`Decked`] and [`DeckedBase`] traits.
 /// [`DeckedBase`] defines the [`BasicCards`](BasicCard) that
 /// hold the data that is in the [`Cards`](Card) of the `Pile`, and the
 /// [`Decked`] trait that ensures that only [`Cards`](Card) that fit
 /// the contract defined in the specific deck implementation trait, such as
-/// [`French`](crate::basic::decks::french::French) for a traditional pack of cards, or
+/// [`French`](crate::basic::decks::french::French) for a traditional pack of cards with jokers, or
 /// [`Pinochle`](crate::basic::decks::pinochle::Pinochle). This makes it possible for the users
 /// to define a `Pile` of [`Cards`](Card) through simple strings. Here's
 /// an example:
@@ -36,18 +36,17 @@ use std::vec::IntoIter;
 /// assert_eq!(hand.to_string(), "A♦ K♦ Q♦ J♦ T♦");
 /// ```
 ///
-/// TODO: Fix me
+/// TODO: fixme
 /// ```txt
-/// use cardpack::rev1_prelude::{Decked, French, Pile};
-/// let mut french_deck: Pile<French, French> = French::deck();
+/// use cardpack::prelude::*;
+/// let mut deck: Pile<Standard52> = Standard52::deck();
 ///
-/// assert_eq!(french_deck.rank_index(" "), "A K Q J T 9 8 7 6 5 4 3 2");
-/// assert_eq!(french_deck.suit_symbol_index(), "♠ ♥ ♦ ♣");
-/// assert_eq!(french_deck.suit_index(), "S H D C");
-/// assert_eq!(french_deck.draw(5).to_string(), "A♠ K♠ Q♠ J♠ T♠");
-/// assert_eq!(french_deck.len(), 47);
+/// assert_eq!(deck(" "), "A K Q J T 9 8 7 6 5 4 3 2");
+/// assert_eq!(deck.suit_symbol_index(), "♠ ♥ ♦ ♣");
+/// assert_eq!(deck.suit_index(), "S H D C");
+/// assert_eq!(deck.draw(5).to_string(), "A♠ K♠ Q♠ J♠ T♠");
+/// assert_eq!(deck.len(), 47);
 /// ```
-///
 ///
 /// ```txt
 /// use cardpack::rev1_prelude::{Decked, Modern, Pile};
@@ -445,66 +444,10 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .collect::<Vec<String>>()
             .join(" ")
     }
-
-    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-    // region Pips
-    // TODO: Region to dd pips logic to `Pile`.
-
-    /// Converts the `Deck` into a [`BasicPile`], which can then filter on rank [`PipType`], which
-    /// then get converted back to a `Deck`.
-    ///
-    /// TODO: Mark this as an example of the abstraction pushing the limits.
-    ///
-    /// This example verifies that there are two `Jokers` in the
-    /// [`French`](crate::basic::decks::french::French) [`Pile`]
-    ///
-    /// ```
-    /// use cardpack::prelude::*;
-    ///
-    /// let mut deck = French::deck();
-    ///
-    /// assert_eq!(deck.cards_of_rank_pip_type(PipType::Joker).len(), 2);
-    /// ```
-    #[must_use]
-    pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-        Self::from(self.into_basic_pile().cards_of_rank_pip_type(pip_type))
-    }
-
-    /// Converts the `Deck` into a `[Pile`], which can then filter on suit `PipType`, which
-    /// then get converted back to a `Deck`.
-    ///
-    /// This example verifies that there are two `Jokers` in the
-    /// [`French`](crate::basic::decks::french::French) [`Pile`]
-    ///
-    /// ```
-    /// use cardpack::prelude::*;
-    ///
-    /// let mut deck = Tarot::deck();
-    ///
-    /// assert_eq!(deck.cards_of_suit_pip_type(PipType::Special).len(), 22);
-    /// ```
-    #[must_use]
-    pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
-        Self::from(self.into_basic_pile().cards_of_suit_pip_type(pip_type))
-    }
-
-    /// Returns a `Deck` where either the suit or rank [`Pip`] have the specified [`PipType`].\
-    ///
-    /// ```
-    /// use cardpack::prelude::*;
-    ///
-    /// assert_eq!(Tarot::deck().cards_with_pip_type(PipType::Special).len(), 22);
-    /// assert_eq!(French::deck().cards_with_pip_type(PipType::Joker).len(), 2);
-    /// assert!(French::deck().cards_with_pip_type(PipType::Special).is_empty());
-    /// ```
-    #[must_use]
-    pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
-        Self::from(self.into_basic_pile().cards_with_pip_type(pip_type))
-    }
-
-    // endregion
 }
 
+/// These are all passthroughs to the underlying type parameter. For instance,
+/// `Pile::<French>::base_vec()` is routed to `impl DeckedBase for French`.
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<DeckType> {
     fn base_vec() -> Vec<BasicCard> {
         DeckType::base_vec()
@@ -830,20 +773,6 @@ mod basic__types__deck_tests {
         assert_eq!(pile.sort_by_rank().to_string(), "8♣ 4♠ 2♠");
         assert_eq!(pile3.to_string(), "8♣ 4♠ 2♠");
     }
-
-    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-    // region Pips
-
-    /// NOTE: CoPilot keeps recommending things that don't exist, such as `PipType::Face`. Is this
-    /// a primitive form of hallucination?
-    #[test]
-    fn cards_of_rank_pip_type() {
-        let jokers = French::deck().cards_of_rank_pip_type(PipType::Joker);
-
-        assert_eq!(jokers.to_string(), "B🃟 L🃟");
-    }
-
-    // endregion
 
     #[test]
     fn decked__deck() {

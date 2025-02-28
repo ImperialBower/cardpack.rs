@@ -10,7 +10,7 @@ use std::fmt::Display;
 ///
 /// let hand = french_cards!("A♠ B🃟 Q♠ J♠ T♠");
 ///
-/// let optimal_hand = match hand.into_basic_pile().cards_of_suit_pip_type(PipType::Joker).len() {
+/// let optimal_hand = match hand.cards_of_suit_pip_type(PipType::Joker).len() {
 ///   0 => hand,
 ///   _ => find_optimal_hand(hand),
 /// };

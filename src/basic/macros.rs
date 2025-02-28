@@ -1,3 +1,7 @@
+/// A macro to create a [Pile](crate::basic::types::pile::Pile) of
+/// [`French Deck`](crate::basic::decks::french::French) cards
+/// from a string. If the passed in string isn't valid, it will simply
+/// return an empty pile.
 #[macro_export]
 #[allow(clippy::pedantic)]
 macro_rules! french_cards {

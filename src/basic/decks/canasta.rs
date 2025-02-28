@@ -157,7 +157,7 @@ impl Decked<Canasta> for Canasta {}
 mod basic__decks__canasta_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
-    use crate::basic::types::traits::Decked;
+    use crate::basic::types::traits::{Decked, Ranged};
 
     #[test]
     fn decked__deck() {
@@ -172,7 +172,7 @@ mod basic__decks__canasta_tests {
         let pile = Canasta::deck().shuffled();
         let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
-        let ranks_index = pile.into_basic_pile().ranks_index("~");
+        let ranks_index = pile.ranks_index("~");
 
         assert_eq!(ranks_index, expected);
     }
@@ -181,7 +181,7 @@ mod basic__decks__canasta_tests {
     /// TODO: WTF do I mean by WTF??? Don't do this.
     #[test]
     pub fn suits_index() {
-        let pile = Canasta::deck().shuffled().into_basic_pile();
+        let pile = Canasta::deck().shuffled();
         let expected = "H~D~J~S~H~D~C~S~H~D~C";
 
         let ranks_index = pile.suits_index("~");

@@ -8,6 +8,7 @@ use crate::basic::types::pips::Pip;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use crate::prelude::PipType;
 
 pub trait DeckedBase {
     /// And just like that we have a `Pile`.
@@ -35,11 +36,39 @@ pub trait Decked<DeckType>: DeckedBase
 where
     DeckType: Copy + Default + Ord + DeckedBase + Hash,
 {
+    /// The method to generate a deck of cards based on specific type parameters.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// // Each deck can be evoked in two ways:
+    /// let deck_from_type_parameter: Pile<Pinochle> = Pinochle::deck();
+    /// let deck_from_generic_pile = Pile::<Pinochle>::deck();
+    ///
+    /// assert_eq!(deck_from_type_parameter, deck_from_generic_pile);
+    /// assert_eq!(
+    ///     deck_from_type_parameter.to_string(),
+    ///     "A♠ A♠ T♠ T♠ K♠ K♠ Q♠ Q♠ J♠ J♠ 9♠ 9♠ A♥ A♥ T♥ T♥ K♥ K♥ Q♥ Q♥ J♥ J♥ 9♥ 9♥ A♦ A♦ T♦ T♦ K♦ K♦ Q♦ Q♦ J♦ J♦ 9♦ 9♦ A♣ A♣ T♣ T♣ K♣ K♣ Q♣ Q♣ J♣ J♣ 9♣ 9♣"
+    /// );
+    /// ```
     #[must_use]
     fn deck() -> Pile<DeckType> {
         Pile::<DeckType>::from(Self::deckvec())
     }
 
+    /// Creates x numbers of a specific `Deck` in a single [`Pile`].
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let twodecks = Pile::<Standard52>::decks(2);
+    ///
+    /// assert_eq!(twodecks.len(), 104);
+    ///
+    /// // Converting it into a `HashSet` will verify that there are only 52 unique cards.
+    /// assert_eq!(twodecks.into_hashset().len(), 52);
+    /// ```
+    ///
     /// This way of doing it from `CoPilot` is an interesting alternative to
     /// my old `pile_up` method:
     ///
@@ -53,6 +82,7 @@ where
         Pile::<DeckType>::from(Self::deckvec().repeat(count))
     }
 
+    /// 
     #[must_use]
     fn deckvec() -> Vec<Card<DeckType>> {
         let v = Card::<DeckType>::base_vec();
@@ -247,5 +277,161 @@ pub trait Ranged {
 
     fn of_same_or_greater_rank(&self, rank: Pip) -> bool {
         self.my_basic_pile().iter().all(|card| card.rank >= rank)
+    }
+
+    //\\//\\//\\//\\
+    // Pips
+    #[must_use]
+    fn filter_cards<F>(&self, filter: F) -> BasicPile
+    where
+        F: Fn(&BasicCard) -> bool,
+    {
+        self.my_basic_pile().iter().filter(|&card| filter(card)).copied().collect()
+    }
+
+    /// Returns a [`BasicPile`] filtering on rank [`PipType`].
+    ///
+    /// TODO: Mark this as an example of the abstraction pushing the limits.
+    ///
+    /// This example verifies that there are two `Jokers` in the
+    /// [`French`](crate::basic::decks::french::French) [`Pile`]
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = French::deck();
+    ///
+    /// assert_eq!(deck.cards_of_rank_pip_type(PipType::Joker).len(), 2);
+    /// ```
+    ///
+    /// Here's the original code before being refactored into using the `filter_cards` closure,
+    ///
+    /// ```txt
+    /// #[must_use]
+    /// pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+    ///     self.iter()
+    ///         .filter(|card| card.rank.pip_type == pip_type)
+    ///         .cloned()
+    ///         .collect()
+    /// }
+    /// ```
+    #[must_use]
+    fn cards_of_rank_pip_type(&self, pip_type: PipType) -> BasicPile {
+        let rank_types_filter = |basic_card: &BasicCard| basic_card.rank.pip_type == pip_type;
+        self.filter_cards(rank_types_filter)
+    }
+
+    /// Returns a [`BasicPile`] filtering on suit [`PipType`].
+    ///
+    /// This example verifies how many `Special` (`Major Arcana`) cards are in the
+    /// [`Tarot`](crate::basic::decks::tarot::Tarot) deck.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = Tarot::deck();
+    ///
+    /// assert_eq!(deck.cards_of_suit_pip_type(PipType::Special).len(), 22);
+    /// ```
+    #[must_use]
+    fn cards_of_suit_pip_type(&self, pip_type: PipType) -> BasicPile {
+        let rank_types_filter = |basic_card: &BasicCard| basic_card.suit.pip_type == pip_type;
+        self.filter_cards(rank_types_filter)
+    }
+
+    /// Returns a [`BasicPile`] where either the suit or rank [`Pip`] have the specified [`PipType`].\
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert_eq!(Tarot::deck().cards_with_pip_type(PipType::Special).len(), 22);
+    /// assert_eq!(French::deck().cards_with_pip_type(PipType::Joker).len(), 2);
+    /// assert!(French::deck().cards_with_pip_type(PipType::Special).is_empty());
+    /// ```
+    #[must_use]
+    fn cards_with_pip_type(&self, pip_type: PipType) -> BasicPile {
+        let rank_types_filter = |basic_card: &BasicCard| {
+            basic_card.rank.pip_type == pip_type || basic_card.suit.pip_type == pip_type
+        };
+        self.filter_cards(rank_types_filter)
+    }
+
+    fn extract_pips<F>(&self, f: F) -> Vec<Pip>
+    where
+        F: Fn(&BasicCard) -> Pip,
+    {
+        let set: HashSet<Pip> = self.my_basic_pile().iter().map(f).collect();
+        let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
+        vec.sort();
+        vec.reverse();
+        vec
+    }
+
+    fn pip_index<F>(&self, f: F, joiner: &str) -> String
+    where
+        F: Fn(&BasicCard) -> Pip,
+    {
+        self.extract_pips(f)
+            .iter()
+            .map(|pip| pip.index.to_string())
+            .collect::<Vec<String>>()
+            .join(joiner)
+    }
+
+    #[must_use]
+    fn ranks(&self) -> Vec<Pip> {
+        self.extract_pips(|card| card.rank)
+    }
+
+    #[must_use]
+    fn ranks_index(&self, joiner: &str) -> String {
+        self.pip_index(|card| card.rank, joiner)
+    }
+
+    /// TODO RF: Wouldn't it be easier to just return a vector, and if it's empty you know
+    /// there were none in the `Pile`.
+    #[must_use]
+    fn ranks_by_suit(&self, suit: Pip) -> Option<Vec<Pip>> {
+        let ranks: Vec<Pip> = self
+            .my_basic_pile()
+            .iter()
+            .filter(|card| card.suit == suit)
+            .map(|card| card.rank)
+            .collect();
+
+        match ranks.len() {
+            0 => None,
+            _ => Some(ranks),
+        }
+    }
+
+    #[must_use]
+    fn ranks_index_by_suit(&self, suit: Pip, joiner: &str) -> Option<String> {
+        self.ranks_by_suit(suit).map(|ranks| {
+            ranks
+                .iter()
+                .map(|pip| pip.index.to_string())
+                .collect::<Vec<String>>()
+                .join(joiner)
+        })
+    }
+
+    #[must_use]
+    fn suits(&self) -> Vec<Pip> {
+        self.extract_pips(|card| card.suit)
+    }
+
+    #[must_use]
+    fn suits_index(&self, joiner: &str) -> String {
+        self.pip_index(|card| card.suit, joiner)
+    }
+
+    #[must_use]
+    fn suit_symbol_index(&self, joiner: &str) -> String {
+        self.suits()
+            .iter()
+            .map(|pip| pip.symbol.to_string())
+            .collect::<Vec<String>>()
+            .join(joiner)
     }
 }

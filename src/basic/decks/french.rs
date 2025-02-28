@@ -9,6 +9,8 @@ use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// `French` is the type parameter for the `French Deck` version of the generic
+/// [`Card`] and [`Pile`] structs.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct French {}
 #[allow(clippy::module_name_repetitions)]

@@ -1,4 +1,4 @@
-use crate::basic::decks::cards::skat::{SkatBasicCard, SkatSuit, FLUENT_KEY_BASE_NAME_SKAT};
+use crate::basic::decks::cards::skat::{FLUENT_KEY_BASE_NAME_SKAT, SkatBasicCard, SkatSuit};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;

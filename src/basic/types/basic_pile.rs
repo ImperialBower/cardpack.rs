@@ -1,8 +1,7 @@
 use crate::basic::types::traits::Ranged;
-use crate::prelude::{BasicCard, DeckedBase, Pile, Pip, PipType};
+use crate::prelude::{BasicCard, DeckedBase, Pile};
 use rand::prelude::SliceRandom;
 use rand::rng;
-use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
 use std::hash::Hash;
@@ -38,14 +37,6 @@ impl BasicPile {
         }
     }
 
-    #[must_use]
-    pub fn filter_cards<F>(&self, filter: F) -> Self
-    where
-        F: Fn(&BasicCard) -> bool,
-    {
-        self.iter().filter(|&card| filter(card)).copied().collect()
-    }
-
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -56,121 +47,130 @@ impl BasicPile {
         pile.shuffle();
         pile
     }
-
-    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-    // region Pips
-
-    /// Here's the original code before being refactored into using the `filter_cards` closure,
-    ///
-    /// ```txt
-    /// #[must_use]
-    /// pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-    ///     self.iter()
-    ///         .filter(|card| card.rank.pip_type == pip_type)
-    ///         .cloned()
-    ///         .collect()
-    /// }
-    /// ```
-    #[must_use]
-    pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-        let rank_types_filter = |basic_card: &BasicCard| basic_card.rank.pip_type == pip_type;
-        self.filter_cards(rank_types_filter)
-    }
-
-    #[must_use]
-    pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
-        let rank_types_filter = |basic_card: &BasicCard| basic_card.suit.pip_type == pip_type;
-        self.filter_cards(rank_types_filter)
-    }
-
-    #[must_use]
-    pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
-        let rank_types_filter = |basic_card: &BasicCard| {
-            basic_card.rank.pip_type == pip_type || basic_card.suit.pip_type == pip_type
-        };
-        self.filter_cards(rank_types_filter)
-    }
-
-    fn extract_pips<F>(&self, f: F) -> Vec<Pip>
-    where
-        F: Fn(&BasicCard) -> Pip,
-    {
-        let set: HashSet<Pip> = self.0.iter().map(f).collect();
-        let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
-        vec.sort();
-        vec.reverse();
-        vec
-    }
-
-    fn pip_index<F>(&self, f: F, joiner: &str) -> String
-    where
-        F: Fn(&BasicCard) -> Pip,
-    {
-        self.extract_pips(f)
-            .iter()
-            .map(|pip| pip.index.to_string())
-            .collect::<Vec<String>>()
-            .join(joiner)
-    }
-
-    #[must_use]
-    pub fn ranks(&self) -> Vec<Pip> {
-        self.extract_pips(|card| card.rank)
-    }
-
-    #[must_use]
-    pub fn ranks_index(&self, joiner: &str) -> String {
-        self.pip_index(|card| card.rank, joiner)
-    }
-
-    /// TODO RF: Wouldn't it be easier to just return a vector, and if it's empty you know
-    /// there were none in the `Pile`.
-    #[must_use]
-    pub fn ranks_by_suit(&self, suit: Pip) -> Option<Vec<Pip>> {
-        let ranks: Vec<Pip> = self
-            .0
-            .iter()
-            .filter(|card| card.suit == suit)
-            .map(|card| card.rank)
-            .collect();
-
-        match ranks.len() {
-            0 => None,
-            _ => Some(ranks),
-        }
-    }
-
-    #[must_use]
-    pub fn ranks_index_by_suit(&self, suit: Pip, joiner: &str) -> Option<String> {
-        self.ranks_by_suit(suit).map(|ranks| {
-            ranks
-                .iter()
-                .map(|pip| pip.index.to_string())
-                .collect::<Vec<String>>()
-                .join(joiner)
-        })
-    }
-
-    #[must_use]
-    pub fn suits(&self) -> Vec<Pip> {
-        self.extract_pips(|card| card.suit)
-    }
-
-    #[must_use]
-    pub fn suits_index(&self, joiner: &str) -> String {
-        self.pip_index(|card| card.suit, joiner)
-    }
-
-    #[must_use]
-    pub fn suit_symbol_index(&self, joiner: &str) -> String {
-        self.suits()
-            .iter()
-            .map(|pip| pip.symbol.to_string())
-            .collect::<Vec<String>>()
-            .join(joiner)
-    }
-
-    // endregion Pips
+    //
+    // //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // // region Pips
+    //
+    //
+    // #[must_use]
+    // pub fn filter_cards<F>(&self, filter: F) -> Self
+    // where
+    //     F: Fn(&BasicCard) -> bool,
+    // {
+    //     self.iter().filter(|&card| filter(card)).copied().collect()
+    // }
+    //
+    // /// Here's the original code before being refactored into using the `filter_cards` closure,
+    // ///
+    // /// ```txt
+    // /// #[must_use]
+    // /// pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+    // ///     self.iter()
+    // ///         .filter(|card| card.rank.pip_type == pip_type)
+    // ///         .cloned()
+    // ///         .collect()
+    // /// }
+    // /// ```
+    // #[must_use]
+    // pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
+    //     let rank_types_filter = |basic_card: &BasicCard| basic_card.rank.pip_type == pip_type;
+    //     self.filter_cards(rank_types_filter)
+    // }
+    //
+    // #[must_use]
+    // pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
+    //     let rank_types_filter = |basic_card: &BasicCard| basic_card.suit.pip_type == pip_type;
+    //     self.filter_cards(rank_types_filter)
+    // }
+    //
+    // #[must_use]
+    // pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
+    //     let rank_types_filter = |basic_card: &BasicCard| {
+    //         basic_card.rank.pip_type == pip_type || basic_card.suit.pip_type == pip_type
+    //     };
+    //     self.filter_cards(rank_types_filter)
+    // }
+    //
+    // fn extract_pips<F>(&self, f: F) -> Vec<Pip>
+    // where
+    //     F: Fn(&BasicCard) -> Pip,
+    // {
+    //     let set: HashSet<Pip> = self.0.iter().map(f).collect();
+    //     let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
+    //     vec.sort();
+    //     vec.reverse();
+    //     vec
+    // }
+    //
+    // fn pip_index<F>(&self, f: F, joiner: &str) -> String
+    // where
+    //     F: Fn(&BasicCard) -> Pip,
+    // {
+    //     self.extract_pips(f)
+    //         .iter()
+    //         .map(|pip| pip.index.to_string())
+    //         .collect::<Vec<String>>()
+    //         .join(joiner)
+    // }
+    //
+    // #[must_use]
+    // pub fn ranks(&self) -> Vec<Pip> {
+    //     self.extract_pips(|card| card.rank)
+    // }
+    //
+    // #[must_use]
+    // pub fn ranks_index(&self, joiner: &str) -> String {
+    //     self.pip_index(|card| card.rank, joiner)
+    // }
+    //
+    // /// TODO RF: Wouldn't it be easier to just return a vector, and if it's empty you know
+    // /// there were none in the `Pile`.
+    // #[must_use]
+    // pub fn ranks_by_suit(&self, suit: Pip) -> Option<Vec<Pip>> {
+    //     let ranks: Vec<Pip> = self
+    //         .0
+    //         .iter()
+    //         .filter(|card| card.suit == suit)
+    //         .map(|card| card.rank)
+    //         .collect();
+    //
+    //     match ranks.len() {
+    //         0 => None,
+    //         _ => Some(ranks),
+    //     }
+    // }
+    //
+    // #[must_use]
+    // pub fn ranks_index_by_suit(&self, suit: Pip, joiner: &str) -> Option<String> {
+    //     self.ranks_by_suit(suit).map(|ranks| {
+    //         ranks
+    //             .iter()
+    //             .map(|pip| pip.index.to_string())
+    //             .collect::<Vec<String>>()
+    //             .join(joiner)
+    //     })
+    // }
+    //
+    // #[must_use]
+    // pub fn suits(&self) -> Vec<Pip> {
+    //     self.extract_pips(|card| card.suit)
+    // }
+    //
+    // #[must_use]
+    // pub fn suits_index(&self, joiner: &str) -> String {
+    //     self.pip_index(|card| card.suit, joiner)
+    // }
+    //
+    // #[must_use]
+    // pub fn suit_symbol_index(&self, joiner: &str) -> String {
+    //     self.suits()
+    //         .iter()
+    //         .map(|pip| pip.symbol.to_string())
+    //         .collect::<Vec<String>>()
+    //         .join(joiner)
+    // }
+    //
+    // // endregion Pips
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region vector functions
@@ -432,7 +432,7 @@ impl IntoIterator for BasicPile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
-    use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, Standard52, Tarot};
+    use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
     use std::str::FromStr;
 
     fn from_str(s: &str) -> BasicPile {
@@ -465,7 +465,7 @@ mod basic__types__pile_tests {
         // let pile: Pile = (&Pile::<Standard52>::decks(2)).into();
         //
         // Much simper:
-        let pile: BasicPile = Standard52::decks(2).into_basic_pile();
+        let pile = Standard52::decks(2);
         let combinations = pile.combos(2);
         let dups = pile.combos_with_dups(2);
 
@@ -518,7 +518,7 @@ mod basic__types__pile_tests {
     #[test]
     fn cards_of_rank_pip_type() {
         let pile = French::basic_pile();
-        let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
+            let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
 
         assert_eq!(jokers.to_string(), "B🃟 L🃟");
     }
@@ -545,9 +545,11 @@ mod basic__types__pile_tests {
                 .len(),
             2
         );
-        assert!(French::basic_pile()
-            .cards_with_pip_type(PipType::Special)
-            .is_empty());
+        assert!(
+            French::basic_pile()
+                .cards_with_pip_type(PipType::Special)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -588,14 +590,13 @@ mod basic__types__pile_tests {
             "K~Q~J~9~8~7",
             Pile::<French>::from_str("K♥ 9♣ Q♥ J♥ 8♣ 7♣")
                 .unwrap()
-                .into_basic_pile()
                 .ranks_index("~")
         );
     }
 
     #[test]
     pub fn ranks_by_suit() {
-        let pile = Pile::<French>::from_str("A♠ K♠").unwrap().into_basic_pile();
+        let pile = Pile::<French>::from_str("A♠ K♠").unwrap();
 
         let expected = vec![FrenchRank::ACE, FrenchRank::KING];
 
@@ -606,8 +607,7 @@ mod basic__types__pile_tests {
     #[test]
     pub fn ranks_index_by_suit() {
         let pile = Pile::<French>::from_str("A♠ K♠ A♣ Q♣ K♥")
-            .unwrap()
-            .into_basic_pile();
+            .unwrap();
 
         assert_eq!(
             pile.ranks_index_by_suit(FrenchSuit::SPADES, "-").unwrap(),
@@ -626,7 +626,7 @@ mod basic__types__pile_tests {
 
     #[test]
     pub fn suits() {
-        let pile = French::deck().shuffled().into_basic_pile();
+        let pile = French::deck().shuffled();
         let expected = vec![
             FrenchSuit::JOKER,
             FrenchSuit::SPADES,
@@ -642,14 +642,13 @@ mod basic__types__pile_tests {
             vec![FrenchSuit::HEARTS, FrenchSuit::CLUBS],
             Pile::<French>::from_str("K♥ 9♣ Q♥ J♥ 8♣ 7♣")
                 .unwrap()
-                .into_basic_pile()
                 .suits()
         );
     }
 
     #[test]
     pub fn suits_index() {
-        let pile = French::deck().shuffled().into_basic_pile();
+        let pile = French::deck().shuffled();
         let expected = "J~S~H~D~C";
 
         let suits_index = pile.suits_index("~");
@@ -659,14 +658,13 @@ mod basic__types__pile_tests {
             "H~C",
             Pile::<French>::from_str("9♣ K♥ Q♥ J♥ 8♣ 7♣")
                 .unwrap()
-                .into_basic_pile()
                 .suits_index("~")
         );
     }
 
     #[test]
     pub fn suit_symbol_index() {
-        let pile = French::deck().shuffled().into_basic_pile();
+        let pile = French::deck().shuffled();
         let expected = "🃟~♠~♥~♦~♣";
 
         let suits_index = pile.suit_symbol_index("~");
@@ -676,7 +674,6 @@ mod basic__types__pile_tests {
             "♥ ♣",
             Pile::<French>::from_str("9♣ K♥ Q♥ J♥ 8♣ 7♣")
                 .unwrap()
-                .into_basic_pile()
                 .suit_symbol_index(" ")
         );
     }
@@ -699,6 +696,9 @@ mod basic__types__pile_tests {
     fn display() {
         let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
 
-        assert_eq!(pile.to_string(), "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣");
+        assert_eq!(
+            pile.to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        );
     }
 }

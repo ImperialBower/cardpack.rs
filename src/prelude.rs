@@ -22,7 +22,7 @@ pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
 pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
-pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase};
+pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase, Ranged};
 pub use crate::common::errors::CardError;
 pub use crate::localization::{FluentName, Named};
 
