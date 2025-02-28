@@ -16,6 +16,14 @@ static_loader! {
 
 /// Trait used to enable localized names for card entities such as suits and ranks.
 ///
+/// # NOTE
+///
+/// As of `version 0.6.0` of this library, most of the attributes are stored directly in the
+/// [`BasicCard`](crate::basic::types::basic_card::BasicCard) struct. The only one that is
+/// still actively used is the `name` attribute, which is called with the `Named.long()` method.
+///
+/// TODO: RF is it time to remove fluent templates all together?
+///
 /// The types of `Named` attributes are
 ///
 /// * `index` - the default letter representation of a card identifier, such as `A` for Ace, or `S` for Spades.

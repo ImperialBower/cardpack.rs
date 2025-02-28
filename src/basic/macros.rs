@@ -37,6 +37,8 @@ macro_rules! cards {
     };
 }
 
+/// This macro is to allow for quick and easy generation of individual cards from the most common
+/// [`Standard52`](crate::basic::decks::standard52::Standard52) deck.
 #[macro_export]
 macro_rules! card {
     (AS) => {

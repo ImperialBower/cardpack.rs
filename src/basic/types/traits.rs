@@ -92,44 +92,7 @@ where
         v.iter().map(|card| Card::<DeckType>::from(*card)).collect()
     }
 
-    // The [capitalize crate](https://crates.io/crates/capitalize) does handle this, but it's
-    // funnier just doing it this way.
-    //
-    // When I was coding it there were three ways that it played out.
-    //
-    // ## 1. My way aka the lazy way
-    //
-    // Use the [capitalize crate](https://crates.io/crates/capitalize) crate and be done with it.
-    //
-    // ## 2. The `CoPilot` way
-    //
-    // ```
-    // fn capitalize_first_letter(s: &str) -> String {
-    //     let mut c = "foo".chars();
-    //     match c.next() {
-    //         None => String::new(),
-    //         Some(first) => first.to_uppercase().collect::<String>() + c.as_str(),
-    //     }
-    // }
-    //
-    // fn main() {
-    //     let s = "hello";
-    //     let capitalized = capitalize_first_letter(s);
-    //     println!("{}", capitalized); // Output: "Hello"
-    // }
-    // ```
-    // All that and it's a complete waste of time because it references the `Fluent` name
-    // and not the `Deck` name. We ended up creating the method at the `DeckedBase` trait.
-    // #[must_use]
-    // fn deck_name() -> String {
-    //     let binding = Self::fluent_deck_key();
-    //     let mut letters = binding.chars();
-    //     match letters.next() {
-    //         None => String::new(),
-    //         Some(first) => first.to_uppercase().collect::<String>() + letters.as_str(),
-    //     }
-    // }
-
+    /// Used in the `examples/cli.rs` application for showing off the various decks.
     fn demo(verbose: bool) {
         Self::deck().demo_cards(verbose);
     }
