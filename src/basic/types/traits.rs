@@ -83,7 +83,9 @@ where
         Pile::<DeckType>::from(Self::deckvec().repeat(count))
     }
 
-    ///
+    /// Takes the [`BasicCard`] vector for the type parameter and converts it into a vector
+    /// of [`Card`]s for the type parameter. This is where the work is done channeling between
+    /// the plain and generic enabled versions of the structs.
     #[must_use]
     fn deckvec() -> Vec<Card<DeckType>> {
         let v = Card::<DeckType>::base_vec();
