@@ -32,6 +32,18 @@ pub struct BasicCard {
 }
 
 impl BasicCard {
+    /// Reads in a YAML file version of `BasicCard` data at the passed in location and returns a vector of `BasicCards`. See the
+    /// [`Razz`](crate::basic::decks::razz::Razz) deck for an example of how to use this method.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
+    ///
+    /// assert_eq!(cards.len(), 54);
+    /// assert_eq!(cards, Pile::<French>::base_vec());
+    /// ```
+    ///
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
@@ -44,7 +56,7 @@ impl BasicCard {
         BasicCard::cards_from_yaml_str(&contents)
     }
 
-    ///
+    /// Takes in a YAML string and returns a vector of `BasicCards`.
     ///
     /// # Errors
     ///

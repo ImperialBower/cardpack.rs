@@ -10,11 +10,30 @@ use std::hash::Hash;
 pub struct BasicPile(Vec<BasicCard>);
 
 impl BasicPile {
+    /// Returns a reference to the internal vector of the struct.
     #[must_use]
     pub fn v(&self) -> &Vec<BasicCard> {
         &self.0
     }
 
+    /// Returns n number of [`BasicCards`](crate::basic::types::basic_card::BasicCard) from the
+    /// beginning of the `BasicPile`. If there are not enough cards in the `BasicPile` to satisfy
+    /// the request, `None` is returned.
+    ///
+    /// `CoPilot`'s suggestion:
+    /// ```txt
+    /// use card_game_engine::prelude::{BasicPile, Pile};
+    /// Where TF is CoPilot getting card_game_engine from???
+    /// ```
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Pinochle::deck();
+    /// let hand = pile.draw(5).unwrap();
+    ///
+    /// assert_eq!(hand.to_string(), "A♠ A♠ T♠ T♠ K♠");
+    /// ```
     #[must_use]
     pub fn draw(&mut self, n: usize) -> Option<Self> {
         let mut pile = Self::default();
@@ -29,7 +48,8 @@ impl BasicPile {
     }
 
     /// This is very much suboptimal, but I don't have an easy way to
-    /// avoid it. My common currency is vectors.
+    /// avoid it. My common currency is vectors. The idea of treating the end
+    /// of the vector as the top of the deck seems like a good one.
     pub fn draw_first(&mut self) -> Option<BasicCard> {
         match self.len() {
             0 => None,
@@ -37,140 +57,20 @@ impl BasicPile {
         }
     }
 
+    /// Suffles the `BasicPile` in place.
+    ///
+    /// TODO: I would like to be able to pass in a seed to the shuffle function.
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
 
+    /// Returns a new shuffled version of the `BasicPile`.
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
         pile.shuffle();
         pile
     }
-    //
-    // //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-    // // region Pips
-    //
-    //
-    // #[must_use]
-    // pub fn filter_cards<F>(&self, filter: F) -> Self
-    // where
-    //     F: Fn(&BasicCard) -> bool,
-    // {
-    //     self.iter().filter(|&card| filter(card)).copied().collect()
-    // }
-    //
-    // /// Here's the original code before being refactored into using the `filter_cards` closure,
-    // ///
-    // /// ```txt
-    // /// #[must_use]
-    // /// pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-    // ///     self.iter()
-    // ///         .filter(|card| card.rank.pip_type == pip_type)
-    // ///         .cloned()
-    // ///         .collect()
-    // /// }
-    // /// ```
-    // #[must_use]
-    // pub fn cards_of_rank_pip_type(&self, pip_type: PipType) -> Self {
-    //     let rank_types_filter = |basic_card: &BasicCard| basic_card.rank.pip_type == pip_type;
-    //     self.filter_cards(rank_types_filter)
-    // }
-    //
-    // #[must_use]
-    // pub fn cards_of_suit_pip_type(&self, pip_type: PipType) -> Self {
-    //     let rank_types_filter = |basic_card: &BasicCard| basic_card.suit.pip_type == pip_type;
-    //     self.filter_cards(rank_types_filter)
-    // }
-    //
-    // #[must_use]
-    // pub fn cards_with_pip_type(&self, pip_type: PipType) -> Self {
-    //     let rank_types_filter = |basic_card: &BasicCard| {
-    //         basic_card.rank.pip_type == pip_type || basic_card.suit.pip_type == pip_type
-    //     };
-    //     self.filter_cards(rank_types_filter)
-    // }
-    //
-    // fn extract_pips<F>(&self, f: F) -> Vec<Pip>
-    // where
-    //     F: Fn(&BasicCard) -> Pip,
-    // {
-    //     let set: HashSet<Pip> = self.0.iter().map(f).collect();
-    //     let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
-    //     vec.sort();
-    //     vec.reverse();
-    //     vec
-    // }
-    //
-    // fn pip_index<F>(&self, f: F, joiner: &str) -> String
-    // where
-    //     F: Fn(&BasicCard) -> Pip,
-    // {
-    //     self.extract_pips(f)
-    //         .iter()
-    //         .map(|pip| pip.index.to_string())
-    //         .collect::<Vec<String>>()
-    //         .join(joiner)
-    // }
-    //
-    // #[must_use]
-    // pub fn ranks(&self) -> Vec<Pip> {
-    //     self.extract_pips(|card| card.rank)
-    // }
-    //
-    // #[must_use]
-    // pub fn ranks_index(&self, joiner: &str) -> String {
-    //     self.pip_index(|card| card.rank, joiner)
-    // }
-    //
-    // /// TODO RF: Wouldn't it be easier to just return a vector, and if it's empty you know
-    // /// there were none in the `Pile`.
-    // #[must_use]
-    // pub fn ranks_by_suit(&self, suit: Pip) -> Option<Vec<Pip>> {
-    //     let ranks: Vec<Pip> = self
-    //         .0
-    //         .iter()
-    //         .filter(|card| card.suit == suit)
-    //         .map(|card| card.rank)
-    //         .collect();
-    //
-    //     match ranks.len() {
-    //         0 => None,
-    //         _ => Some(ranks),
-    //     }
-    // }
-    //
-    // #[must_use]
-    // pub fn ranks_index_by_suit(&self, suit: Pip, joiner: &str) -> Option<String> {
-    //     self.ranks_by_suit(suit).map(|ranks| {
-    //         ranks
-    //             .iter()
-    //             .map(|pip| pip.index.to_string())
-    //             .collect::<Vec<String>>()
-    //             .join(joiner)
-    //     })
-    // }
-    //
-    // #[must_use]
-    // pub fn suits(&self) -> Vec<Pip> {
-    //     self.extract_pips(|card| card.suit)
-    // }
-    //
-    // #[must_use]
-    // pub fn suits_index(&self, joiner: &str) -> String {
-    //     self.pip_index(|card| card.suit, joiner)
-    // }
-    //
-    // #[must_use]
-    // pub fn suit_symbol_index(&self, joiner: &str) -> String {
-    //     self.suits()
-    //         .iter()
-    //         .map(|pip| pip.symbol.to_string())
-    //         .collect::<Vec<String>>()
-    //         .join(joiner)
-    // }
-    //
-    // // endregion Pips
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region vector functions
