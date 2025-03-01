@@ -121,7 +121,7 @@ where
         let deck = Self::deck();
         let deckfromstr = Pile::<DeckType>::from_str(&deck.to_string()).unwrap();
 
-        deck == deck.clone().shuffled().sort() && deck == deckfromstr
+        deck == deck.clone().shuffled().sorted() && deck == deckfromstr
     }
 }
 

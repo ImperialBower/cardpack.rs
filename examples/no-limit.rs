@@ -4,8 +4,8 @@ fn main() {
     let deck = Pile::<Standard52>::deck();
     let mut shuffled = deck.shuffled();
 
-    let small_blind = shuffled.draw(2).unwrap().sort_by_rank();
-    let big_blind = shuffled.draw(2).unwrap().sort_by_rank();
+    let small_blind = shuffled.draw(2).unwrap().sorted_by_rank();
+    let big_blind = shuffled.draw(2).unwrap().sorted_by_rank();
 
     println!("small blind: {}", small_blind.to_string());
     println!("big blind:   {}", big_blind.to_string());

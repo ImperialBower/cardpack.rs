@@ -106,7 +106,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     pub fn demo_cards(&self, verbose: bool) {
-        let deck = self.sort();
+        let deck = self.sorted();
         let shuffled = deck.shuffled();
         let name = Self::deck_name();
 
@@ -345,8 +345,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     #[must_use]
     pub fn same(&self, cards: &Pile<DeckType>) -> bool {
-        let left = self.sort();
-        let right = cards.sort();
+        let left = self.sorted();
+        let right = cards.sorted();
 
         left == right
     }
@@ -364,20 +364,20 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     #[must_use]
-    pub fn sort(&self) -> Self {
+    pub fn sorted(&self) -> Self {
         let mut pile = self.clone();
-        pile.sort_in_place();
+        pile.sort();
         pile
     }
 
     #[must_use]
-    pub fn sort_by_rank(&self) -> Self {
+    pub fn sorted_by_rank(&self) -> Self {
         let mut pile = self.clone();
-        pile.sort_by_rank_in_place();
+        pile.sort_by_rank();
         pile
     }
 
-    pub fn sort_in_place(&mut self) {
+    pub fn sort(&mut self) {
         self.0.sort();
     }
 
@@ -432,7 +432,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(Pile::<Standard52>::from(v).to_string(), "8♠ 4♠ 2♠");
     /// ```
-    pub fn sort_by_rank_in_place(&mut self) {
+    pub fn sort_by_rank(&mut self) {
         self.0
             .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
     }
@@ -485,7 +485,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<HashSet<Card<DeckT
     for Pile<DeckType>
 {
     fn from(cards: HashSet<Card<DeckType>>) -> Self {
-        Self(cards.into_iter().collect()).sort()
+        Self(cards.into_iter().collect()).sorted()
     }
 }
 
@@ -765,12 +765,12 @@ mod basic__types__deck_tests {
         let mut pile2 = pile.clone();
         let mut pile3 = pile.clone();
 
-        pile2.sort_in_place();
-        pile3.sort_by_rank_in_place();
+        pile2.sort();
+        pile3.sort_by_rank();
 
-        assert_eq!(pile.sort().to_string(), "4♠ 2♠ 8♣");
+        assert_eq!(pile.sorted().to_string(), "4♠ 2♠ 8♣");
         assert_eq!(pile2.to_string(), "4♠ 2♠ 8♣");
-        assert_eq!(pile.sort_by_rank().to_string(), "8♣ 4♠ 2♠");
+        assert_eq!(pile.sorted_by_rank().to_string(), "8♣ 4♠ 2♠");
         assert_eq!(pile3.to_string(), "8♣ 4♠ 2♠");
     }
 
@@ -793,7 +793,7 @@ mod basic__types__deck_tests {
 
     #[test]
     fn decked__decks() {
-        let hand_and_foot = Pile::<French>::decks(5).sort();
+        let hand_and_foot = Pile::<French>::decks(5).sorted();
 
         assert_eq!(hand_and_foot.len(), 270);
         assert_eq!(
@@ -833,7 +833,7 @@ mod basic__types__deck_tests {
             "B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
         );
         assert!(deck.same(&deck_from_str));
-        assert_eq!(deck, deck_from_str.sort());
+        assert_eq!(deck, deck_from_str.sorted());
     }
 
     /// This is just a copy of the `Tiny` example in the main docs.

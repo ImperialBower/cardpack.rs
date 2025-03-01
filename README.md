@@ -24,8 +24,8 @@ fn main() {
   pack.shuffle();
 
   // Deal no-limit hold'em hands for two players:
-  let small_blind = pack.draw(2).unwrap().sort_by_rank();
-  let big_blind = pack.draw(2).unwrap().sort_by_rank();
+  let small_blind = pack.draw(2).unwrap().sorted_by_rank();
+  let big_blind = pack.draw(2).unwrap().sorted_by_rank();
 
   println!("small blind: {}", small_blind.to_string());
   println!("big blind:   {}", big_blind.to_string());

@@ -122,12 +122,35 @@ impl BasicPile {
         self.0.sort();
     }
 
+    /// This sorts the cards by rank instead of suit.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut hand = BasicPile::from(vec![FrenchBasicCard::KING_SPADES, FrenchBasicCard::ACE_DIAMONDS]);
+    ///
+    /// // By default `BasicPile` sorts by suit.
+    /// hand.sort();
+    /// assert_eq!(hand.to_string(), "K♠ A♦");
+    ///
+    /// hand.sort_by_rank();
+    /// assert_eq!(hand.to_string(), "A♦ K♠");
+    /// ```
     pub fn sort_by_rank(&mut self) {
         self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
     }
 
+    /// Returns a new `BasicPile` with the `BasicCards` sorted.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let hand = BasicPile::from(vec![FrenchBasicCard::KING_SPADES, FrenchBasicCard::ACE_DIAMONDS]);
+    ///
+    /// assert_eq!(hand.sorted_by_rank().to_string(), "A♦ K♠");
+    /// ```
     #[must_use]
-    pub fn sorted_by_rank(&mut self) -> Self {
+    pub fn sorted_by_rank(self) -> Self {
         let mut pile = self.clone();
         pile.0.sort_by(|a, b| b.rank.cmp(&a.rank));
         pile

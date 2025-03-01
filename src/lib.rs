@@ -50,7 +50,7 @@
 //! assert!(french_deck.same(&parsed));
 //!
 //! // When sorted, they should be exactly the same:
-//! assert_eq!(parsed.sort(), french_deck);
+//! assert_eq!(parsed.sorted(), french_deck);
 //!
 //! // For a joker card's index string, `B` stands for the Big or Full-Color Joker and `L` for the
 //! // Little or One-Color Joker, with `🃟` being the symbol character for the joker suit.

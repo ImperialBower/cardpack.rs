@@ -111,10 +111,10 @@ impl BridgeBoard {
         let pack = cards.clone();
 
         let dealer = BridgeDirection::random();
-        let south = cards.draw(13).unwrap().sort();
-        let west = cards.draw(13).unwrap().sort();
-        let north = cards.draw(13).unwrap().sort();
-        let east = cards.draw(13).unwrap().sort();
+        let south = cards.draw(13).unwrap().sorted();
+        let west = cards.draw(13).unwrap().sorted();
+        let north = cards.draw(13).unwrap().sorted();
+        let east = cards.draw(13).unwrap().sorted();
 
         BridgeBoard {
             dealer,
@@ -229,10 +229,10 @@ impl BridgeBoard {
 
     fn fold_in(&mut self, direction: &BridgeDirection, hand: Pile<Standard52>) {
         match direction {
-            BridgeDirection::S => self.south = hand.sort(),
-            BridgeDirection::W => self.west = hand.sort(),
-            BridgeDirection::N => self.north = hand.sort(),
-            BridgeDirection::E => self.east = hand.sort(),
+            BridgeDirection::S => self.south = hand.sorted(),
+            BridgeDirection::W => self.west = hand.sorted(),
+            BridgeDirection::N => self.north = hand.sorted(),
+            BridgeDirection::E => self.east = hand.sorted(),
             BridgeDirection::Unknown => self.east = hand,
         }
     }
