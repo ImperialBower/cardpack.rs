@@ -158,6 +158,19 @@ impl BasicPile {
     // endregion
 }
 
+/// ```
+/// use cardpack::prelude::*;
+///
+/// let hand = BasicPile::from(
+///     vec![
+///         FrenchBasicCard::NINE_CLUBS,
+///         FrenchBasicCard::EIGHT_DIAMONDS,
+///         FrenchBasicCard::SEVEN_CLUBS,
+///     ]
+/// );
+///
+/// assert_eq!(hand.to_string(), "9♣ 8♦ 7♣");
+/// ```
 impl Display for BasicPile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -366,7 +379,7 @@ mod basic__types__pile_tests {
     // region Ranged
 
     #[test]
-    fn gtoed() {
+    fn ranged() {
         let pile: BasicPile = Pile::<Standard52>::basic_pile();
         let combinations = pile.combos(2);
         let dups = pile.combos(2);
