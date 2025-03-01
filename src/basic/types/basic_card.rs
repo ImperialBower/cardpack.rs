@@ -76,7 +76,6 @@ impl BasicCard {
     ///
     /// ```rust
     /// use cardpack::prelude::*;
-    /// use std::str::FromStr;
     ///
     /// assert_eq!(FrenchBasicCard::JACK_DIAMONDS.index(), "JD");
     /// assert_eq!(FrenchBasicCard::JACK_DIAMONDS.to_string(), "J♦");

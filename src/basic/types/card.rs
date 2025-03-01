@@ -12,6 +12,13 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::str::FromStr;
 
+/// A `Card` is a struct that's a generic wrapper around a [`BasicCard`] providing it with additional
+/// deck specific superpowers, many of which are at the pile level. The ones at the `Card` level
+/// are:
+///
+/// - `color()` - returns the color of the card based on what's configured at the type parameter's implementation of the `DeckedBase` trait.
+/// - `fluent_name()` - returns the long name of the card from the `Named` trait's use of fluent templates.
+/// - `from_str()` - allows you to create a `Card` for the specific deck with a string representation of the card.
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
 )]
@@ -184,12 +191,28 @@ impl<DeckType: DeckedBase> From<&BasicCard> for Card<DeckType> {
     }
 }
 
-/// We've changed the contract for index strings in one way: we are adding support for blank
-/// cards, aka `__`. This is so you can represent a collection that includes a blank spot,
-/// such as `J♥ T♥ __`
 impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
     type Err = CardError;
 
+    /// Cards can be created from strings in any combination of index and symbol strings in upper
+    /// and lowercase letters.
+    ///
+    /// # Indexes
+    ///
+    /// A `Card's` index is make of the unique char for the suit `Pip` and a unique char for the rank `Pip`.
+    /// For example:
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card: Card<French> = Card::from_str("as").unwrap();
+    ///
+    /// assert_eq!(card.to_string(), "A♠");
+    /// ```
+    ///
+    /// We've changed the contract for index strings in one way: we are adding support for blank
+    /// cards, aka `__`. This is so you can represent a collection that includes a blank spot,
+    /// such as `J♥ T♥ __`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim().to_uppercase();
 
