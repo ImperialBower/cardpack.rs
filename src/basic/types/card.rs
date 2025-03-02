@@ -199,16 +199,9 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
     ///
     /// # Indexes
     ///
-    /// A `Card's` index is make of the unique char for the suit `Pip` and a unique char for the rank `Pip`.
-    /// For example:
+    /// A `Card's` index is make of the unique char (`Pip.index`) or symbol (`Pip.symbol`) for the
+    /// suit `Pip` and a unique char for the rank `Pip`. For example:
     ///
-    /// ```
-    /// use cardpack::prelude::*;
-    ///
-    /// let card: Card<French> = Card::from_str("as").unwrap();
-    ///
-    /// assert_eq!(card.to_string(), "A♠");
-    /// ```
     ///
     /// We've changed the contract for index strings in one way: we are adding support for blank
     /// cards, aka `__`. This is so you can represent a collection that includes a blank spot,

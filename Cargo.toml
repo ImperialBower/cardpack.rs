@@ -20,7 +20,7 @@ path = "src/lib.rs"
 [dependencies]
 colored = "2.2"
 fluent-templates = "0.12"
-itertools = "0.14"
+itertools = "0.14.0"
 log = "0.4"
 rand = "0.9"
 serde = { version = "1.0", features = ["derive"] }
