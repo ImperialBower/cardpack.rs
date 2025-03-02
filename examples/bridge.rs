@@ -371,12 +371,10 @@ impl BridgeCompass {
         table.has_bottom_boarder = false;
         table.separate_rows = false;
         table.style = TableStyle::empty();
-        table.add_row(Row::new(vec![
-            TableCell::builder(contents)
-                .col_span(2)
-                .alignment(Alignment::Left)
-                .build(),
-        ]));
+        table.add_row(Row::new(vec![TableCell::builder(contents)
+            .col_span(2)
+            .alignment(Alignment::Left)
+            .build()]));
         table.render()
     }
 
@@ -386,12 +384,10 @@ impl BridgeCompass {
         table.has_bottom_boarder = false;
         table.separate_rows = false;
         table.style = TableStyle::empty();
-        table.add_row(Row::new(vec![
-            TableCell::builder(north)
-                .col_span(2)
-                .alignment(Alignment::Center)
-                .build(),
-        ]));
+        table.add_row(Row::new(vec![TableCell::builder(north)
+            .col_span(2)
+            .alignment(Alignment::Center)
+            .build()]));
 
         table.add_row(Row::new(vec![
             TableCell::builder(west)
@@ -403,12 +399,10 @@ impl BridgeCompass {
                 .alignment(Alignment::Left)
                 .build(),
         ]));
-        table.add_row(Row::new(vec![
-            TableCell::builder(south)
-                .col_span(2)
-                .alignment(Alignment::Center)
-                .build(),
-        ]));
+        table.add_row(Row::new(vec![TableCell::builder(south)
+            .col_span(2)
+            .alignment(Alignment::Center)
+            .build()]));
         table.render()
     }
 }

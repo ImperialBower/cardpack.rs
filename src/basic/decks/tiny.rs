@@ -1,5 +1,5 @@
 use crate::prelude::{
-    BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pip, Standard52,
+    BasicCard, Decked, DeckedBase, FrenchBasicCard, Pip, Standard52, FLUENT_KEY_BASE_NAME_FRENCH,
 };
 use colored::Color;
 use std::collections::HashMap;

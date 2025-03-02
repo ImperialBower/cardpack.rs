@@ -5,8 +5,8 @@ version = "0.6.0"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
-edition = "2024"
-rust-version = "1.85"
+edition = "2021"
+rust-version = "1.80"
 license = "Apache-2.0"
 exclude = [".github/workflows/*", "examples/*", ".gitignore", ".travis.yml", "Cargo.lock"]
 include = ["src/**", "Cargo.toml", "LICENSE-APACHE", "README.md", "src/basic/decks/yaml/*.yaml"]
@@ -18,8 +18,8 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-colored = "2.2"
-fluent-templates = "0.12"
+colored = "3.0"
+fluent-templates = "0.13"
 itertools = "0.14.0"
 log = "0.4"
 rand = "0.9"
@@ -32,4 +32,4 @@ thiserror = "2.0"
 ckc-rs = "0.1.15"
 clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
-rstest = "0.24"
+rstest = "0.25"

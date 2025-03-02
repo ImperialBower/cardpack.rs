@@ -1,6 +1,6 @@
 use crate::common::errors::CardError;
 use crate::prelude::Pip;
-use fluent_templates::{LanguageIdentifier, Loader, langid, static_loader};
+use fluent_templates::{langid, static_loader, LanguageIdentifier, Loader};
 use std::fmt::Display;
 use std::str::FromStr;
 use std::string::ToString;
