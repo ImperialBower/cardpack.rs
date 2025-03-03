@@ -33,12 +33,18 @@ where
 impl<DeckType: DeckedBase> Card<DeckType> {
     #[must_use]
     pub fn new(base_card: BasicCard) -> Self {
-        Self {
-            base_card,
-            deck: PhantomData,
-        }
+        Self::from(base_card)
     }
 
+    /// Returns the underlying [`BasicCard`] struct.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::TREY_DIAMONDS);
+    ///
+    /// assert_eq!(FrenchBasicCard::TREY_DIAMONDS, card.base());
+    /// ```
     #[must_use]
     pub fn base(&self) -> BasicCard {
         self.base_card
@@ -200,8 +206,20 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
     /// # Indexes
     ///
     /// A `Card's` index is make of the unique char (`Pip.index`) or symbol (`Pip.symbol`) for the
-    /// suit `Pip` and a unique char for the rank `Pip`. For example:
+    /// suit `Pip` and a unique char for the rank `Pip`. The implementation of the trait is
+    /// designed to be very forgiving. For example:
     ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::ACE_SPADES);
+    ///
+    /// let possible = vec!["AS", "as", "aS", "As", "A♠", "a♠"];
+    ///
+    /// for s in possible {
+    ///    assert_eq!(card, Card::<French>::from_str(s).unwrap());
+    /// }
+    /// ```
     ///
     /// We've changed the contract for index strings in one way: we are adding support for blank
     /// cards, aka `__`. This is so you can represent a collection that includes a blank spot,
