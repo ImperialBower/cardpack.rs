@@ -26,7 +26,7 @@ rand = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_yml = "0.0.12"
 term-table = "1.4.0"
-thiserror = "2.0"
+thiserror = "1.0.69"
 
 [dev-dependencies]
 ckc-rs = "0.1.15"
