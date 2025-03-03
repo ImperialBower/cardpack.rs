@@ -481,9 +481,11 @@ mod basic__types__pile_tests {
                 .len(),
             2
         );
-        assert!(French::basic_pile()
-            .cards_with_pip_type(PipType::Special)
-            .is_empty());
+        assert!(
+            French::basic_pile()
+                .cards_with_pip_type(PipType::Special)
+                .is_empty()
+        );
     }
 
     #[test]
