@@ -43,13 +43,22 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     ///
     /// let card = Card::<French>::new(FrenchBasicCard::TREY_DIAMONDS);
     ///
-    /// assert_eq!(FrenchBasicCard::TREY_DIAMONDS, card.base());
+    /// assert_eq!(card.base(), FrenchBasicCard::TREY_DIAMONDS);
     /// ```
     #[must_use]
     pub fn base(&self) -> BasicCard {
         self.base_card
     }
 
+    /// Returns the color designated for a Card's specific suit in the deck's configuration.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::TEN_DIAMONDS);
+    ///
+    /// assert_eq!(card.color(), Color::Red);
+    /// ```
     /// This feels heavy and hackie. It's not important enough to worry about.
     #[must_use]
     pub fn color(&self) -> Color {
@@ -62,6 +71,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         }
     }
 
+    /// TODO RF: create a `color_index_string()` version with a common implementation.
     #[must_use]
     pub fn color_symbol_string(&self) -> String {
         match self.color() {

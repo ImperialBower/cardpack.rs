@@ -31,5 +31,5 @@ pub use crate::card;
 pub use crate::cards;
 pub use crate::french_cards;
 
-pub use colored::Colorize;
+pub use colored::{Color, Colorize};
 pub use std::str::FromStr;
