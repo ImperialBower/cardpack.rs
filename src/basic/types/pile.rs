@@ -437,6 +437,14 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
     }
 
+    pub fn to_color_index_string(&self) -> String {
+        self.0
+            .iter()
+            .map(Card::color_index_string)
+            .collect::<Vec<String>>()
+            .join(" ")
+    }
+
     pub fn to_color_symbol_string(&self) -> String {
         self.0
             .iter()
@@ -449,18 +457,22 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 /// These are all passthroughs to the underlying type parameter. For instance,
 /// `Pile::<French>::base_vec()` is routed to `impl DeckedBase for French`.
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<DeckType> {
+    /// Pass through call to the `Pile's` underlying type parameter.
     fn base_vec() -> Vec<BasicCard> {
         DeckType::base_vec()
     }
 
+    /// Pass through call to the `Pile's` underlying type parameter.
     fn colors() -> HashMap<Pip, Color> {
         DeckType::colors()
     }
 
+    /// Pass through call to the `Pile's` underlying type parameter.
     fn deck_name() -> String {
         DeckType::deck_name()
     }
 
+    /// Pass through call to the `Pile's` underlying type parameter.
     fn fluent_deck_key() -> String {
         DeckType::fluent_deck_key()
     }

@@ -66,6 +66,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     ///
     /// assert_eq!(card.color(), Color::Red);
     /// ```
+    ///
     /// This feels heavy and hackie. It's not important enough to worry about.
     #[must_use]
     pub fn color(&self) -> Color {
@@ -92,6 +93,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         self.color_string(self.base_card.to_string())
     }
 
+    /// Returns a color formatted version of the String based on the settings in the deck's configuration.
     fn color_string(&self, s: String) -> String {
         match self.color() {
             Color::Red => s.red().to_string(),
@@ -111,21 +113,96 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         }
     }
 
+    /// Returns the basic, text representation of a `Card`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<Skat>::new(SkatBasicCard::ZHEN_EICHEL);
+    ///
+    /// assert_eq!(card.index(), "ZE");
+    /// ```
     #[must_use]
     pub fn index(&self) -> String {
         self.base_card.index()
     }
 
+    /// Returns true if the `Card` is blank.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert!(Card::<French>::default().is_blank());
+    /// assert!(!Card::<French>::new(FrenchBasicCard::ACE_SPADES).is_blank());
+    /// ```
     #[must_use]
     pub fn is_blank(&self) -> bool {
         self.base_card.is_blank()
     }
 
+    /// `CoPilot` was completely useless for this. It was surprisingly easy to figure it out
+    /// for myself one I got used to the patterns with this hint from the compiler:
+    ///
+    /// ```txt
+    /// error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
+    ///    --> src/basic/types/card.rs:151:9
+    ///     |
+    /// 151 |           DeckedBase::basic_pile().contains(&self.base_card)
+    ///     |           ^^^^^^^^^^^^^^^^^^^^^^^^ cannot call associated function of trait
+    ///     |
+    ///    ::: src/basic/types/traits.rs:17:5
+    ///     |
+    /// 17  | /     fn basic_pile() -> BasicPile {
+    /// 18  | |         BasicPile::from(Self::base_vec())
+    /// 19  | |     }
+    ///     | |_____- `DeckedBase::basic_pile` defined here
+    ///     |
+    /// help: use a fully-qualified path to one of the available implementations
+    ///     |
+    /// 151 |         <Canasta as DeckedBase>::basic_pile().contains(&self.base_card)
+    ///     |         +++++++++++           +
+    /// 151 |         <Euchre24 as DeckedBase>::basic_pile().contains(&self.base_card)
+    ///     |         ++++++++++++           +
+    /// 151 |         <Euchre32 as DeckedBase>::basic_pile().contains(&self.base_card)
+    ///     |         ++++++++++++           +
+    /// 151 |         <French as DeckedBase>::basic_pile().contains(&self.base_card)
+    ///     |         ++++++++++           +
+    ///       and 10 other candidates
+    /// ```
+    ///
+    /// This is one of the many reasons why I love `Rust`. Even when it doesn't spell it out for you,
+    /// it does make your life a lot easier.
+    #[must_use]
+    pub fn is_valid(&self) -> bool {
+        <DeckType as DeckedBase>::basic_pile().contains(&self.base_card)
+    }
+
+    /// Returns the default, aka `US_ENGLISH`, version of the  long name of the whole `Card`
+    /// from the `Named` trait's use of fluent templates in the rank and suit [`Pip`]s for the `Card`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::NINE_CLUBS);
+    ///
+    /// assert_eq!("Nine of Clubs", card.fluent_name_default());
+    /// ```
     #[must_use]
     pub fn fluent_name_default(&self) -> String {
         self.fluent_name(&FluentName::US_ENGLISH)
     }
 
+    /// Returns the long name of the whole `Card` from the `Named` trait's use of fluent templates
+    /// in the rank and suit [`Pip`]s for the `Card`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::NINE_CLUBS);
+    ///
+    /// assert_eq!("Nine of Clubs", card.fluent_name(&FluentName::US_ENGLISH));
+    /// assert_eq!("Neun Klee", card.fluent_name(&FluentName::DEUTSCH));
+    /// ```
     /// TODO: HACK
     #[must_use]
     pub fn fluent_name(&self, lid: &LanguageIdentifier) -> String {
@@ -145,6 +222,9 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         }
     }
 
+    /// Returns the connector string for the rank and suit [`Pip`]s in the `Card`'s name.
+    ///
+    /// TODO RF: Need a more configurable way to do this.
     fn fluent_connector(lid: &LanguageIdentifier) -> String {
         match lid {
             &FluentName::DEUTSCH => " ".to_string(),
@@ -152,6 +232,17 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         }
     }
 
+    /// Returns the long name of the rank [`Pip`] for the `Card` set in the localization files.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::DEUCE_DIAMONDS);
+    ///
+    /// assert_eq!("Deuce", card.fluent_rank_name(&FluentName::US_ENGLISH));
+    /// assert_eq!("Zwei", card.fluent_rank_name(&FluentName::DEUTSCH));
+    /// ```
+    ///
     /// TODO: HACK I am feeling like I have begun to outlive my need
     /// for fluent templates. The deck from yaml idea feels like the path.
     #[must_use]
@@ -176,6 +267,17 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         FluentName::new("name-rank").fluent_value(s.as_str(), lid)
     }
 
+    /// Returns the long name of the suit [`Pip`] for the `Card` set in the localization files.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::DEUCE_DIAMONDS);
+    ///
+    /// assert_eq!("Diamonds", card.fluent_suit_name(&FluentName::US_ENGLISH));
+    /// assert_eq!("Diamanten", card.fluent_suit_name(&FluentName::DEUTSCH));
+    /// ```
+    ///
     #[must_use]
     pub fn fluent_suit_name(&self, lid: &LanguageIdentifier) -> String {
         let s = format!(
@@ -210,6 +312,15 @@ impl<DeckType: DeckedBase> DeckedBase for Card<DeckType> {
 }
 
 impl<DeckType: Default + Copy + Ord + DeckedBase> Display for Card<DeckType> {
+    /// Passes through the `Display` result from the underlying [`BasicCard`].
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let card = Card::<French>::new(FrenchBasicCard::ACE_SPADES);
+    ///
+    /// assert_eq!(card.to_string(), card.base_card.to_string());
+    /// ```
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{}", self.base_card)
     }
@@ -279,6 +390,7 @@ mod basic__types__card_tests {
     use super::*;
     use crate::basic::decks::cards::french::FrenchBasicCard;
     use crate::basic::decks::french::French;
+    use crate::prelude::SkatBasicCard;
 
     #[test]
     fn new() {
@@ -287,10 +399,24 @@ mod basic__types__card_tests {
         assert_eq!(card.to_string(), "A♠");
     }
 
+    /// This test exposes a flaw with my underlying logic. Going to create a validator
+    /// of some sort.
+    #[test]
+    fn new__invalid_basic_card() {
+        let card = Card::<French>::new(SkatBasicCard::KÖNIG_LAUB);
+        assert_eq!(SkatBasicCard::KÖNIG_LAUB, card.base());
+    }
+
     #[test]
     fn is_blank() {
         let card = Card::<French>::default();
         assert!(card.is_blank());
+    }
+
+    #[test]
+    fn is_valid() {
+        assert!(Card::<French>::new(FrenchBasicCard::ACE_SPADES).is_valid());
+        assert!(!Card::<French>::new(SkatBasicCard::KÖNIG_LAUB).is_valid());
     }
 
     #[test]
