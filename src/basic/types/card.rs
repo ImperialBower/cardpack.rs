@@ -43,7 +43,14 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     ///
     /// let card = Card::<French>::new(FrenchBasicCard::TREY_DIAMONDS);
     ///
-    /// assert_eq!(card.base(), FrenchBasicCard::TREY_DIAMONDS);
+    /// assert_eq!(
+    ///     Card::<French>::new(FrenchBasicCard::TREY_DIAMONDS).base(),
+    ///     FrenchBasicCard::TREY_DIAMONDS
+    /// );
+    /// assert_eq!(
+    ///     Card::<Pinochle>::new(PinochleBasicCard::TEN_SPADES).base(),
+    ///     PinochleBasicCard::TEN_SPADES
+    /// );
     /// ```
     #[must_use]
     pub fn base(&self) -> BasicCard {
@@ -70,25 +77,36 @@ impl<DeckType: DeckedBase> Card<DeckType> {
             None => Color::White,
         }
     }
+    
+    #[must_use]
+    pub fn color_index_string(&self) -> String {
+        self.color_string(self.base_card.index())
+    }
 
     /// TODO RF: create a `color_index_string()` version with a common implementation.
+    ///
+    /// DONE!!!
     #[must_use]
     pub fn color_symbol_string(&self) -> String {
+        self.color_string(self.base_card.to_string())
+    }
+
+    fn color_string(&self, s: String) -> String {
         match self.color() {
-            Color::Red => self.base_card.to_string().red().to_string(),
-            Color::Blue => self.base_card.to_string().blue().to_string(),
-            Color::Green => self.base_card.to_string().green().to_string(),
-            Color::Yellow => self.base_card.to_string().yellow().to_string(),
-            Color::Magenta => self.base_card.to_string().magenta().to_string(),
-            Color::Cyan => self.base_card.to_string().cyan().to_string(),
-            Color::BrightBlack => self.base_card.to_string().bright_black().to_string(),
-            Color::BrightRed => self.base_card.to_string().bright_red().to_string(),
-            Color::BrightGreen => self.base_card.to_string().bright_green().to_string(),
-            Color::BrightYellow => self.base_card.to_string().bright_yellow().to_string(),
-            Color::BrightBlue => self.base_card.to_string().bright_blue().to_string(),
-            Color::BrightMagenta => self.base_card.to_string().bright_magenta().to_string(),
-            Color::BrightCyan => self.base_card.to_string().bright_cyan().to_string(),
-            _ => self.base_card.to_string(),
+            Color::Red => s.red().to_string(),
+            Color::Blue => s.blue().to_string(),
+            Color::Green => s.green().to_string(),
+            Color::Yellow => s.yellow().to_string(),
+            Color::Magenta => s.magenta().to_string(),
+            Color::Cyan => s.cyan().to_string(),
+            Color::BrightBlack => s.bright_black().to_string(),
+            Color::BrightRed => s.bright_red().to_string(),
+            Color::BrightGreen => s.bright_green().to_string(),
+            Color::BrightYellow => s.bright_yellow().to_string(),
+            Color::BrightBlue => s.bright_blue().to_string(),
+            Color::BrightMagenta => s.bright_magenta().to_string(),
+            Color::BrightCyan => s.bright_cyan().to_string(),
+            _ => s,
         }
     }
 
@@ -169,18 +187,22 @@ impl<DeckType: DeckedBase> Card<DeckType> {
 }
 
 impl<DeckType: DeckedBase> DeckedBase for Card<DeckType> {
+    /// Pass through call to the `Card's` underlying type parameter.
     fn base_vec() -> Vec<BasicCard> {
         DeckType::base_vec()
     }
 
+    /// Pass through call to the `Card's` underlying type parameter.
     fn colors() -> HashMap<Pip, Color> {
         DeckType::colors()
     }
 
+    /// Pass through call to the `Card's` underlying type parameter.
     fn deck_name() -> String {
         DeckType::deck_name()
     }
 
+    /// Pass through call to the `Card's` underlying type parameter.
     fn fluent_deck_key() -> String {
         DeckType::fluent_deck_key()
     }
@@ -238,6 +260,7 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
         let s = s.trim().to_uppercase();
 
         let mut cards = Card::<DeckType>::base_vec();
+        // Add a blank card to the list of cards so that it is considered valid.
         cards.push(BasicCard::default());
 
         cards
