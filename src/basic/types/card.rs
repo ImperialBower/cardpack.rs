@@ -77,7 +77,8 @@ impl<DeckType: DeckedBase> Card<DeckType> {
             None => Color::White,
         }
     }
-    
+
+    /// Returns the color designated for a Card's specific suit in the deck's configuration.
     #[must_use]
     pub fn color_index_string(&self) -> String {
         self.color_string(self.base_card.index())
