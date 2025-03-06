@@ -373,6 +373,14 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.iter().copied().collect()
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+    ///
+    /// assert!(Pile::<Euchre32>::default().is_empty());
+    /// assert!(!cards!("2♠ 8♠ 4♠").is_empty());
+    /// ```
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
