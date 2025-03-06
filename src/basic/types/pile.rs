@@ -334,6 +334,25 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.iter().map(Card::base).collect()
     }
 
+    /// Returns the `Pile` as a [`BasicPile`].
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<French>::from_str("T♥ Q♠ J♥").unwrap();
+    /// let expected = BasicPile::from(vec![
+    ///     FrenchBasicCard::TEN_HEARTS,
+    ///     FrenchBasicCard::QUEEN_SPADES,
+    ///     FrenchBasicCard::JACK_HEARTS
+    /// ]);
+    ///
+    /// assert_eq!(pile.into_basic_pile(), expected);
+    /// ```
+    #[must_use]
+    pub fn into_basic_pile(&self) -> BasicPile {
+        BasicPile::from(self)
+    }
+
     /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
     ///
     /// ```
@@ -352,11 +371,6 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     #[must_use]
     pub fn into_hashset(&self) -> HashSet<Card<DeckType>> {
         self.0.iter().copied().collect()
-    }
-
-    #[must_use]
-    pub fn into_basic_pile(&self) -> BasicPile {
-        BasicPile::from(self)
     }
 
     #[must_use]
