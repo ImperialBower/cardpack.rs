@@ -223,6 +223,18 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         }
     }
 
+    /// Returns the [`Card`] on the bottom of the deck. If the deck is empty, `None` is returned.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Pile::<Standard52>::from_str("6D 2C").unwrap();
+    ///
+    /// assert_eq!(pile.draw_last().unwrap().to_string(), "2♣");
+    /// assert_eq!(pile.draw_last().unwrap().to_string(), "6♦");
+    /// assert!(pile.draw_last().is_none())
+    /// ```
+    ///
     /// Copilot recommends this hacky version My final version is much simpler, since the original
     /// code it's calling does all the heavy lifting.
     ///
