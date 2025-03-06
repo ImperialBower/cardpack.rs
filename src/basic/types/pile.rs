@@ -261,6 +261,16 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.extend(other.0.clone());
     }
 
+    /// Returns an empty `String` if the passed in index is invalid. Mainly a hack in order
+    /// to make the `cards!` macro smoother.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert_eq!(Pile::<Standard52>::forgiving_from_str("2♠ 8s 4♠").to_string(), "2♠ 8♠ 4♠");
+    /// assert!(Pile::<Standard52>::forgiving_from_str("XX XX XX").to_string().is_empty());
+    /// ```
+    ///
     /// Let's be real, logging is hot. Sure, I want my code to be easy to use, but I don't want
     /// it to just sweep under the dev/null how things go wrong.
     #[must_use]
