@@ -386,17 +386,25 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.is_empty()
     }
 
-    // Which one? Do I need this? Why did I create this? Sigh.
-    // I need to clearly work through these nauces.
-    // #[must_use]
-    // pub fn iter(&self) -> std::vec::IntoIter<Card<RankType, SuitType>> {
-    //     <&Self as IntoIterator>::into_iter(self)
-    // }
-    // or
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+    /// let mut iter = pile.iter();
+    ///
+    /// assert_eq!(iter.next(), Some(&card!(2S)));
+    /// assert_eq!(iter.next(), Some(&card!(8S)));
+    /// assert_eq!(iter.next(), Some(&card!(4S)));
+    /// assert_eq!(iter.next(), None);
+    /// ```
     pub fn iter(&self) -> std::slice::Iter<Card<DeckType>> {
         self.0.iter()
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    /// assert_eq!(French::deck().len(), 54);
+    /// ```
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
