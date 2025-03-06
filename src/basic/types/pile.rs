@@ -410,6 +410,22 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.len()
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    /// use crate::cardpack::basic::decks::tiny::Tiny;
+    ///
+    /// let pile = Pile::<Tiny>::deck();
+    /// let mappie = pile.map_by_suit();
+    ///
+    /// assert_eq!(
+    ///     mappie[&FrenchSuit::SPADES].to_string(),
+    ///     "A♠ K♠"
+    /// );
+    /// assert_eq!(
+    ///     mappie[&FrenchSuit::HEARTS].to_string(),
+    ///     "A♥ K♥"
+    /// );
+    /// ```
     #[must_use]
     pub fn map_by_suit(&self) -> HashMap<Pip, Pile<DeckType>> {
         let mut map: HashMap<Pip, Pile<DeckType>> = HashMap::new();
@@ -423,6 +439,18 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         map
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Short>::pile_on(
+    ///     &[
+    ///         Pile::<Short>::forgiving_from_str("AS TD QC"),
+    ///         Pile::<Short>::forgiving_from_str("8H 7D AC"),
+    ///     ]
+    /// );
+    ///
+    /// assert_eq!(pile.to_string(), "A♠ T♦ Q♣ 8♥ 7♦ A♣");
+    /// ```
     #[must_use]
     pub fn pile_on(piles: &[Self]) -> Self {
         let mut pile = Self::default();

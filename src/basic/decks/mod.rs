@@ -10,4 +10,4 @@ pub mod skat;
 pub mod spades;
 pub mod standard52;
 pub mod tarot;
-mod tiny;
+pub mod tiny;
