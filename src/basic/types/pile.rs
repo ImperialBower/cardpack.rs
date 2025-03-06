@@ -95,11 +95,30 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         }
     }
 
+    /// Returns a reference to the underlying [`Card`] vector for the Pile.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+    ///
+    /// assert_eq!(pile.cards(), &vec![card!(2S), card!(8S), card!(4S)]);
+    /// ```
     #[must_use]
     pub fn cards(&self) -> &Vec<Card<DeckType>> {
         &self.0
     }
 
+    /// Returns true if the passed in [`Card`] is in the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+    ///
+    /// assert!(pile.contains(&card!(2S)));
+    /// assert!(!pile.contains(&card!(AS)));
+    /// ```
     #[must_use]
     pub fn contains(&self, card: &Card<DeckType>) -> bool {
         self.0.contains(card)
