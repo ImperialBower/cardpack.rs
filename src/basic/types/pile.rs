@@ -281,11 +281,31 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         })
     }
 
+    /// Returns a reference to the [`Card`] at the passed in position. If the position is out of
+    /// bounds, `None` is returned.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::deck();
+    ///
+    /// assert_eq!(pile.get(3).unwrap(), &Card::<Standard52>::new(FrenchBasicCard::JACK_SPADES));
+    /// assert!(pile.get(99).is_none());
+    /// ```
     #[must_use]
     pub fn get(&self, position: usize) -> Option<&Card<DeckType>> {
         self.0.get(position)
     }
 
+    /// Returns the basic, text representation of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<French>::from_str("T♥ Q♠ J♥").unwrap();
+    ///
+    /// assert_eq!(pile.index(), "TH QS JH");
+    /// ```
     #[must_use]
     pub fn index(&self) -> String {
         self.0
@@ -295,11 +315,40 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .join(" ")
     }
 
+    /// Returns the internal [`BasicCard`] `Vector` of the `struct`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<French>::from_str("T♥ Q♠ J♥").unwrap();
+    /// let expected = vec![
+    ///     FrenchBasicCard::TEN_HEARTS,
+    ///     FrenchBasicCard::QUEEN_SPADES,
+    ///     FrenchBasicCard::JACK_HEARTS
+    /// ];
+    ///
+    /// assert_eq!(pile.into_basic_cards(), expected);
+    /// ```
     #[must_use]
     pub fn into_basic_cards(&self) -> Vec<BasicCard> {
         self.0.iter().map(Card::base).collect()
     }
 
+    /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
+    ///
+    /// ```
+    /// use std::collections::HashSet;
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+    /// let mut hs: HashSet<Card<Standard52>> = HashSet::new();
+    ///
+    /// hs.insert(card!(2S));
+    /// hs.insert(card!(8S));
+    /// hs.insert(card!(4S));
+    ///
+    /// assert_eq!(pile.into_hashset(), hs);
+    /// ```
     #[must_use]
     pub fn into_hashset(&self) -> HashSet<Card<DeckType>> {
         self.0.iter().copied().collect()
