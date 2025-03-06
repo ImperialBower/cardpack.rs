@@ -247,6 +247,16 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.pop()
     }
 
+    /// Extends the `Pile` with the cards from another `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = cards!("AH KH QH");
+    /// pile.extend(&cards!("JH TH"));
+    ///
+    /// assert_eq!(pile.to_string(), "A♥ K♥ Q♥ J♥ T♥");
+    /// ```
     pub fn extend(&mut self, other: &Self) {
         self.0.extend(other.0.clone());
     }
