@@ -124,6 +124,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.contains(card)
     }
 
+    /// Prints out a demonstration of the deck. Used in the `cli` example program.
     pub fn demo_cards(&self, verbose: bool) {
         let deck = self.sorted();
         let shuffled = deck.shuffled();
@@ -148,6 +149,19 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         }
     }
 
+    /// Draws x number of cards from the `Pile`. If the number of cards to draw is greater than the
+    /// number available, `None` is returned.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = Standard52::deck();
+    ///
+    /// // Good recs for asserts from CoPilot the last few times.
+    /// assert_eq!(deck.draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
+    /// assert!(deck.draw(48).is_none());
+    /// ```
+    ///
     /// `CoPilot`'s original recommendation:
     ///
     /// ```txt
@@ -158,7 +172,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// let mut rng = rand::thread_rng();
     /// let cards = self.0.choose_multiple(&mut rng, n);
     ///
-    ///         Some(Pile::<DeckType>::from(cards.cloned().collect()))
+    /// Some(Pile::<DeckType>::from(cards.cloned().collect()))
     /// ```
     ///
     /// What's missing:
@@ -178,20 +192,30 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         Some(cards)
     }
 
-    /// My original code was:
-    ///```txt
-    /// match self.len() {
-    ///     0 => None,
-    ///     _ => Some(self.remove(0)),
-    /// }
-    ///```
+    /// Draws the first [`Card`]  if there. Returns `None` if the `Pile` is empty.
     ///
-    /// And here's `CoPilot`'s
+    ///```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = Standard52::deck();
+    ///
+    /// for x in 0..deck.len() {
+    ///    let card = deck.draw_first();
+    ///    match x {
+    ///        52 => assert!(card.is_none()),
+    ///        _ => assert!(card.is_some()),
+    ///    }
+    /// }
+    /// ```
+    ///
+    /// Here's `CoPilot`'s suggestion:
+    ///
     ///```txt
     /// self.0.first().copied()
     ///```
     ///
-    /// Notice the difference. Their's doesn't remove the card from the deck.
+    /// Notice the difference. Theirs doesn't remove the card from the deck. `vec.first()` returns
+    /// a reference to the first element in the vector if it's there.
     pub fn draw_first(&mut self) -> Option<Card<DeckType>> {
         match self.len() {
             0 => None,
@@ -651,6 +675,19 @@ mod basic__types__deck_tests {
 
         assert_eq!(pile.draw(3).unwrap().to_string(), "2♠ 8♠ 4♠");
         assert_eq!(pile.draw(3), None);
+    }
+
+    #[test]
+    fn draw_first() {
+        let mut deck = Standard52::deck();
+
+        for x in 0..deck.len() {
+            let card = deck.draw_first();
+            match x {
+                52 => assert!(card.is_none()),
+                _ => assert!(card.is_some()),
+            }
+        }
     }
 
     #[test]
