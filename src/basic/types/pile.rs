@@ -5,8 +5,8 @@ use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
 use colored::Color;
-use rand::rng;
 use rand::seq::SliceRandom;
+use rand::{Rng, rng};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use std::hash::Hash;
@@ -247,6 +247,23 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.pop()
     }
 
+    /// Draws a random [`Card`] from the `Pile`. If the `Pile` is empty, `None` is returned.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = cards!("AH KH QH");
+    ///
+    /// let random_card = pile.draw_random().unwrap();
+    ///
+    /// assert!(!pile.contains(&random_card));
+    /// ```
+    pub fn draw_random(&mut self) -> Option<Card<DeckType>> {
+        let mut rng = rng();
+        let position = rng.random_range(0..self.len());
+        Some(self.remove(position))
+    }
+
     /// Extends the `Pile` with the cards from another `Pile`.
     ///
     /// ```
@@ -465,7 +482,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Returns a Pile by calling the passed in function n times and consolidating the results into
     /// a single Pile.
     ///
-    /// NOTE: why?
+    /// Q: why?
+    /// A: Because I can and I wanted to see it in action.
     pub fn pile_up(n: usize, f: fn() -> Self) -> Self {
         let mut pile = Self::default();
 
@@ -619,20 +637,20 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
     }
 
-    pub fn to_color_index_string(&self) -> String {
+    pub fn stringify(&self, s: &str, f: fn(&Card<DeckType>) -> String) -> String {
         self.0
             .iter()
-            .map(Card::color_index_string)
+            .map(f)
             .collect::<Vec<String>>()
-            .join(" ")
+            .join(s)
+    }
+
+    pub fn to_color_index_string(&self) -> String {
+        self.stringify(" " ,Card::color_index_string)
     }
 
     pub fn to_color_symbol_string(&self) -> String {
-        self.0
-            .iter()
-            .map(Card::color_symbol_string)
-            .collect::<Vec<String>>()
-            .join(" ")
+        self.stringify(" ", Card::color_symbol_string)
     }
 }
 
@@ -827,6 +845,28 @@ mod basic__types__deck_tests {
                 _ => assert!(card.is_some()),
             }
         }
+    }
+
+    #[test]
+    fn draw_last() {
+        let mut deck = Standard52::deck();
+
+        for x in 0..deck.len() {
+            let card = deck.draw_first();
+            match x {
+                52 => assert!(card.is_none()),
+                _ => assert!(card.is_some()),
+            }
+        }
+    }
+
+    #[test]
+    fn draw_random() {
+        let mut deck = Standard52::deck();
+
+        let random_card = deck.draw_random().unwrap();
+
+        assert!(!deck.contains(&random_card));
     }
 
     #[test]
