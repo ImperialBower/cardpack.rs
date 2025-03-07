@@ -484,6 +484,16 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// Q: why?
     /// A: Because I can and I wanted to see it in action.
+    ///
+    /// ```
+    /// use itertools::assert_equal;
+    /// use cardpack::prelude::*;
+    ///
+    /// /// The flaw in this is that there can be duplicate Cards.
+    /// let pile = Pile::<Standard52>::pile_up(3, || Standard52::deck().shuffled().draw(3).unwrap());
+    ///
+    /// assert_eq!(pile.len(), 9);
+    /// ```
     pub fn pile_up(n: usize, f: fn() -> Self) -> Self {
         let mut pile = Self::default();
 
@@ -494,6 +504,9 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// I am not seeing a need for this function.
+    ///
+    /// TODO: delete me
     #[must_use]
     pub fn piles_to_string(piles: &[Self]) -> String {
         piles
@@ -503,6 +516,17 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .join(", ")
     }
 
+    /// Returns the position of the passed in [`Card`] in the `Pile`. If the [`Card`] isn't there,
+    /// it returns `None`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Razz::deck();
+    /// let two_spades = Card::<Razz>::from_str("2S").unwrap();
+    ///
+    /// assert_eq!(deck.position(&two_spades), Some(1));
+    /// ```
     #[must_use]
     pub fn position(&self, card: &Card<DeckType>) -> Option<usize> {
         self.0.iter().position(|c| c == card)
@@ -563,6 +587,17 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.shuffle(&mut rng());
     }
 
+    /// Returns a sorted clone of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Euchre32::deck();
+    /// let shuffled = deck.shuffled();
+    ///
+    /// assert!(deck.same(&shuffled));
+    /// assert_eq!(deck, shuffled.sorted());
+    /// ```
     #[must_use]
     pub fn sorted(&self) -> Self {
         let mut pile = self.clone();
@@ -570,15 +605,16 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    pub fn sort(&mut self) {
+        self.0.sort();
+    }
+
+
     #[must_use]
     pub fn sorted_by_rank(&self) -> Self {
         let mut pile = self.clone();
         pile.sort_by_rank();
         pile
-    }
-
-    pub fn sort(&mut self) {
-        self.0.sort();
     }
 
     /// OK, so here's an example of how I am stupid. I want to be able to sort by `Rank` as well as
