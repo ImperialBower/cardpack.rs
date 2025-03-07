@@ -532,6 +532,18 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.iter().position(|c| c == card)
     }
 
+    /// Prepends the passed in `Pile` to the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Pile::<Standard52>::from_str("J♠ T♠").unwrap();
+    /// let other_pile = Pile::<Standard52>::from_str("A♠ K♠ Q♠").unwrap();
+    ///
+    /// pile.prepend(&other_pile);
+    ///
+    /// assert_eq!(pile.to_string(), "A♠ K♠ Q♠ J♠ T♠");
+    /// ```
     pub fn prepend(&mut self, other: &Pile<DeckType>) {
         let mut product = other.0.clone();
         product.append(&mut self.0);
@@ -556,15 +568,15 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         Some(self.remove(position))
     }
 
-    #[must_use]
-    pub fn reverse(&self) -> Self {
-        let mut pile = self.clone();
-        pile.reverse_in_place();
-        pile
+    pub fn reverse(&mut self) {
+        self.0.reverse();
     }
 
-    pub fn reverse_in_place(&mut self) {
-        self.0.reverse();
+    #[must_use]
+    pub fn reversed(&self) -> Self {
+        let mut pile = self.clone();
+        pile.reverse();
+        pile
     }
 
     #[must_use]
@@ -608,7 +620,6 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     pub fn sort(&mut self) {
         self.0.sort();
     }
-
 
     #[must_use]
     pub fn sorted_by_rank(&self) -> Self {
@@ -674,15 +685,11 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     pub fn stringify(&self, s: &str, f: fn(&Card<DeckType>) -> String) -> String {
-        self.0
-            .iter()
-            .map(f)
-            .collect::<Vec<String>>()
-            .join(s)
+        self.0.iter().map(f).collect::<Vec<String>>().join(s)
     }
 
     pub fn to_color_index_string(&self) -> String {
-        self.stringify(" " ,Card::color_index_string)
+        self.stringify(" ", Card::color_index_string)
     }
 
     pub fn to_color_symbol_string(&self) -> String {
