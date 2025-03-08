@@ -3,7 +3,7 @@ use clap::Parser;
 
 /// Run all of the decks with 1 for each:
 ///
-/// `cargo run --example cli2 -- -temfkpsac -v`
+/// `cargo run --example demo -- -temfkpsac -v`
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -17,7 +17,7 @@ struct Args {
     euchre: bool,
 
     #[clap(short = 'm', long)]
-    manila: bool,
+    short: bool,
 
     #[clap(short = 'f', long)]
     french: bool,
@@ -53,7 +53,7 @@ fn main() -> Result<(), CardError> {
         Euchre24Deck::demo(args.verbose);
     }
 
-    if args.manila {
+    if args.short {
         ShortDeck::demo(args.verbose);
     }
 

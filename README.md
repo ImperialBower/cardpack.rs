@@ -3,9 +3,6 @@
 [![Build and Test](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
-<!--[![Coverage Status](https://coveralls.io/repos/github/ImperialBower/cardpack.rs/badge.svg?branch=main)](https://coveralls.io/github/ImperialBower/cardpack.rs?branch=main)-->
-
-# UPDATE
 
 Generic pack of cards library written in Rust. The goals of the library include:
 
@@ -47,33 +44,6 @@ fn main() {
 }
 ```
 
-## Examples
-
-The library has several demo programs in the examples directory.
-
-For the traditional French Deck:
-
-```shell
-$> cargo run --example traditional
-Long in English and German:
-      Ace of Spades
-      Ass von Spaten
-      King of Spades
-      König von Spaten
-      Queen of Spades
-      Dame von Spaten
-...
-   Short Symbols in en-US: A♠ K♠ Q♠ J♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
-   Short Symbols in de   : A♠ K♠ D♠ B♠ 10♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ D♥ B♥ 10♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ D♦ B♦ 10♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ D♣ B♣ 10♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
-   Short Letters in en-US: AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
-   Short Letters in de   : AS KS DS BS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH DH BH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD DD BD 10D 9D 8D 7D 6D 5D 4D 3D 2D AK KK DK BK 10K 9K 8K 7K 6K 5K 4K 3K 2K
-   Shuffle Deck:           8C 2H QC 9D 4S 10D 8D 6D 5H JS 5D KS 6C 9H 6H JC KC 3H 7C 3C 8H 7H 4H 5C 5S 4C AC 4D AH QH QS JD 9S 2S 3S 2C 10S JH 9C KH 10H 7D 10C KD 8S 6S 7S QD AD 2D 3D AS
-   Sort Deck:              AS KS QS JS 10S 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH 10H 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD 10D 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC 10C 9C 8C 7C 6C 5C 4C 3C 2C
-```
-
-Also included are example programs for `spades`, `pinochle`, `skat`, `canasta`,
-`euchre`, `handandfoot` and `tarot` as well as example `poker` and `bridge` hands.
-
 ## Details
 
 The goal of this library is to be able to support the creation of card
@@ -103,7 +73,40 @@ internationalization. Current languages supported are
 * Create a textual representation of a deck that can be serialized and deserialized.
 * Shuffle a deck
 * Verify that a specific card is playable given a set of discards.
-* Determine if two deck types are translatable.
+
+## Examples
+
+The library has several examples programs, including `demo` which shows you the different decks
+available.
+
+For the traditional 54 card French Deck with Jokers:
+
+```shell
+❯ cargo run --example demo -- --french -v
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running `target/debug/examples/cli --french --verbose`
+
+French Deck:          B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣
+French Deck Index:    BJ LJ AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C
+French Deck Shuffled: K♣ 7♦ 8♣ Q♥ 6♠ J♦ 4♦ J♥ K♠ 9♥ 6♥ T♥ 2♦ 3♦ 3♣ J♣ 3♥ Q♣ 5♥ Q♦ 3♠ T♣ 7♥ 4♥ K♦ 5♦ 2♠ 6♦ T♠ 8♥ T♦ 7♠ 8♠ 2♣ Q♠ 7♣ A♣ 5♠ A♥ 9♣ 2♥ 9♦ 9♠ 4♠ K♥ 8♦ 5♣ A♦ L🃟 B🃟 A♠ 6♣ 4♣ J♠
+
+Long in English and German:
+  Joker Full-Color 
+  Joker One-Color 
+  Ace of Spades 
+  King of Spades 
+  Queen of Spades 
+  ...
+```
+
+Other decks in the demo program are `canasta`, `euchre`, `short`, `pinochle`, `skat`, `spades`,
+`standard`, and `tarot`.
+
+Other examples are:
+
+- `cargo run --example bridge` - Prints out a [Bridge](https://en.wikipedia.org/wiki/Contract_bridge) deal.
+- `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
+- `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
 
 ## References
 
@@ -123,8 +126,16 @@ internationalization. Current languages supported are
 
 ## Dependencies
 
+* [Colored](https://github.com/colored-rs/colored)
 * [Fluent Templates](https://github.com/XAMPPRocky/fluent-templates)
   * [Project Fluent](https://www.projectfluent.org/)
+* [itertools](https://github.com/rust-itertools/itertools)
+* [log](https://github.com/rust-lang/log)
+* [rand](https://github.com/rust-random/rand)
+* [serde](https://github.com/serde-rs/serde)
+  * [serde_yml](https://github.com/sebastienrousseau/serde_yml)
+* [term-table](https://github.com/RyanBluth/term-table-rs)
+* [thiserror](https://github.com/dtolnay/thiserror)
 
 ## Dev Dependencies
 
