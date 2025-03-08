@@ -638,6 +638,19 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.reverse();
     }
 
+    /// Returns a new Pile with the [`Card`]s reversed.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Euchre24::deck();
+    /// let reversed_pile = pile.reversed();
+    ///
+    /// assert_eq!(
+    ///     reversed_pile.to_string(),
+    ///     "9♣ T♣ J♣ Q♣ K♣ A♣ 9♦ T♦ J♦ Q♦ K♦ A♦ 9♥ T♥ J♥ Q♥ K♥ A♥ 9♠ T♠ J♠ Q♠ K♠ A♠"
+    /// );
+    /// ```
     #[must_use]
     pub fn reversed(&self) -> Self {
         let mut pile = self.clone();
@@ -645,6 +658,17 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// Returns true of the two `Piles` are the same, regardless of the order of the cards.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile1 = Razz::deck();
+    /// let pile2 = Razz::deck().shuffled();
+    ///
+    /// assert_ne!(pile1, pile2);
+    /// assert!(pile1.same(&pile2));
+    /// ```
     #[must_use]
     pub fn same(&self, cards: &Pile<DeckType>) -> bool {
         let left = self.sorted();
