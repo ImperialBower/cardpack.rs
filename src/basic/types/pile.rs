@@ -798,17 +798,38 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let pile = Pile::<Standard52>::pile_up(3, || Standard52::deck().shuffled().draw(3).unwrap());
+    /// let pile = cards!("A♠ K♠ Q♠ J♠ T♠");
     ///
+    /// let result = pile.stringify("~", |card| card.color_index_string().to_lowercase());
+    ///
+    /// assert_eq!(result, "as~ks~qs~js~ts");
     /// ```
     pub fn stringify(&self, s: &str, f: fn(&Card<DeckType>) -> String) -> String {
         self.0.iter().map(f).collect::<Vec<String>>().join(s)
     }
 
+    /// Returns a Color version of the index string of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = cards!("A♠ K♠ Q♠ J♠ T♠");
+    ///
+    /// assert_eq!(pile.to_color_index_string(), "AS KS QS JS TS");
+    /// ```
     pub fn to_color_index_string(&self) -> String {
         self.stringify(" ", Card::color_index_string)
     }
 
+    /// Returns a Color version of the symbol string of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = cards!("AS KS QS JS TS");
+    ///
+    /// assert_eq!(pile.to_color_symbol_string(), "A♠ K♠ Q♠ J♠ T♠");
+    /// ```
     pub fn to_color_symbol_string(&self) -> String {
         self.stringify(" ", Card::color_symbol_string)
     }
