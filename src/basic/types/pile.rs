@@ -550,19 +550,72 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0 = product;
     }
 
-    pub fn push(&mut self, card: Card<DeckType>) {
-        self.0.push(card);
-    }
-
+    /// A way to deal from the bottom of the deck.
+    ///
+    /// (I love how `CoPilot` makes up methods, like `pile.pop_bottom()` for the test here.)
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Pile::<Standard52>::from_str("K♠ 7♠ 6♦").unwrap();
+    ///
+    /// assert_eq!(pile.pop().unwrap().to_string(), "6♦");
+    ///
+    /// assert_eq!(pile.to_string(), "K♠ 7♠");
+    /// ```
     pub fn pop(&mut self) -> Option<Card<DeckType>> {
         self.0.pop()
     }
 
-    /// TODO: Possible RF change to [`VecDeque`](https://doc.rust-lang.org/std/collections/struct.VecDeque.html)?
-    pub fn remove(&mut self, x: usize) -> Card<DeckType> {
-        self.0.remove(x)
+    /// Pushed the [`Card`] onto the bottom of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile: Pile<Standard52> = cards!("KD QD JD");
+    /// pile.push(card!(TD));
+    ///
+    /// assert_eq!(pile.to_string(), "K♦ Q♦ J♦ T♦");
+    /// ```
+    pub fn push(&mut self, card: Card<DeckType>) {
+        self.0.push(card);
     }
 
+    /// Removed a [`Card`] from the `Pile` at a specific point. Returns a default blank [`Card`] if
+    /// the position is out of bounds. This avoids the underlying panic of the `Vec::remove()` method.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = French::deck();
+    ///
+    /// assert_eq!(pile.remove(0).index(), "BJ");
+    /// assert_eq!(pile.remove(14).to_string(), "A♥");
+    /// assert_eq!(pile.remove(51).to_string(), "2♣");
+    /// assert!(pile.remove(51).is_blank());
+    /// ```
+    ///
+    /// TODO: Possible RF change to [`VecDeque`](https://doc.rust-lang.org/std/collections/struct.VecDeque.html)?
+    pub fn remove(&mut self, x: usize) -> Card<DeckType> {
+        if x >= self.len() {
+            Card::<DeckType>::default()
+        } else {
+            self.0.remove(x)
+        }
+    }
+
+    /// Removes a [`Card`] from the `Pile`. Returns `None` if the [`Card`] isn't there.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Pile::<Standard52>::from_str("7♠ 6♠ 8♠").unwrap().shuffled();
+    /// let eight_of_spades = Card::<Standard52>::from_str("8S").unwrap();
+    ///
+    /// assert_eq!(pile.remove_card(&eight_of_spades).unwrap().to_string(), "8♠");
+    /// assert!(pile.remove_card(&eight_of_spades).is_none());
+    /// assert_eq!(pile.sorted().to_string(), "7♠ 6♠");
+    /// ```
     pub fn remove_card(&mut self, card: &Card<DeckType>) -> Option<Card<DeckType>> {
         let position = self.position(card)?;
         Some(self.remove(position))
@@ -1008,6 +1061,15 @@ mod basic__types__deck_tests {
         pile1.prepend(&pile2);
 
         assert_eq!(pile1.to_string(), "5♠ 6♠ 7♠ 2♠ 8♠ 4♠");
+    }
+
+    #[test]
+    fn pop() {
+        let mut pile = Pile::<Standard52>::deck();
+        let card = pile.pop();
+
+        assert_eq!(card.unwrap().to_string(), "2♣");
+        assert_eq!(pile.len(), 51);
     }
 
     #[test]
