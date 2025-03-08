@@ -621,6 +621,19 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         Some(self.remove(position))
     }
 
+    /// Reverses the order of the `Pile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut pile = Euchre24::deck();
+    /// pile.reverse();
+    ///
+    /// assert_eq!(
+    ///     pile.to_string(),
+    ///     "9♣ T♣ J♣ Q♣ K♣ A♣ 9♦ T♦ J♦ Q♦ K♦ A♦ 9♥ T♥ J♥ Q♥ K♥ A♥ 9♠ T♠ J♠ Q♠ K♠ A♠"
+    /// );
+    /// ```
     pub fn reverse(&mut self) {
         self.0.reverse();
     }
