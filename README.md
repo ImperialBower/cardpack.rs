@@ -137,11 +137,11 @@ Other examples are:
 * [rand](https://github.com/rust-random/rand)
 * [serde](https://github.com/serde-rs/serde)
   * [serde_yml](https://github.com/sebastienrousseau/serde_yml)
-* [term-table](https://github.com/RyanBluth/term-table-rs)
 * [thiserror](https://github.com/dtolnay/thiserror)
 
 ## Dev Dependencies
 
+* [term-table](https://github.com/RyanBluth/term-table-rs)
 * [rstest](https://github.com/la10736/rstest) - Fixture-based test framework for Rust
 
 ## TODO
