@@ -707,10 +707,29 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// Sorts the `Pile` in place.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    ///
+    /// ```
     pub fn sort(&mut self) {
         self.0.sort();
     }
 
+    /// Sorts the `Pile` rank first, instead of the default suit.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Short::deck().sorted_by_rank();
+    ///
+    /// assert_eq!(
+    ///     pile.to_string(),
+    ///     "A♠ A♥ A♦ A♣ K♠ K♥ K♦ K♣ Q♠ Q♥ Q♦ Q♣ J♠ J♥ J♦ J♣ T♠ T♥ T♦ T♣ 9♠ 9♥ 9♦ 9♣ 8♠ 8♥ 8♦ 8♣ 7♠ 7♥ 7♦ 7♣ 6♠ 6♥ 6♦ 6♣",
+    /// );
+    /// ```
     #[must_use]
     pub fn sorted_by_rank(&self) -> Self {
         let mut pile = self.clone();
@@ -774,6 +793,14 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
     }
 
+    /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::pile_up(3, || Standard52::deck().shuffled().draw(3).unwrap());
+    ///
+    /// ```
     pub fn stringify(&self, s: &str, f: fn(&Card<DeckType>) -> String) -> String {
         self.0.iter().map(f).collect::<Vec<String>>().join(s)
     }
