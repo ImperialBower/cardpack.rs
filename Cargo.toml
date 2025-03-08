@@ -8,7 +8,7 @@ homepage = "https://github.com/ImperialBower/cardpack.rs"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
-exclude = [".github/workflows/*", "examples/*", ".gitignore", ".rustfmt.toml", "Cargo.lock", "clippy.toml", "rust-toolchain"]
+exclude = [".devcontainer/**", ".github/workflows/**", "bin/**", "examples/**", ".gitignore", ".rustfmt.toml", "Cargo.lock", "clippy.toml", "rust-toolchain"]
 # include = ["src/**", "Cargo.toml", "LICENSE", "README.md", "src/basic/decks/yaml/*.yaml"]
 
 [lib]
