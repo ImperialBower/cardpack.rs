@@ -10,6 +10,9 @@ Generic pack of cards library written in Rust. The goals of the library include:
 * Internationalization support.
 * Ability to create custom sorts for a specific pack of cards.
 
+**UPDATE:** This is a complete rewrite of the library in order to take advantage of genmerics
+in order to make the code cleaner, and easier to extend. 
+
 ## Usage
 
 ```rust
