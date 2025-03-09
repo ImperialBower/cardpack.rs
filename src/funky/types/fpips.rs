@@ -33,6 +33,15 @@ impl FIntPip {
             f,
         }
     }
+
+    /// DIARY: There's something really nice about having a vision for something and feeling like
+    /// you are finally getting it, and then you create the code, and it just works. One of the
+    /// hardest things about working on teams for places that are on very tight deadlines is that
+    /// you don't really have the time for aesthetic beauty, and giving your mind a chance to
+    /// reflect on the system.
+    pub fn f_it(&self, x: usize) -> usize {
+        (self.f)(x)
+    }
 }
 
 impl Default for FIntPip {
@@ -66,4 +75,10 @@ impl Default for FIntPip {
 #[allow(non_snake_case, unused_imports)]
 mod funky__types__fpips_tests {
     use super::*;
+
+    #[test]
+    fn f_it() {
+        let f_int_pip = FIntPip::default();
+        assert_eq!(f_int_pip.f_it(5), 5);
+    }
 }
