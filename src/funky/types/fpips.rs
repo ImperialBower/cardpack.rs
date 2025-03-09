@@ -20,7 +20,7 @@ pub struct FIntPip {
 }
 
 impl FIntPip {
-    /// DIARY: This is where having a tool like CoPilot is helpful. This is how I would set it up
+    /// DIARY: This is where having a tool like `CoPilot` is helpful. This is how I would set it up
     /// and instead of typing it, it just generates the suggestion for me and with a simple press
     /// of a button, I have thc code. They problem is, if you don't know what you want, you won't
     /// be able to judge the quality of the suggestion. AI isn't there to replace you, it's there
@@ -39,6 +39,7 @@ impl FIntPip {
     /// hardest things about working on teams for places that are on very tight deadlines is that
     /// you don't really have the time for aesthetic beauty, and giving your mind a chance to
     /// reflect on the system.
+    #[must_use]
     pub fn f_it(&self, x: usize) -> usize {
         (self.f)(x)
     }
@@ -69,7 +70,6 @@ impl Default for FIntPip {
         }
     }
 }
-
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
