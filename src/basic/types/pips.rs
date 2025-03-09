@@ -20,17 +20,17 @@ use std::fmt::Display;
 ///     hand
 /// }
 /// ```
-#[derive(
-    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
-)]
-pub enum PipType {
-    #[default]
-    Blank,
-    Suit,
-    Rank,
-    Joker,
-    Special,
-}
+    #[derive(
+        Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
+    )]
+    pub enum PipType {
+        #[default]
+        Blank,
+        Suit,
+        Rank,
+        Joker,
+        Special,
+    }
 
 /// `Pip` is the smallest unit of a [`BasicCard`](crate::basic::types::basic_card::BasicCard).
 ///

@@ -249,3 +249,4 @@ pub mod basic;
 pub mod common;
 pub mod localization;
 pub mod prelude;
+mod funky;
