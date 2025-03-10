@@ -5,7 +5,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 
@@ -157,7 +157,7 @@ impl Decked<Canasta> for Canasta {}
 mod basic__decks__canasta_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
-    use crate::basic::types::traits::{Decked, Ranged};
+    use crate::traits::{Decked, Ranged};
 
     #[test]
     fn decked__deck() {

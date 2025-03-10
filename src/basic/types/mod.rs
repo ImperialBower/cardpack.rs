@@ -4,4 +4,3 @@ pub mod card;
 pub mod combos;
 pub mod pile;
 pub mod pips;
-pub mod traits;

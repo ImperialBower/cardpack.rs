@@ -1,7 +1,7 @@
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::{DeckedBase, Ranged};
+use crate::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
 use colored::Color;
@@ -970,7 +970,7 @@ mod basic__types__deck_tests {
     use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchRank, FrenchSuit};
     use crate::basic::decks::french::French;
     use crate::basic::decks::standard52::Standard52;
-    use crate::basic::types::traits::DeckedBase;
+    use crate::traits::DeckedBase;
     use crate::cards;
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
 

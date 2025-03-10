@@ -2,7 +2,7 @@ use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Pile};
 use colored::Color;
 use std::collections::HashMap;
@@ -103,7 +103,7 @@ impl Decked<Standard52> for Standard52 {}
 #[allow(non_snake_case)]
 mod basic__card__standard52_tests {
     use super::*;
-    use crate::basic::types::traits::Decked;
+    use crate::traits::Decked;
 
     #[test]
     fn decked__validate() {

@@ -1,6 +1,6 @@
 use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
-use crate::basic::types::traits::{CKCRevised, DeckedBase};
+use crate::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;

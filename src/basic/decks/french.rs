@@ -4,7 +4,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::traits::{Decked, DeckedBase};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -111,7 +111,7 @@ mod basic__card__french__tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
-    use crate::basic::types::traits::Decked;
+    use crate::traits::Decked;
     use std::str::FromStr;
 
     #[test]

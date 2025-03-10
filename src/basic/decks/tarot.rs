@@ -130,7 +130,7 @@ impl Decked<Tarot> for Tarot {}
 mod basic__card__tarot_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
-    use crate::basic::types::traits::Decked;
+    use crate::traits::Decked;
     use std::str::FromStr;
 
     #[test]

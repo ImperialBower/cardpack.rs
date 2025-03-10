@@ -1,4 +1,4 @@
-use cardpack::basic::types::traits::Ranged;
+use cardpack::traits::Ranged;
 use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};
 use std::fmt;
 use std::fmt::Display;

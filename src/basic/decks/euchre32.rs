@@ -3,7 +3,7 @@ use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::standard52::Standard52;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
-use crate::basic::types::traits::{Decked, DeckedBase};
+use crate::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Pile};
 use colored::Color;
 use std::collections::HashMap;
@@ -85,7 +85,7 @@ mod basic__decks__euchre32_tests {
     use super::*;
     use crate::basic::decks::french::French;
     use crate::basic::types::pile::Pile;
-    use crate::basic::types::traits::Decked;
+    use crate::traits::Decked;
 
     #[test]
     fn decked__deck() {

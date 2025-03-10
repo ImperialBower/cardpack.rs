@@ -1,5 +1,5 @@
 use crate::basic::types::basic_pile::BasicPile;
-use crate::basic::types::traits::Ranged;
+use crate::traits::Ranged;
 use crate::prelude::{BasicCard, Pip};
 use std::fmt::{Display, Formatter};
 

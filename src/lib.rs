@@ -13,8 +13,8 @@
 //!
 //! The structure of the library is the following:
 //!
-//! - [`Pile`](basic::types::pile::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](basic::types::traits::DeckedBase) trait
-//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](basic::types::traits::DeckedBase) trait.
+//! - [`Pile`](basic::types::pile::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](traits::DeckedBase) trait
+//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](traits::DeckedBase) trait.
 //!     - [`BasicCard`](basic::types::basic_card::BasicCard) - The basic data of a [`Card`](basic::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
 //!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](basic::types::card::Card).
 //!
@@ -246,7 +246,11 @@
 #![doc = include_str!("../README.md")]
 
 pub mod basic;
+pub mod bussin;
 pub mod common;
+pub mod fanky;
 pub mod funky;
 pub mod localization;
 pub mod prelude;
+pub mod pack;
+pub mod traits;

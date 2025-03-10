@@ -1,4 +1,4 @@
-use crate::basic::types::traits::Ranged;
+use crate::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
 use rand::prelude::SliceRandom;
 use rand::rng;
