@@ -1,5 +1,5 @@
-use cardpack::traits::Ranged;
 use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};
+use cardpack::traits::Ranged;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;

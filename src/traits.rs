@@ -1,11 +1,5 @@
-use crate::basic::decks::cards::french::FLUENT_KEY_BASE_NAME_FRENCH;
-use crate::basic::types::basic_card::BasicCard;
-pub use crate::basic::types::basic_pile::BasicPile;
-pub use crate::basic::types::card::Card;
-use crate::basic::types::combos::Combos;
-pub use crate::basic::types::pile::Pile;
-use crate::basic::types::pips::Pip;
-use crate::prelude::PipType;
+use crate::bussin::types::gto::Combos;
+use crate::prelude::{BasicCard, BasicPile, Card, FLUENT_KEY_BASE_NAME_FRENCH, Pile, Pip, PipType};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;

@@ -205,6 +205,25 @@ macro_rules! card {
     };
 }
 
+#[macro_export]
+macro_rules! tiny {
+    (AS) => {
+        Card::<Tiny>::new(FrenchBasicCard::ACE_SPADES)
+    };
+    (KS) => {
+        Card::<Tiny>::new(FrenchBasicCard::KING_SPADES)
+    };
+    (AH) => {
+        Card::<Tiny>::new(FrenchBasicCard::ACE_HEARTS)
+    };
+    (KH) => {
+        Card::<Tiny>::new(FrenchBasicCard::KING_HEARTS)
+    };
+    (__) => {
+        Card::<Tiny>::default()
+    };
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod basic__macros_tests {

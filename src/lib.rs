@@ -245,12 +245,12 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc = include_str!("../README.md")]
 
-pub mod basic;
 pub mod bussin;
 pub mod common;
 pub mod fanky;
 pub mod funky;
 pub mod localization;
-pub mod prelude;
+pub mod macros;
 pub mod pack;
+pub mod prelude;
 pub mod traits;

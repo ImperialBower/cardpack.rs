@@ -117,12 +117,7 @@ pub mod types {
             ];
 
             #[must_use]
-            pub fn new(
-                pip_type: PipType,
-                weight: u32,
-                index: char,
-                symbol: char,
-            ) -> Self {
+            pub fn new(pip_type: PipType, weight: u32, index: char, symbol: char) -> Self {
                 Self {
                     weight,
                     pip_type,
@@ -173,8 +168,14 @@ pub mod types {
             }
         }
     }
-
     pub mod card {
+        use crate::bussin::types::pips::{Pip, PipType};
+        use crate::common::utils::Bit;
+        use crate::prelude::{CKCRevised, DeckedBase, Ranged};
+        use crate::prelude::{Card, Pile};
+        use rand::prelude::SliceRandom;
+        use rand::rng;
+        use serde::{Deserialize, Serialize};
         use std::cmp::Ordering;
         use std::error::Error;
         use std::fmt;
@@ -182,12 +183,6 @@ pub mod types {
         use std::fs::File;
         use std::hash::Hash;
         use std::io::Read;
-        use rand::prelude::SliceRandom;
-        use rand::rng;
-        use serde::{Deserialize, Serialize};
-        use crate::bussin::types::pips::{Pip, PipType};
-        use crate::common::utils::Bit;
-        use crate::prelude::{CKCRevised, Card, DeckedBase, Pile, Ranged};
 
         // region Basic Card
 
@@ -547,7 +542,7 @@ pub mod types {
         // region Iterator
 
         impl FromIterator<BasicCard> for BasicPile {
-            fn from_iter<T: IntoIterator<Item =BasicCard>>(iter: T) -> Self {
+            fn from_iter<T: IntoIterator<Item = BasicCard>>(iter: T) -> Self {
                 Self(iter.into_iter().collect())
             }
         }
@@ -705,13 +700,12 @@ pub mod types {
 
         // endregion Iterator
         // endregion BasicPile
-
     }
-
     pub mod gto {
-        use std::fmt::{Display, Formatter};
         use crate::bussin::types::card::{BasicCard, BasicPile};
         use crate::bussin::types::pips::Pip;
+        use crate::traits::Ranged;
+        use std::fmt::{Display, Formatter};
 
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
         pub struct Combos(Vec<BasicPile>);
@@ -768,10 +762,10 @@ pub mod types {
                 self.iter()
                     .filter(|pile| pile.is_connector())
                     .cloned()
-                    .collect::<crate::basic::types::combos::Combos>()
+                    .collect::<Combos>()
                     .iter()
                     .map(|pile| pile.clone().sorted_by_rank())
-                    .collect::<crate::basic::types::combos::Combos>()
+                    .collect::<Combos>()
             }
 
             /// I love how the `CoPilot` version recommends functions that don't exist instead of
@@ -920,5 +914,2029 @@ pub mod types {
                 self.iter()
             }
         }
+    }
+}
+
+pub mod cards {
+    pub mod french {
+        use crate::bussin::types::card::BasicCard;
+        use crate::bussin::types::pips::{Pip, PipType};
+
+        pub struct FrenchBasicCard;
+        pub struct FrenchSuit;
+        pub struct FrenchRank;
+
+        pub const FLUENT_KEY_BASE_NAME_FRENCH: &str = "french";
+
+        impl FrenchBasicCard {
+            pub const BIG_JOKER: BasicCard = BasicCard {
+                suit: FrenchSuit::JOKER,
+                rank: FrenchRank::BIG_JOKER,
+            };
+            pub const LITTLE_JOKER: BasicCard = BasicCard {
+                suit: FrenchSuit::JOKER,
+                rank: FrenchRank::LITTLE_JOKER,
+            };
+            pub const ACE_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::ACE,
+            };
+            pub const KING_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::KING,
+            };
+            pub const QUEEN_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::QUEEN,
+            };
+            pub const JACK_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::JACK,
+            };
+            pub const TEN_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::TEN,
+            };
+            pub const NINE_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::NINE,
+            };
+            pub const EIGHT_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::EIGHT,
+            };
+            pub const SEVEN_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::SEVEN,
+            };
+            pub const SIX_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::SIX,
+            };
+            pub const FIVE_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::FIVE,
+            };
+            pub const FOUR_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::FOUR,
+            };
+            pub const TREY_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::TREY,
+            };
+            pub const DEUCE_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: FrenchRank::DEUCE,
+            };
+            pub const ACE_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::ACE,
+            };
+            pub const KING_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::KING,
+            };
+            pub const QUEEN_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::QUEEN,
+            };
+            pub const JACK_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::JACK,
+            };
+            pub const TEN_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::TEN,
+            };
+            pub const NINE_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::NINE,
+            };
+            pub const EIGHT_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::EIGHT,
+            };
+            pub const SEVEN_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::SEVEN,
+            };
+            pub const SIX_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::SIX,
+            };
+            pub const FIVE_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::FIVE,
+            };
+            pub const FOUR_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::FOUR,
+            };
+            pub const TREY_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::TREY,
+            };
+            pub const DEUCE_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: FrenchRank::DEUCE,
+            };
+            pub const ACE_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::ACE,
+            };
+            pub const KING_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::KING,
+            };
+            pub const QUEEN_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::QUEEN,
+            };
+            pub const JACK_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::JACK,
+            };
+            pub const TEN_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::TEN,
+            };
+            pub const NINE_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::NINE,
+            };
+            pub const EIGHT_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::EIGHT,
+            };
+            pub const SEVEN_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::SEVEN,
+            };
+            pub const SIX_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::SIX,
+            };
+            pub const FIVE_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::FIVE,
+            };
+            pub const FOUR_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::FOUR,
+            };
+            pub const TREY_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::TREY,
+            };
+            pub const DEUCE_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: FrenchRank::DEUCE,
+            };
+            pub const ACE_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::ACE,
+            };
+            pub const KING_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::KING,
+            };
+            pub const QUEEN_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::QUEEN,
+            };
+            pub const JACK_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::JACK,
+            };
+            pub const TEN_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::TEN,
+            };
+            pub const NINE_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::NINE,
+            };
+            pub const EIGHT_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::EIGHT,
+            };
+            pub const SEVEN_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::SEVEN,
+            };
+            pub const SIX_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::SIX,
+            };
+            pub const FIVE_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::FIVE,
+            };
+            pub const FOUR_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::FOUR,
+            };
+            pub const TREY_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::TREY,
+            };
+            pub const DEUCE_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: FrenchRank::DEUCE,
+            };
+        }
+
+        impl FrenchSuit {
+            pub const JOKER: Pip = Pip {
+                pip_type: PipType::Joker,
+                weight: 4,
+                index: 'J',
+                symbol: '🃟',
+                value: 5,
+            };
+            pub const SPADES: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 3,
+                index: 'S',
+                symbol: '♠',
+                value: 4,
+            };
+            pub const HEARTS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 2,
+                index: 'H',
+                symbol: '♥',
+                value: 3,
+            };
+            pub const DIAMONDS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 1,
+                index: 'D',
+                symbol: '♦',
+                value: 2,
+            };
+            pub const CLUBS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 0,
+                index: 'C',
+                symbol: '♣',
+                value: 1,
+            };
+        }
+
+        impl FrenchRank {
+            pub const BIG_JOKER: Pip = Pip {
+                pip_type: PipType::Joker,
+                weight: 14,
+                index: 'B',
+                symbol: 'B',
+                value: 13,
+            };
+            pub const LITTLE_JOKER: Pip = Pip {
+                pip_type: PipType::Joker,
+                weight: 13,
+                index: 'L',
+                symbol: 'L',
+                value: 12,
+            };
+
+            pub const ACE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 12,
+                index: 'A',
+                symbol: 'A',
+                value: 11,
+            };
+            pub const KING: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 11,
+                index: 'K',
+                symbol: 'K',
+                value: 10,
+            };
+            pub const QUEEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 10,
+                index: 'Q',
+                symbol: 'Q',
+                value: 10,
+            };
+            pub const JACK: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 9,
+                index: 'J',
+                symbol: 'J',
+                value: 10,
+            };
+            pub const TEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 8,
+                index: 'T',
+                symbol: 'T',
+                value: 10,
+            };
+            pub const NINE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 7,
+                index: '9',
+                symbol: '9',
+                value: 9,
+            };
+            pub const EIGHT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 6,
+                index: '8',
+                symbol: '8',
+                value: 8,
+            };
+            pub const SEVEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 5,
+                index: '7',
+                symbol: '7',
+                value: 7,
+            };
+            pub const SIX: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 4,
+                index: '6',
+                symbol: '6',
+                value: 6,
+            };
+            pub const FIVE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 3,
+                index: '5',
+                symbol: '5',
+                value: 5,
+            };
+            pub const FOUR: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 2,
+                index: '4',
+                symbol: '4',
+                value: 4,
+            };
+            pub const TREY: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 1,
+                index: '3',
+                symbol: '3',
+                value: 3,
+            };
+            pub const DEUCE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 0,
+                index: '2',
+                symbol: '2',
+                value: 2,
+            };
+        }
+    }
+    pub mod canasta {
+        use crate::prelude::{BasicCard, FrenchRank, Pip, PipType};
+
+        pub struct CanastaBasicCard;
+        pub struct CanastaSuit;
+        pub struct CanastaRank;
+
+        pub const FLUENT_KEY_BASE_NAME_CANASTA: &str = "canasta";
+
+        /// Use the `Canasta` `Deck` as a way to illustrate system evolution.
+        impl CanastaBasicCard {
+            pub const TREY_HEARTS: BasicCard = BasicCard {
+                suit: CanastaSuit::TREY_HEARTS,
+                rank: CanastaRank::RED_TREY,
+            };
+            pub const TREY_DIAMONDS: BasicCard = BasicCard {
+                suit: CanastaSuit::TREY_DIAMONDS,
+                rank: CanastaRank::RED_TREY,
+            };
+            pub const BIG_JOKER: BasicCard = BasicCard {
+                suit: CanastaSuit::JOKER,
+                rank: FrenchRank::BIG_JOKER,
+            };
+            pub const LITTLE_JOKER: BasicCard = BasicCard {
+                suit: CanastaSuit::JOKER,
+                rank: FrenchRank::LITTLE_JOKER,
+            };
+            pub const DEUCE_SPADES: BasicCard = BasicCard {
+                suit: CanastaSuit::DEUCE_SPADES,
+                rank: CanastaRank::DEUCE,
+            };
+            pub const DEUCE_HEARTS: BasicCard = BasicCard {
+                suit: CanastaSuit::DEUCE_HEARTS,
+                rank: CanastaRank::DEUCE,
+            };
+            pub const DEUCE_DIAMONDS: BasicCard = BasicCard {
+                suit: CanastaSuit::DEUCE_DIAMONDS,
+                rank: CanastaRank::DEUCE,
+            };
+            pub const DEUCE_CLUBS: BasicCard = BasicCard {
+                suit: CanastaSuit::DEUCE_CLUBS,
+                rank: CanastaRank::DEUCE,
+            };
+        }
+
+        impl CanastaRank {
+            pub const RED_TREY: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 15,
+                index: '3',
+                symbol: '3',
+                value: 3,
+            };
+            pub const DEUCE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 13,
+                index: '2',
+                symbol: '2',
+                value: 2,
+            };
+        }
+
+        impl CanastaSuit {
+            pub const TREY_HEARTS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 11,
+                index: 'H',
+                symbol: '♥',
+                value: 1,
+            };
+            pub const TREY_DIAMONDS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 10,
+                index: 'D',
+                symbol: '♦',
+                value: 2,
+            };
+            pub const JOKER: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 9,
+                index: 'J',
+                symbol: '🃟',
+                value: 4,
+            };
+            pub const DEUCE_SPADES: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 8,
+                index: 'S',
+                symbol: '♠',
+                value: 3,
+            };
+            pub const DEUCE_HEARTS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 7,
+                index: 'H',
+                symbol: '♥',
+                value: 1,
+            };
+            pub const DEUCE_DIAMONDS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 6,
+                index: 'D',
+                symbol: '♦',
+                value: 2,
+            };
+            pub const DEUCE_CLUBS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 5,
+                index: 'C',
+                symbol: '♣',
+                value: 4,
+            };
+        }
+    }
+    pub mod pinochle {
+        use crate::prelude::{BasicCard, FrenchSuit, Pip, PipType};
+
+        pub struct PinochleBasicCard;
+        pub struct PinochleRank;
+
+        pub const FLUENT_KEY_BASE_NAME_PINOCHLE: &str = "pinochle";
+
+        impl PinochleBasicCard {
+            pub const TEN_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: PinochleRank::TEN,
+            };
+            pub const KING_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: PinochleRank::KING,
+            };
+            pub const QUEEN_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: PinochleRank::QUEEN,
+            };
+            pub const JACK_SPADES: BasicCard = BasicCard {
+                suit: FrenchSuit::SPADES,
+                rank: PinochleRank::JACK,
+            };
+            pub const TEN_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: PinochleRank::TEN,
+            };
+            pub const KING_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: PinochleRank::KING,
+            };
+            pub const QUEEN_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: PinochleRank::QUEEN,
+            };
+            pub const JACK_HEARTS: BasicCard = BasicCard {
+                suit: FrenchSuit::HEARTS,
+                rank: PinochleRank::JACK,
+            };
+            pub const TEN_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: PinochleRank::TEN,
+            };
+            pub const KING_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: PinochleRank::KING,
+            };
+            pub const QUEEN_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: PinochleRank::QUEEN,
+            };
+            pub const JACK_DIAMONDS: BasicCard = BasicCard {
+                suit: FrenchSuit::DIAMONDS,
+                rank: PinochleRank::JACK,
+            };
+            pub const TEN_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: PinochleRank::TEN,
+            };
+            pub const KING_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: PinochleRank::KING,
+            };
+            pub const QUEEN_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: PinochleRank::QUEEN,
+            };
+            pub const JACK_CLUBS: BasicCard = BasicCard {
+                suit: FrenchSuit::CLUBS,
+                rank: PinochleRank::JACK,
+            };
+        }
+
+        impl PinochleRank {
+            pub const TEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 11,
+                index: 'T',
+                symbol: 'T',
+                value: 10,
+            };
+            pub const KING: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 10,
+                index: 'K',
+                symbol: 'K',
+                value: 10,
+            };
+            pub const QUEEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 9,
+                index: 'Q',
+                symbol: 'Q',
+                value: 10,
+            };
+            pub const JACK: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 8,
+                index: 'J',
+                symbol: 'J',
+                value: 10,
+            };
+        }
+    }
+    pub mod skat {
+        use crate::prelude::{BasicCard, Pip, PipType};
+
+        pub struct SkatBasicCard;
+        pub struct SkatSuit;
+        pub struct SkatRank;
+
+        pub const FLUENT_KEY_BASE_NAME_SKAT: &str = "skat";
+
+        impl SkatBasicCard {
+            pub const DAUSE_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::DAUSE,
+            };
+            pub const ZHEN_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::ZHEN,
+            };
+            pub const KÖNIG_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::KÖNIG,
+            };
+            pub const OBER_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::OBER,
+            };
+            pub const UNTER_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::UNTER,
+            };
+            pub const NEUN_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::NEUN,
+            };
+            pub const ACHT_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::ACHT,
+            };
+            pub const SIEBEN_EICHEL: BasicCard = BasicCard {
+                suit: SkatSuit::EICHEL,
+                rank: SkatRank::SIEBEN,
+            };
+
+            pub const DAUSE_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::DAUSE,
+            };
+            pub const ZHEN_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::ZHEN,
+            };
+            pub const KÖNIG_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::KÖNIG,
+            };
+            pub const OBER_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::OBER,
+            };
+            pub const UNTER_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::UNTER,
+            };
+            pub const NEUN_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::NEUN,
+            };
+            pub const ACHT_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::ACHT,
+            };
+            pub const SIEBEN_LAUB: BasicCard = BasicCard {
+                suit: SkatSuit::LAUB,
+                rank: SkatRank::SIEBEN,
+            };
+
+            pub const DAUSE_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::DAUSE,
+            };
+            pub const ZHEN_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::ZHEN,
+            };
+            pub const KÖNIG_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::KÖNIG,
+            };
+            pub const OBER_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::OBER,
+            };
+            pub const UNTER_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::UNTER,
+            };
+            pub const NEUN_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::NEUN,
+            };
+            pub const ACHT_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::ACHT,
+            };
+            pub const SIEBEN_HERZ: BasicCard = BasicCard {
+                suit: SkatSuit::HERZ,
+                rank: SkatRank::SIEBEN,
+            };
+
+            pub const DAUSE_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::DAUSE,
+            };
+            pub const ZHEN_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::ZHEN,
+            };
+            pub const KÖNIG_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::KÖNIG,
+            };
+            pub const OBER_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::OBER,
+            };
+            pub const UNTER_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::UNTER,
+            };
+            pub const NEUN_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::NEUN,
+            };
+            pub const ACHT_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::ACHT,
+            };
+            pub const SIEBEN_SHELLEN: BasicCard = BasicCard {
+                suit: SkatSuit::SHELLEN,
+                rank: SkatRank::SIEBEN,
+            };
+        }
+
+        impl SkatSuit {
+            pub const EICHEL: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 3,
+                index: 'E',
+                symbol: '♣',
+                value: 4,
+            };
+            pub const LAUB: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 2,
+                index: 'L',
+                symbol: '♠',
+                value: 3,
+            };
+            pub const HERZ: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 1,
+                index: 'H',
+                symbol: '♥',
+                value: 2,
+            };
+            pub const SHELLEN: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 0,
+                index: 'S',
+                symbol: '♦',
+                value: 1,
+            };
+        }
+
+        impl SkatRank {
+            pub const DAUSE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 7,
+                index: 'D',
+                symbol: 'D',
+                value: 0,
+            };
+            pub const ZHEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 6,
+                index: 'Z',
+                symbol: 'Z',
+                value: 0,
+            };
+            pub const KÖNIG: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 5,
+                index: 'K',
+                symbol: 'K',
+                value: 0,
+            };
+            pub const OBER: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 4,
+                index: 'O',
+                symbol: 'O',
+                value: 0,
+            };
+            pub const UNTER: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 3,
+                index: 'U',
+                symbol: 'U',
+                value: 0,
+            };
+            pub const NEUN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 2,
+                index: '9',
+                symbol: '9',
+                value: 2,
+            };
+            pub const ACHT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 1,
+                index: '8',
+                symbol: '8',
+                value: 0,
+            };
+            pub const SIEBEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 0,
+                index: '7',
+                symbol: '7',
+                value: 0,
+            };
+        }
+    }
+    pub mod tarot {
+        use crate::prelude::{BasicCard, Pip, PipType};
+
+        pub struct TarotBasicCard;
+        pub struct TarotSuit;
+        pub struct TarotRank;
+
+        pub const FLUENT_KEY_BASE_NAME_TAROT: &str = "tarot";
+
+        impl TarotBasicCard {
+            pub const FOOL: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::FOOL,
+            };
+            pub const MAGICIAN: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::MAGICIAN,
+            };
+            pub const HIGH_PRIESTESS: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::HIGH_PRIESTESS,
+            };
+            pub const EMPRESS: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::EMPRESS,
+            };
+            pub const EMPEROR: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::EMPEROR,
+            };
+            pub const HIEROPHANT: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::HIEROPHANT,
+            };
+            pub const LOVERS: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::LOVERS,
+            };
+            pub const CHARIOT: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::CHARIOT,
+            };
+            pub const STRENGTH: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::STRENGTH,
+            };
+            pub const HERMIT: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::HERMIT,
+            };
+            pub const WHEEL_OF_FORTUNE: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::WHEEL_OF_FORTUNE,
+            };
+            pub const JUSTICE: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::JUSTICE,
+            };
+            pub const HANGED_MAN: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::HANGED_MAN,
+            };
+            pub const DEATH: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::DEATH,
+            };
+            pub const TEMPERANCE: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::TEMPERANCE,
+            };
+            pub const DEVIL: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::DEVIL,
+            };
+            pub const TOWER: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::TOWER,
+            };
+            pub const STAR: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::STAR,
+            };
+            pub const MOON: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::MOON,
+            };
+            pub const SUN: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::SUN,
+            };
+            pub const JUDGEMENT: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::JUDGEMENT,
+            };
+            pub const WORLD: BasicCard = BasicCard {
+                suit: TarotSuit::MAJOR_ARCANA,
+                rank: TarotRank::WORLD,
+            };
+
+            pub const KING_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::KING,
+            };
+            pub const QUEEN_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::QUEEN,
+            };
+            pub const KNIGHT_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::KNIGHT,
+            };
+            pub const PAGE_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::PAGE,
+            };
+            pub const TEN_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::TEN,
+            };
+            pub const NINE_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::NINE,
+            };
+            pub const EIGHT_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::EIGHT,
+            };
+            pub const SEVEN_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::SEVEN,
+            };
+            pub const SIX_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::SIX,
+            };
+            pub const FIVE_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::FIVE,
+            };
+            pub const FOUR_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::FOUR,
+            };
+            pub const THREE_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::THREE,
+            };
+            pub const TWO_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::TWO,
+            };
+            pub const ACE_WANDS: BasicCard = BasicCard {
+                suit: TarotSuit::WANDS,
+                rank: TarotRank::ACE,
+            };
+            pub const KING_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::KING,
+            };
+            pub const QUEEN_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::QUEEN,
+            };
+            pub const KNIGHT_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::KNIGHT,
+            };
+            pub const PAGE_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::PAGE,
+            };
+            pub const TEN_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::TEN,
+            };
+            pub const NINE_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::NINE,
+            };
+            pub const EIGHT_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::EIGHT,
+            };
+            pub const SEVEN_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::SEVEN,
+            };
+            pub const SIX_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::SIX,
+            };
+            pub const FIVE_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::FIVE,
+            };
+            pub const FOUR_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::FOUR,
+            };
+            pub const THREE_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::THREE,
+            };
+            pub const TWO_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::TWO,
+            };
+            pub const ACE_CUPS: BasicCard = BasicCard {
+                suit: TarotSuit::CUPS,
+                rank: TarotRank::ACE,
+            };
+            pub const KING_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::KING,
+            };
+            pub const QUEEN_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::QUEEN,
+            };
+            pub const KNIGHT_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::KNIGHT,
+            };
+            pub const PAGE_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::PAGE,
+            };
+            pub const TEN_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::TEN,
+            };
+            pub const NINE_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::NINE,
+            };
+            pub const EIGHT_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::EIGHT,
+            };
+            pub const SEVEN_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::SEVEN,
+            };
+            pub const SIX_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::SIX,
+            };
+            pub const FIVE_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::FIVE,
+            };
+            pub const FOUR_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::FOUR,
+            };
+            pub const THREE_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::THREE,
+            };
+            pub const TWO_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::TWO,
+            };
+            pub const ACE_SWORDS: BasicCard = BasicCard {
+                suit: TarotSuit::SWORDS,
+                rank: TarotRank::ACE,
+            };
+            pub const KING_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::KING,
+            };
+            pub const QUEEN_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::QUEEN,
+            };
+            pub const KNIGHT_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::KNIGHT,
+            };
+            pub const PAGE_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::PAGE,
+            };
+            pub const TEN_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::TEN,
+            };
+            pub const NINE_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::NINE,
+            };
+            pub const EIGHT_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::EIGHT,
+            };
+            pub const SEVEN_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::SEVEN,
+            };
+            pub const SIX_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::SIX,
+            };
+            pub const FIVE_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::FIVE,
+            };
+            pub const FOUR_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::FOUR,
+            };
+            pub const THREE_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::THREE,
+            };
+            pub const TWO_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::TWO,
+            };
+            pub const ACE_PENTACLES: BasicCard = BasicCard {
+                suit: TarotSuit::PENTACLES,
+                rank: TarotRank::ACE,
+            };
+        }
+
+        impl TarotSuit {
+            pub const MAJOR_ARCANA: Pip = Pip {
+                pip_type: PipType::Special,
+                weight: 4,
+                index: 'M',
+                symbol: '🔮',
+                value: 5,
+            };
+            pub const WANDS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 3,
+                index: 'W',
+                symbol: '🪄',
+                value: 4,
+            };
+            pub const CUPS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 2,
+                index: 'C',
+                symbol: '🍷',
+                value: 3,
+            };
+            pub const SWORDS: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 1,
+                index: 'S',
+                symbol: '⚔',
+                value: 2,
+            };
+            pub const PENTACLES: Pip = Pip {
+                pip_type: PipType::Suit,
+                weight: 0,
+                index: 'P',
+                symbol: '☆',
+                value: 1,
+            };
+        }
+
+        impl TarotRank {
+            // ABC___GHIJKL_NO_QR__UVWXYZ
+            // Major Arcana
+            pub const FOOL: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 22,
+                index: 'F',
+                symbol: '🤡',
+                value: 23,
+            };
+            pub const MAGICIAN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 21,
+                index: 'M',
+                symbol: '🎩',
+                value: 22,
+            };
+            pub const HIGH_PRIESTESS: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 20,
+                index: 'P',
+                symbol: '😇',
+                value: 21,
+            };
+            pub const EMPRESS: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 19,
+                index: 'E',
+                symbol: '👸',
+                value: 20,
+            };
+            pub const EMPEROR: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 18,
+                index: 'R',
+                symbol: '🤴',
+                value: 19,
+            };
+            pub const HIEROPHANT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 17,
+                index: 'H',
+                symbol: '👑',
+                value: 18,
+            };
+            pub const LOVERS: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 16,
+                index: 'L',
+                symbol: '💑',
+                value: 17,
+            };
+            pub const CHARIOT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 15,
+                index: 'C',
+                symbol: '🏎',
+                value: 16,
+            };
+            pub const STRENGTH: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 14,
+                index: 'S',
+                symbol: '💪',
+                value: 15,
+            };
+            pub const HERMIT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 13,
+                index: 'H',
+                symbol: '🕵',
+                value: 14,
+            };
+            pub const WHEEL_OF_FORTUNE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 12,
+                index: 'W',
+                symbol: '🎡',
+                value: 13,
+            };
+            pub const JUSTICE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 11,
+                index: 'J',
+                symbol: '⚖',
+                value: 12,
+            };
+            pub const HANGED_MAN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 10,
+                index: 'H',
+                symbol: '🙃',
+                value: 11,
+            };
+
+            pub const DEATH: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 9,
+                index: 'D',
+                symbol: '💀',
+                value: 10,
+            };
+            pub const TEMPERANCE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 8,
+                index: 'A',
+                symbol: '🚭',
+                value: 9,
+            };
+            pub const DEVIL: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 7,
+                index: 'S',
+                symbol: '😈',
+                value: 8,
+            };
+            pub const TOWER: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 6,
+                index: 'O',
+                symbol: '🗼',
+                value: 7,
+            };
+            pub const STAR: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 5,
+                index: 'S',
+                symbol: '⭐',
+                value: 6,
+            };
+            pub const MOON: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 4,
+                index: 'M',
+                symbol: '🌜',
+                value: 5,
+            };
+            pub const SUN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 3,
+                index: 'S',
+                symbol: '☀',
+                value: 4,
+            };
+            pub const JUDGEMENT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 2,
+                index: 'J',
+                symbol: '🔔',
+                value: 3,
+            };
+            pub const WORLD: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 0,
+                index: 'W',
+                symbol: '🌍',
+                value: 1,
+            };
+
+            // Minor Arcana
+            pub const KING: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 13,
+                index: 'K',
+                symbol: 'K',
+                value: 14,
+            };
+            pub const QUEEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 12,
+                index: 'Q',
+                symbol: 'Q',
+                value: 13,
+            };
+            pub const KNIGHT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 11,
+                index: 'N',
+                symbol: '🃏',
+                value: 12,
+            };
+            pub const PAGE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 10,
+                index: 'P',
+                symbol: 'P',
+                value: 11,
+            };
+            pub const TEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 9,
+                index: 'T',
+                symbol: 'T',
+                value: 10,
+            };
+            pub const NINE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 8,
+                index: '9',
+                symbol: '9',
+                value: 9,
+            };
+            pub const EIGHT: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 7,
+                index: '8',
+                symbol: '8',
+                value: 8,
+            };
+            pub const SEVEN: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 6,
+                index: '7',
+                symbol: '7',
+                value: 7,
+            };
+            pub const SIX: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 5,
+                index: '6',
+                symbol: '6',
+                value: 6,
+            };
+            pub const FIVE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 4,
+                index: '5',
+                symbol: '5',
+                value: 5,
+            };
+            pub const FOUR: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 3,
+                index: '4',
+                symbol: '4',
+                value: 4,
+            };
+            pub const THREE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 2,
+                index: '3',
+                symbol: '3',
+                value: 3,
+            };
+            pub const TWO: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 1,
+                index: '2',
+                symbol: '2',
+                value: 2,
+            };
+            pub const ACE: Pip = Pip {
+                pip_type: PipType::Rank,
+                weight: 0,
+                index: 'A',
+                symbol: 'A',
+                value: 1,
+            };
+        }
+
+        // endregion Tarot
+    }
+    pub mod tiny {
+        use crate::pack::decks::standard52::Standard52;
+        use crate::prelude::{
+            BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pip,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Tiny {}
+
+        impl Tiny {
+            pub const DECK_SIZE: usize = 4;
+
+            pub const DECK: [BasicCard; Tiny::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+            ];
+        }
+
+        impl DeckedBase for Tiny {
+            fn base_vec() -> Vec<BasicCard> {
+                Tiny::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Tiny".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        // Let's you call Decked methods directly on the Tiny type:
+        impl Decked<Tiny> for Tiny {}
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__types__pips_tests {
+    use super::*;
+    use crate::bussin::types::pips::{Pip, PipType};
+
+    #[test]
+    fn pip__default() {
+        let pip = Pip::default();
+        assert_eq!(pip.pip_type, PipType::Blank);
+        assert_eq!(pip.weight, 0);
+        assert_eq!(pip.index, Pip::BLANK_INDEX);
+        assert_eq!(pip.symbol, Pip::BLANK_INDEX);
+        assert_eq!(pip.value, 0);
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__types__card__basic_card_tests {
+    use super::*;
+    use crate::prelude::{BasicCard, Decked, French, Pile};
+    use crate::prelude::{Card, Standard52};
+    use crate::traits::{CKCRevised, DeckedBase};
+    use ckc_rs::CardNumber;
+    use rstest::rstest;
+    use std::str::FromStr;
+
+    #[test]
+    fn cards_from_yaml_file() {
+        let cards = BasicCard::cards_from_yaml_file("src/yaml/french.yaml").unwrap();
+
+        assert_eq!(cards.len(), 54);
+        assert_eq!(cards, Pile::<French>::base_vec())
+    }
+
+    #[test]
+    fn is_blank() {
+        let base_card = BasicCard::default();
+        assert!(base_card.is_blank());
+    }
+
+    #[rstest]
+    #[case("A♠", CardNumber::ACE_SPADES)]
+    #[case("ks", CardNumber::KING_SPADES)]
+    #[case("QS", CardNumber::QUEEN_SPADES)]
+    #[case("J♠", CardNumber::JACK_SPADES)]
+    #[case("TS", CardNumber::TEN_SPADES)]
+    #[case("9s", CardNumber::NINE_SPADES)]
+    #[case("8♠", CardNumber::EIGHT_SPADES)]
+    #[case("7S", CardNumber::SEVEN_SPADES)]
+    #[case("6♠", CardNumber::SIX_SPADES)]
+    #[case("5S", CardNumber::FIVE_SPADES)]
+    #[case("4♠", CardNumber::FOUR_SPADES)]
+    #[case("3s", CardNumber::TREY_SPADES)]
+    #[case("2S", CardNumber::DEUCE_SPADES)]
+    #[case("A♥", CardNumber::ACE_HEARTS)]
+    #[case("k♥", CardNumber::KING_HEARTS)]
+    #[case("QH", CardNumber::QUEEN_HEARTS)]
+    #[case("jh", CardNumber::JACK_HEARTS)]
+    #[case("T♥", CardNumber::TEN_HEARTS)]
+    #[case("9♥", CardNumber::NINE_HEARTS)]
+    #[case("8h", CardNumber::EIGHT_HEARTS)]
+    #[case("7H", CardNumber::SEVEN_HEARTS)]
+    #[case("6h", CardNumber::SIX_HEARTS)]
+    #[case("5H", CardNumber::FIVE_HEARTS)]
+    #[case("4♥", CardNumber::FOUR_HEARTS)]
+    #[case("3♥", CardNumber::TREY_HEARTS)]
+    #[case("2h", CardNumber::DEUCE_HEARTS)]
+    #[case("A♦", CardNumber::ACE_DIAMONDS)]
+    #[case("k♦", CardNumber::KING_DIAMONDS)]
+    #[case("Q♦", CardNumber::QUEEN_DIAMONDS)]
+    #[case("Jd", CardNumber::JACK_DIAMONDS)]
+    #[case("tD", CardNumber::TEN_DIAMONDS)]
+    #[case("9♦", CardNumber::NINE_DIAMONDS)]
+    #[case("8D", CardNumber::EIGHT_DIAMONDS)]
+    #[case("7♦", CardNumber::SEVEN_DIAMONDS)]
+    #[case("6D", CardNumber::SIX_DIAMONDS)]
+    #[case("5D", CardNumber::FIVE_DIAMONDS)]
+    #[case("4♦", CardNumber::FOUR_DIAMONDS)]
+    #[case("3♦", CardNumber::TREY_DIAMONDS)]
+    #[case("2d", CardNumber::DEUCE_DIAMONDS)]
+    #[case("a♣", CardNumber::ACE_CLUBS)]
+    #[case("k♣", CardNumber::KING_CLUBS)]
+    #[case("QC", CardNumber::QUEEN_CLUBS)]
+    #[case("jc", CardNumber::JACK_CLUBS)]
+    #[case("tC", CardNumber::TEN_CLUBS)]
+    #[case("9♣", CardNumber::NINE_CLUBS)]
+    #[case("8♣", CardNumber::EIGHT_CLUBS)]
+    #[case("7c", CardNumber::SEVEN_CLUBS)]
+    #[case("6♣", CardNumber::SIX_CLUBS)]
+    #[case("5C", CardNumber::FIVE_CLUBS)]
+    #[case("4c", CardNumber::FOUR_CLUBS)]
+    #[case("3C", CardNumber::TREY_CLUBS)]
+    #[case("2C", CardNumber::DEUCE_CLUBS)]
+    #[case("__", 0u32)]
+    fn card__get_ckc_number(#[case] input: &str, #[case] expected_ckc: u32) {
+        let card = Card::<Standard52>::from_str(input).unwrap();
+
+        let base_card: BasicCard = card.into();
+
+        assert_eq!(base_card.get_ckc_number(), expected_ckc);
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__types__card__pile_tests {
+    use super::*;
+    use crate::bussin::types::card::BasicPile;
+    use crate::prelude::{
+        Decked, French, FrenchRank, FrenchSuit, Pile, PipType, Ranged, Standard52, Tarot,
+    };
+    use crate::traits::DeckedBase;
+    use std::str::FromStr;
+
+    fn from_str(s: &str) -> BasicPile {
+        BasicPile::from(&Pile::<Standard52>::from_str(s).unwrap())
+    }
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region Ranged
+
+    #[test]
+    fn ranged() {
+        let pile: BasicPile = Pile::<Standard52>::basic_pile();
+        let combinations = pile.combos(2);
+        let dups = pile.combos(2);
+
+        assert_eq!(combinations.len(), 1326);
+        assert_eq!(combinations, dups);
+    }
+
+    #[test]
+    fn combos() {
+        let pile: BasicPile = Standard52::basic_pile();
+        let combinations = pile.combos(2);
+
+        assert_eq!(combinations.len(), 1326);
+    }
+
+    #[test]
+    fn combos_with_dups() {
+        // let pile: Pile = (&Pile::<Standard52>::decks(2)).into();
+        //
+        // Much simper:
+        let pile = Standard52::decks(2);
+        let combinations = pile.combos(2);
+        let dups = pile.combos_with_dups(2);
+
+        assert_eq!(combinations.len(), 1456);
+        assert_eq!(dups.len(), 5356);
+    }
+
+    #[test]
+    fn all_of_rank() {
+        assert!(from_str("AS AD").all_of_rank(FrenchRank::ACE));
+        assert!(from_str("AS AD AS").all_of_rank(FrenchRank::ACE));
+        assert!(!from_str("AS AD").all_of_rank(FrenchRank::KING));
+        assert!(!from_str("AS AD KS").all_of_rank(FrenchRank::ACE));
+    }
+
+    #[test]
+    fn all_of_same_rank() {
+        assert!(from_str("AS AD").all_of_same_rank());
+        assert!(from_str("AS AD AS").all_of_same_rank());
+        assert!(!from_str("AS AD KS").all_of_same_rank());
+    }
+
+    #[test]
+    fn all_of_same_suit() {
+        assert!(from_str("AS KS").all_of_same_suit());
+        assert!(from_str("AS KS QS").all_of_same_suit());
+        assert!(!from_str("AS KH QD").all_of_same_suit());
+    }
+
+    // copilot:
+    // assert!(from_str("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(from_str("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(!from_str("AS AD").of_same_or_greater_rank(FrenchRank::KING));
+    // assert!(!from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+    #[test]
+    fn of_same_or_greater_rank() {
+        assert!(from_str("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(from_str("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!from_str("AS QD").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+    }
+
+    // endregion Ranged
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region Pips
+
+    #[test]
+    fn cards_of_rank_pip_type() {
+        let pile = French::basic_pile();
+        let jokers = pile.cards_of_rank_pip_type(PipType::Joker);
+
+        assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    #[test]
+    fn cards_of_suit_pip_type() {
+        let pile = French::basic_pile();
+        let jokers = pile.cards_of_suit_pip_type(PipType::Joker);
+
+        assert_eq!(jokers.to_string(), "B🃟 L🃟");
+    }
+
+    #[test]
+    fn cards_with_pip_type() {
+        assert_eq!(
+            Tarot::basic_pile()
+                .cards_with_pip_type(PipType::Special)
+                .len(),
+            22
+        );
+        assert_eq!(
+            French::basic_pile()
+                .cards_with_pip_type(PipType::Joker)
+                .len(),
+            2
+        );
+        assert!(
+            French::basic_pile()
+                .cards_with_pip_type(PipType::Special)
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn ranks() {
+        let pile = Pile::<French>::basic_pile().shuffled();
+        let expected = vec![
+            FrenchRank::BIG_JOKER,
+            FrenchRank::LITTLE_JOKER,
+            FrenchRank::ACE,
+            FrenchRank::KING,
+            FrenchRank::QUEEN,
+            FrenchRank::JACK,
+            FrenchRank::TEN,
+            FrenchRank::NINE,
+            FrenchRank::EIGHT,
+            FrenchRank::SEVEN,
+            FrenchRank::SIX,
+            FrenchRank::FIVE,
+            FrenchRank::FOUR,
+            FrenchRank::TREY,
+            FrenchRank::DEUCE,
+        ];
+
+        let ranks = pile.ranks();
+
+        assert_eq!(ranks, expected);
+    }
+
+    #[test]
+    pub fn ranks_index() {
+        let pile = Pile::<French>::basic_pile().shuffled();
+        let expected = "B~L~A~K~Q~J~T~9~8~7~6~5~4~3~2";
+
+        let ranks_index = pile.ranks_index("~");
+
+        assert_eq!(ranks_index, expected);
+        assert_eq!(
+            "K~Q~J~9~8~7",
+            Pile::<French>::from_str("K♥ 9♣ Q♥ J♥ 8♣ 7♣")
+                .unwrap()
+                .ranks_index("~")
+        );
+    }
+
+    #[test]
+    pub fn ranks_by_suit() {
+        let pile = Pile::<French>::from_str("A♠ K♠").unwrap();
+
+        let expected = vec![FrenchRank::ACE, FrenchRank::KING];
+
+        assert_eq!(pile.ranks_by_suit(FrenchSuit::SPADES).unwrap(), expected);
+        assert!(pile.ranks_by_suit(FrenchSuit::HEARTS).is_none());
+    }
+
+    #[test]
+    pub fn ranks_index_by_suit() {
+        let pile = Pile::<French>::from_str("A♠ K♠ A♣ Q♣ K♥").unwrap();
+
+        assert_eq!(
+            pile.ranks_index_by_suit(FrenchSuit::SPADES, "-").unwrap(),
+            "A-K"
+        );
+        assert_eq!(
+            pile.ranks_index_by_suit(FrenchSuit::HEARTS, "-"),
+            Some("K".to_string())
+        );
+        assert_eq!(
+            pile.ranks_index_by_suit(FrenchSuit::CLUBS, "-"),
+            Some("A-Q".to_string())
+        );
+        assert_eq!(pile.ranks_index_by_suit(FrenchSuit::DIAMONDS, "-"), None);
+    }
+
+    #[test]
+    pub fn suits() {
+        let pile = French::deck().shuffled();
+        let expected = vec![
+            FrenchSuit::JOKER,
+            FrenchSuit::SPADES,
+            FrenchSuit::HEARTS,
+            FrenchSuit::DIAMONDS,
+            FrenchSuit::CLUBS,
+        ];
+
+        let suits = pile.suits();
+
+        assert_eq!(suits, expected);
+        assert_eq!(
+            vec![FrenchSuit::HEARTS, FrenchSuit::CLUBS],
+            Pile::<French>::from_str("K♥ 9♣ Q♥ J♥ 8♣ 7♣")
+                .unwrap()
+                .suits()
+        );
+    }
+
+    #[test]
+    pub fn suits_index() {
+        let pile = French::deck().shuffled();
+        let expected = "J~S~H~D~C";
+
+        let suits_index = pile.suits_index("~");
+
+        assert_eq!(suits_index, expected);
+        assert_eq!(
+            "H~C",
+            Pile::<French>::from_str("9♣ K♥ Q♥ J♥ 8♣ 7♣")
+                .unwrap()
+                .suits_index("~")
+        );
+    }
+
+    #[test]
+    pub fn suit_symbol_index() {
+        let pile = French::deck().shuffled();
+        let expected = "🃟~♠~♥~♦~♣";
+
+        let suits_index = pile.suit_symbol_index("~");
+
+        assert_eq!(suits_index, expected);
+        assert_eq!(
+            "♥ ♣",
+            Pile::<French>::from_str("9♣ K♥ Q♥ J♥ 8♣ 7♣")
+                .unwrap()
+                .suit_symbol_index(" ")
+        );
+    }
+
+    // endregion Pips
+
+    #[test]
+    fn sort() {
+        let mut pile = from_str("2♠ 8♣ 4♠");
+        let mut pile2 = pile.clone();
+
+        pile.sort();
+        pile2.sort_by_rank();
+
+        assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
+        assert_eq!(pile2.to_string(), "8♣ 4♠ 2♠");
+    }
+
+    #[test]
+    fn display() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+
+        assert_eq!(
+            pile.to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        );
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__types__gto__combos_tests {
+    use super::*;
+    use crate::bussin::types::card::BasicPile;
+    use crate::bussin::types::gto::Combos;
+    use crate::prelude::{Decked, DeckedBase, French, FrenchRank, Pile, Standard52};
+    use crate::traits::Ranged;
+
+    #[test]
+    fn connectors() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2).connectors();
+
+        assert_eq!(combos.len(), 192);
+        assert_eq!(
+            combos.to_string(),
+            "A♠ K♠, A♠ K♥, A♠ K♦, A♠ K♣, K♠ Q♠, K♠ Q♥, K♠ Q♦, K♠ Q♣, Q♠ J♠, Q♠ J♥, Q♠ J♦, Q♠ J♣, J♠ T♠, J♠ T♥, J♠ T♦, J♠ T♣, T♠ 9♠, T♠ 9♥, T♠ 9♦, T♠ 9♣, 9♠ 8♠, 9♠ 8♥, 9♠ 8♦, 9♠ 8♣, 8♠ 7♠, 8♠ 7♥, 8♠ 7♦, 8♠ 7♣, 7♠ 6♠, 7♠ 6♥, 7♠ 6♦, 7♠ 6♣, 6♠ 5♠, 6♠ 5♥, 6♠ 5♦, 6♠ 5♣, 5♠ 4♠, 5♠ 4♥, 5♠ 4♦, 5♠ 4♣, 4♠ 3♠, 4♠ 3♥, 4♠ 3♦, 4♠ 3♣, 3♠ 2♠, 3♠ 2♥, 3♠ 2♦, 3♠ 2♣, A♥ K♠, A♥ K♥, A♥ K♦, A♥ K♣, K♥ Q♠, K♥ Q♥, K♥ Q♦, K♥ Q♣, Q♥ J♠, Q♥ J♥, Q♥ J♦, Q♥ J♣, J♥ T♠, J♥ T♥, J♥ T♦, J♥ T♣, T♥ 9♠, T♥ 9♥, T♥ 9♦, T♥ 9♣, 9♥ 8♠, 9♥ 8♥, 9♥ 8♦, 9♥ 8♣, 8♥ 7♠, 8♥ 7♥, 8♥ 7♦, 8♥ 7♣, 7♥ 6♠, 7♥ 6♥, 7♥ 6♦, 7♥ 6♣, 6♥ 5♠, 6♥ 5♥, 6♥ 5♦, 6♥ 5♣, 5♥ 4♠, 5♥ 4♥, 5♥ 4♦, 5♥ 4♣, 4♥ 3♠, 4♥ 3♥, 4♥ 3♦, 4♥ 3♣, 3♥ 2♠, 3♥ 2♥, 3♥ 2♦, 3♥ 2♣, A♦ K♠, A♦ K♥, A♦ K♦, A♦ K♣, K♦ Q♠, K♦ Q♥, K♦ Q♦, K♦ Q♣, Q♦ J♠, Q♦ J♥, Q♦ J♦, Q♦ J♣, J♦ T♠, J♦ T♥, J♦ T♦, J♦ T♣, T♦ 9♠, T♦ 9♥, T♦ 9♦, T♦ 9♣, 9♦ 8♠, 9♦ 8♥, 9♦ 8♦, 9♦ 8♣, 8♦ 7♠, 8♦ 7♥, 8♦ 7♦, 8♦ 7♣, 7♦ 6♠, 7♦ 6♥, 7♦ 6♦, 7♦ 6♣, 6♦ 5♠, 6♦ 5♥, 6♦ 5♦, 6♦ 5♣, 5♦ 4♠, 5♦ 4♥, 5♦ 4♦, 5♦ 4♣, 4♦ 3♠, 4♦ 3♥, 4♦ 3♦, 4♦ 3♣, 3♦ 2♠, 3♦ 2♥, 3♦ 2♦, 3♦ 2♣, A♣ K♠, A♣ K♥, A♣ K♦, A♣ K♣, K♣ Q♠, K♣ Q♥, K♣ Q♦, K♣ Q♣, Q♣ J♠, Q♣ J♥, Q♣ J♦, Q♣ J♣, J♣ T♠, J♣ T♥, J♣ T♦, J♣ T♣, T♣ 9♠, T♣ 9♥, T♣ 9♦, T♣ 9♣, 9♣ 8♠, 9♣ 8♥, 9♣ 8♦, 9♣ 8♣, 8♣ 7♠, 8♣ 7♥, 8♣ 7♦, 8♣ 7♣, 7♣ 6♠, 7♣ 6♥, 7♣ 6♦, 7♣ 6♣, 6♣ 5♠, 6♣ 5♥, 6♣ 5♦, 6♣ 5♣, 5♣ 4♠, 5♣ 4♥, 5♣ 4♦, 5♣ 4♣, 4♣ 3♠, 4♣ 3♥, 4♣ 3♦, 4♣ 3♣, 3♣ 2♠, 3♣ 2♥, 3♣ 2♦, 3♣ 2♣"
+        );
+    }
+
+    #[test]
+    fn of_rank() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2).of_rank(FrenchRank::ACE);
+
+        assert_eq!(combos.len(), 6);
+        assert_eq!(
+            combos.to_string(),
+            "A♠ A♥, A♠ A♦, A♠ A♣, A♥ A♦, A♥ A♣, A♦ A♣"
+        );
+    }
+
+    #[test]
+    fn of_same_rank() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2).of_same_rank();
+
+        assert_eq!(combos.len(), 78);
+    }
+
+    #[test]
+    fn of_same_rank_or_above() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2).of_same_rank_or_above(FrenchRank::KING);
+
+        assert_eq!(
+            combos.to_string(),
+            "A♠ A♥, A♠ A♦, A♠ A♣, K♠ K♥, K♠ K♦, K♠ K♣, A♥ A♦, A♥ A♣, K♥ K♦, K♥ K♣, A♦ A♣, K♦ K♣"
+        );
+    }
+
+    #[test]
+    fn suited() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        let suited = combos.suited();
+        let connectors = suited.connectors();
+
+        assert_eq!(suited.len(), 312);
+        assert_eq!(connectors.len(), 48);
+    }
+
+    // TODO: Why are these in the reverse order?
+    #[test]
+    fn unsuited() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2).unsuited();
+        let mut connectors = combos.connectors();
+        connectors.sort();
+
+        assert_eq!(combos.len(), 1014);
+        assert_eq!(connectors.len(), 144);
+    }
+
+    #[test]
+    fn from_vec() {
+        let from = vec![
+            Pile::<French>::basic_pile(),
+            Pile::<French>::basic_pile(),
+            Pile::<French>::basic_pile(),
+        ];
+
+        let pile = Pile::<French>::basic_pile();
+
+        let piles = Combos::from(from);
+
+        assert_eq!(3, piles.len());
+        for p in piles {
+            assert_eq!(pile, p);
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod cards__french__tests {
+    use crate::bussin::types::card::BasicCard;
+    use crate::bussin::types::pips::Pip;
+    use crate::prelude::French;
+    use crate::prelude::FrenchRank;
+    use crate::traits::Decked;
+
+    #[test]
+    fn serde() {
+        let pips = vec![FrenchRank::ACE];
+        let yml = serde_yml::to_string(&pips).unwrap();
+
+        let pip2: Vec<Pip> = serde_yml::from_str(&yml).unwrap();
+        assert_eq!(pips, pip2);
+    }
+
+    #[test]
+    fn serde__deck() {
+        let pile = French::deck().into_basic_cards();
+        let yml = serde_yml::to_string(&pile).unwrap();
+
+        let from_yml: Vec<BasicCard> = BasicCard::cards_from_yaml_str(&yml).unwrap();
+
+        assert_eq!(pile, from_yml);
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod cards__pinochle__tests {
+    use crate::bussin::types::pips::Pip;
+    use crate::prelude::PinochleRank;
+
+    #[test]
+    fn serde() {
+        let pips = vec![PinochleRank::KING];
+        let yml = serde_yml::to_string(&pips).unwrap();
+
+        // println!("{yml}");
+
+        let pip2: Vec<Pip> = serde_yml::from_str(&yml).unwrap();
+        assert_eq!(pips, pip2);
     }
 }

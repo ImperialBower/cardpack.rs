@@ -1,20 +1,23 @@
 pub mod types {
     pub mod card {
+        use crate::bussin::types::card::{BasicCard, BasicPile};
+        use crate::bussin::types::pips::{Pip, PipType};
+        use crate::localization::{FluentName, Named};
+        use crate::prelude::CardError;
+        use crate::traits::Decked;
+        use crate::traits::DeckedBase;
+        use crate::traits::Ranged;
+        use colored::{Color, Colorize};
+        use fluent_templates::LanguageIdentifier;
+        use rand::prelude::SliceRandom;
+        use rand::{Rng, rng};
+        use serde::{Deserialize, Serialize};
         use std::collections::{HashMap, HashSet};
         use std::fmt::{Display, Formatter};
         use std::hash::Hash;
         use std::marker::PhantomData;
         use std::str::FromStr;
         use std::vec::IntoIter;
-        use colored::{Color, Colorize};
-        use fluent_templates::LanguageIdentifier;
-        use rand::prelude::SliceRandom;
-        use rand::{rng, Rng};
-        use serde::{Deserialize, Serialize};
-        use crate::bussin::types::card::{BasicCard, BasicPile};
-        use crate::bussin::types::pips::{Pip, PipType};
-        use crate::localization::{FluentName, Named};
-        use crate::traits::DeckedBase;
         // region Card
 
         /// A `Card` is a struct that's a generic wrapper around a [`BasicCard`] providing it with additional
@@ -25,7 +28,17 @@ pub mod types {
         /// - `fluent_name()` - returns the long name of the card from the `Named` trait's use of fluent templates.
         /// - `from_str()` - allows you to create a `Card` for the specific deck with a string representation of the card.
         #[derive(
-            Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
+            Clone,
+            Copy,
+            Debug,
+            Default,
+            Eq,
+            Hash,
+            PartialEq,
+            Ord,
+            PartialOrd,
+            Serialize,
+            Deserialize,
         )]
         pub struct Card<DeckType>
         where
@@ -179,7 +192,7 @@ pub mod types {
             /// it does make your life a lot easier.
             #[must_use]
             pub fn is_valid(&self) -> bool {
-                crate::traits::basic_pile().contains(&self.base_card)
+                <DeckType as DeckedBase>::basic_pile().contains(&self.base_card)
             }
 
             /// Returns the default, aka `US_ENGLISH`, version of the  long name of the whole `Card`
@@ -294,7 +307,7 @@ pub mod types {
             }
         }
 
-        impl<DeckType: DeckedBase> DeckedBase for crate::prelude::Card<DeckType> {
+        impl<DeckType: DeckedBase> DeckedBase for Card<DeckType> {
             /// Pass through call to the `Card's` underlying type parameter.
             fn base_vec() -> Vec<BasicCard> {
                 DeckType::base_vec()
@@ -331,7 +344,7 @@ pub mod types {
             }
         }
 
-        impl<DeckType: DeckedBase> From<BasicCard> for crate::prelude::Card<DeckType> {
+        impl<DeckType: DeckedBase> From<BasicCard> for Card<DeckType> {
             fn from(pips: BasicCard) -> Self {
                 Self {
                     base_card: pips,
@@ -672,7 +685,9 @@ pub mod types {
             #[must_use]
             pub fn forgiving_from_str(index: &str) -> Self {
                 Pile::<DeckType>::from_str(index).unwrap_or_else(|_| {
-                    log::warn!("Pile::forgiving_from_str(): {index} is invalid. Returning empty Pile.");
+                    log::warn!(
+                        "Pile::forgiving_from_str(): {index} is invalid. Returning empty Pile."
+                    );
                     Self::default()
                 })
             }
@@ -807,8 +822,8 @@ pub mod types {
             }
 
             /// ```
+            /// use cardpack::bussin::cards::tiny::Tiny;
             /// use cardpack::prelude::*;
-            /// use crate::cardpack::basic::decks::tiny::Tiny;
             ///
             /// let pile = Pile::<Tiny>::deck();
             /// let mappie = pile.map_by_suit();
@@ -1254,7 +1269,7 @@ pub mod types {
         }
 
         impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<HashSet<Card<DeckType>>>
-        for Pile<DeckType>
+            for Pile<DeckType>
         {
             fn from(cards: HashSet<Card<DeckType>>) -> Self {
                 Self(cards.into_iter().collect()).sorted()
@@ -1262,7 +1277,7 @@ pub mod types {
         }
 
         impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<Card<DeckType>>>
-        for Pile<DeckType>
+            for Pile<DeckType>
         {
             fn from(cards: Vec<Card<DeckType>>) -> Self {
                 Self(cards)
@@ -1308,7 +1323,7 @@ pub mod types {
         where
             Decked: DeckedBase + Default + Ord + Copy + Hash,
         {
-            fn from_iter<I: IntoIterator<Item =Card<Decked>>>(iter: I) -> Self {
+            fn from_iter<I: IntoIterator<Item = Card<Decked>>>(iter: I) -> Self {
                 Self(iter.into_iter().collect())
             }
         }
@@ -1343,5 +1358,1924 @@ pub mod types {
         }
 
         // endregion
+    }
+}
+
+pub mod decks {
+    pub mod canasta {
+        use crate::prelude::{
+            BasicCard, CanastaBasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_CANASTA,
+            French, FrenchBasicCard, Pile, Pip,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// [Canasta](https://en.wikipedia.org/wiki/Canasta) deck
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Canasta {}
+        #[allow(clippy::module_name_repetitions)]
+        pub type CanastaDeck = Pile<Canasta>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type CanastaCard = Card<Canasta>;
+
+        impl Canasta {
+            pub const DECK_SIZE: usize = 108;
+
+            pub const DECK: [BasicCard; Canasta::DECK_SIZE] = [
+                CanastaBasicCard::TREY_HEARTS,
+                CanastaBasicCard::TREY_HEARTS,
+                CanastaBasicCard::TREY_DIAMONDS,
+                CanastaBasicCard::TREY_DIAMONDS,
+                CanastaBasicCard::BIG_JOKER,
+                CanastaBasicCard::BIG_JOKER,
+                CanastaBasicCard::LITTLE_JOKER,
+                CanastaBasicCard::LITTLE_JOKER,
+                CanastaBasicCard::DEUCE_SPADES,
+                CanastaBasicCard::DEUCE_SPADES,
+                CanastaBasicCard::DEUCE_HEARTS,
+                CanastaBasicCard::DEUCE_HEARTS,
+                CanastaBasicCard::DEUCE_DIAMONDS,
+                CanastaBasicCard::DEUCE_DIAMONDS,
+                CanastaBasicCard::DEUCE_CLUBS,
+                CanastaBasicCard::DEUCE_CLUBS,
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::FIVE_SPADES,
+                FrenchBasicCard::FIVE_SPADES,
+                FrenchBasicCard::FOUR_SPADES,
+                FrenchBasicCard::FOUR_SPADES,
+                FrenchBasicCard::TREY_SPADES,
+                FrenchBasicCard::TREY_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::FIVE_HEARTS,
+                FrenchBasicCard::FIVE_HEARTS,
+                FrenchBasicCard::FOUR_HEARTS,
+                FrenchBasicCard::FOUR_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::FIVE_DIAMONDS,
+                FrenchBasicCard::FIVE_DIAMONDS,
+                FrenchBasicCard::FOUR_DIAMONDS,
+                FrenchBasicCard::FOUR_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+                FrenchBasicCard::FIVE_CLUBS,
+                FrenchBasicCard::FIVE_CLUBS,
+                FrenchBasicCard::FOUR_CLUBS,
+                FrenchBasicCard::FOUR_CLUBS,
+                FrenchBasicCard::TREY_CLUBS,
+                FrenchBasicCard::TREY_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Canasta {
+            fn base_vec() -> Vec<BasicCard> {
+                Canasta::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                French::colors()
+            }
+
+            fn deck_name() -> String {
+                "Canasta".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_CANASTA.to_string()
+            }
+        }
+
+        impl Decked<Canasta> for Canasta {}
+    }
+    pub mod euchre24 {
+        use crate::prelude::{
+            BasicCard, Card, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pile, Pip, Standard52,
+        };
+        use crate::traits::{Decked, DeckedBase};
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// This deck represents the most common 24 card form of
+        /// [Euchre](https://en.wikipedia.org/wiki/Euchre) with
+        /// `A K Q J T 9` ranks.
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Euchre24 {}
+
+        #[allow(clippy::module_name_repetitions)]
+        pub type Euchre24Deck = Pile<Euchre24>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type Euchre24Card = Card<Euchre24>;
+
+        impl Euchre24 {
+            pub const DECK_SIZE: usize = 24;
+
+            pub const DECK: [BasicCard; Euchre24::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Euchre24 {
+            fn base_vec() -> Vec<BasicCard> {
+                Euchre24::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Euchre 24".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Euchre24> for Euchre24 {}
+    }
+    pub mod euchre32 {
+        use crate::prelude::{BasicCard, Card, FrenchBasicCard, Pile, Pip};
+        use crate::prelude::{FLUENT_KEY_BASE_NAME_FRENCH, Standard52};
+        use crate::traits::{Decked, DeckedBase};
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// This deck represents the most 32 card form of
+        /// [Euchre](https://en.wikipedia.org/wiki/Euchre) with
+        /// `A K Q J T 9 8 7` ranks.
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Euchre32 {}
+
+        #[allow(clippy::module_name_repetitions)]
+        pub type Euchre32Deck = Pile<Euchre32>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type Euchre32Card = Card<Euchre32>;
+
+        impl Euchre32 {
+            pub const DECK_SIZE: usize = 32;
+
+            pub const DECK: [BasicCard; Euchre32::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Euchre32 {
+            fn base_vec() -> Vec<BasicCard> {
+                Euchre32::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Euchre 32".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Euchre32> for Euchre32 {}
+    }
+    pub mod french {
+        use crate::prelude::{
+            BasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard,
+            FrenchSuit, Pile, Pip,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// `French` is the type parameter for the `French Deck` version of the generic
+        /// [`Card`] and [`Pile`] structs.
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct French {}
+        #[allow(clippy::module_name_repetitions)]
+        pub type FrenchDeck = Pile<French>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type FrenchCard = Card<French>;
+
+        impl French {
+            pub const DECK_SIZE: usize = 54;
+
+            pub const DECK: [BasicCard; French::DECK_SIZE] = [
+                FrenchBasicCard::BIG_JOKER,
+                FrenchBasicCard::LITTLE_JOKER,
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::FIVE_SPADES,
+                FrenchBasicCard::FOUR_SPADES,
+                FrenchBasicCard::TREY_SPADES,
+                FrenchBasicCard::DEUCE_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::FIVE_HEARTS,
+                FrenchBasicCard::FOUR_HEARTS,
+                FrenchBasicCard::TREY_HEARTS,
+                FrenchBasicCard::DEUCE_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::FIVE_DIAMONDS,
+                FrenchBasicCard::FOUR_DIAMONDS,
+                FrenchBasicCard::TREY_DIAMONDS,
+                FrenchBasicCard::DEUCE_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+                FrenchBasicCard::FIVE_CLUBS,
+                FrenchBasicCard::FOUR_CLUBS,
+                FrenchBasicCard::TREY_CLUBS,
+                FrenchBasicCard::DEUCE_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for French {
+            fn base_vec() -> Vec<BasicCard> {
+                French::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                let mut mappie = HashMap::new();
+
+                mappie.insert(FrenchSuit::JOKER, Color::Blue);
+                mappie.insert(FrenchSuit::HEARTS, Color::Red);
+                mappie.insert(FrenchSuit::DIAMONDS, Color::Red);
+
+                mappie
+            }
+
+            fn deck_name() -> String {
+                "French".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<French> for French {}
+    }
+    pub mod pinochle {
+        use crate::prelude::{
+            BasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_PINOCHLE, FrenchBasicCard,
+            Pile, PinochleBasicCard, Pip, Standard52,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Pinochle {}
+
+        #[allow(clippy::module_name_repetitions)]
+        pub type PinochleDeck = Pile<Pinochle>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type PinochleCard = Card<Pinochle>;
+
+        impl Pinochle {
+            pub const DECK_SIZE: usize = 48;
+
+            pub const DECK: [BasicCard; Pinochle::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::ACE_SPADES,
+                PinochleBasicCard::TEN_SPADES,
+                PinochleBasicCard::TEN_SPADES,
+                PinochleBasicCard::KING_SPADES,
+                PinochleBasicCard::KING_SPADES,
+                PinochleBasicCard::QUEEN_SPADES,
+                PinochleBasicCard::QUEEN_SPADES,
+                PinochleBasicCard::JACK_SPADES,
+                PinochleBasicCard::JACK_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::ACE_HEARTS,
+                PinochleBasicCard::TEN_HEARTS,
+                PinochleBasicCard::TEN_HEARTS,
+                PinochleBasicCard::KING_HEARTS,
+                PinochleBasicCard::KING_HEARTS,
+                PinochleBasicCard::QUEEN_HEARTS,
+                PinochleBasicCard::QUEEN_HEARTS,
+                PinochleBasicCard::JACK_HEARTS,
+                PinochleBasicCard::JACK_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                PinochleBasicCard::TEN_DIAMONDS,
+                PinochleBasicCard::TEN_DIAMONDS,
+                PinochleBasicCard::KING_DIAMONDS,
+                PinochleBasicCard::KING_DIAMONDS,
+                PinochleBasicCard::QUEEN_DIAMONDS,
+                PinochleBasicCard::QUEEN_DIAMONDS,
+                PinochleBasicCard::JACK_DIAMONDS,
+                PinochleBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::ACE_CLUBS,
+                PinochleBasicCard::TEN_CLUBS,
+                PinochleBasicCard::TEN_CLUBS,
+                PinochleBasicCard::KING_CLUBS,
+                PinochleBasicCard::KING_CLUBS,
+                PinochleBasicCard::QUEEN_CLUBS,
+                PinochleBasicCard::QUEEN_CLUBS,
+                PinochleBasicCard::JACK_CLUBS,
+                PinochleBasicCard::JACK_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Pinochle {
+            fn base_vec() -> Vec<BasicCard> {
+                Pinochle::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Pinochle".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_PINOCHLE.to_string()
+            }
+        }
+
+        impl Decked<Pinochle> for Pinochle {}
+    }
+    pub mod razz {
+        use crate::prelude::{
+            BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, Pip, Standard52,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// [`Razz`](https://en.wikipedia.org/wiki/Razz_(poker)) deck where the cards are ordered from low
+        /// to high with the `Ace` counting as low.
+        ///
+        /// This is an example of Deck generation using `BasicCard` configuration in `yaml` instead of
+        /// programmatically.
+        ///
+        /// The yaml file was generated with the help of `CoPilot`, which created a version that didn't
+        /// actually work. You can see it in [`razz_bad.yaml`](yaml/razz_bad.yaml). This is why we test.
+        /// While the front line `Deck::<Razz>::validate()` didn't catch anything, this time,
+        /// the basic `from_str()` test did, after we had to debug. This is why it is always dangerous
+        /// to bury errors with just returning default. In a production system, I would add at least
+        /// logging in order to have some record of what's going on. In fact, let's add that to
+        /// `BasicCard::cards_from_file()` now.
+        ///
+        /// This is an
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Razz {}
+
+        impl DeckedBase for Razz {
+            fn base_vec() -> Vec<BasicCard> {
+                BasicCard::cards_from_yaml_file("src/yaml/razz.yaml")
+                    .unwrap_or_else(|_| Vec::default())
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Razz".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Razz> for Razz {}
+    }
+    pub mod short {
+        use crate::prelude::{
+            BasicCard, Card, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pile, Pip, Standard52,
+        };
+        use crate::traits::{Decked, DeckedBase};
+        use colored::Color;
+        use std::collections::HashMap;
+
+        /// [Manila, aka Six Plus aka Short-deck](https://en.wikipedia.org/wiki/Six-plus_hold_%27em)
+        /// is a version of Texas Hold'em where the card Ranks of 2 through 5
+        /// are removed from the deck.
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Short {}
+
+        #[allow(clippy::module_name_repetitions)]
+        pub type ShortDeck = Pile<Short>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type ShortCard = Card<Short>;
+
+        impl Short {
+            pub const DECK_SIZE: usize = 36;
+
+            pub const DECK: [BasicCard; Short::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Short {
+            fn base_vec() -> Vec<BasicCard> {
+                Short::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Short".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Short> for Short {}
+    }
+    pub mod skat {
+        use crate::prelude::{
+            BasicCard, Card, FLUENT_KEY_BASE_NAME_SKAT, Pile, Pip, SkatBasicCard, SkatSuit,
+        };
+        use crate::traits::{Decked, DeckedBase};
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Skat {}
+        #[allow(clippy::module_name_repetitions)]
+        pub type SkatDeck = Pile<Skat>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type SkatCard = Card<Skat>;
+
+        impl Skat {
+            pub const DECK_SIZE: usize = 32;
+
+            pub const DECK: [BasicCard; Skat::DECK_SIZE] = [
+                SkatBasicCard::DAUSE_EICHEL,
+                SkatBasicCard::ZHEN_EICHEL,
+                SkatBasicCard::KÖNIG_EICHEL,
+                SkatBasicCard::OBER_EICHEL,
+                SkatBasicCard::UNTER_EICHEL,
+                SkatBasicCard::NEUN_EICHEL,
+                SkatBasicCard::ACHT_EICHEL,
+                SkatBasicCard::SIEBEN_EICHEL,
+                SkatBasicCard::DAUSE_LAUB,
+                SkatBasicCard::ZHEN_LAUB,
+                SkatBasicCard::KÖNIG_LAUB,
+                SkatBasicCard::OBER_LAUB,
+                SkatBasicCard::UNTER_LAUB,
+                SkatBasicCard::NEUN_LAUB,
+                SkatBasicCard::ACHT_LAUB,
+                SkatBasicCard::SIEBEN_LAUB,
+                SkatBasicCard::DAUSE_HERZ,
+                SkatBasicCard::ZHEN_HERZ,
+                SkatBasicCard::KÖNIG_HERZ,
+                SkatBasicCard::OBER_HERZ,
+                SkatBasicCard::UNTER_HERZ,
+                SkatBasicCard::NEUN_HERZ,
+                SkatBasicCard::ACHT_HERZ,
+                SkatBasicCard::SIEBEN_HERZ,
+                SkatBasicCard::DAUSE_SHELLEN,
+                SkatBasicCard::ZHEN_SHELLEN,
+                SkatBasicCard::KÖNIG_SHELLEN,
+                SkatBasicCard::OBER_SHELLEN,
+                SkatBasicCard::UNTER_SHELLEN,
+                SkatBasicCard::NEUN_SHELLEN,
+                SkatBasicCard::ACHT_SHELLEN,
+                SkatBasicCard::SIEBEN_SHELLEN,
+            ];
+        }
+
+        impl DeckedBase for Skat {
+            fn base_vec() -> Vec<BasicCard> {
+                Skat::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                let mut mappie = HashMap::new();
+
+                mappie.insert(SkatSuit::LAUB, Color::Green);
+                mappie.insert(SkatSuit::HERZ, Color::Red);
+                mappie.insert(SkatSuit::SHELLEN, Color::BrightBlue);
+
+                mappie
+            }
+
+            fn deck_name() -> String {
+                "Skat".to_string()
+            }
+
+            fn fluent_name_base() -> String {
+                FLUENT_KEY_BASE_NAME_SKAT.to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_SKAT.to_string()
+            }
+        }
+
+        impl Decked<Skat> for Skat {}
+    }
+    pub mod spades {
+        use crate::pack::decks::french::French;
+        use crate::prelude::{
+            BasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard,
+            Pile, Pip,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Spades {}
+        #[allow(clippy::module_name_repetitions)]
+        pub type SpadesDeck = Pile<Spades>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type SpadesCard = Card<Spades>;
+
+        impl Spades {
+            pub const DECK_SIZE: usize = 52;
+
+            pub const DECK: [BasicCard; Spades::DECK_SIZE] = [
+                FrenchBasicCard::BIG_JOKER,
+                FrenchBasicCard::LITTLE_JOKER,
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::FIVE_SPADES,
+                FrenchBasicCard::FOUR_SPADES,
+                FrenchBasicCard::TREY_SPADES,
+                FrenchBasicCard::DEUCE_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::FIVE_HEARTS,
+                FrenchBasicCard::FOUR_HEARTS,
+                FrenchBasicCard::TREY_HEARTS,
+                FrenchBasicCard::DEUCE_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::FIVE_DIAMONDS,
+                FrenchBasicCard::FOUR_DIAMONDS,
+                FrenchBasicCard::TREY_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+                FrenchBasicCard::FIVE_CLUBS,
+                FrenchBasicCard::FOUR_CLUBS,
+                FrenchBasicCard::TREY_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Spades {
+            fn base_vec() -> Vec<BasicCard> {
+                Spades::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                French::colors()
+            }
+
+            fn deck_name() -> String {
+                "Spades".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Spades> for Spades {}
+    }
+    pub mod standard52 {
+        use crate::prelude::{
+            BasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard,
+            FrenchSuit, Pile, Pip,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Standard52 {}
+        #[allow(clippy::module_name_repetitions)]
+        pub type Standard52Deck = Pile<Standard52>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type Standard52Card = Card<Standard52>;
+
+        impl Standard52 {
+            pub const DECK_SIZE: usize = 52;
+
+            pub const DECK: [BasicCard; Standard52::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::QUEEN_SPADES,
+                FrenchBasicCard::JACK_SPADES,
+                FrenchBasicCard::TEN_SPADES,
+                FrenchBasicCard::NINE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::SEVEN_SPADES,
+                FrenchBasicCard::SIX_SPADES,
+                FrenchBasicCard::FIVE_SPADES,
+                FrenchBasicCard::FOUR_SPADES,
+                FrenchBasicCard::TREY_SPADES,
+                FrenchBasicCard::DEUCE_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+                FrenchBasicCard::QUEEN_HEARTS,
+                FrenchBasicCard::JACK_HEARTS,
+                FrenchBasicCard::TEN_HEARTS,
+                FrenchBasicCard::NINE_HEARTS,
+                FrenchBasicCard::EIGHT_HEARTS,
+                FrenchBasicCard::SEVEN_HEARTS,
+                FrenchBasicCard::SIX_HEARTS,
+                FrenchBasicCard::FIVE_HEARTS,
+                FrenchBasicCard::FOUR_HEARTS,
+                FrenchBasicCard::TREY_HEARTS,
+                FrenchBasicCard::DEUCE_HEARTS,
+                FrenchBasicCard::ACE_DIAMONDS,
+                FrenchBasicCard::KING_DIAMONDS,
+                FrenchBasicCard::QUEEN_DIAMONDS,
+                FrenchBasicCard::JACK_DIAMONDS,
+                FrenchBasicCard::TEN_DIAMONDS,
+                FrenchBasicCard::NINE_DIAMONDS,
+                FrenchBasicCard::EIGHT_DIAMONDS,
+                FrenchBasicCard::SEVEN_DIAMONDS,
+                FrenchBasicCard::SIX_DIAMONDS,
+                FrenchBasicCard::FIVE_DIAMONDS,
+                FrenchBasicCard::FOUR_DIAMONDS,
+                FrenchBasicCard::TREY_DIAMONDS,
+                FrenchBasicCard::DEUCE_DIAMONDS,
+                FrenchBasicCard::ACE_CLUBS,
+                FrenchBasicCard::KING_CLUBS,
+                FrenchBasicCard::QUEEN_CLUBS,
+                FrenchBasicCard::JACK_CLUBS,
+                FrenchBasicCard::TEN_CLUBS,
+                FrenchBasicCard::NINE_CLUBS,
+                FrenchBasicCard::EIGHT_CLUBS,
+                FrenchBasicCard::SEVEN_CLUBS,
+                FrenchBasicCard::SIX_CLUBS,
+                FrenchBasicCard::FIVE_CLUBS,
+                FrenchBasicCard::FOUR_CLUBS,
+                FrenchBasicCard::TREY_CLUBS,
+                FrenchBasicCard::DEUCE_CLUBS,
+            ];
+        }
+
+        impl DeckedBase for Standard52 {
+            fn base_vec() -> Vec<BasicCard> {
+                Standard52::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                let mut mappie = HashMap::new();
+
+                mappie.insert(FrenchSuit::HEARTS, Color::Red);
+                mappie.insert(FrenchSuit::DIAMONDS, Color::Red);
+
+                mappie
+            }
+
+            fn deck_name() -> String {
+                "Standard 52".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        impl Decked<Standard52> for Standard52 {}
+    }
+    pub mod tarot {
+        use crate::prelude::{
+            BasicCard, Card, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_TAROT, Pile, Pip,
+            TarotBasicCard, TarotSuit,
+        };
+        use colored::Color;
+        use std::collections::HashMap;
+
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Tarot {}
+
+        #[allow(clippy::module_name_repetitions)]
+        pub type TarotDeck = Pile<Tarot>;
+        #[allow(clippy::module_name_repetitions)]
+        pub type TarotCard = Card<Tarot>;
+
+        impl Tarot {
+            pub const DECK_SIZE: usize = 78;
+
+            pub const DECK: [BasicCard; Tarot::DECK_SIZE] = [
+                TarotBasicCard::FOOL,
+                TarotBasicCard::MAGICIAN,
+                TarotBasicCard::HIGH_PRIESTESS,
+                TarotBasicCard::EMPRESS,
+                TarotBasicCard::EMPEROR,
+                TarotBasicCard::HIEROPHANT,
+                TarotBasicCard::LOVERS,
+                TarotBasicCard::CHARIOT,
+                TarotBasicCard::STRENGTH,
+                TarotBasicCard::HERMIT,
+                TarotBasicCard::WHEEL_OF_FORTUNE,
+                TarotBasicCard::JUSTICE,
+                TarotBasicCard::HANGED_MAN,
+                TarotBasicCard::DEATH,
+                TarotBasicCard::TEMPERANCE,
+                TarotBasicCard::DEVIL,
+                TarotBasicCard::TOWER,
+                TarotBasicCard::STAR,
+                TarotBasicCard::MOON,
+                TarotBasicCard::SUN,
+                TarotBasicCard::JUDGEMENT,
+                TarotBasicCard::WORLD,
+                TarotBasicCard::KING_WANDS,
+                TarotBasicCard::QUEEN_WANDS,
+                TarotBasicCard::KNIGHT_WANDS,
+                TarotBasicCard::PAGE_WANDS,
+                TarotBasicCard::TEN_WANDS,
+                TarotBasicCard::NINE_WANDS,
+                TarotBasicCard::EIGHT_WANDS,
+                TarotBasicCard::SEVEN_WANDS,
+                TarotBasicCard::SIX_WANDS,
+                TarotBasicCard::FIVE_WANDS,
+                TarotBasicCard::FOUR_WANDS,
+                TarotBasicCard::THREE_WANDS,
+                TarotBasicCard::TWO_WANDS,
+                TarotBasicCard::ACE_WANDS,
+                TarotBasicCard::KING_CUPS,
+                TarotBasicCard::QUEEN_CUPS,
+                TarotBasicCard::KNIGHT_CUPS,
+                TarotBasicCard::PAGE_CUPS,
+                TarotBasicCard::TEN_CUPS,
+                TarotBasicCard::NINE_CUPS,
+                TarotBasicCard::EIGHT_CUPS,
+                TarotBasicCard::SEVEN_CUPS,
+                TarotBasicCard::SIX_CUPS,
+                TarotBasicCard::FIVE_CUPS,
+                TarotBasicCard::FOUR_CUPS,
+                TarotBasicCard::THREE_CUPS,
+                TarotBasicCard::TWO_CUPS,
+                TarotBasicCard::ACE_CUPS,
+                TarotBasicCard::KING_SWORDS,
+                TarotBasicCard::QUEEN_SWORDS,
+                TarotBasicCard::KNIGHT_SWORDS,
+                TarotBasicCard::PAGE_SWORDS,
+                TarotBasicCard::TEN_SWORDS,
+                TarotBasicCard::NINE_SWORDS,
+                TarotBasicCard::EIGHT_SWORDS,
+                TarotBasicCard::SEVEN_SWORDS,
+                TarotBasicCard::SIX_SWORDS,
+                TarotBasicCard::FIVE_SWORDS,
+                TarotBasicCard::FOUR_SWORDS,
+                TarotBasicCard::THREE_SWORDS,
+                TarotBasicCard::TWO_SWORDS,
+                TarotBasicCard::ACE_SWORDS,
+                TarotBasicCard::KING_PENTACLES,
+                TarotBasicCard::QUEEN_PENTACLES,
+                TarotBasicCard::KNIGHT_PENTACLES,
+                TarotBasicCard::PAGE_PENTACLES,
+                TarotBasicCard::TEN_PENTACLES,
+                TarotBasicCard::NINE_PENTACLES,
+                TarotBasicCard::EIGHT_PENTACLES,
+                TarotBasicCard::SEVEN_PENTACLES,
+                TarotBasicCard::SIX_PENTACLES,
+                TarotBasicCard::FIVE_PENTACLES,
+                TarotBasicCard::FOUR_PENTACLES,
+                TarotBasicCard::THREE_PENTACLES,
+                TarotBasicCard::TWO_PENTACLES,
+                TarotBasicCard::ACE_PENTACLES,
+            ];
+        }
+
+        impl DeckedBase for Tarot {
+            fn base_vec() -> Vec<BasicCard> {
+                Tarot::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                let mut mappie = HashMap::new();
+
+                mappie.insert(TarotSuit::MAJOR_ARCANA, Color::Blue);
+                mappie.insert(TarotSuit::CUPS, Color::Red);
+                mappie.insert(TarotSuit::SWORDS, Color::Red);
+
+                mappie
+            }
+
+            fn deck_name() -> String {
+                "Tarot".to_string()
+            }
+
+            fn fluent_name_base() -> String {
+                FLUENT_KEY_BASE_NAME_TAROT.to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_TAROT.to_string()
+            }
+        }
+
+        impl Decked<Tarot> for Tarot {}
+    }
+    pub mod tiny {}
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__types__card_tests {
+    use super::*;
+    use crate::localization::{FluentName, Named};
+    use crate::pack::decks::french::French;
+    use crate::pack::types::card::Card;
+    use crate::prelude::{FrenchBasicCard, SkatBasicCard};
+    use crate::traits::DeckedBase;
+    use std::str::FromStr;
+
+    #[test]
+    fn new() {
+        let card = Card::<French>::new(FrenchBasicCard::ACE_SPADES);
+        assert_eq!(FrenchBasicCard::ACE_SPADES, card.base());
+        assert_eq!(card.to_string(), "A♠");
+    }
+
+    /// This test exposes a flaw with my underlying logic. Going to create a validator
+    /// of some sort.
+    #[test]
+    fn new__invalid_basic_card() {
+        let card = Card::<French>::new(SkatBasicCard::KÖNIG_LAUB);
+        assert_eq!(SkatBasicCard::KÖNIG_LAUB, card.base());
+    }
+
+    #[test]
+    fn is_blank() {
+        let card = Card::<French>::default();
+        assert!(card.is_blank());
+    }
+
+    #[test]
+    fn is_valid() {
+        assert!(Card::<French>::new(FrenchBasicCard::ACE_SPADES).is_valid());
+        assert!(!Card::<French>::new(SkatBasicCard::KÖNIG_LAUB).is_valid());
+    }
+
+    #[test]
+    fn fluent_name() {
+        let nine_of_clubs: Card<French> = FrenchBasicCard::NINE_CLUBS.into();
+
+        assert_eq!(
+            "Nine of Clubs",
+            nine_of_clubs.fluent_name(&FluentName::US_ENGLISH)
+        );
+        assert_eq!("Neun Klee", nine_of_clubs.fluent_name(&FluentName::DEUTSCH));
+    }
+
+    #[test]
+    fn fluent_name_default() {
+        let eight_of_diamonds: Card<French> = FrenchBasicCard::EIGHT_DIAMONDS.into();
+
+        assert_eq!("Eight of Diamonds", eight_of_diamonds.fluent_name_default());
+    }
+
+    #[test]
+    fn fluent_rank_name() {
+        let card: Card<French> = FrenchBasicCard::NINE_CLUBS.into();
+        assert_eq!("Nine", card.fluent_rank_name(&FluentName::US_ENGLISH));
+    }
+
+    #[test]
+    fn fluent_suit_name() {
+        let card: Card<French> = FrenchBasicCard::NINE_CLUBS.into();
+        assert_eq!("Clubs", card.fluent_suit_name(&FluentName::US_ENGLISH));
+    }
+
+    #[test]
+    fn decked_base__vec() {
+        let cards = Card::<French>::base_vec();
+
+        let s: String = cards
+            .iter()
+            .map(|c| c.to_string())
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        assert_eq!(
+            "B🃟, L🃟, A♠, K♠, Q♠, J♠, T♠, 9♠, 8♠, 7♠, 6♠, 5♠, 4♠, 3♠, 2♠, A♥, K♥, Q♥, J♥, T♥, 9♥, 8♥, 7♥, 6♥, 5♥, 4♥, 3♥, 2♥, A♦, K♦, Q♦, J♦, T♦, 9♦, 8♦, 7♦, 6♦, 5♦, 4♦, 3♦, 2♦, A♣, K♣, Q♣, J♣, T♣, 9♣, 8♣, 7♣, 6♣, 5♣, 4♣, 3♣, 2♣",
+            s
+        );
+    }
+
+    #[test]
+    fn display() {
+        let basecard = FrenchBasicCard::ACE_SPADES;
+        let card: Card<French> = basecard.into();
+
+        assert_eq!("A♠", card.to_string());
+        assert_eq!("A♠", basecard.to_string());
+    }
+
+    #[test]
+    fn from_str() {
+        assert_eq!("AS", Card::<French>::from_str("as").unwrap().index());
+        assert_eq!("__", Card::<French>::from_str("__").unwrap().index());
+    }
+
+    #[test]
+    fn to_string_from_str() {
+        let base_cards = Card::<French>::base_vec();
+
+        for base_card in base_cards {
+            let card: Card<French> = Card::<French>::from(base_card);
+            let s = card.to_string();
+            let index = card.index();
+
+            assert_eq!(card, Card::<French>::from_str(&s).unwrap());
+            assert_eq!(card, Card::<French>::from_str(&index).unwrap());
+            assert_eq!(card, Card::<French>::from_str(&s.to_lowercase()).unwrap());
+            assert_eq!(
+                card,
+                Card::<French>::from_str(&index.to_lowercase()).unwrap()
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__types__pile_tests {
+    use super::*;
+    use crate::cards;
+    use crate::pack::decks::standard52::Standard52;
+    use crate::prelude::{
+        BasicCard, Card, FLUENT_KEY_BASE_NAME_FRENCH, French, FrenchBasicCard, FrenchRank,
+        FrenchSuit, Pile, Pip,
+    };
+    use crate::traits::{Decked, DeckedBase, Ranged};
+    use colored::Color;
+    use std::collections::{HashMap, HashSet};
+    use std::str::FromStr;
+
+    #[test]
+    fn basic_cards() {
+        let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
+
+        assert_eq!(
+            pile.into_basic_cards(),
+            vec![
+                FrenchBasicCard::DEUCE_SPADES,
+                FrenchBasicCard::EIGHT_SPADES,
+                FrenchBasicCard::FOUR_SPADES
+            ]
+        );
+    }
+
+    #[test]
+    fn card_by_index() {
+        let pile = Pile::<Standard52>::deck();
+
+        assert_eq!(
+            pile.card_by_index("2s"),
+            Some(Card::<Standard52>::from(FrenchBasicCard::DEUCE_SPADES))
+        );
+        assert_eq!(pile.card_by_index("BJ"), None);
+    }
+
+    #[test]
+    fn contains() {
+        let pile = Pile::<French>::from_str("2♠ 8♠ 4♠").unwrap();
+
+        assert!(pile.contains(&Card::<French>::from(FrenchBasicCard::DEUCE_SPADES)));
+        assert!(!pile.contains(&Card::<French>::from(FrenchBasicCard::ACE_SPADES)));
+    }
+
+    #[test]
+    fn draw() {
+        let mut pile = Pile::<French>::from_str("2♠ 8♠ 4♠").unwrap();
+
+        assert_eq!(pile.draw(3).unwrap().to_string(), "2♠ 8♠ 4♠");
+        assert_eq!(pile.draw(3), None);
+    }
+
+    #[test]
+    fn draw_first() {
+        let mut deck = Standard52::deck();
+
+        for x in 0..deck.len() {
+            let card = deck.draw_first();
+            match x {
+                52 => assert!(card.is_none()),
+                _ => assert!(card.is_some()),
+            }
+        }
+    }
+
+    #[test]
+    fn draw_last() {
+        let mut deck = Standard52::deck();
+
+        for x in 0..deck.len() {
+            let card = deck.draw_first();
+            match x {
+                52 => assert!(card.is_none()),
+                _ => assert!(card.is_some()),
+            }
+        }
+    }
+
+    #[test]
+    fn draw_random() {
+        let mut deck = Standard52::deck();
+
+        let random_card = deck.draw_random().unwrap();
+
+        assert!(!deck.contains(&random_card));
+    }
+
+    #[test]
+    pub fn forgiving_from_str() {
+        assert_eq!(
+            Pile::<French>::forgiving_from_str("2♠ 8s 4♠").to_string(),
+            "2♠ 8♠ 4♠"
+        );
+        assert_eq!(
+            Pile::<French>::forgiving_from_str("2♠ XX 4♠").to_string(),
+            ""
+        );
+    }
+
+    #[test]
+    pub fn get() {
+        let pile = Pile::<Standard52>::deck();
+
+        assert_eq!(pile.get(0).unwrap().to_string(), "A♠");
+        assert_eq!(pile.get(51).unwrap().to_string(), "2♣");
+        assert!(pile.get(52).is_none());
+    }
+
+    #[test]
+    fn into_hashset() {
+        let five_deck = French::decks(5);
+
+        let hashset: HashSet<Card<French>> = five_deck.into_hashset();
+        let deck = Pile::<French>::from(hashset);
+
+        assert_eq!(five_deck.len(), 270);
+        assert_eq!(deck, French::deck());
+    }
+
+    #[test]
+    fn map_by_suit() {
+        let pile = Pile::<Standard52>::deck();
+
+        let map = pile.map_by_suit();
+
+        assert_eq!(map.len(), 4);
+        assert_eq!(
+            map[&FrenchSuit::SPADES].to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠"
+        );
+        assert_eq!(
+            map[&FrenchSuit::HEARTS].to_string(),
+            "A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥"
+        );
+        assert_eq!(
+            map[&FrenchSuit::DIAMONDS].to_string(),
+            "A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦"
+        );
+        assert_eq!(
+            map[&FrenchSuit::CLUBS].to_string(),
+            "A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        )
+    }
+
+    #[test]
+    fn pile_on() {
+        let pile1 = Pile::<French>::from_str("2♠ 8♠ 4♠").unwrap();
+        let pile2 = Pile::<French>::from_str("5♠ 6♠ 7♠").unwrap();
+        let piles = vec![pile1, pile2];
+
+        let pile = Pile::<French>::pile_on(&piles);
+
+        assert_eq!(pile.to_string(), "2♠ 8♠ 4♠ 5♠ 6♠ 7♠");
+    }
+
+    #[test]
+    fn pile_up() {
+        fn ak() -> Pile<French> {
+            Pile::<French>::from_str("A♠ K♠").unwrap()
+        }
+
+        let pile = Pile::<French>::pile_up(3, ak);
+
+        assert_eq!(pile.to_string(), "A♠ K♠ A♠ K♠ A♠ K♠");
+    }
+
+    #[test]
+    fn position() {
+        let pile = French::deck();
+
+        let card = Card::<French>::from_str("2♣").unwrap();
+
+        assert_eq!(pile.position(&card).unwrap(), 53);
+    }
+
+    #[test]
+    fn prepend() {
+        let mut pile1 = Pile::<French>::from_str("2♠ 8♠ 4♠").unwrap();
+        let pile2 = Pile::<French>::from_str("5♠ 6♠ 7♠").unwrap();
+
+        pile1.prepend(&pile2);
+
+        assert_eq!(pile1.to_string(), "5♠ 6♠ 7♠ 2♠ 8♠ 4♠");
+    }
+
+    #[test]
+    fn pop() {
+        let mut pile = Pile::<Standard52>::deck();
+        let card = pile.pop();
+
+        assert_eq!(card.unwrap().to_string(), "2♣");
+        assert_eq!(pile.len(), 51);
+    }
+
+    #[test]
+    fn push() {
+        let mut pile = Pile::<French>::default();
+
+        pile.push(Card::default());
+        pile.push(Card::<French>::from(FrenchBasicCard::DEUCE_CLUBS));
+
+        assert_eq!(pile.len(), 2);
+        assert_eq!(pile.to_string(), "__ 2♣");
+    }
+
+    #[test]
+    fn remove() {
+        let mut pile = Pile::<Standard52>::deck();
+        let card = pile.remove(1);
+
+        assert_eq!(card.to_string(), "K♠");
+        assert_eq!(pile.draw(2).unwrap().to_string(), "A♠ Q♠");
+    }
+
+    #[test]
+    fn remove_card() {
+        let mut pile = Pile::<Standard52>::deck();
+        pile.remove_card(&Card::<Standard52>::from_str("K♠").unwrap());
+
+        let actual = pile.draw(2).unwrap();
+
+        assert_eq!(actual, Pile::<Standard52>::from_str("AS QS").unwrap());
+    }
+
+    #[test]
+    fn to_color_symbol_string() {
+        let pile = Pile::<French>::from_str("2c 3c 4c").unwrap();
+
+        // println!("{}", Pile::<French>::deck().to_color_symbol_string());
+
+        assert_eq!(pile.to_color_symbol_string(), "2♣ 3♣ 4♣");
+    }
+
+    #[test]
+    fn sort() {
+        let pile = Pile::<French>::from_str("2♠ 8♣ 4♠").unwrap();
+        let mut pile2 = pile.clone();
+        let mut pile3 = pile.clone();
+
+        pile2.sort();
+        pile3.sort_by_rank();
+
+        assert_eq!(pile.sorted().to_string(), "4♠ 2♠ 8♣");
+        assert_eq!(pile2.to_string(), "4♠ 2♠ 8♣");
+        assert_eq!(pile.sorted_by_rank().to_string(), "8♣ 4♠ 2♠");
+        assert_eq!(pile3.to_string(), "8♣ 4♠ 2♠");
+    }
+
+    #[test]
+    fn decked__deck() {
+        let french = French::deck();
+        let standard52 = Pile::<Standard52>::deck();
+
+        assert_eq!(french.len(), 54);
+        assert_eq!(standard52.len(), 52);
+        assert_eq!(
+            french.to_string(),
+            "B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        );
+        assert_eq!(
+            standard52.to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        );
+    }
+
+    #[test]
+    fn decked__decks() {
+        let hand_and_foot = Pile::<French>::decks(5).sorted();
+
+        assert_eq!(hand_and_foot.len(), 270);
+        assert_eq!(
+            hand_and_foot.to_string(),
+            "B🃟 B🃟 B🃟 B🃟 B🃟 L🃟 L🃟 L🃟 L🃟 L🃟 A♠ A♠ A♠ A♠ A♠ K♠ K♠ K♠ K♠ K♠ Q♠ Q♠ Q♠ Q♠ Q♠ J♠ J♠ J♠ J♠ J♠ T♠ T♠ T♠ T♠ T♠ 9♠ 9♠ 9♠ 9♠ 9♠ 8♠ 8♠ 8♠ 8♠ 8♠ 7♠ 7♠ 7♠ 7♠ 7♠ 6♠ 6♠ 6♠ 6♠ 6♠ 5♠ 5♠ 5♠ 5♠ 5♠ 4♠ 4♠ 4♠ 4♠ 4♠ 3♠ 3♠ 3♠ 3♠ 3♠ 2♠ 2♠ 2♠ 2♠ 2♠ A♥ A♥ A♥ A♥ A♥ K♥ K♥ K♥ K♥ K♥ Q♥ Q♥ Q♥ Q♥ Q♥ J♥ J♥ J♥ J♥ J♥ T♥ T♥ T♥ T♥ T♥ 9♥ 9♥ 9♥ 9♥ 9♥ 8♥ 8♥ 8♥ 8♥ 8♥ 7♥ 7♥ 7♥ 7♥ 7♥ 6♥ 6♥ 6♥ 6♥ 6♥ 5♥ 5♥ 5♥ 5♥ 5♥ 4♥ 4♥ 4♥ 4♥ 4♥ 3♥ 3♥ 3♥ 3♥ 3♥ 2♥ 2♥ 2♥ 2♥ 2♥ A♦ A♦ A♦ A♦ A♦ K♦ K♦ K♦ K♦ K♦ Q♦ Q♦ Q♦ Q♦ Q♦ J♦ J♦ J♦ J♦ J♦ T♦ T♦ T♦ T♦ T♦ 9♦ 9♦ 9♦ 9♦ 9♦ 8♦ 8♦ 8♦ 8♦ 8♦ 7♦ 7♦ 7♦ 7♦ 7♦ 6♦ 6♦ 6♦ 6♦ 6♦ 5♦ 5♦ 5♦ 5♦ 5♦ 4♦ 4♦ 4♦ 4♦ 4♦ 3♦ 3♦ 3♦ 3♦ 3♦ 2♦ 2♦ 2♦ 2♦ 2♦ A♣ A♣ A♣ A♣ A♣ K♣ K♣ K♣ K♣ K♣ Q♣ Q♣ Q♣ Q♣ Q♣ J♣ J♣ J♣ J♣ J♣ T♣ T♣ T♣ T♣ T♣ 9♣ 9♣ 9♣ 9♣ 9♣ 8♣ 8♣ 8♣ 8♣ 8♣ 7♣ 7♣ 7♣ 7♣ 7♣ 6♣ 6♣ 6♣ 6♣ 6♣ 5♣ 5♣ 5♣ 5♣ 5♣ 4♣ 4♣ 4♣ 4♣ 4♣ 3♣ 3♣ 3♣ 3♣ 3♣ 2♣ 2♣ 2♣ 2♣ 2♣"
+        );
+    }
+
+    #[test]
+    fn default() {
+        let pile = Pile::<French>::default();
+        assert_eq!(pile.len(), 0);
+    }
+
+    #[test]
+    fn display() {}
+
+    #[test]
+    fn from_vec() {
+        let base_cards = Card::<French>::base_vec();
+
+        let cards = Pile::<French>::into_cards(&base_cards);
+
+        let pile = Pile::<French>::from(cards.clone());
+
+        assert_eq!(*pile.cards(), cards);
+    }
+
+    #[test]
+    fn to_string__from_str() {
+        let deck = French::deck();
+        let deck_str = deck.to_string();
+        let deck_from_str = Pile::<French>::from_str(&deck_str).unwrap().shuffled();
+
+        assert_eq!(
+            deck_str,
+            "B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
+        );
+        assert!(deck.same(&deck_from_str));
+        assert_eq!(deck, deck_from_str.sorted());
+    }
+
+    /// This is just a copy of the `Tiny` example in the main docs.
+    #[test]
+    fn tiny_example() {
+        #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+        pub struct Tiny {}
+
+        impl Tiny {
+            pub const DECK_SIZE: usize = 4;
+
+            pub const DECK: [BasicCard; Tiny::DECK_SIZE] = [
+                FrenchBasicCard::ACE_SPADES,
+                FrenchBasicCard::KING_SPADES,
+                FrenchBasicCard::ACE_HEARTS,
+                FrenchBasicCard::KING_HEARTS,
+            ];
+        }
+
+        impl DeckedBase for Tiny {
+            fn base_vec() -> Vec<BasicCard> {
+                Tiny::DECK.to_vec()
+            }
+
+            fn colors() -> HashMap<Pip, Color> {
+                Standard52::colors()
+            }
+
+            fn deck_name() -> String {
+                "Tiny".to_string()
+            }
+
+            fn fluent_deck_key() -> String {
+                FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+            }
+        }
+
+        let mut deck = Pile::<Tiny>::deck();
+        assert_eq!(deck.to_string(), "A♠ K♠ A♥ K♥");
+        assert_eq!(deck.draw_first().unwrap().to_string(), "A♠");
+        assert_eq!(deck.draw_last().unwrap().to_string(), "K♥");
+        assert_eq!(deck.len(), 2);
+        assert_eq!(deck.index(), "KS AH");
+    }
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region GTOed
+
+    #[test]
+    fn combos() {
+        let pile = Pile::<Standard52>::deck();
+        let combinations = pile.combos(2);
+        let dups = pile.combos(2);
+
+        assert_eq!(combinations.len(), 1326);
+        assert_eq!(combinations, dups);
+    }
+
+    #[test]
+    fn combos_with_dups() {
+        let pile = Pile::<Standard52>::decks(2);
+        let combinations = pile.combos(2);
+        let dups = pile.combos_with_dups(2);
+
+        assert_eq!(combinations.len(), 1456);
+        assert_eq!(dups.len(), 5356);
+    }
+
+    #[test]
+    fn all_of_rank() {
+        assert!(cards!("AS AD").all_of_rank(FrenchRank::ACE));
+        assert!(cards!("AS AD AS").all_of_rank(FrenchRank::ACE));
+        assert!(!cards!("AS AD").all_of_rank(FrenchRank::KING));
+        assert!(!cards!("AS AD KS").all_of_rank(FrenchRank::ACE));
+    }
+
+    #[test]
+    fn all_of_same_rank() {
+        assert!(cards!("AS AD").all_of_same_rank());
+        assert!(cards!("AS AD AS").all_of_same_rank());
+        assert!(!cards!("AS AD KS").all_of_same_rank());
+    }
+
+    #[test]
+    fn all_of_same_suit() {
+        assert!(cards!("AS KS").all_of_same_suit());
+        assert!(cards!("AS KS QS").all_of_same_suit());
+        assert!(!cards!("AS KH QD").all_of_same_suit());
+    }
+
+    // copilot:
+    // assert!(cards!("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(cards!("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(cards!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(!cards!("AS AD").of_same_or_greater_rank(FrenchRank::KING));
+    // assert!(!cards!("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+    #[test]
+    fn of_same_or_greater_rank() {
+        assert!(cards!("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(cards!("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(cards!("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!cards!("AS QD").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!cards!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+    }
+
+    // endregion GTOed
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__decks__canasta_tests {
+    use super::*;
+    use crate::prelude::Canasta;
+    use crate::traits::{Decked, Ranged};
+
+    #[test]
+    fn decked__deck() {
+        assert_eq!(
+            Canasta::deck().to_string(),
+            "3♥ 3♥ 3♦ 3♦ B🃟 B🃟 L🃟 L🃟 2♠ 2♠ 2♥ 2♥ 2♦ 2♦ 2♣ 2♣ A♠ A♠ K♠ K♠ Q♠ Q♠ J♠ J♠ T♠ T♠ 9♠ 9♠ 8♠ 8♠ 7♠ 7♠ 6♠ 6♠ 5♠ 5♠ 4♠ 4♠ 3♠ 3♠ A♥ A♥ K♥ K♥ Q♥ Q♥ J♥ J♥ T♥ T♥ 9♥ 9♥ 8♥ 8♥ 7♥ 7♥ 6♥ 6♥ 5♥ 5♥ 4♥ 4♥ A♦ A♦ K♦ K♦ Q♦ Q♦ J♦ J♦ T♦ T♦ 9♦ 9♦ 8♦ 8♦ 7♦ 7♦ 6♦ 6♦ 5♦ 5♦ 4♦ 4♦ A♣ A♣ K♣ K♣ Q♣ Q♣ J♣ J♣ T♣ T♣ 9♣ 9♣ 8♣ 8♣ 7♣ 7♣ 6♣ 6♣ 5♣ 5♣ 4♣ 4♣ 3♣ 3♣"
+        );
+    }
+
+    #[test]
+    pub fn ranks_index() {
+        let pile = Canasta::deck().shuffled();
+        let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
+
+        let ranks_index = pile.ranks_index("~");
+
+        assert_eq!(ranks_index, expected);
+    }
+
+    /// TODO: WTF??!!
+    /// TODO: WTF do I mean by WTF??? Don't do this.
+    #[test]
+    pub fn suits_index() {
+        let pile = Canasta::deck().shuffled();
+        let expected = "H~D~J~S~H~D~C~S~H~D~C";
+
+        let ranks_index = pile.suits_index("~");
+
+        assert_eq!(ranks_index, expected);
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Canasta::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__decks__euchre24_tests {
+    use super::*;
+    use crate::pack::decks::euchre24::Euchre24;
+    use crate::traits::Decked;
+
+    #[test]
+    fn decked__deck() {
+        assert_eq!(
+            Euchre24::deck().to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ A♥ K♥ Q♥ J♥ T♥ 9♥ A♦ K♦ Q♦ J♦ T♦ 9♦ A♣ K♣ Q♣ J♣ T♣ 9♣"
+        );
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Euchre24::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__decks__euchre32_tests {
+    use super::*;
+    use crate::pack::decks::euchre32::Euchre32;
+    use crate::traits::Decked;
+
+    #[test]
+    fn decked__deck() {
+        assert_eq!(
+            Euchre32::deck().to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣"
+        );
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Euchre32::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__card__french__tests {
+    use super::*;
+    use crate::pack::decks::french::French;
+    use crate::prelude::{Card, FrenchBasicCard, Pile};
+    use crate::traits::{Decked, DeckedBase};
+    use std::str::FromStr;
+
+    #[test]
+    fn from_str__card() {
+        assert_eq!(
+            Card::<French>::from_str("2c").unwrap(),
+            FrenchBasicCard::DEUCE_CLUBS.into()
+        );
+    }
+
+    #[test]
+    fn from_str__pile() {
+        let pile = Pile::<French>::from_str("2c 3c 4c").unwrap();
+
+        assert_eq!(pile.len(), 3);
+        assert_eq!(pile.to_string(), "2♣ 3♣ 4♣");
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(French::validate());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Pile::<French>::deck_name(), "French");
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__card__pinochle_tests {
+    use super::*;
+    use crate::pack::decks::pinochle::Pinochle;
+    use crate::traits::Decked;
+
+    #[test]
+    fn decked__validate() {
+        assert!(Pinochle::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__decks__razz_tests {
+    use super::*;
+    use crate::pack::decks::razz::Razz;
+    use crate::prelude::Pile;
+    use crate::traits::Decked;
+
+    #[test]
+    fn from_str() {
+        let deck = Pile::<Razz>::deck();
+
+        assert_eq!(
+            deck.to_string(),
+            "A♠ 2♠ 3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ T♠ J♠ Q♠ K♠ A♥ 2♥ 3♥ 4♥ 5♥ 6♥ 7♥ 8♥ 9♥ T♥ J♥ Q♥ K♥ A♦ 2♦ 3♦ 4♦ 5♦ 6♦ 7♦ 8♦ 9♦ T♦ J♦ Q♦ K♦ A♣ 2♣ 3♣ 4♣ 5♣ 6♣ 7♣ 8♣ 9♣ T♣ J♣ Q♣ K♣"
+        );
+    }
+
+    #[test]
+    fn deck__draw() {
+        let mut deck = Pile::<Razz>::deck();
+        assert_eq!(deck.draw(3).unwrap().to_string(), "A♠ 2♠ 3♠");
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Pile::<Razz>::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod pack__card__short_tests {
+    use super::*;
+    use crate::pack::decks::short::Short;
+    use crate::traits::Decked;
+
+    #[test]
+    fn deck() {
+        let deck = Short::deck();
+        assert_eq!(deck.len(), 36);
+        assert_eq!(
+            deck.to_string(),
+            "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣"
+        );
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Short::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__card__skat_tests {
+    use super::*;
+    use crate::localization::{FluentName, Named};
+    use crate::pack::decks::skat::Skat;
+    use crate::traits::Decked;
+
+    #[test]
+    fn decked__deck() {
+        let deck = Skat::deck();
+        assert_eq!(
+            deck.to_string(),
+            "D♣ Z♣ K♣ O♣ U♣ 9♣ 8♣ 7♣ D♠ Z♠ K♠ O♠ U♠ 9♠ 8♠ 7♠ D♥ Z♥ K♥ O♥ U♥ 9♥ 8♥ 7♥ D♦ Z♦ K♦ O♦ U♦ 9♦ 8♦ 7♦"
+        );
+        assert_eq!(
+            deck.index(),
+            "DE ZE KE OE UE 9E 8E 7E DL ZL KL OL UL 9L 8L 7L DH ZH KH OH UH 9H 8H 7H DS ZS KS OS US 9S 8S 7S"
+        );
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Skat::validate());
+    }
+
+    #[test]
+    fn fluent__name() {
+        let mut deck = Skat::deck();
+        let dause_eichel = deck.draw_first().unwrap();
+        let daus = dause_eichel.fluent_rank_name(&FluentName::DEUTSCH);
+        let eichel = dause_eichel.fluent_suit_name(&FluentName::DEUTSCH);
+        let deuce = dause_eichel.fluent_rank_name(&FluentName::US_ENGLISH);
+        let acorns = dause_eichel.fluent_suit_name(&FluentName::US_ENGLISH);
+
+        assert_eq!(daus, "Daus");
+        assert_eq!(eichel, "Eichel");
+        assert_eq!(deuce, "Deuce");
+        assert_eq!(acorns, "Acorns");
+        assert_eq!(dause_eichel.fluent_name_default(), "Deuce of Acorns");
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__card__spades_tests {
+    use super::*;
+    use crate::pack::decks::spades::Spades;
+    use crate::prelude::{Card, Pile};
+    use crate::traits::Decked;
+    use std::str::FromStr;
+
+    #[test]
+    fn from_str() {
+        assert_eq!(
+            Spades::deck().to_string(),
+            "B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣"
+        );
+    }
+
+    #[test]
+    fn from_str__card() {
+        assert!(Card::<Spades>::from_str("2c").is_err());
+    }
+
+    #[test]
+    fn from_str__pile() {
+        let pile = Pile::<Spades>::from_str("2c 3c 4c");
+
+        assert!(pile.is_err());
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Spades::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod basic__card__standard52_tests {
+    use crate::pack::decks::standard52::Standard52;
+    use crate::traits::Decked;
+
+    #[test]
+    fn decked__validate() {
+        assert!(Standard52::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__card__tarot_tests {
+    use super::*;
+    use crate::pack::decks::tarot::{Tarot, TarotCard};
+    use crate::traits::Decked;
+    use std::str::FromStr;
+
+    #[test]
+    fn fluent__fluent_name_default() {
+        let magician = TarotCard::from_str("mm").unwrap();
+
+        assert_eq!(magician.index(), "MM");
+        assert_eq!(magician.fluent_name_default(), "The Magician");
+    }
+
+    #[test]
+    fn decked__validate() {
+        assert!(Tarot::validate());
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__card__tiny__tests {
+    use super::*;
+    use crate::bussin::cards::tiny::Tiny;
+    use crate::prelude::*;
+
+    // This is
+    #[test]
+    fn test() {
+        let mut deck = Tiny::deck();
+
+        assert_eq!(deck.to_string(), "A♠ K♠ A♥ K♥");
+
+        // Every deck comes with the Ranged trait automatically:
+        assert_eq!(
+            deck.combos(2).to_string(),
+            "A♠ K♠, A♠ A♥, A♠ K♥, K♠ K♥, A♥ K♠, A♥ K♥"
+        );
+
+        // Deal from the top of the deck:
+        assert_eq!(deck.draw_first().unwrap().to_string(), "A♠");
+
+        // Deal from the bottom of the deck:
+        assert_eq!(deck.draw_last().unwrap().to_string(), "K♥");
+
+        // Should be two cards remaining:
+        assert_eq!(deck.len(), 2);
+        assert_eq!(deck.index(), "KS AH");
+
+        // Draw a remaining card:
+        assert_eq!(deck.draw_first().unwrap(), tiny!(KS));
+
+        // Draw the last card:
+        assert_eq!(deck.draw_last().unwrap(), tiny!(AH));
+
+        // And now the deck is empty:
+        assert!(deck.draw_first().is_none());
+        assert!(deck.draw_last().is_none());
+    }
+
+    #[test]
+    fn validate() {
+        assert!(Tiny::validate());
     }
 }
