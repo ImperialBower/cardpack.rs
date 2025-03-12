@@ -1,7 +1,7 @@
 pub mod types {
     pub mod card {
-        use crate::bussin::types::card::{BasicCard, BasicPile};
-        use crate::bussin::types::pips::{Pip, PipType};
+        use crate::basic::types::card::{BasicCard, BasicPile};
+        use crate::basic::types::pips::{Pip, PipType};
         use crate::localization::{FluentName, Named};
         use crate::prelude::CardError;
         use crate::traits::Decked;
@@ -406,17 +406,17 @@ pub mod types {
         // region Pile
 
         /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
-        /// collection of [`Cards`](crate::prelude::Card) that are bound by a
+        /// collection of [`Cards`](Card) that are bound by a
         /// specific deck  type parameter.
         ///
         /// The magic behind all this is enabled by implementing the [`Decked`] and [`DeckedBase`] traits.
-        /// [`DeckedBase`] defines the [`BasicCards`](crate::prelude::BasicCard) that
-        /// hold the data that is in the [`Cards`](crate::prelude::Card) of the `Pile`, and the
-        /// [`Decked`] trait that ensures that only [`Cards`](crate::prelude::Card) that fit
+        /// [`DeckedBase`] defines the [`BasicCards`](BasicCard) that
+        /// hold the data that is in the [`Cards`](Card) of the `Pile`, and the
+        /// [`Decked`] trait that ensures that only [`Cards`](Card) that fit
         /// the contract defined in the specific deck implementation trait, such as
-        /// [`French`](crate::basic::decks::french::French) for a traditional pack of cards with jokers, or
-        /// [`Pinochle`](crate::basic::decks::pinochle::Pinochle). This makes it possible for the users
-        /// to define a `Pile` of [`Cards`](crate::prelude::Card) through simple strings. Here's
+        /// [`French`](crate::pack::decks::french::French) for a traditional pack of cards with jokers, or
+        /// [`Pinochle`](crate::pack::decks::pinochle::Pinochle). This makes it possible for the users
+        /// to define a `Pile` of [`Cards`](Card) through simple strings. Here's
         /// an example:
         ///
         /// ```
@@ -822,7 +822,7 @@ pub mod types {
             }
 
             /// ```
-            /// use cardpack::bussin::cards::tiny::Tiny;
+            /// use cardpack::basic::cards::tiny::Tiny;
             /// use cardpack::prelude::*;
             ///
             /// let pile = Pile::<Tiny>::deck();
@@ -3237,7 +3237,7 @@ mod basic__card__tarot_tests {
 #[allow(non_snake_case, unused_imports)]
 mod basic__card__tiny__tests {
     use super::*;
-    use crate::bussin::cards::tiny::Tiny;
+    use crate::basic::cards::tiny::Tiny;
     use crate::prelude::*;
 
     // This is

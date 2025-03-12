@@ -1,4 +1,4 @@
-use crate::bussin::types::gto::Combos;
+use crate::basic::types::gto::Combos;
 use crate::prelude::{BasicCard, BasicPile, Card, FLUENT_KEY_BASE_NAME_FRENCH, Pile, Pip, PipType};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
@@ -266,7 +266,7 @@ pub trait Ranged {
     /// TODO: Mark this as an example of the abstraction pushing the limits.
     ///
     /// This example verifies that there are two `Jokers` in the
-    /// [`French`](crate::basic::decks::french::French) [`Pile`]
+    /// [`French`](crate::pack::decks::french::French) [`Pile`]
     ///
     /// ```
     /// use cardpack::prelude::*;
@@ -296,7 +296,7 @@ pub trait Ranged {
     /// Returns a [`BasicPile`] filtering on suit [`PipType`].
     ///
     /// This example verifies how many `Special` (`Major Arcana`) cards are in the
-    /// [`Tarot`](crate::basic::decks::tarot::Tarot) deck.
+    /// [`Tarot`](crate::pack::decks::tarot::Tarot) deck.
     ///
     /// ```
     /// use cardpack::prelude::*;

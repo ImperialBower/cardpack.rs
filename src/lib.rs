@@ -2,7 +2,7 @@
 #![allow(clippy::struct_field_names)]
 #![allow(dead_code)]
 
-//! [Cardpack](https://crates.io/crates/cardpack) is a library to represent various decks of playing
+//! `Cardpack` is a library to represent various decks of playing
 //! cards. The library is designed to support the following features:
 //!
 //! - Custom `Rank` and `Suit` [`Pips`](basic::types::pips::Pip).
@@ -13,8 +13,8 @@
 //!
 //! The structure of the library is the following:
 //!
-//! - [`Pile`](basic::types::pile::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](traits::DeckedBase) trait
-//!   - [`Card`](basic::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](traits::DeckedBase) trait.
+//! - [`Pile`](pack::types::card::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](traits::DeckedBase) trait
+//!   - [`Card`](pack::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](traits::DeckedBase) trait.
 //!     - [`BasicCard`](basic::types::basic_card::BasicCard) - The basic data of a [`Card`](basic::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
 //!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](basic::types::card::Card).
 //!
@@ -22,9 +22,9 @@
 //!
 //! ## French Deck
 //!
-//! The [`French`](basic::decks::french::French) deck is the foundation [`Deck`](basic::types::pile::Pile)
+//! The [`French`](pack::decks::french::French) deck is the foundation [`Deck`](pack::types::card::Pile)
 //! of playing cards. It is made up of a collection of 54 `Cards` with 13 ranks in each of the four suits,
-//! and two jokers. Most of the other decks are made up on the [`French BasicCards`](basic::decks::cards::french::FrenchBasicCard).
+//! and two jokers. Most of the other decks are made up on the [`French BasicCards`](pack::decks::french::FrenchBasicCard).
 //!
 //! ```rust
 //! use cardpack::prelude::*;
@@ -107,9 +107,9 @@
 //! An important thing to remember about the decks is that the cards have their weight inside them
 //! to facilitate sorting. If you wanted a deck for a game of poker where the lowest hand wins, you
 //! would need to create a separate deck file with the card's `Rank` weights inverted. The
-//! [`Razz Deck`](basic::decks::razz::Razz) is an example of this. It is also an example of
-//! how you can create a [`Deck`](basic::types::pile::Pile)  where the
-//! [`BasicCard`](basic::types::basic_card::BasicCard) for the deck are generated programmatically
+//! [`Razz Deck`](pack::decks::razz::Razz) is an example of this. It is also an example of
+//! how you can create a deck of cards where the
+//! [`BasicCard`](basic::types::card::BasicCard) for the deck are generated programmatically
 //! in YAML instead using the power of [Serde](https://serde.rs/)
 //!
 //! ```
@@ -124,18 +124,18 @@
 //!
 //! Other decks include:
 //!
-//! - [`Canasta`](basic::decks::canasta::Canasta) - 2 Modern decks with the red 3s made jokers.
-//! - [`Euchre24`](basic::decks::euchre24::Euchre24) - A 24 card version of a Euchre deck.
-//! - [`Euchre32`](basic::decks::euchre32::Euchre32) - A 32 card version of a Euchre deck.
-//! - [`ShortDeck`](basic::decks::short::Short) - A 36 card deck with ranks 6 through Ace.
-//! - [`Pinochle`](basic::decks::pinochle::Pinochle) - A 48 card deck with two copies of the 9 through Ace ranks.
-//! - [`Skat`](basic::decks::skat::Skat) - A 32 card German card game with different suits and ranks.
-//! - [`Spades`](basic::decks::spades::Spades) - A Modern deck with the 2 of Clubs and 2 of Diamonds removed.
-//! - [`Tarot`](basic::decks::tarot::Tarot) - A 78 card deck with 22 Major Arcana and 56 Minor Arcana cards.
+//! - [`Canasta`](pack::decks::canasta::Canasta) - 2 Modern decks with the red 3s made jokers.
+//! - [`Euchre24`](pack::decks::euchre24::Euchre24) - A 24 card version of a Euchre deck.
+//! - [`Euchre32`](pack::decks::euchre32::Euchre32) - A 32 card version of a Euchre deck.
+//! - [`ShortDeck`](pack::decks::short::Short) - A 36 card deck with ranks 6 through Ace.
+//! - [`Pinochle`](pack::decks::pinochle::Pinochle) - A 48 card deck with two copies of the 9 through Ace ranks.
+//! - [`Skat`](pack::decks::skat::Skat) - A 32 card German card game with different suits and ranks.
+//! - [`Spades`](pack::decks::spades::Spades) - A Modern deck with the 2 of Clubs and 2 of Diamonds removed.
+//! - [`Tarot`](pack::decks::tarot::Tarot) - A 78 card deck with 22 Major Arcana and 56 Minor Arcana cards.
 //!
 //! In past versions of the library there was a [Hand and Foot](https://gamerules.com/rules/hand-and-foot-card-game/)
 //! deck. This has been removed because it can simply be created using a
-//! [`French`](basic::decks::french::French) and what functionality is available in the Decked trait:
+//! [`French`](pack::decks::french::French) and what functionality is available in the Decked trait:
 //!
 //! ```
 //! use cardpack::prelude::*;
@@ -245,7 +245,7 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc = include_str!("../README.md")]
 
-pub mod bussin;
+pub mod basic;
 pub mod common;
 pub mod fanky;
 pub mod funky;

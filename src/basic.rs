@@ -44,7 +44,7 @@ pub mod types {
             Special,
         }
 
-        /// `Pip` is the smallest unit of a [`BasicCard`](crate::basic::types::basic_card::BasicCard).
+        /// `Pip` is the smallest unit of a [`BasicCard`](crate::basic::types::card::BasicCard).
         ///
         /// Originally, I had different structs for `Rank` and `Suit`. The, I came to the realization that
         /// I could get the same results with a single struct. Eventually, I could see creating a card type
@@ -59,7 +59,7 @@ pub mod types {
         /// - `symbol`: A `char` that is the visual representation of the `Pip`, such as '♠' for Spades.
         /// - `value`: A `u32` that is used when a numerical valus is needed that is different than the `weight`.
         ///
-        /// Each [`BasicCard`](crate::basic::types::basic_card::BasicCard) struct is made up of two `Pips`, one
+        /// Each [`BasicCard`](crate::basic::types::card::BasicCard) struct is made up of two `Pips`, one
         /// representing the suit of the card and another for the rank.
         ///
         /// Here's a basic example of `Pips` in action:
@@ -98,7 +98,7 @@ pub mod types {
         }
 
         impl Pip {
-            /// The universal index for a blank `Pip` in a [`Card`](crate::basic::types::card::Card). Blank
+            /// The universal index for a blank `Pip` in a [`Card`](crate::pack::types::card::Card). Blank
             /// is the default value for all cards.
             ///
             /// ```
@@ -169,7 +169,7 @@ pub mod types {
         }
     }
     pub mod card {
-        use crate::bussin::types::pips::{Pip, PipType};
+        use crate::basic::types::pips::{Pip, PipType};
         use crate::common::utils::Bit;
         use crate::prelude::{CKCRevised, DeckedBase, Ranged};
         use crate::prelude::{Card, Pile};
@@ -209,7 +209,7 @@ pub mod types {
 
         impl BasicCard {
             /// Reads in a YAML file version of `BasicCard` data at the passed in location and returns a vector of `BasicCards`. See the
-            /// [`Razz`](crate::basic::decks::razz::Razz) deck for an example of how to use this method.
+            /// [`Razz`](crate::pack::decks::razz::Razz) deck for an example of how to use this method.
             ///
             /// ```
             /// use cardpack::prelude::*;
@@ -352,7 +352,7 @@ pub mod types {
                 &self.0
             }
 
-            /// Returns n number of [`BasicCards`](crate::basic::types::basic_card::BasicCard) from the
+            /// Returns n number of [`BasicCards`](BasicCard) from the
             /// beginning of the `BasicPile`. If there are not enough cards in the `BasicPile` to satisfy
             /// the request, `None` is returned.
             ///
@@ -702,8 +702,8 @@ pub mod types {
         // endregion BasicPile
     }
     pub mod gto {
-        use crate::bussin::types::card::{BasicCard, BasicPile};
-        use crate::bussin::types::pips::Pip;
+        use crate::basic::types::card::{BasicCard, BasicPile};
+        use crate::basic::types::pips::Pip;
         use crate::traits::Ranged;
         use std::fmt::{Display, Formatter};
 
@@ -919,8 +919,8 @@ pub mod types {
 
 pub mod cards {
     pub mod french {
-        use crate::bussin::types::card::BasicCard;
-        use crate::bussin::types::pips::{Pip, PipType};
+        use crate::basic::types::card::BasicCard;
+        use crate::basic::types::pips::{Pip, PipType};
 
         pub struct FrenchBasicCard;
         pub struct FrenchSuit;
@@ -2421,7 +2421,7 @@ pub mod cards {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pips_tests {
     use super::*;
-    use crate::bussin::types::pips::{Pip, PipType};
+    use crate::basic::types::pips::{Pip, PipType};
 
     #[test]
     fn pip__default() {
@@ -2526,7 +2526,7 @@ mod basic__types__card__basic_card_tests {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__card__pile_tests {
     use super::*;
-    use crate::bussin::types::card::BasicPile;
+    use crate::basic::types::card::BasicPile;
     use crate::prelude::{
         Decked, French, FrenchRank, FrenchSuit, Pile, PipType, Ranged, Standard52, Tarot,
     };
@@ -2804,8 +2804,8 @@ mod basic__types__card__pile_tests {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__gto__combos_tests {
     use super::*;
-    use crate::bussin::types::card::BasicPile;
-    use crate::bussin::types::gto::Combos;
+    use crate::basic::types::card::BasicPile;
+    use crate::basic::types::gto::Combos;
     use crate::prelude::{Decked, DeckedBase, French, FrenchRank, Pile, Standard52};
     use crate::traits::Ranged;
 
@@ -2897,8 +2897,8 @@ mod basic__types__gto__combos_tests {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod cards__french__tests {
-    use crate::bussin::types::card::BasicCard;
-    use crate::bussin::types::pips::Pip;
+    use crate::basic::types::card::BasicCard;
+    use crate::basic::types::pips::Pip;
     use crate::prelude::French;
     use crate::prelude::FrenchRank;
     use crate::traits::Decked;
@@ -2926,7 +2926,7 @@ mod cards__french__tests {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod cards__pinochle__tests {
-    use crate::bussin::types::pips::Pip;
+    use crate::basic::types::pips::Pip;
     use crate::prelude::PinochleRank;
 
     #[test]

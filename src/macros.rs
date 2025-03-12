@@ -1,5 +1,5 @@
-/// A macro to create a [Pile](crate::basic::types::pile::Pile) of
-/// [`French Deck`](crate::basic::decks::french::French) cards
+/// A macro to create a [Pile](crate::pack::types::card::Pile) of
+/// [`French Deck`](crate::pack::decks::french::French) cards
 /// from a string. If the passed in string isn't valid, it will simply
 /// return an empty pile.
 #[macro_export]
@@ -10,12 +10,12 @@ macro_rules! french_cards {
     };
 }
 
-/// A macro to create a [Pile](crate::basic::types::pile::Pile) of
-/// [Standard52](crate::basic::decks::standard52::Standard52) cards from a string.
+/// A macro to create a [Pile](crate::pack::types::card::Pile) of
+/// [Standard52](crate::pack::decks::standard52::Standard52) cards from a string.
 ///
 /// This is a tool of convenience that is a lot more forgiving than the standard `Pile::from_str`
 /// call. If the call doesn't recognize the string as Cards it will simply return an empty
-/// [Pile](crate::basic::types::pile::Pile).
+/// [Pile](crate::pack::types::card::Pile).
 ///
 /// ```
 /// use cardpack::prelude::*;
@@ -23,7 +23,7 @@ macro_rules! french_cards {
 /// ```
 ///
 /// For example, since the `Big Joker` isn't in the `Standard52` Deck, the `cards` macro will return
-/// an empty [Pile](crate::basic::types::pile::Pile):
+/// an empty [Pile](crate::pack::types::card::Pile):
 ///
 /// ```
 /// use cardpack::prelude::*;
@@ -38,7 +38,7 @@ macro_rules! cards {
 }
 
 /// This macro is to allow for quick and easy generation of individual cards from the most common
-/// [`Standard52`](crate::basic::decks::standard52::Standard52) deck.
+/// [`Standard52`](crate::pack::decks::standard52::Standard52) deck.
 #[macro_export]
 macro_rules! card {
     (AS) => {
