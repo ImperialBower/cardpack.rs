@@ -6,17 +6,17 @@
 //! cards. The library is designed to support the following features:
 //!
 //! - Custom `Rank` and `Suit` [`Pips`](basic::types::pips::Pip).
-//! - Ability to sort a [`Deck`](basic::types::pile::Pile) of [`Cards`](basic::types::card::Card) in various ways.
+//! - Ability to sort a [`Deck`](pack::types::card::Pile) of [`Cards`](pack::types::card::Card) in various ways.
 //! - Localization of card names using [fluent-templates](https://github.com/XAMPPRocky/fluent-templates).
 //!
 //! ## Overview
 //!
 //! The structure of the library is the following:
 //!
-//! - [`Pile`](pack::types::card::Pile) - A generic collection of [`Cards`](basic::types::card::Card) that implement the [`DeckedBase`](traits::DeckedBase) trait
-//!   - [`Card`](pack::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::basic_card::BasicCard) that implements the [`DeckedBase`](traits::DeckedBase) trait.
-//!     - [`BasicCard`](basic::types::basic_card::BasicCard) - The basic data of a [`Card`](basic::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
-//!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](basic::types::card::Card).
+//! - [`Pile`](pack::types::card::Pile) - A generic collection of [`Cards`](pack::types::card::Card) that implement the [`DeckedBase`](traits::DeckedBase) trait
+//!   - [`Card`](pack::types::card::Card) - A generic wrapper around [`BasicCard`](basic::types::card::BasicCard) that implements the [`DeckedBase`](traits::DeckedBase) trait.
+//!     - [`BasicCard`](basic::types::card::BasicCard) - The basic data of a [`Card`](pack::types::card::Card) without any generic constraints. Made up of a `Rank` and `Suit` [`Pip`](basic::types::pips::Pip).
+//!       - [`Pip`](basic::types::pips::Pip) - The basic data of a `Rank` and `Suit`, used for sorting, evaluating, and displaying [`Cards`](pack::types::card::Card).
 //!
 //! The library supports the following decks:
 //!
@@ -24,7 +24,7 @@
 //!
 //! The [`French`](pack::decks::french::French) deck is the foundation [`Deck`](pack::types::card::Pile)
 //! of playing cards. It is made up of a collection of 54 `Cards` with 13 ranks in each of the four suits,
-//! and two jokers. Most of the other decks are made up on the [`French BasicCards`](pack::decks::french::FrenchBasicCard).
+//! and two jokers. Most of the other decks are made up on the [`French BasicCards`](basic::cards::french::FrenchBasicCard).
 //!
 //! ```rust
 //! use cardpack::prelude::*;
@@ -73,8 +73,8 @@
 //!
 //! ## Standard 52 Card Deck
 //!
-//! A [`Standard52`](basic::decks::standard52::Standard52) deck is a
-//! [`French`](basic::decks::french::French) deck without the two jokers.
+//! A [`Standard52`](pack::decks::standard52::Standard52) deck is a
+//! [`French`](pack::decks::french::French) deck without the two jokers.
 //!
 //! ```rust
 //! use cardpack::prelude::*;
@@ -92,7 +92,7 @@
 //! assert_eq!(cards!("AS KS QS JS TS"), standard52_deck.draw(5).unwrap());
 //! ```
 //!
-//! By default, a [`Deck`](basic::types::pile::Pile) displays the suit symbols when you display the
+//! By default, a [`Deck`](pack::types::card::Pile) displays the suit symbols when you display the
 //! values. It also has the ability to return the letter values, or what are called "index strings".
 //!
 //! ```rust
@@ -118,7 +118,7 @@
 //! assert_eq!(Pile::<Standard52>::deck().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 //! ```
 //!
-//! The raw YAML that was used to create the [`Razz Deck`](basic::decks::razz::Razz) is available
+//! The raw YAML that was used to create the [`Razz Deck`](pack::decks::razz::Razz) is available
 //! in the source code.
 //!
 //!
