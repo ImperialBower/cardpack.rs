@@ -214,7 +214,7 @@ pub mod types {
             /// ```
             /// use cardpack::prelude::*;
             ///
-            /// let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
+            /// let cards = BasicCard::cards_from_yaml_file("src/yaml/french.yaml").unwrap();
             ///
             /// assert_eq!(cards.len(), 54);
             /// assert_eq!(cards, Pile::<French>::base_vec());
