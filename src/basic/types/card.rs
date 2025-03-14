@@ -142,7 +142,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     ///
     /// ```txt
     /// error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
-    ///    --> src/basic/types/card.rs:151:9
+    ///    --> src/basic/types/bcard:151:9
     ///     |
     /// 151 |           DeckedBase::basic_pile().contains(&self.base_card)
     ///     |           ^^^^^^^^^^^^^^^^^^^^^^^^ cannot call associated function of trait
