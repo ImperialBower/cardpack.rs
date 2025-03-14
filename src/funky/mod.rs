@@ -1,1 +1,2 @@
-mod types;
+pub mod decks;
+pub mod types;
