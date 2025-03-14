@@ -140,6 +140,13 @@ impl BasicPile {
         self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
     }
 
+    #[must_use]
+    pub fn sorted(&self) -> Self {
+        let mut pile = self.clone();
+        pile.sort();
+        pile
+    }
+
     /// Returns a new `BasicPile` with the `BasicCards` sorted.
     ///
     /// ```
@@ -152,7 +159,7 @@ impl BasicPile {
     #[must_use]
     pub fn sorted_by_rank(self) -> Self {
         let mut pile = self.clone();
-        pile.0.sort_by(|a, b| b.rank.cmp(&a.rank));
+        pile.sort_by_rank();
         pile
     }
     // endregion
@@ -625,6 +632,13 @@ mod basic__types__pile_tests {
 
         assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
         assert_eq!(pile2.to_string(), "8♣ 4♠ 2♠");
+    }
+
+    #[test]
+    fn sorted() {
+        let mut pile = from_str("2♠ 8♣ 4♠").sorted();
+
+        assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
     }
 
     #[test]
