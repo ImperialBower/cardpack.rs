@@ -7,10 +7,12 @@ pub struct Score {
 }
 
 impl Score {
+    #[must_use]
     pub fn new(chips: usize, mult: usize) -> Self {
         Self { chips, mult }
     }
 
+    #[must_use]
     pub fn add_chips(&self, chips: usize) -> Self {
         let chips = self.chips + chips;
         Self {
@@ -19,6 +21,7 @@ impl Score {
         }
     }
 
+    #[must_use]
     pub fn add_mult(&mut self, mult: usize) -> Self {
         let mult = self.mult + mult;
         Self {
@@ -27,6 +30,7 @@ impl Score {
         }
     }
 
+    #[must_use]
     pub fn current(&self) -> usize {
         self.chips * self.mult
     }
