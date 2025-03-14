@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use crate::prelude::Pip;
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -18,24 +17,26 @@ pub enum MPipType {
     Wild,
 }
 
-#[derive(
-    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct MPip {
     pub pip_type: MPipType,
     pub index: char,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub struct BuffoonCard {
-    pub suit: Pip,
-    pub rank: Pip,
-    pub enhancement: MPip,
+impl MPip {
+    pub const BLANK: Self = Self {
+        pip_type: MPipType::Blank,
+        index: '_',
+    };
 }
 
-pub mod enhancement {
-
+impl Default for MPip {
+    fn default() -> Self {
+        Self::BLANK
+    }
 }
+
+pub mod enhancement {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
