@@ -1,8 +1,8 @@
+use crate::funky::types::mpip::MPip;
+use crate::prelude::{CardError, Pip};
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::str::FromStr;
-use crate::funky::types::mpip::MPip;
-use crate::prelude::Pip;
-use serde::{Deserialize, Serialize};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -25,7 +25,7 @@ impl Display for CardType {
             CardType::Spectral => 'S',
             CardType::Tarot => 'T',
             CardType::Voucher => 'V',
-            _ => '_',
+            CardType::Basic => '_',
         };
         write!(f, "{s}")
     }
@@ -45,17 +45,19 @@ impl From<char> for CardType {
 }
 
 impl FromStr for CardType {
-    type Err = ();
+    type Err = CardError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != 1 {
-            return Err(());
+            return Err(CardError::InvalidIndex(s.to_string()));
         }
         Ok(s.chars().next().unwrap().into())
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialOrd, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialOrd, PartialEq, Serialize, Deserialize,
+)]
 pub struct BuffoonCard {
     pub suit: Pip,
     pub rank: Pip,
