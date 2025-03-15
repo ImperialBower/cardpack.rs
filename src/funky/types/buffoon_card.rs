@@ -1,10 +1,10 @@
+use crate::funky::decks::basic;
 use crate::funky::types::mpip::{MPip, MPipType};
 use crate::prelude::{CardError, Pip};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Display;
 use std::str::FromStr;
-
 // region BCardType
 
 #[derive(
@@ -72,7 +72,7 @@ impl BuffoonCard {
     /// Adds to the underlying value of the rank of the card.
     ///
     /// There are two ways to increase the total chips for a `BuffoonCard`. The first is to
-    /// add to the value of the underlying rank of the card. The other is to add the MPipType::Chips
+    /// add to the value of the underlying rank of the card. The other is to add the `MPipType::Chips`
     /// enhancement to the card.
     ///
     /// DIARY: I'm settling on a fluid style for the changes to the card. That's where
@@ -125,17 +125,17 @@ impl BuffoonCard {
             MPipType::DoubleMoney(_)
             | MPipType::Planet(_)
             | MPipType::RandomTarot(_)
-            | MPipType::Strength
             | MPipType::Wheel(_) => *self,
+            MPipType::Strength => basic::card::plus_rank(*self),
             _ => self.enhance_swap(enhancer.enhancement),
         };
-        println!("Enhanced {}", bc);
+        println!("Enhanced {bc}");
         bc
     }
 
     /// Function to implement mods where they are just straight up replacements.
     fn enhance_swap(&self, enhancement: MPip) -> Self {
-        println!("Enhance swap: {}", enhancement);
+        println!("Enhance swap: {enhancement}");
         Self {
             enhancement,
             ..*self
@@ -291,8 +291,20 @@ mod funky__types__buffoon_card_tests {
 
         assert_eq!(card.get_chips(), 5);
         assert_eq!(card.enhancement, MPip::BLANK);
-        assert_eq!(card.enhance(STRENGTH).get_chips(), 5);
+        assert_eq!(card.enhance(STRENGTH).get_chips(), 6);
         assert_eq!(card.enhance(STRENGTH).enhancement, MPip::BLANK);
         assert_eq!(card.enhance(STRENGTH), SIX_CLUBS);
+        assert_eq!(SIX_CLUBS.enhance(STRENGTH), SEVEN_CLUBS);
+        assert_eq!(SEVEN_CLUBS.enhance(STRENGTH), EIGHT_CLUBS);
+        assert_eq!(EIGHT_CLUBS.enhance(STRENGTH), NINE_CLUBS);
+        assert_eq!(NINE_CLUBS.enhance(STRENGTH), TEN_CLUBS);
+        assert_eq!(TEN_CLUBS.enhance(STRENGTH), JACK_CLUBS);
+        assert_eq!(JACK_CLUBS.enhance(STRENGTH), QUEEN_CLUBS);
+        assert_eq!(QUEEN_CLUBS.enhance(STRENGTH), KING_CLUBS);
+        assert_eq!(KING_CLUBS.enhance(STRENGTH), ACE_CLUBS);
+        assert_eq!(ACE_CLUBS.enhance(STRENGTH), DEUCE_CLUBS);
+        assert_eq!(DEUCE_CLUBS.enhance(STRENGTH), TREY_CLUBS);
+        assert_eq!(TREY_CLUBS.enhance(STRENGTH), FOUR_CLUBS);
+        assert_eq!(FOUR_CLUBS.enhance(STRENGTH), FIVE_CLUBS);
     }
 }
