@@ -1,7 +1,7 @@
-use std::fmt::{Display, Formatter};
 use crate::funky::types::buffoon_card::BuffoonCard;
 use rand::prelude::SliceRandom;
 use rand::rng;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
@@ -156,7 +156,6 @@ impl IntoIterator for BuffoonPile {
         self.0.into_iter()
     }
 }
-
 
 // so bad:
 //

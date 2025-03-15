@@ -1,4 +1,4 @@
-use crate::funky::types::mpip::MPip;
+use crate::funky::types::mpip::{MPip, MPipType};
 use crate::prelude::{CardError, Pip};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -67,6 +67,34 @@ pub struct BuffoonCard {
     pub enhancement: MPip,
 }
 
+impl BuffoonCard {
+    #[must_use]
+    pub fn add_chips(&self, chips: usize) -> Self {
+        let mut current_chips = 0;
+
+        if let MPipType::Chips(c) = self.enhancement.pip_type {
+            current_chips = c;
+        }
+        let new_chips = current_chips + chips;
+
+        BuffoonCard {
+            suit: self.suit,
+            rank: self.rank,
+            card_type: self.card_type,
+            enhancement: MPip::new_chips(new_chips),
+        }
+    }
+
+    #[must_use]
+    pub fn get_chips(&self) -> usize {
+        let mut chips = self.rank.value as usize;
+        if let MPipType::Chips(c) = self.enhancement.pip_type {
+            chips += c;
+        };
+        chips
+    }
+}
+
 /// Inverts the order so that the highest card comes first.
 impl Ord for BuffoonCard {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -80,5 +108,21 @@ impl Ord for BuffoonCard {
 impl PartialOrd for BuffoonCard {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod funky__types__buffoon_card_tests {
+    use super::*;
+    use crate::funky::decks::{basic, tarot};
+    use crate::funky::types::mpip::MPipType;
+
+    #[test]
+    fn get_chips() {
+        let mut ks = basic::card::KING_SPADES.add_chips(11).add_chips(15);
+
+        assert_eq!(ks.get_chips(), 36);
+        assert_eq!(tarot::card::DEATH.get_chips(), 10);
     }
 }
