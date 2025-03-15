@@ -636,7 +636,7 @@ mod basic__types__pile_tests {
 
     #[test]
     fn sorted() {
-        let mut pile = from_str("2♠ 8♣ 4♠").sorted();
+        let pile = from_str("2♠ 8♣ 4♠").sorted();
 
         assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
     }

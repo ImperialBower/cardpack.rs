@@ -7,62 +7,62 @@ pub mod basic {
         pub const DECK_SIZE: usize = 52;
 
         pub const DECK: [BuffoonCard; Deck::DECK_SIZE] = [
-            cards::ACE_SPADES,
-            cards::KING_SPADES,
-            cards::QUEEN_SPADES,
-            cards::JACK_SPADES,
-            cards::TEN_SPADES,
-            cards::NINE_SPADES,
-            cards::EIGHT_SPADES,
-            cards::SEVEN_SPADES,
-            cards::SIX_SPADES,
-            cards::FIVE_SPADES,
-            cards::FOUR_SPADES,
-            cards::TREY_SPADES,
-            cards::DEUCE_SPADES,
-            cards::ACE_HEARTS,
-            cards::KING_HEARTS,
-            cards::QUEEN_HEARTS,
-            cards::JACK_HEARTS,
-            cards::TEN_HEARTS,
-            cards::NINE_HEARTS,
-            cards::EIGHT_HEARTS,
-            cards::SEVEN_HEARTS,
-            cards::SIX_HEARTS,
-            cards::FIVE_HEARTS,
-            cards::FOUR_HEARTS,
-            cards::TREY_HEARTS,
-            cards::DEUCE_HEARTS,
-            cards::ACE_DIAMONDS,
-            cards::KING_DIAMONDS,
-            cards::QUEEN_DIAMONDS,
-            cards::JACK_DIAMONDS,
-            cards::TEN_DIAMONDS,
-            cards::NINE_DIAMONDS,
-            cards::EIGHT_DIAMONDS,
-            cards::SEVEN_DIAMONDS,
-            cards::SIX_DIAMONDS,
-            cards::FIVE_DIAMONDS,
-            cards::FOUR_DIAMONDS,
-            cards::TREY_DIAMONDS,
-            cards::DEUCE_DIAMONDS,
-            cards::ACE_CLUBS,
-            cards::KING_CLUBS,
-            cards::QUEEN_CLUBS,
-            cards::JACK_CLUBS,
-            cards::TEN_CLUBS,
-            cards::NINE_CLUBS,
-            cards::EIGHT_CLUBS,
-            cards::SEVEN_CLUBS,
-            cards::SIX_CLUBS,
-            cards::FIVE_CLUBS,
-            cards::FOUR_CLUBS,
-            cards::TREY_CLUBS,
-            cards::DEUCE_CLUBS,
+            card::ACE_SPADES,
+            card::KING_SPADES,
+            card::QUEEN_SPADES,
+            card::JACK_SPADES,
+            card::TEN_SPADES,
+            card::NINE_SPADES,
+            card::EIGHT_SPADES,
+            card::SEVEN_SPADES,
+            card::SIX_SPADES,
+            card::FIVE_SPADES,
+            card::FOUR_SPADES,
+            card::TREY_SPADES,
+            card::DEUCE_SPADES,
+            card::ACE_HEARTS,
+            card::KING_HEARTS,
+            card::QUEEN_HEARTS,
+            card::JACK_HEARTS,
+            card::TEN_HEARTS,
+            card::NINE_HEARTS,
+            card::EIGHT_HEARTS,
+            card::SEVEN_HEARTS,
+            card::SIX_HEARTS,
+            card::FIVE_HEARTS,
+            card::FOUR_HEARTS,
+            card::TREY_HEARTS,
+            card::DEUCE_HEARTS,
+            card::ACE_DIAMONDS,
+            card::KING_DIAMONDS,
+            card::QUEEN_DIAMONDS,
+            card::JACK_DIAMONDS,
+            card::TEN_DIAMONDS,
+            card::NINE_DIAMONDS,
+            card::EIGHT_DIAMONDS,
+            card::SEVEN_DIAMONDS,
+            card::SIX_DIAMONDS,
+            card::FIVE_DIAMONDS,
+            card::FOUR_DIAMONDS,
+            card::TREY_DIAMONDS,
+            card::DEUCE_DIAMONDS,
+            card::ACE_CLUBS,
+            card::KING_CLUBS,
+            card::QUEEN_CLUBS,
+            card::JACK_CLUBS,
+            card::TEN_CLUBS,
+            card::NINE_CLUBS,
+            card::EIGHT_CLUBS,
+            card::SEVEN_CLUBS,
+            card::SIX_CLUBS,
+            card::FIVE_CLUBS,
+            card::FOUR_CLUBS,
+            card::TREY_CLUBS,
+            card::DEUCE_CLUBS,
         ];
     }
 
-    pub mod cards {
+    pub mod card {
         use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
         use crate::funky::types::mpip::MPip;
         use crate::prelude::{FrenchRank, FrenchSuit};
@@ -377,6 +377,179 @@ pub mod basic {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
+            enhancement: MPip::BLANK,
+        };
+    }
+}
+
+pub mod tarot {
+    use crate::funky::types::buffoon_card::BuffoonCard;
+
+    pub struct MajorArcana {}
+
+    impl MajorArcana {
+        pub const DECK_SIZE: usize = 22;
+        pub const DECK: [BuffoonCard; MajorArcana::DECK_SIZE] = [
+            card::FOOL,
+            card::MAGICIAN,
+            card::HIGH_PRIESTESS,
+            card::EMPRESS,
+            card::EMPEROR,
+            card::HIEROPHANT,
+            card::LOVERS,
+            card::THE_CHARIOT,
+            card::STRENGTH,
+            card::HERMIT,
+            card::WHEEL_OF_FORTUNE,
+            card::JUSTICE,
+            card::HANGED_MAN,
+            card::DEATH,
+            card::TEMPERANCE,
+            card::DEVIL,
+            card::TOWER,
+            card::STAR,
+            card::MOON,
+            card::SUN,
+            card::JUDGEMENT,
+            card::WORLD,
+        ];
+    }
+
+    pub mod card {
+        use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
+        use crate::funky::types::mpip::MPip;
+        use crate::prelude::{TarotRank, TarotSuit};
+
+        pub const FOOL: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::FOOL,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const MAGICIAN: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::MAGICIAN,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::LUCKY,
+        };
+        pub const HIGH_PRIESTESS: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::HIGH_PRIESTESS,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const EMPRESS: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::EMPRESS,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::EMPRESS,
+        };
+        pub const EMPEROR: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::EMPEROR,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::RANDOM_TAROT,
+        };
+        pub const HIEROPHANT: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::HIEROPHANT,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BONUS,
+        };
+        pub const LOVERS: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::LOVERS,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::WILD,
+        };
+        pub const THE_CHARIOT: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::CHARIOT,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::STEEL,
+        };
+        pub const STRENGTH: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::STRENGTH,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::STRENGTH,
+        };
+        pub const HERMIT: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::HERMIT,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::WHEEL_OF_FORTUNE,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::WHEEL_OF_FORTUNE,
+        };
+        pub const JUSTICE: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::JUSTICE,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const HANGED_MAN: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::HANGED_MAN,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::HANGED,
+        };
+        pub const DEATH: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::DEATH,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::DEATH,
+        };
+        pub const TEMPERANCE: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::TEMPERANCE,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::TEMPERANCE,
+        };
+        pub const DEVIL: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::DEVIL,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::DEVIL,
+        };
+        pub const TOWER: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::TOWER,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::TOWER,
+        };
+        pub const STAR: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::STAR,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const MOON: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::MOON,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const SUN: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::SUN,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const JUDGEMENT: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::JUDGEMENT,
+            card_type: BCardType::Tarot,
+            enhancement: MPip::BLANK,
+        };
+        pub const WORLD: BuffoonCard = BuffoonCard {
+            suit: TarotSuit::MAJOR_ARCANA,
+            rank: TarotRank::WORLD,
+            card_type: BCardType::Tarot,
             enhancement: MPip::BLANK,
         };
     }
