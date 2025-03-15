@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use crate::prelude::PipType;
+use serde::{Deserialize, Serialize};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -7,6 +8,7 @@ use crate::prelude::PipType;
 pub enum MPipType {
     #[default]
     Blank,
+    AddBaseChips(usize),
     Chips(usize),
     Death(usize),
     DoubleMoney(usize),
@@ -18,12 +20,40 @@ pub enum MPipType {
     MultPlus(usize),
     MultTimes(usize),
     MultTimes1Dot(usize),
-    Planet,
+    Planet(usize),
+    RandomJoker(usize),
+    RandomTarot(usize),
     Stone(usize),
     Strength,
-    Tarot,
     Wheel(usize),
     Wild(PipType),
+}
+
+impl Display for MPipType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MPipType::Blank => write!(f, "Blank"),
+            MPipType::AddBaseChips(chips) => write!(f, "AddBaseChips({}) ", chips),
+            MPipType::Chips(chips) => write!(f, "Chips({})", chips),
+            MPipType::Death(value) => write!(f, "Death({})", value),
+            MPipType::DoubleMoney(value) => write!(f, "DoubleMoney({})", value),
+            MPipType::Glass(a, b) => write!(f, "Glass({}, {})", a, b),
+            MPipType::Gold(value) => write!(f, "Gold({})", value),
+            MPipType::Hanged(value) => write!(f, "Hanged({})", value),
+            MPipType::JokersValue(value) => write!(f, "JokersValue({})", value),
+            MPipType::Lucky(a, b) => write!(f, "Lucky({}, {})", a, b),
+            MPipType::MultPlus(value) => write!(f, "MultPlus({})", value),
+            MPipType::MultTimes(value) => write!(f, "MultTimes({})", value),
+            MPipType::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({})", value),
+            MPipType::Planet(value) => write!(f, "Planet({})", value),
+            MPipType::RandomJoker(value) => write!(f, "RandomJoker({})", value),
+            MPipType::RandomTarot(value) => write!(f, "RandomTarot({})", value),
+            MPipType::Stone(value) => write!(f, "Stone({})", value),
+            MPipType::Strength => write!(f, "Strength"),
+            MPipType::Wheel(value) => write!(f, "Wheel({})", value),
+            MPipType::Wild(pip_type) => write!(f, "Wild({:?})", pip_type),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -49,32 +79,36 @@ impl MPip {
         pip_type: MPipType::Gold(3),
         index: 'v',
     };
-    pub const DOUBLE_MONEY: Self = Self {
+    pub const MOD_DOUBLE_MONEY: Self = Self {
         pip_type: MPipType::DoubleMoney(20),
         index: 'd',
     };
-    pub const EMPRESS: Self = Self {
+    pub const MOD_MULT_PLUS4: Self = Self {
         pip_type: MPipType::MultPlus(4),
         index: 'e',
     };
     pub const GLASS: Self = Self {
         pip_type: MPipType::Glass(2, 4),
-        index: 'j',
+        index: 'g',
     };
     pub const HANGED: Self = Self {
         pip_type: MPipType::Hanged(2),
-        index: 'h',
+        index: 'x',
     };
-    pub const HIGH_PRIESTESS: Self = Self {
-        pip_type: MPipType::Planet,
+    pub const PLANET: Self = Self {
+        pip_type: MPipType::Planet(2),
         index: 'h',
     };
     pub const LUCKY: Self = Self {
         pip_type: MPipType::Lucky(5, 15),
         index: 'l',
     };
+    pub const RANDOM_JOKER: Self = Self {
+        pip_type: MPipType::RandomJoker(1),
+        index: 'j',
+    };
     pub const RANDOM_TAROT: Self = Self {
-        pip_type: MPipType::Tarot,
+        pip_type: MPipType::RandomTarot(2),
         index: 'o',
     };
     pub const STEEL: Self = Self {
@@ -101,7 +135,7 @@ impl MPip {
         pip_type: MPipType::Wheel(4),
         index: 'f',
     };
-    pub const WILD: Self = Self {
+    pub const WILD_SUIT: Self = Self {
         pip_type: MPipType::Wild(PipType::Suit),
         index: 'w',
     };
@@ -118,6 +152,12 @@ impl MPip {
 impl Default for MPip {
     fn default() -> Self {
         Self::BLANK
+    }
+}
+
+impl Display for MPip {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.pip_type)
     }
 }
 

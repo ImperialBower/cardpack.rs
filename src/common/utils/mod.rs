@@ -1,45 +1,45 @@
 pub struct Bit;
 
 impl Bit {
-    pub const RANK_FLAG_FILTER: u32 = 0x1FFF_0000; // 536805376 aka 0b00011111_11111111_00000000_00000000
-    pub const RANK_FLAG_SHIFT: u32 = 16;
-    pub const RANK_PRIME_FILTER: u32 = 0b0011_1111;
-    pub const RANK_NUMBER_FILTER: u32 = 0b1111_00000000;
+    pub const RANK_FLAG_FILTER: usize = 0x1FFF_0000; // 536805376 aka 0b00011111_11111111_00000000_00000000
+    pub const RANK_FLAG_SHIFT: usize = 16;
+    pub const RANK_PRIME_FILTER: usize = 0b0011_1111;
+    pub const RANK_NUMBER_FILTER: usize = 0b1111_00000000;
 
     /// Binary filter for `CardNumber` `Suit` flags.
     /// 00000000 00000000 11110000 00000000
-    pub const SUIT_FLAG_FILTER: u32 = 0b1111_0000_0000_0000; // 61440 aka 0xF000
-    pub const SUIT_SHORT_MASK: u32 = 0b1111;
-    pub const SUIT_FLAG_SHIFT: u32 = 11;
+    pub const SUIT_FLAG_FILTER: usize = 0b1111_0000_0000_0000; // 61440 aka 0xF000
+    pub const SUIT_SHORT_MASK: usize = 0b1111;
+    pub const SUIT_FLAG_SHIFT: usize = 11;
 
     #[must_use]
-    pub fn ckc_bits(ckc: u32) -> u32 {
+    pub fn ckc_bits(ckc: usize) -> usize {
         ckc & Bit::RANK_FLAG_FILTER
     }
 
     #[must_use]
-    pub fn ckc_prime(ckc: u32) -> u32 {
+    pub fn ckc_prime(ckc: usize) -> usize {
         ckc & Bit::RANK_PRIME_FILTER
     }
 
     #[must_use]
-    pub fn ckc_shift8(ckc: u32) -> u32 {
+    pub fn ckc_shift8(ckc: usize) -> usize {
         ckc & Bit::RANK_NUMBER_FILTER
     }
 
     #[must_use]
-    pub fn only_suit_flags(ckc: u32) -> u32 {
+    pub fn only_suit_flags(ckc: usize) -> usize {
         ckc & Bit::SUIT_FLAG_FILTER
     }
 
     #[must_use]
-    pub fn strip_suit_flags(ckc: u32) -> u32 {
+    pub fn strip_suit_flags(ckc: usize) -> usize {
         ckc & !Bit::SUIT_FLAG_FILTER
     }
 
     /// These utility methods come from `pkcore`, a library that is currently a work in progress.
     #[must_use]
-    pub fn string(ckc: u32) -> String {
+    pub fn string(ckc: usize) -> String {
         let b = format!("{ckc:b}");
         // OK, let's take a moment to really stan on the rust std libraries. The fmt
         // [Fill/Alignment](https://doc.rust-lang.org/std/fmt/#fillalignment) is FIRE!

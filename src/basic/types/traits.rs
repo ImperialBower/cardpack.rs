@@ -130,22 +130,22 @@ where
 /// like this organized in a functional way. Traits feel like a good way to do it.
 pub trait CKCRevised {
     #[must_use]
-    fn get_ckc_number(&self) -> u32;
+    fn get_ckc_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_number(&self) -> u32;
+    fn ckc_rank_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_suit_number(&self) -> u32;
+    fn ckc_suit_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_bits(&self) -> u32;
+    fn ckc_rank_bits(&self) -> usize;
 
     #[must_use]
-    fn ckc_get_prime(&self) -> u32;
+    fn ckc_get_prime(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_shift8(&self) -> u32;
+    fn ckc_rank_shift8(&self) -> usize;
 }
 
 /// This trait is a kind of proof of concept for how easy it would be to lay a foundation for creating
