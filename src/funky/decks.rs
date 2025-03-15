@@ -436,13 +436,13 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HIGH_PRIESTESS,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::PLANET,
         };
         pub const EMPRESS: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::EMPRESS,
             card_type: BCardType::Tarot,
-            enhancement: MPip::EMPRESS,
+            enhancement: MPip::MOD_MULT_PLUS4,
         };
         pub const EMPEROR: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
@@ -460,7 +460,7 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::LOVERS,
             card_type: BCardType::Tarot,
-            enhancement: MPip::WILD,
+            enhancement: MPip::WILD_SUIT,
         };
         pub const THE_CHARIOT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
