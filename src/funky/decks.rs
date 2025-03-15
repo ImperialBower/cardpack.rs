@@ -67,6 +67,27 @@ pub mod basic {
         use crate::funky::types::mpip::MPip;
         use crate::prelude::{FrenchRank, FrenchSuit};
 
+        #[must_use]
+        pub fn plus_rank(basic_card: BuffoonCard) -> BuffoonCard {
+            let rank = match basic_card.rank.weight {
+                12 => FrenchRank::DEUCE,
+                11 => FrenchRank::ACE,
+                10 => FrenchRank::KING,
+                9 => FrenchRank::QUEEN,
+                8 => FrenchRank::JACK,
+                7 => FrenchRank::TEN,
+                6 => FrenchRank::NINE,
+                5 => FrenchRank::EIGHT,
+                4 => FrenchRank::SEVEN,
+                3 => FrenchRank::SIX,
+                2 => FrenchRank::FIVE,
+                1 => FrenchRank::FOUR,
+                0 => FrenchRank::TREY,
+                _ => basic_card.rank,
+            };
+            BuffoonCard { rank, ..basic_card }
+        }
+
         pub const ACE_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::ACE,
