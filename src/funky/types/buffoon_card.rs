@@ -113,7 +113,6 @@ impl BuffoonCard {
         if let MPipType::Chips(c) = self.enhancement.pip_type {
             print!(" + {}", self.enhancement);
             chips += c;
-
         };
         println!();
         chips + self.rank.value
@@ -123,7 +122,11 @@ impl BuffoonCard {
     pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
         println!("Enhancing {} with: {}", self, enhancer.enhancement);
         let bc = match enhancer.enhancement.pip_type {
-            MPipType::Planet(_) | MPipType::RandomTarot(_)  => *self,
+            MPipType::DoubleMoney(_)
+            | MPipType::Planet(_)
+            | MPipType::RandomTarot(_)
+            | MPipType::Strength
+            | MPipType::Wheel(_) => *self,
             _ => self.enhance_swap(enhancer.enhancement),
         };
         println!("Enhanced {}", bc);
@@ -133,13 +136,20 @@ impl BuffoonCard {
     /// Function to implement mods where they are just straight up replacements.
     fn enhance_swap(&self, enhancement: MPip) -> Self {
         println!("Enhance swap: {}", enhancement);
-        Self { enhancement, ..*self }
+        Self {
+            enhancement,
+            ..*self
+        }
     }
 }
 
 impl Display for BuffoonCard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}{}-{}", self.rank, self.suit, self.card_type, self.enhancement)
+        write!(
+            f,
+            "{}{}{}-{}",
+            self.rank, self.suit, self.card_type, self.enhancement
+        )
     }
 }
 
@@ -166,6 +176,7 @@ mod funky__types__buffoon_card_tests {
     use crate::funky::decks::basic::card::*;
     use crate::funky::decks::tarot::card::*;
     use crate::funky::types::mpip::MPipType;
+    use ckc_rs::CardRank::SIX;
 
     #[test]
     fn get_chips() {
@@ -177,7 +188,10 @@ mod funky__types__buffoon_card_tests {
 
     #[test]
     fn enhance__magician() {
-        assert_eq!(TEN_DIAMONDS.enhance_swap(MPip::LUCKY).enhancement, MPip::LUCKY);
+        assert_eq!(
+            TEN_DIAMONDS.enhance_swap(MPip::LUCKY).enhancement,
+            MPip::LUCKY
+        );
         assert_eq!(TEN_DIAMONDS.enhance(MAGICIAN).enhancement, MPip::LUCKY);
         assert_eq!(TEN_DIAMONDS.enhance(MAGICIAN).get_chips(), 10);
     }
@@ -186,23 +200,26 @@ mod funky__types__buffoon_card_tests {
     /// to the underlying card.
     #[test]
     fn enhance__high_priestess() {
-        let card = NINE_CLUBS.enhance(MAGICIAN);
+        let card = QUEEN_SPADES.enhance(MAGICIAN);
         let original_enhancement = card.enhancement;
 
-        assert_eq!(card.enhance(HIGH_PRIESTESS).enhancement, original_enhancement);
+        assert_eq!(
+            card.enhance(HIGH_PRIESTESS).enhancement,
+            original_enhancement
+        );
     }
 
     /// The Empress replaces the existing enhancement.
     #[test]
     fn enhance__empress() {
-        let card = QUEEN_SPADES.enhance(MAGICIAN);
+        let card = JACK_SPADES.enhance(MAGICIAN);
 
         assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MOD_MULT_PLUS4);
     }
 
     #[test]
     fn enhance__emperor() {
-        let card = SEVEN_HEARTS.enhance(MAGICIAN);
+        let card = TEN_DIAMONDS.enhance(MAGICIAN);
         let original_enhancement = card.enhancement;
 
         assert_eq!(card.enhance(EMPEROR).enhancement, original_enhancement);
@@ -213,6 +230,7 @@ mod funky__types__buffoon_card_tests {
         let card = JACK_CLUBS;
 
         assert_eq!(card.get_chips(), 10);
+        assert_eq!(card.enhance(HIEROPHANT).enhancement, MPip::BONUS);
         assert_eq!(card.enhance(HIEROPHANT).get_chips(), 40);
         assert_eq!(card.enhance(HIEROPHANT).add_base_chips(9).get_chips(), 49);
     }
@@ -225,5 +243,56 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(card.enhancement, MPip::BLANK);
         assert_eq!(card.enhance(LOVERS).get_chips(), 10);
         assert_eq!(card.enhance(LOVERS).enhancement, MPip::WILD_SUIT);
+    }
+
+    #[test]
+    fn enhance__chariot() {
+        let card = NINE_CLUBS;
+
+        assert_eq!(card.get_chips(), 9);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(THE_CHARIOT).get_chips(), 9);
+        assert_eq!(card.enhance(THE_CHARIOT).enhancement, MPip::STEEL);
+    }
+
+    #[test]
+    fn enhance__justice() {
+        let card = EIGHT_CLUBS;
+
+        assert_eq!(card.get_chips(), 8);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(JUSTICE).get_chips(), 8);
+        assert_eq!(card.enhance(JUSTICE).enhancement, MPip::GLASS);
+    }
+
+    #[test]
+    fn enhance__hermit() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(HERMIT).get_chips(), 7);
+        assert_eq!(card.enhance(HERMIT).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__wheel() {
+        let card = SIX_CLUBS;
+
+        assert_eq!(card.get_chips(), 6);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).get_chips(), 6);
+        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__strength() {
+        let card = FIVE_CLUBS;
+
+        assert_eq!(card.get_chips(), 5);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(STRENGTH).get_chips(), 5);
+        assert_eq!(card.enhance(STRENGTH).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(STRENGTH), SIX_CLUBS);
     }
 }

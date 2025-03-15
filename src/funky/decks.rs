@@ -478,7 +478,7 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HERMIT,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::MOD_DOUBLE_MONEY,
         };
         pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
@@ -490,7 +490,7 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::JUSTICE,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::GLASS,
         };
         pub const HANGED_MAN: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,

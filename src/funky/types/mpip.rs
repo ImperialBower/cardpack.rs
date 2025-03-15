@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
 use crate::prelude::PipType;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
