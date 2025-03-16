@@ -120,8 +120,15 @@ impl BuffoonPile {
 }
 
 impl Display for BuffoonPile {
-    fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.iter()
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(" ")
+        )
     }
 }
 
