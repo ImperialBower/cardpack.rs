@@ -547,31 +547,31 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::STAR,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::DIAMONDS,
         };
         pub const MOON: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::MOON,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::CLUBS,
         };
         pub const SUN: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::SUN,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::HEARTS,
         };
         pub const JUDGEMENT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::JUDGEMENT,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::JUDGEMENT,
         };
         pub const WORLD: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::WORLD,
             card_type: BCardType::Tarot,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::SPADES,
         };
     }
 }

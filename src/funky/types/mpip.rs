@@ -27,6 +27,10 @@ pub enum MPipType {
     Strength,
     Wheel(usize),
     Wild(PipType),
+    Diamonds,
+    Clubs,
+    Hearts,
+    Spades,
 }
 
 impl Display for MPipType {
@@ -52,6 +56,10 @@ impl Display for MPipType {
             MPipType::Strength => write!(f, "Strength"),
             MPipType::Wheel(value) => write!(f, "Wheel({value})"),
             MPipType::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
+            MPipType::Diamonds => write!(f, "Diamonds"),
+            MPipType::Clubs => write!(f, "Clubs"),
+            MPipType::Hearts => write!(f, "Hearts"),
+            MPipType::Spades => write!(f, "Spades"),
         }
     }
 }
@@ -138,6 +146,26 @@ impl MPip {
     pub const WILD_SUIT: Self = Self {
         pip_type: MPipType::Wild(PipType::Suit),
         index: 'w',
+    };
+    pub const DIAMONDS: Self = Self {
+        pip_type: MPipType::Diamonds,
+        index: 'd',
+    };
+    pub const CLUBS: Self = Self {
+        pip_type: MPipType::Clubs,
+        index: 'c',
+    };
+    pub const HEARTS: Self = Self {
+        pip_type: MPipType::Hearts,
+        index: 'h',
+    };
+    pub const JUDGEMENT: Self = Self {
+        pip_type: MPipType::RandomJoker(2),
+        index: 'j',
+    };
+    pub const SPADES: Self = Self {
+        pip_type: MPipType::Spades,
+        index: 's',
     };
 
     #[must_use]

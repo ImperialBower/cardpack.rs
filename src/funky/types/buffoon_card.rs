@@ -122,9 +122,17 @@ impl BuffoonCard {
     pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
         println!("Enhancing {} with: {}", self, enhancer.enhancement);
         let bc = match enhancer.enhancement.pip_type {
-            MPipType::DoubleMoney(_)
+            MPipType::Death(_)
+            | MPipType::DoubleMoney(_)
+            | MPipType::Hanged(_)
             | MPipType::Planet(_)
             | MPipType::RandomTarot(_)
+            | MPipType::JokersValue(_)
+            | MPipType::Diamonds
+            | MPipType::Clubs
+            | MPipType::Hearts
+            | MPipType::Spades
+            | MPipType::RandomJoker(_)
             | MPipType::Wheel(_) => *self,
             MPipType::Strength => basic::card::plus_rank(*self),
             _ => self.enhance_swap(enhancer.enhancement),
@@ -306,5 +314,68 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(DEUCE_CLUBS.enhance(STRENGTH), TREY_CLUBS);
         assert_eq!(TREY_CLUBS.enhance(STRENGTH), FOUR_CLUBS);
         assert_eq!(FOUR_CLUBS.enhance(STRENGTH), FIVE_CLUBS);
+    }
+
+    #[test]
+    fn enhance__hanged() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(HANGED_MAN).get_chips(), 7);
+        assert_eq!(card.enhance(HANGED_MAN).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__death() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(DEATH).get_chips(), 7);
+        assert_eq!(card.enhance(DEATH).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__temperance() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(TEMPERANCE).get_chips(), 7);
+        assert_eq!(card.enhance(TEMPERANCE).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__devil() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(DEVIL).get_chips(), 7);
+        assert_eq!(card.enhance(DEVIL).enhancement, MPip::DEVIL);
+    }
+
+    #[test]
+    fn enhance__tower() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(TOWER).get_chips(), 7);
+        assert_eq!(card.enhance(TOWER).enhancement, MPip::TOWER);
+    }
+
+    #[test]
+    fn enhance__suits() {
+        assert_eq!(SIX_CLUBS.enhance(STAR).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance__judgement() {
+        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::BLANK);
     }
 }
