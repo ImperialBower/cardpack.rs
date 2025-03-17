@@ -2,6 +2,7 @@ use crate::prelude::*;
 use colored::Color;
 use std::collections::HashMap;
 
+/// **NOTE** Tarot Major Arcana Ranks are now Base22.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Tarot {}
 
