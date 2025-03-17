@@ -1,4 +1,4 @@
-use crate::funky::decks::basic;
+use crate::funky::decks::{basic, tarot};
 use crate::funky::types::mpip::{MPip, MPipType};
 use crate::prelude::{CardError, Pip};
 use serde::{Deserialize, Serialize};
@@ -227,6 +227,31 @@ impl FromStr for BuffoonCard {
             "JC" => Ok(basic::card::JACK_CLUBS),
             "QC" => Ok(basic::card::QUEEN_CLUBS),
             "KC" => Ok(basic::card::KING_CLUBS),
+
+            // Tarot
+            "0M" => Ok(tarot::card::FOOL),
+            "1M" => Ok(tarot::card::MAGICIAN),
+            "2M" => Ok(tarot::card::HIGH_PRIESTESS),
+            "3M" => Ok(tarot::card::EMPRESS),
+            "4M" => Ok(tarot::card::EMPEROR),
+            "5M" => Ok(tarot::card::HIEROPHANT),
+            "6M" => Ok(tarot::card::LOVERS),
+            "7M" => Ok(tarot::card::THE_CHARIOT),
+            "8M" => Ok(tarot::card::STRENGTH),
+            "9M" => Ok(tarot::card::HERMIT),
+            "AM" => Ok(tarot::card::WHEEL_OF_FORTUNE),
+            "BM" => Ok(tarot::card::JUSTICE),
+            "CM" => Ok(tarot::card::HANGED_MAN),
+            "DM" => Ok(tarot::card::DEATH),
+            "EM" => Ok(tarot::card::TEMPERANCE),
+            "FM" => Ok(tarot::card::DEVIL),
+            "GM" => Ok(tarot::card::TOWER),
+            "HM" => Ok(tarot::card::STAR),
+            "IM" => Ok(tarot::card::MOON),
+            "JM" => Ok(tarot::card::SUN),
+            "KM" => Ok(tarot::card::JUDGEMENT),
+            "LM" => Ok(tarot::card::WORLD),
+
             _ => Ok(BuffoonCard::default()),
         }
     }
@@ -246,6 +271,232 @@ impl PartialOrd for BuffoonCard {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+#[macro_export]
+macro_rules! bcard {
+    (AS) => {
+        basic::card::ACE_SPADES
+    };
+    (2S) => {
+        basic::card::DEUCE_SPADES
+    };
+    (3S) => {
+        basic::card::TREY_SPADES
+    };
+    (4S) => {
+        basic::card::FOUR_SPADES
+    };
+    (5S) => {
+        basic::card::FIVE_SPADES
+    };
+    (6S) => {
+        basic::card::SIX_SPADES
+    };
+    (7S) => {
+        basic::card::SEVEN_SPADES
+    };
+    (8S) => {
+        basic::card::EIGHT_SPADES
+    };
+    (9S) => {
+        basic::card::NINE_SPADES
+    };
+    (TS) => {
+        basic::card::TEN_SPADES
+    };
+    (JS) => {
+        basic::card::JACK_SPADES
+    };
+    (QS) => {
+        basic::card::QUEEN_SPADES
+    };
+    (KS) => {
+        basic::card::KING_SPADES
+    };
+    (AD) => {
+        basic::card::ACE_DIAMONDS
+    };
+    (2D) => {
+        basic::card::DEUCE_DIAMONDS
+    };
+    (3D) => {
+        basic::card::TREY_DIAMONDS
+    };
+    (4D) => {
+        basic::card::FOUR_DIAMONDS
+    };
+    (5D) => {
+        basic::card::FIVE_DIAMONDS
+    };
+    (6D) => {
+        basic::card::SIX_DIAMONDS
+    };
+    (7D) => {
+        basic::card::SEVEN_DIAMONDS
+    };
+    (8D) => {
+        basic::card::EIGHT_DIAMONDS
+    };
+    (9D) => {
+        basic::card::NINE_DIAMONDS
+    };
+    (TD) => {
+        basic::card::TEN_DIAMONDS
+    };
+    (JD) => {
+        basic::card::JACK_DIAMONDS
+    };
+    (QD) => {
+        basic::card::QUEEN_DIAMONDS
+    };
+    (KD) => {
+        basic::card::KING_DIAMONDS
+    };
+    (AH) => {
+        basic::card::ACE_HEARTS
+    };
+    (2H) => {
+        basic::card::DEUCE_HEARTS
+    };
+    (3H) => {
+        basic::card::TREY_HEARTS
+    };
+    (4H) => {
+        basic::card::FOUR_HEARTS
+    };
+    (5H) => {
+        basic::card::FIVE_HEARTS
+    };
+    (6H) => {
+        basic::card::SIX_HEARTS
+    };
+    (7H) => {
+        basic::card::SEVEN_HEARTS
+    };
+    (8H) => {
+        basic::card::EIGHT_HEARTS
+    };
+    (9H) => {
+        basic::card::NINE_HEARTS
+    };
+    (TH) => {
+        basic::card::TEN_HEARTS
+    };
+    (JH) => {
+        basic::card::JACK_HEARTS
+    };
+    (QH) => {
+        basic::card::QUEEN_HEARTS
+    };
+    (KH) => {
+        basic::card::KING_HEARTS
+    };
+    (AC) => {
+        basic::card::ACE_CLUBS
+    };
+    (2C) => {
+        basic::card::DEUCE_CLUBS
+    };
+    (3C) => {
+        basic::card::TREY_CLUBS
+    };
+    (4C) => {
+        basic::card::FOUR_CLUBS
+    };
+    (5C) => {
+        basic::card::FIVE_CLUBS
+    };
+    (6C) => {
+        basic::card::SIX_CLUBS
+    };
+    (7C) => {
+        basic::card::SEVEN_CLUBS
+    };
+    (8C) => {
+        basic::card::EIGHT_CLUBS
+    };
+    (9C) => {
+        basic::card::NINE_CLUBS
+    };
+    (TC) => {
+        basic::card::TEN_CLUBS
+    };
+    (JC) => {
+        basic::card::JACK_CLUBS
+    };
+    (QC) => {
+        basic::card::QUEEN_CLUBS
+    };
+    (KC) => {
+        basic::card::KING_CLUBS
+    };
+    (0M) => {
+        tarot::card::FOOL
+    };
+    (1M) => {
+        tarot::card::MAGICIAN
+    };
+    (2M) => {
+        tarot::card::HIGH_PRIESTESS
+    };
+    (3M) => {
+        tarot::card::EMPRESS
+    };
+    (4M) => {
+        tarot::card::EMPEROR
+    };
+    (5M) => {
+        tarot::card::HIEROPHANT
+    };
+    (6M) => {
+        tarot::card::LOVERS
+    };
+    (7M) => {
+        tarot::card::THE_CHARIOT
+    };
+    (8M) => {
+        tarot::card::STRENGTH
+    };
+    (9M) => {
+        tarot::card::HERMIT
+    };
+    (AM) => {
+        tarot::card::WHEEL_OF_FORTUNE
+    };
+    (BM) => {
+        tarot::card::JUSTICE
+    };
+    (CM) => {
+        tarot::card::HANGED_MAN
+    };
+    (DM) => {
+        tarot::card::DEATH
+    };
+    (EM) => {
+        tarot::card::TEMPERANCE
+    };
+    (FM) => {
+        tarot::card::DEVIL
+    };
+    (GM) => {
+        tarot::card::TOWER
+    };
+    (HM) => {
+        tarot::card::STAR
+    };
+    (IM) => {
+        tarot::card::MOON
+    };
+    (JM) => {
+        tarot::card::SUN
+    };
+    (KM) => {
+        tarot::card::JUDGEMENT
+    };
+    (LM) => {
+        tarot::card::WORLD
+    };
 }
 
 #[cfg(test)]
@@ -506,5 +757,106 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(BuffoonCard::from_str("JC").unwrap(), JACK_CLUBS);
         assert_eq!(BuffoonCard::from_str("QC").unwrap(), QUEEN_CLUBS);
         assert_eq!(BuffoonCard::from_str("KC").unwrap(), KING_CLUBS);
+
+        assert_eq!(BuffoonCard::from_str("0M").unwrap(), FOOL);
+        assert_eq!(BuffoonCard::from_str("1M").unwrap(), MAGICIAN);
+        assert_eq!(BuffoonCard::from_str("2M").unwrap(), HIGH_PRIESTESS);
+        assert_eq!(BuffoonCard::from_str("3M").unwrap(), EMPRESS);
+        assert_eq!(BuffoonCard::from_str("4M").unwrap(), EMPEROR);
+        assert_eq!(BuffoonCard::from_str("5M").unwrap(), HIEROPHANT);
+        assert_eq!(BuffoonCard::from_str("6M").unwrap(), LOVERS);
+        assert_eq!(BuffoonCard::from_str("7M").unwrap(), THE_CHARIOT);
+        assert_eq!(BuffoonCard::from_str("8M").unwrap(), STRENGTH);
+        assert_eq!(BuffoonCard::from_str("9M").unwrap(), HERMIT);
+        assert_eq!(BuffoonCard::from_str("AM").unwrap(), WHEEL_OF_FORTUNE);
+        assert_eq!(BuffoonCard::from_str("BM").unwrap(), JUSTICE);
+        assert_eq!(BuffoonCard::from_str("CM").unwrap(), HANGED_MAN);
+        assert_eq!(BuffoonCard::from_str("DM").unwrap(), DEATH);
+        assert_eq!(BuffoonCard::from_str("EM").unwrap(), TEMPERANCE);
+        assert_eq!(BuffoonCard::from_str("FM").unwrap(), DEVIL);
+        assert_eq!(BuffoonCard::from_str("GM").unwrap(), TOWER);
+        assert_eq!(BuffoonCard::from_str("HM").unwrap(), STAR);
+        assert_eq!(BuffoonCard::from_str("IM").unwrap(), MOON);
+        assert_eq!(BuffoonCard::from_str("JM").unwrap(), SUN);
+        assert_eq!(BuffoonCard::from_str("KM").unwrap(), JUDGEMENT);
+        assert_eq!(BuffoonCard::from_str("LM").unwrap(), WORLD);
+    }
+
+    #[test]
+    fn bcard() {
+        assert_eq!(bcard!(AS), ACE_SPADES);
+        assert_eq!(bcard!(2S), DEUCE_SPADES);
+        assert_eq!(bcard!(3S), TREY_SPADES);
+        assert_eq!(bcard!(4S), FOUR_SPADES);
+        assert_eq!(bcard!(5S), FIVE_SPADES);
+        assert_eq!(bcard!(6S), SIX_SPADES);
+        assert_eq!(bcard!(7S), SEVEN_SPADES);
+        assert_eq!(bcard!(8S), EIGHT_SPADES);
+        assert_eq!(bcard!(9S), NINE_SPADES);
+        assert_eq!(bcard!(TS), TEN_SPADES);
+        assert_eq!(bcard!(JS), JACK_SPADES);
+        assert_eq!(bcard!(QS), QUEEN_SPADES);
+        assert_eq!(bcard!(KS), KING_SPADES);
+        assert_eq!(bcard!(AD), ACE_DIAMONDS);
+        assert_eq!(bcard!(2D), DEUCE_DIAMONDS);
+        assert_eq!(bcard!(3D), TREY_DIAMONDS);
+        assert_eq!(bcard!(4D), FOUR_DIAMONDS);
+        assert_eq!(bcard!(5D), FIVE_DIAMONDS);
+        assert_eq!(bcard!(6D), SIX_DIAMONDS);
+        assert_eq!(bcard!(7D), SEVEN_DIAMONDS);
+        assert_eq!(bcard!(8D), EIGHT_DIAMONDS);
+        assert_eq!(bcard!(9D), NINE_DIAMONDS);
+        assert_eq!(bcard!(TD), TEN_DIAMONDS);
+        assert_eq!(bcard!(JD), JACK_DIAMONDS);
+        assert_eq!(bcard!(QD), QUEEN_DIAMONDS);
+        assert_eq!(bcard!(KD), KING_DIAMONDS);
+        assert_eq!(bcard!(AH), ACE_HEARTS);
+        assert_eq!(bcard!(2H), DEUCE_HEARTS);
+        assert_eq!(bcard!(3H), TREY_HEARTS);
+        assert_eq!(bcard!(4H), FOUR_HEARTS);
+        assert_eq!(bcard!(5H), FIVE_HEARTS);
+        assert_eq!(bcard!(6H), SIX_HEARTS);
+        assert_eq!(bcard!(7H), SEVEN_HEARTS);
+        assert_eq!(bcard!(8H), EIGHT_HEARTS);
+        assert_eq!(bcard!(9H), NINE_HEARTS);
+        assert_eq!(bcard!(TH), TEN_HEARTS);
+        assert_eq!(bcard!(JH), JACK_HEARTS);
+        assert_eq!(bcard!(QH), QUEEN_HEARTS);
+        assert_eq!(bcard!(KH), KING_HEARTS);
+        assert_eq!(bcard!(AC), ACE_CLUBS);
+        assert_eq!(bcard!(2C), DEUCE_CLUBS);
+        assert_eq!(bcard!(3C), TREY_CLUBS);
+        assert_eq!(bcard!(4C), FOUR_CLUBS);
+        assert_eq!(bcard!(5C), FIVE_CLUBS);
+        assert_eq!(bcard!(6C), SIX_CLUBS);
+        assert_eq!(bcard!(7C), SEVEN_CLUBS);
+        assert_eq!(bcard!(8C), EIGHT_CLUBS);
+        assert_eq!(bcard!(9C), NINE_CLUBS);
+        assert_eq!(bcard!(TC), TEN_CLUBS);
+        assert_eq!(bcard!(JC), JACK_CLUBS);
+        assert_eq!(bcard!(QC), QUEEN_CLUBS);
+        assert_eq!(bcard!(KC), KING_CLUBS);
+        assert_eq!(bcard!(0M), FOOL);
+        assert_eq!(bcard!(1M), MAGICIAN);
+        assert_eq!(bcard!(2M), HIGH_PRIESTESS);
+        assert_eq!(bcard!(3M), EMPRESS);
+        assert_eq!(bcard!(4M), EMPEROR);
+        assert_eq!(bcard!(5M), HIEROPHANT);
+        assert_eq!(bcard!(6M), LOVERS);
+        assert_eq!(bcard!(7M), THE_CHARIOT);
+        assert_eq!(bcard!(8M), STRENGTH);
+        assert_eq!(bcard!(9M), HERMIT);
+        assert_eq!(bcard!(AM), WHEEL_OF_FORTUNE);
+        assert_eq!(bcard!(BM), JUSTICE);
+        assert_eq!(bcard!(CM), HANGED_MAN);
+        assert_eq!(bcard!(DM), DEATH);
+        assert_eq!(bcard!(EM), TEMPERANCE);
+        assert_eq!(bcard!(FM), DEVIL);
+        assert_eq!(bcard!(GM), TOWER);
+        assert_eq!(bcard!(HM), STAR);
+        assert_eq!(bcard!(IM), MOON);
+        assert_eq!(bcard!(JM), SUN);
+        assert_eq!(bcard!(KM), JUDGEMENT);
+        assert_eq!(bcard!(LM), WORLD);
     }
 }
