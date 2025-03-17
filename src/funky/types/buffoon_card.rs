@@ -161,6 +161,14 @@ impl Display for BuffoonCard {
     }
 }
 
+impl FromStr for BuffoonCard {
+    type Err = CardError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
 /// Inverts the order so that the highest card comes first.
 impl Ord for BuffoonCard {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -184,7 +192,7 @@ mod funky__types__buffoon_card_tests {
     use crate::funky::decks::basic::card::*;
     use crate::funky::decks::tarot::card::*;
     use crate::funky::types::mpip::MPipType;
-    use ckc_rs::CardRank::SIX;
+    use rstest::rstest;
 
     #[test]
     fn get_chips() {
