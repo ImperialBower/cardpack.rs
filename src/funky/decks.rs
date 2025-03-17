@@ -1,11 +1,5 @@
 pub mod basic {
     use crate::funky::types::buffoon_card::BuffoonCard;
-    use phf::phf_map;
-    use crate::prelude::BasicCard;
-
-    const BASIC_MAP: phf::Map<BasicCard, BuffoonCard> = phf_map! {
-        
-    };
 
     pub struct Deck {}
 
