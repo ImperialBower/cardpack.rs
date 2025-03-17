@@ -157,7 +157,7 @@ impl Display for BuffoonCard {
         write!(
             f,
             "{}{}{}-{}",
-            self.rank, self.suit, self.card_type, self.enhancement
+            self.rank.index, self.suit.index, self.card_type, self.enhancement
         )
     }
 }
