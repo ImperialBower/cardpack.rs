@@ -60,8 +60,6 @@ pub mod basic {
             card::TREY_CLUBS,
             card::DEUCE_CLUBS,
         ];
-
-
     }
 
     pub mod card {
