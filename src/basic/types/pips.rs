@@ -29,6 +29,10 @@ pub enum PipType {
     Suit,
     Rank,
     Joker,
+    CommonJoker,
+    UncommonJoker,
+    RareJoker,
+    LegendaryJoker,
     Special,
 }
 

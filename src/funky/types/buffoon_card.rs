@@ -67,6 +67,7 @@ pub struct BuffoonCard {
     pub rank: Pip,
     pub card_type: BCardType,
     pub enhancement: MPip,
+    pub debuffed: bool,
 }
 
 impl BuffoonCard {
@@ -160,11 +161,7 @@ impl BuffoonCard {
 impl Display for BuffoonCard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.is_basic() {
-            write!(
-                f,
-                "{}{}",
-                self.rank.index, self.suit.index
-            )
+            write!(f, "{}{}", self.rank.index, self.suit.index)
         } else {
             write!(
                 f,

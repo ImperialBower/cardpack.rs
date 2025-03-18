@@ -56,10 +56,10 @@ impl Display for MPipType {
             MPipType::Strength => write!(f, "Strength"),
             MPipType::Wheel(value) => write!(f, "Wheel({value})"),
             MPipType::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
-            MPipType::Diamonds(value)  => write!(f, "Diamonds({value})"),
-            MPipType::Clubs(value)  => write!(f, "Clubs({value})"),
-            MPipType::Hearts(value)  => write!(f, "Hearts({value})"),
-            MPipType::Spades(value)  => write!(f, "Spades({value})"),
+            MPipType::Diamonds(value) => write!(f, "Diamonds({value})"),
+            MPipType::Clubs(value) => write!(f, "Clubs({value})"),
+            MPipType::Hearts(value) => write!(f, "Hearts({value})"),
+            MPipType::Spades(value) => write!(f, "Spades({value})"),
         }
     }
 }
