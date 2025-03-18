@@ -65,7 +65,7 @@ pub mod basic {
     pub mod card {
         use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
         use crate::funky::types::mpip::MPip;
-        use crate::prelude::{FrenchRank, FrenchSuit};
+        use crate::prelude::{FrenchRank, FrenchSuit, Pip};
 
         #[must_use]
         pub fn plus_rank(basic_card: BuffoonCard) -> BuffoonCard {
@@ -86,6 +86,11 @@ pub mod basic {
                 _ => basic_card.rank,
             };
             BuffoonCard { rank, ..basic_card }
+        }
+
+        #[must_use]
+        pub fn set_suit(basic_card: BuffoonCard, suit: Pip) -> BuffoonCard {
+            BuffoonCard { suit, ..basic_card }
         }
 
         pub const ACE_SPADES: BuffoonCard = BuffoonCard {
