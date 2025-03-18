@@ -523,7 +523,7 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::EMPRESS,
             card_type: BCardType::Tarot,
-            enhancement: MPip::MOD_MULT_PLUS4,
+            enhancement: MPip::MULT_PLUS4,
             debuffed: false,
         };
         pub const EMPEROR: BuffoonCard = BuffoonCard {
@@ -565,7 +565,7 @@ pub mod tarot {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HERMIT,
             card_type: BCardType::Tarot,
-            enhancement: MPip::MOD_DOUBLE_MONEY,
+            enhancement: MPip::DOUBLE_MONEY,
             debuffed: false,
         };
         pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
@@ -664,11 +664,33 @@ pub mod joker {
         use crate::funky::types::mpip::MPip;
         use crate::prelude::FrenchSuit;
 
+        /// For Joker cards, their cost is set by the rank value.
         pub const JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::JOKER,
-            card_type: BCardType::Joker,
-            enhancement: MPip::MOD_MULT_PLUS4,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS4,
+            debuffed: false,
+        };
+        pub const GREEDY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::GREEDY_JOKER,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS3_ON_DIAMONDS,
+            debuffed: false,
+        };
+        pub const LUSTY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::LUSTY_JOKER,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS3_ON_HEARTS,
+            debuffed: false,
+        };
+        pub const WRATHFUL_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::WRATHFUL_JOKER,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS3_ON_SPADES,
             debuffed: false,
         };
     }
@@ -676,12 +698,34 @@ pub mod joker {
     pub mod rank {
         use crate::prelude::{Pip, PipType};
 
+        // https://symbl.cc/en/unicode-table/#miscellaneous-symbols
         pub const JOKER: Pip = Pip {
-            weight: 1000,
+            weight: 1_000,
             pip_type: PipType::Joker,
             index: '⚫',
             symbol: '⚫',
             value: 2,
+        };
+        pub const GREEDY_JOKER: Pip = Pip {
+            weight: 995,
+            pip_type: PipType::Joker,
+            index: '♦',
+            symbol: '♦',
+            value: 5,
+        };
+        pub const LUSTY_JOKER: Pip = Pip {
+            weight: 990,
+            pip_type: PipType::Joker,
+            index: '♥',
+            symbol: '♥',
+            value: 5,
+        };
+        pub const WRATHFUL_JOKER: Pip = Pip {
+            weight: 985,
+            pip_type: PipType::Joker,
+            index: '♠',
+            symbol: '♠',
+            value: 5,
         };
     }
 }
