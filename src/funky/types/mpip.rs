@@ -10,6 +10,7 @@ pub enum MPipType {
     Blank,
     AddBaseChips(usize),
     Chips(usize),
+    ChipsAndMultPlus(usize, usize),
     Death(usize),
     DoubleMoney(usize),
     Glass(usize, usize),
@@ -18,6 +19,7 @@ pub enum MPipType {
     JokersValue(usize),
     Lucky(usize, usize),
     MultPlus(usize),
+    MultPlusOnSuit(usize, char),
     MultTimes(usize),
     MultTimes1Dot(usize),
     Planet(usize),
@@ -39,6 +41,9 @@ impl Display for MPipType {
             MPipType::Blank => write!(f, "Blank"),
             MPipType::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
             MPipType::Chips(chips) => write!(f, "Chips({chips})"),
+            MPipType::ChipsAndMultPlus(chips, value) => {
+                write!(f, "ChipsAndMultPlus({chips}, {value})")
+            }
             MPipType::Death(value) => write!(f, "Death({value})"),
             MPipType::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
             MPipType::Glass(a, b) => write!(f, "Glass({a}, {b})"),
@@ -47,6 +52,7 @@ impl Display for MPipType {
             MPipType::JokersValue(value) => write!(f, "JokersValue({value})"),
             MPipType::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             MPipType::MultPlus(value) => write!(f, "MultPlus({value})"),
+            MPipType::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
             MPipType::MultTimes(value) => write!(f, "MultTimes({value})"),
             MPipType::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
             MPipType::Planet(value) => write!(f, "Planet({value})"),
@@ -87,12 +93,28 @@ impl MPip {
         pip_type: MPipType::Gold(3),
         index: 'v',
     };
-    pub const MOD_DOUBLE_MONEY: Self = Self {
+    pub const DOUBLE_MONEY: Self = Self {
         pip_type: MPipType::DoubleMoney(20),
         index: 'd',
     };
-    pub const MOD_MULT_PLUS4: Self = Self {
+    pub const MULT_PLUS4: Self = Self {
         pip_type: MPipType::MultPlus(4),
+        index: 'e',
+    };
+    pub const MULT_PLUS3_ON_DIAMONDS: Self = Self {
+        pip_type: MPipType::MultPlusOnSuit(3, 'D'),
+        index: 'e',
+    };
+    pub const MULT_PLUS3_ON_HEARTS: Self = Self {
+        pip_type: MPipType::MultPlusOnSuit(3, 'H'),
+        index: 'e',
+    };
+    pub const MULT_PLUS3_ON_SPADES: Self = Self {
+        pip_type: MPipType::MultPlusOnSuit(3, 'S'),
+        index: 'e',
+    };
+    pub const MULT_PLUS3_ON_CLUBS: Self = Self {
+        pip_type: MPipType::MultPlusOnSuit(3, 'C'),
         index: 'e',
     };
     pub const GLASS: Self = Self {

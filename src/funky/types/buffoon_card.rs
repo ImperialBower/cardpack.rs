@@ -14,7 +14,10 @@ use std::str::FromStr;
 pub enum BCardType {
     #[default]
     Basic,
-    Joker,
+    CommonJoker,
+    UncommonJoker,
+    RareJoker,
+    LegendaryJoker,
     Planet,
     Spectral,
     Tarot,
@@ -24,7 +27,10 @@ pub enum BCardType {
 impl Display for BCardType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            BCardType::Joker => 'j',
+            BCardType::CommonJoker => 'j',
+            BCardType::UncommonJoker => 'u',
+            BCardType::RareJoker => 'r',
+            BCardType::LegendaryJoker => 'l',
             BCardType::Planet => 'p',
             BCardType::Spectral => 's',
             BCardType::Tarot => 't',
@@ -38,7 +44,10 @@ impl Display for BCardType {
 impl From<char> for BCardType {
     fn from(c: char) -> Self {
         match c {
-            'j' | 'J' => BCardType::Joker,
+            'j' | 'J' => BCardType::CommonJoker,
+            'u' | 'U' => BCardType::UncommonJoker,
+            'r' | 'R' => BCardType::RareJoker,
+            'l' | 'L' => BCardType::LegendaryJoker,
             'p' | 'P' => BCardType::Planet,
             's' | 'S' => BCardType::Spectral,
             't' | 'T' => BCardType::Tarot,
@@ -552,7 +561,7 @@ mod funky__types__buffoon_card_tests {
     fn enhance__empress() {
         let card = JACK_SPADES.enhance(MAGICIAN);
 
-        assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MOD_MULT_PLUS4);
+        assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MULT_PLUS4);
     }
 
     #[test]

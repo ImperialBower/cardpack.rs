@@ -96,7 +96,7 @@ impl BuffoonPile {
         self.0.remove(position)
     }
 
-    /// Suffles the `BasicPile` in place.
+    /// Shuffles the `BasicPile` in place.
     ///
     /// TODO: I would like to be able to pass in a seed to the shuffle function.
     pub fn shuffle(&mut self) {
