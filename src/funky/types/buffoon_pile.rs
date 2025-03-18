@@ -2,6 +2,8 @@ use crate::funky::types::buffoon_card::BuffoonCard;
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::prelude::CardError;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
@@ -40,6 +42,19 @@ impl BuffoonPile {
             0 => None,
             _ => Some(self.remove(0)),
         }
+    }
+
+    /// **DIARY** This is where TDD kinda breaks down for me in Rust. I can't
+    /// write a failing test until I've written the signature for the method
+    /// to test. Heck, might as well take a stab at writing it altogether. It
+    /// does feel good when I do and get it write, given how insecure I am
+    /// with the language.
+    ///
+    /// However, before I can write this easily, I need a `BuffoonPile::from_str() `
+    /// method.
+    #[must_use]
+    pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
+        self.iter().map(|c| c.enhance(enhancer)).collect()
     }
 
     pub fn extend(&mut self, other: &Self) {
@@ -138,6 +153,18 @@ impl From<Vec<BuffoonCard>> for BuffoonPile {
     }
 }
 
+impl FromStr for BuffoonPile {
+    type Err = CardError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let cards = s
+            .split_whitespace()
+            .map(BuffoonCard::from_str)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self(cards))
+    }
+}
+
 //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
 // region Iterator
 impl FromIterator<BuffoonCard> for BuffoonPile {
@@ -161,6 +188,18 @@ impl IntoIterator for BuffoonPile {
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__types__buffoon_card_tests {
+    use super::*;
+
+    #[test]
+    fn from_str() {
+        let pile = BuffoonPile::from_str("AS KS QS JS TS").unwrap();
+        assert_eq!(pile.to_string(), "AS KS QS JS TS");
     }
 }
 

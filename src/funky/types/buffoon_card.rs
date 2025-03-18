@@ -1,6 +1,6 @@
 use crate::funky::decks::{basic, tarot};
 use crate::funky::types::mpip::{MPip, MPipType};
-use crate::prelude::{CardError, Pip};
+use crate::prelude::{CardError, FrenchSuit, Pip};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Display;
@@ -129,13 +129,13 @@ impl BuffoonCard {
             | MPipType::Planet(_)
             | MPipType::RandomTarot(_)
             | MPipType::JokersValue(_)
-            | MPipType::Diamonds
-            | MPipType::Clubs
-            | MPipType::Hearts
-            | MPipType::Spades
             | MPipType::RandomJoker(_)
             | MPipType::Wheel(_) => *self,
             MPipType::Strength => basic::card::plus_rank(*self),
+            MPipType::Diamonds(_) => basic::card::set_suit(*self, FrenchSuit::DIAMONDS),
+            MPipType::Clubs(_) => basic::card::set_suit(*self, FrenchSuit::CLUBS),
+            MPipType::Hearts(_) => basic::card::set_suit(*self, FrenchSuit::HEARTS),
+            MPipType::Spades(_) => basic::card::set_suit(*self, FrenchSuit::SPADES),
             _ => self.enhance_swap(enhancer.enhancement),
         };
         println!("Enhanced {bc}");
@@ -150,15 +150,28 @@ impl BuffoonCard {
             ..*self
         }
     }
+
+    #[must_use]
+    pub fn is_basic(&self) -> bool {
+        (self.card_type == BCardType::Basic) && (self.enhancement == MPip::BLANK)
+    }
 }
 
 impl Display for BuffoonCard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}{}{}-{}",
-            self.rank.index, self.suit.index, self.card_type, self.enhancement
-        )
+        if self.is_basic() {
+            write!(
+                f,
+                "{}{}",
+                self.rank.index, self.suit.index
+            )
+        } else {
+            write!(
+                f,
+                "{}{}{}-{}",
+                self.rank.index, self.suit.index, self.card_type, self.enhancement
+            )
+        }
     }
 }
 
@@ -500,14 +513,11 @@ macro_rules! bcard {
 }
 
 #[cfg(test)]
-#[allow(non_snake_case, unused_imports)]
+#[allow(non_snake_case)]
 mod funky__types__buffoon_card_tests {
     use super::*;
-    use crate::funky::decks::basic::card;
     use crate::funky::decks::basic::card::*;
     use crate::funky::decks::tarot::card::*;
-    use crate::funky::types::mpip::MPipType;
-    use rstest::rstest;
 
     #[test]
     fn get_chips() {
@@ -700,6 +710,14 @@ mod funky__types__buffoon_card_tests {
     #[test]
     fn enhance__judgement() {
         assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::BLANK);
+    }
+
+    #[test]
+    fn enhance_suits() {
+        assert_eq!(SIX_CLUBS.enhance(STAR).suit, FrenchSuit::DIAMONDS);
+        assert_eq!(SIX_CLUBS.enhance(MOON).suit, FrenchSuit::CLUBS);
+        assert_eq!(SIX_CLUBS.enhance(SUN).suit, FrenchSuit::HEARTS);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).suit, FrenchSuit::SPADES);
     }
 
     #[test]
