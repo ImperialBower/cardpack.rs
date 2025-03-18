@@ -420,36 +420,42 @@ pub mod basic {
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const SIX_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const FIVE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const FOUR_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const TREY_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const DEUCE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
     }
 }
@@ -497,132 +503,154 @@ pub mod tarot {
             rank: TarotRank::FOOL,
             card_type: BCardType::Tarot,
             enhancement: MPip::BLANK,
+            debuffed: false,
         };
         pub const MAGICIAN: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::MAGICIAN,
             card_type: BCardType::Tarot,
             enhancement: MPip::LUCKY,
+            debuffed: false,
         };
         pub const HIGH_PRIESTESS: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HIGH_PRIESTESS,
             card_type: BCardType::Tarot,
             enhancement: MPip::PLANET,
+            debuffed: false,
         };
         pub const EMPRESS: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::EMPRESS,
             card_type: BCardType::Tarot,
             enhancement: MPip::MOD_MULT_PLUS4,
+            debuffed: false,
         };
         pub const EMPEROR: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::EMPEROR,
             card_type: BCardType::Tarot,
             enhancement: MPip::RANDOM_TAROT,
+            debuffed: false,
         };
         pub const HIEROPHANT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HIEROPHANT,
             card_type: BCardType::Tarot,
             enhancement: MPip::BONUS,
+            debuffed: false,
         };
         pub const LOVERS: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::LOVERS,
             card_type: BCardType::Tarot,
             enhancement: MPip::WILD_SUIT,
+            debuffed: false,
         };
         pub const THE_CHARIOT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::CHARIOT,
             card_type: BCardType::Tarot,
             enhancement: MPip::STEEL,
+            debuffed: false,
         };
         pub const STRENGTH: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::STRENGTH,
             card_type: BCardType::Tarot,
             enhancement: MPip::STRENGTH,
+            debuffed: false,
         };
         pub const HERMIT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HERMIT,
             card_type: BCardType::Tarot,
             enhancement: MPip::MOD_DOUBLE_MONEY,
+            debuffed: false,
         };
         pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::WHEEL_OF_FORTUNE,
             card_type: BCardType::Tarot,
             enhancement: MPip::WHEEL_OF_FORTUNE,
+            debuffed: false,
         };
         pub const JUSTICE: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::JUSTICE,
             card_type: BCardType::Tarot,
             enhancement: MPip::GLASS,
+            debuffed: false,
         };
         pub const HANGED_MAN: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::HANGED_MAN,
             card_type: BCardType::Tarot,
             enhancement: MPip::HANGED,
+            debuffed: false,
         };
         pub const DEATH: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::DEATH,
             card_type: BCardType::Tarot,
             enhancement: MPip::DEATH,
+            debuffed: false,
         };
         pub const TEMPERANCE: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::TEMPERANCE,
             card_type: BCardType::Tarot,
             enhancement: MPip::TEMPERANCE,
+            debuffed: false,
         };
         pub const DEVIL: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::DEVIL,
             card_type: BCardType::Tarot,
             enhancement: MPip::DEVIL,
+            debuffed: false,
         };
         pub const TOWER: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::TOWER,
             card_type: BCardType::Tarot,
             enhancement: MPip::TOWER,
+            debuffed: false,
         };
         pub const STAR: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::STAR,
             card_type: BCardType::Tarot,
             enhancement: MPip::DIAMONDS,
+            debuffed: false,
         };
         pub const MOON: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::MOON,
             card_type: BCardType::Tarot,
             enhancement: MPip::CLUBS,
+            debuffed: false,
         };
         pub const SUN: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::SUN,
             card_type: BCardType::Tarot,
             enhancement: MPip::HEARTS,
+            debuffed: false,
         };
         pub const JUDGEMENT: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::JUDGEMENT,
             card_type: BCardType::Tarot,
             enhancement: MPip::JUDGEMENT,
+            debuffed: false,
         };
         pub const WORLD: BuffoonCard = BuffoonCard {
             suit: TarotSuit::MAJOR_ARCANA,
             rank: TarotRank::WORLD,
             card_type: BCardType::Tarot,
             enhancement: MPip::SPADES,
+            debuffed: false,
         };
     }
 }
@@ -641,6 +669,7 @@ pub mod joker {
             rank: joker::rank::JOKER,
             card_type: BCardType::Joker,
             enhancement: MPip::MOD_MULT_PLUS4,
+            debuffed: false,
         };
     }
 
@@ -655,8 +684,4 @@ pub mod joker {
             value: 2,
         };
     }
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
