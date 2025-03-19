@@ -15,6 +15,13 @@ impl BuffoonPile {
         &self.0
     }
 
+    /// **DIARY** OK here is where we put our coding to the test. We should be able to take what we
+    /// did on the [`BuffoonCard`] side and apply it at the connection level.
+    #[must_use]
+    pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
+        self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
+    }
+
     pub fn clear(&mut self) {
         self.0.clear();
     }
@@ -51,7 +58,8 @@ impl BuffoonPile {
     /// with the language.
     ///
     /// However, before I can write this easily, I need a `BuffoonPile::from_str() `
-    /// method.
+    /// method. I am addicted to them in these style of libraries. I want to manifest state
+    /// as easily as possible.
     #[must_use]
     pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
         self.iter().map(|c| c.enhance(enhancer)).collect()
@@ -59,6 +67,10 @@ impl BuffoonPile {
 
     pub fn extend(&mut self, other: &Self) {
         self.0.extend(other.0.clone());
+    }
+
+    pub fn forgiving_from_str(index: &str) -> Self {
+        Self::from_str(index).unwrap_or_else(|_| Self::default())
     }
 
     #[must_use]
@@ -194,12 +206,33 @@ impl IntoIterator for BuffoonPile {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod funky__types__buffoon_card_tests {
+    use crate::preludes::funky::*;
     use super::*;
+
+    /// **DIARY** The unit test code that CoPilot generates is baffling to me sometimes. Complete
+    /// nonsense:
+    ///
+    /// ```txt
+    /// let pile = BuffoonPile::from(vec![
+    ///     BuffoonCard::new(1, 2),
+    ///     BuffoonCard::new(3, 4),
+    /// ]);
+    /// let enhancer = BuffoonCard::new(5, 6);
+    /// assert_eq!(pile.calculate_mult_plus(enhancer), 44);
+    /// ```
+    #[test]
+    fn calculate_mult_plus() {
+        assert_eq!(bcards!("AS KS QS JD TD").calculate_mult_plus(bcard!(GREEDY)), 6);
+        assert_eq!(bcards!("AS KD QS JD TD").calculate_mult_plus(bcard!(GREEDY)), 9);
+        assert_eq!(bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(GREEDY)), 0);
+
+    }
 
     #[test]
     fn from_str() {
         let pile = BuffoonPile::from_str("AS KS QS JS TS").unwrap();
         assert_eq!(pile.to_string(), "AS KS QS JS TS");
+        assert_eq!(bcards!("AS KS QS JS TS").to_string(), "AS KS QS JS TS");
     }
 }
 
