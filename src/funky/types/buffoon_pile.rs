@@ -1,5 +1,5 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
-use crate::prelude::CardError;
+use crate::prelude::{BasicPile, CardError};
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::fmt::{Display, Formatter};
@@ -9,10 +9,8 @@ use std::str::FromStr;
 pub struct BuffoonPile(Vec<BuffoonCard>);
 
 impl BuffoonPile {
-    /// Returns a reference to the internal vector of the struct.
-    #[must_use]
-    pub fn v(&self) -> &Vec<BuffoonCard> {
-        &self.0
+    pub fn basic_pile(&self) -> BasicPile {
+        self.iter().map(BuffoonCard::basic_card).collect()
     }
 
     /// **DIARY** OK here is where we put our coding to the test. We should be able to take what we
@@ -69,6 +67,7 @@ impl BuffoonPile {
         self.0.extend(other.0.clone());
     }
 
+    #[must_use]
     pub fn forgiving_from_str(index: &str) -> Self {
         Self::from_str(index).unwrap_or_else(|_| Self::default())
     }
@@ -144,6 +143,12 @@ impl BuffoonPile {
         pile.sort_by_rank();
         pile
     }
+
+    /// Returns a reference to the internal vector of the struct.
+    #[must_use]
+    pub fn v(&self) -> &Vec<BuffoonCard> {
+        &self.0
+    }
 }
 
 impl Display for BuffoonPile {
@@ -206,8 +211,8 @@ impl IntoIterator for BuffoonPile {
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod funky__types__buffoon_card_tests {
-    use crate::preludes::funky::*;
     use super::*;
+    use crate::preludes::funky::*;
 
     /// **DIARY** The unit test code that CoPilot generates is baffling to me sometimes. Complete
     /// nonsense:
@@ -222,10 +227,61 @@ mod funky__types__buffoon_card_tests {
     /// ```
     #[test]
     fn calculate_mult_plus() {
-        assert_eq!(bcards!("AS KS QS JD TD").calculate_mult_plus(bcard!(GREEDY)), 6);
-        assert_eq!(bcards!("AS KD QS JD TD").calculate_mult_plus(bcard!(GREEDY)), 9);
-        assert_eq!(bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(GREEDY)), 0);
+        assert_eq!(
+            bcards!("AD KD QD JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            15
+        );
+        assert_eq!(
+            bcards!("AS KD QS JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            9
+        );
+        assert_eq!(
+            bcards!("AS KS QS JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            6
+        );
+        assert_eq!(
+            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(GREEDY)),
+            0
+        );
 
+        assert_eq!(
+            bcards!("AH KH QH JH TH").calculate_mult_plus(bcard!(LUSTY)),
+            15
+        );
+        assert_eq!(
+            bcards!("AS KH QS JH TS").calculate_mult_plus(bcard!(LUSTY)),
+            6
+        );
+        assert_eq!(
+            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(LUSTY)),
+            0
+        );
+
+        assert_eq!(
+            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(WRATHFUL)),
+            15
+        );
+        assert_eq!(
+            bcards!("AS KD QD JS 2S").calculate_mult_plus(bcard!(WRATHFUL)),
+            9
+        );
+        assert_eq!(
+            bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(WRATHFUL)),
+            0
+        );
+
+        assert_eq!(
+            bcards!("AC KC QC JC TC").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            15
+        );
+        assert_eq!(
+            bcards!("AC KD QC JS 2C").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            9
+        );
+        assert_eq!(
+            bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            0
+        );
     }
 
     #[test]
@@ -235,6 +291,8 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(bcards!("AS KS QS JS TS").to_string(), "AS KS QS JS TS");
     }
 }
+
+// region garbage
 
 // so bad:
 //
@@ -386,3 +444,5 @@ mod funky__types__buffoon_card_tests {
 //         assert_eq!(sorted.v(), &vec![BuffoonCard::new(3), BuffoonCard::new(2), BuffoonCard::new(1)]);
 //     }
 // }
+
+// endregion
