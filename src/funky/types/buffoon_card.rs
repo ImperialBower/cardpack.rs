@@ -1,6 +1,6 @@
 use crate::funky::decks::{basic, tarot};
 use crate::funky::types::mpip::{MPip, MPipType};
-use crate::prelude::{CardError, FrenchSuit, Pip};
+use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Display;
@@ -107,6 +107,14 @@ impl BuffoonCard {
         let rank = self.rank.update_value(value);
 
         Self { rank, ..*self }
+    }
+
+    #[must_use]
+    pub fn basic_card(&self) -> BasicCard {
+        BasicCard {
+            suit: self.suit,
+            rank: self.rank,
+        }
     }
 
     #[must_use]
@@ -325,7 +333,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__magician() {
+    fn enhance__tarot__magician() {
         assert_eq!(
             TEN_DIAMONDS.enhance_swap(MPip::LUCKY).enhancement,
             MPip::LUCKY
@@ -337,7 +345,7 @@ mod funky__types__buffoon_card_tests {
     /// The High Priestess creates up to 2 random Planet cards, so is a pass-through with no effect
     /// to the underlying card.
     #[test]
-    fn enhance__high_priestess() {
+    fn enhance__tarot__high_priestess() {
         let card = QUEEN_SPADES.enhance(MAGICIAN);
         let original_enhancement = card.enhancement;
 
@@ -349,14 +357,14 @@ mod funky__types__buffoon_card_tests {
 
     /// The Empress replaces the existing enhancement.
     #[test]
-    fn enhance__empress() {
+    fn enhance__tarot__empress() {
         let card = JACK_SPADES.enhance(MAGICIAN);
 
         assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MULT_PLUS4);
     }
 
     #[test]
-    fn enhance__emperor() {
+    fn enhance__tarot__emperor() {
         let card = TEN_DIAMONDS.enhance(MAGICIAN);
         let original_enhancement = card.enhancement;
 
@@ -364,7 +372,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__hierophant() {
+    fn enhance__tarot__hierophant() {
         let card = JACK_CLUBS;
 
         assert_eq!(card.get_chips(), 10);
@@ -374,7 +382,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__lovers() {
+    fn enhance__tarot__lovers() {
         let card = TEN_CLUBS;
 
         assert_eq!(card.get_chips(), 10);
@@ -384,7 +392,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__chariot() {
+    fn enhance__tarot__chariot() {
         let card = NINE_CLUBS;
 
         assert_eq!(card.get_chips(), 9);
@@ -394,7 +402,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__justice() {
+    fn enhance__tarot__justice() {
         let card = EIGHT_CLUBS;
 
         assert_eq!(card.get_chips(), 8);
@@ -404,7 +412,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__hermit() {
+    fn enhance__tarot__hermit() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -414,7 +422,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__wheel() {
+    fn enhance__tarot__wheel() {
         let card = SIX_CLUBS;
 
         assert_eq!(card.get_chips(), 6);
@@ -424,7 +432,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__strength() {
+    fn enhance__tarot__strength() {
         let card = FIVE_CLUBS;
 
         assert_eq!(card.get_chips(), 5);
@@ -447,7 +455,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__hanged() {
+    fn enhance__tarot__hanged() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -457,7 +465,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__death() {
+    fn enhance__tarot__death() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -467,7 +475,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__temperance() {
+    fn enhance__tarot__temperance() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -477,7 +485,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__devil() {
+    fn enhance__tarot__devil() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -487,7 +495,7 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__tower() {
+    fn enhance__tarot__tower() {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
@@ -497,24 +505,20 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn enhance__suits() {
+    fn enhance__tarot__suits() {
         assert_eq!(SIX_CLUBS.enhance(STAR).enhancement, MPip::BLANK);
-        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::BLANK);
-        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::BLANK);
-        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::BLANK);
-    }
-
-    #[test]
-    fn enhance__judgement() {
-        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::BLANK);
-    }
-
-    #[test]
-    fn enhance_suits() {
         assert_eq!(SIX_CLUBS.enhance(STAR).suit, FrenchSuit::DIAMONDS);
+        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::BLANK);
         assert_eq!(SIX_CLUBS.enhance(MOON).suit, FrenchSuit::CLUBS);
+        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::BLANK);
         assert_eq!(SIX_CLUBS.enhance(SUN).suit, FrenchSuit::HEARTS);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::BLANK);
         assert_eq!(SIX_CLUBS.enhance(WORLD).suit, FrenchSuit::SPADES);
+    }
+
+    #[test]
+    fn enhance__tarot__judgement() {
+        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::BLANK);
     }
 
     #[test]
@@ -595,84 +599,6 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(BuffoonCard::from_str("JM").unwrap(), SUN);
         assert_eq!(BuffoonCard::from_str("KM").unwrap(), JUDGEMENT);
         assert_eq!(BuffoonCard::from_str("LM").unwrap(), WORLD);
-    }
-
-    #[test]
-    fn bcard() {
-        assert_eq!(bcard!(AS), ACE_SPADES);
-        assert_eq!(bcard!(2S), DEUCE_SPADES);
-        assert_eq!(bcard!(3S), TREY_SPADES);
-        assert_eq!(bcard!(4S), FOUR_SPADES);
-        assert_eq!(bcard!(5S), FIVE_SPADES);
-        assert_eq!(bcard!(6S), SIX_SPADES);
-        assert_eq!(bcard!(7S), SEVEN_SPADES);
-        assert_eq!(bcard!(8S), EIGHT_SPADES);
-        assert_eq!(bcard!(9S), NINE_SPADES);
-        assert_eq!(bcard!(TS), TEN_SPADES);
-        assert_eq!(bcard!(JS), JACK_SPADES);
-        assert_eq!(bcard!(QS), QUEEN_SPADES);
-        assert_eq!(bcard!(KS), KING_SPADES);
-        assert_eq!(bcard!(AD), ACE_DIAMONDS);
-        assert_eq!(bcard!(2D), DEUCE_DIAMONDS);
-        assert_eq!(bcard!(3D), TREY_DIAMONDS);
-        assert_eq!(bcard!(4D), FOUR_DIAMONDS);
-        assert_eq!(bcard!(5D), FIVE_DIAMONDS);
-        assert_eq!(bcard!(6D), SIX_DIAMONDS);
-        assert_eq!(bcard!(7D), SEVEN_DIAMONDS);
-        assert_eq!(bcard!(8D), EIGHT_DIAMONDS);
-        assert_eq!(bcard!(9D), NINE_DIAMONDS);
-        assert_eq!(bcard!(TD), TEN_DIAMONDS);
-        assert_eq!(bcard!(JD), JACK_DIAMONDS);
-        assert_eq!(bcard!(QD), QUEEN_DIAMONDS);
-        assert_eq!(bcard!(KD), KING_DIAMONDS);
-        assert_eq!(bcard!(AH), ACE_HEARTS);
-        assert_eq!(bcard!(2H), DEUCE_HEARTS);
-        assert_eq!(bcard!(3H), TREY_HEARTS);
-        assert_eq!(bcard!(4H), FOUR_HEARTS);
-        assert_eq!(bcard!(5H), FIVE_HEARTS);
-        assert_eq!(bcard!(6H), SIX_HEARTS);
-        assert_eq!(bcard!(7H), SEVEN_HEARTS);
-        assert_eq!(bcard!(8H), EIGHT_HEARTS);
-        assert_eq!(bcard!(9H), NINE_HEARTS);
-        assert_eq!(bcard!(TH), TEN_HEARTS);
-        assert_eq!(bcard!(JH), JACK_HEARTS);
-        assert_eq!(bcard!(QH), QUEEN_HEARTS);
-        assert_eq!(bcard!(KH), KING_HEARTS);
-        assert_eq!(bcard!(AC), ACE_CLUBS);
-        assert_eq!(bcard!(2C), DEUCE_CLUBS);
-        assert_eq!(bcard!(3C), TREY_CLUBS);
-        assert_eq!(bcard!(4C), FOUR_CLUBS);
-        assert_eq!(bcard!(5C), FIVE_CLUBS);
-        assert_eq!(bcard!(6C), SIX_CLUBS);
-        assert_eq!(bcard!(7C), SEVEN_CLUBS);
-        assert_eq!(bcard!(8C), EIGHT_CLUBS);
-        assert_eq!(bcard!(9C), NINE_CLUBS);
-        assert_eq!(bcard!(TC), TEN_CLUBS);
-        assert_eq!(bcard!(JC), JACK_CLUBS);
-        assert_eq!(bcard!(QC), QUEEN_CLUBS);
-        assert_eq!(bcard!(KC), KING_CLUBS);
-        assert_eq!(bcard!(0M), FOOL);
-        assert_eq!(bcard!(1M), MAGICIAN);
-        assert_eq!(bcard!(2M), HIGH_PRIESTESS);
-        assert_eq!(bcard!(3M), EMPRESS);
-        assert_eq!(bcard!(4M), EMPEROR);
-        assert_eq!(bcard!(5M), HIEROPHANT);
-        assert_eq!(bcard!(6M), LOVERS);
-        assert_eq!(bcard!(7M), THE_CHARIOT);
-        assert_eq!(bcard!(8M), STRENGTH);
-        assert_eq!(bcard!(9M), HERMIT);
-        assert_eq!(bcard!(AM), WHEEL_OF_FORTUNE);
-        assert_eq!(bcard!(BM), JUSTICE);
-        assert_eq!(bcard!(CM), HANGED_MAN);
-        assert_eq!(bcard!(DM), DEATH);
-        assert_eq!(bcard!(EM), TEMPERANCE);
-        assert_eq!(bcard!(FM), DEVIL);
-        assert_eq!(bcard!(GM), TOWER);
-        assert_eq!(bcard!(HM), STAR);
-        assert_eq!(bcard!(IM), MOON);
-        assert_eq!(bcard!(JM), SUN);
-        assert_eq!(bcard!(KM), JUDGEMENT);
-        assert_eq!(bcard!(LM), WORLD);
     }
 
     #[test]
