@@ -1,5 +1,6 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::struct_field_names)]
+#![allow(mixed_script_confusables)]
 #![allow(dead_code)]
 
 //! [Cardpack](https://crates.io/crates/cardpack) is a library to represent various decks of playing

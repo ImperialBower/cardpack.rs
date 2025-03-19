@@ -109,6 +109,21 @@ impl BuffoonCard {
         Self { rank, ..*self }
     }
 
+    #[must_use]
+    pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
+        match enhancer.enhancement.pip_type {
+            MPipType::MultPlus(value) => value,
+            MPipType::MultPlusOnSuit(value, suit) => {
+                if self.suit.index == suit {
+                    value
+                } else {
+                    0
+                }
+            }
+            _ => 0,
+        }
+    }
+
     fn get_enhanced_chips(&self) -> usize {
         let mut chips = 0;
         if let MPipType::Chips(c) = self.enhancement.pip_type {
@@ -292,237 +307,13 @@ impl PartialOrd for BuffoonCard {
     }
 }
 
-#[macro_export]
-macro_rules! bcard {
-    (AS) => {
-        basic::card::ACE_SPADES
-    };
-    (2S) => {
-        basic::card::DEUCE_SPADES
-    };
-    (3S) => {
-        basic::card::TREY_SPADES
-    };
-    (4S) => {
-        basic::card::FOUR_SPADES
-    };
-    (5S) => {
-        basic::card::FIVE_SPADES
-    };
-    (6S) => {
-        basic::card::SIX_SPADES
-    };
-    (7S) => {
-        basic::card::SEVEN_SPADES
-    };
-    (8S) => {
-        basic::card::EIGHT_SPADES
-    };
-    (9S) => {
-        basic::card::NINE_SPADES
-    };
-    (TS) => {
-        basic::card::TEN_SPADES
-    };
-    (JS) => {
-        basic::card::JACK_SPADES
-    };
-    (QS) => {
-        basic::card::QUEEN_SPADES
-    };
-    (KS) => {
-        basic::card::KING_SPADES
-    };
-    (AD) => {
-        basic::card::ACE_DIAMONDS
-    };
-    (2D) => {
-        basic::card::DEUCE_DIAMONDS
-    };
-    (3D) => {
-        basic::card::TREY_DIAMONDS
-    };
-    (4D) => {
-        basic::card::FOUR_DIAMONDS
-    };
-    (5D) => {
-        basic::card::FIVE_DIAMONDS
-    };
-    (6D) => {
-        basic::card::SIX_DIAMONDS
-    };
-    (7D) => {
-        basic::card::SEVEN_DIAMONDS
-    };
-    (8D) => {
-        basic::card::EIGHT_DIAMONDS
-    };
-    (9D) => {
-        basic::card::NINE_DIAMONDS
-    };
-    (TD) => {
-        basic::card::TEN_DIAMONDS
-    };
-    (JD) => {
-        basic::card::JACK_DIAMONDS
-    };
-    (QD) => {
-        basic::card::QUEEN_DIAMONDS
-    };
-    (KD) => {
-        basic::card::KING_DIAMONDS
-    };
-    (AH) => {
-        basic::card::ACE_HEARTS
-    };
-    (2H) => {
-        basic::card::DEUCE_HEARTS
-    };
-    (3H) => {
-        basic::card::TREY_HEARTS
-    };
-    (4H) => {
-        basic::card::FOUR_HEARTS
-    };
-    (5H) => {
-        basic::card::FIVE_HEARTS
-    };
-    (6H) => {
-        basic::card::SIX_HEARTS
-    };
-    (7H) => {
-        basic::card::SEVEN_HEARTS
-    };
-    (8H) => {
-        basic::card::EIGHT_HEARTS
-    };
-    (9H) => {
-        basic::card::NINE_HEARTS
-    };
-    (TH) => {
-        basic::card::TEN_HEARTS
-    };
-    (JH) => {
-        basic::card::JACK_HEARTS
-    };
-    (QH) => {
-        basic::card::QUEEN_HEARTS
-    };
-    (KH) => {
-        basic::card::KING_HEARTS
-    };
-    (AC) => {
-        basic::card::ACE_CLUBS
-    };
-    (2C) => {
-        basic::card::DEUCE_CLUBS
-    };
-    (3C) => {
-        basic::card::TREY_CLUBS
-    };
-    (4C) => {
-        basic::card::FOUR_CLUBS
-    };
-    (5C) => {
-        basic::card::FIVE_CLUBS
-    };
-    (6C) => {
-        basic::card::SIX_CLUBS
-    };
-    (7C) => {
-        basic::card::SEVEN_CLUBS
-    };
-    (8C) => {
-        basic::card::EIGHT_CLUBS
-    };
-    (9C) => {
-        basic::card::NINE_CLUBS
-    };
-    (TC) => {
-        basic::card::TEN_CLUBS
-    };
-    (JC) => {
-        basic::card::JACK_CLUBS
-    };
-    (QC) => {
-        basic::card::QUEEN_CLUBS
-    };
-    (KC) => {
-        basic::card::KING_CLUBS
-    };
-    (0M) => {
-        tarot::card::FOOL
-    };
-    (1M) => {
-        tarot::card::MAGICIAN
-    };
-    (2M) => {
-        tarot::card::HIGH_PRIESTESS
-    };
-    (3M) => {
-        tarot::card::EMPRESS
-    };
-    (4M) => {
-        tarot::card::EMPEROR
-    };
-    (5M) => {
-        tarot::card::HIEROPHANT
-    };
-    (6M) => {
-        tarot::card::LOVERS
-    };
-    (7M) => {
-        tarot::card::THE_CHARIOT
-    };
-    (8M) => {
-        tarot::card::STRENGTH
-    };
-    (9M) => {
-        tarot::card::HERMIT
-    };
-    (AM) => {
-        tarot::card::WHEEL_OF_FORTUNE
-    };
-    (BM) => {
-        tarot::card::JUSTICE
-    };
-    (CM) => {
-        tarot::card::HANGED_MAN
-    };
-    (DM) => {
-        tarot::card::DEATH
-    };
-    (EM) => {
-        tarot::card::TEMPERANCE
-    };
-    (FM) => {
-        tarot::card::DEVIL
-    };
-    (GM) => {
-        tarot::card::TOWER
-    };
-    (HM) => {
-        tarot::card::STAR
-    };
-    (IM) => {
-        tarot::card::MOON
-    };
-    (JM) => {
-        tarot::card::SUN
-    };
-    (KM) => {
-        tarot::card::JUDGEMENT
-    };
-    (LM) => {
-        tarot::card::WORLD
-    };
-}
-
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod funky__types__buffoon_card_tests {
     use super::*;
+    use crate::bcard;
     use crate::funky::decks::basic::card::*;
+    use crate::funky::decks::joker;
     use crate::funky::decks::tarot::card::*;
 
     #[test]
@@ -882,5 +673,26 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(bcard!(JM), SUN);
         assert_eq!(bcard!(KM), JUDGEMENT);
         assert_eq!(bcard!(LM), WORLD);
+    }
+
+    #[test]
+    fn calculate_mult_plus__joker() {
+        assert_eq!(bcard!(JD).calculate_mult_plus(joker::card::JOKER), 4);
+        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(JOKER)), 4);
+    }
+
+    #[test]
+    fn calculate_mult_plus__greedy_joker() {
+        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(GREEDY)), 3);
+        assert_eq!(bcard!(JC).calculate_mult_plus(joker::card::GREEDY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_mult_plus(bcard!(GREEDY)), 0);
+        assert_eq!(bcard!(JH).calculate_mult_plus(joker::card::GREEDY_JOKER), 0);
+    }
+    #[test]
+    fn calculate_mult_plus__lusty_joker() {
+        assert_eq!(bcard!(JH).calculate_mult_plus(joker::card::LUSTY_JOKER), 3);
+        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JC).calculate_mult_plus(joker::card::LUSTY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_mult_plus(bcard!(LUSTY)), 0);
     }
 }
