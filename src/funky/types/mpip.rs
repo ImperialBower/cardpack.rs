@@ -37,6 +37,7 @@ pub enum MPipType {
 }
 
 impl MPipType {
+    #[must_use]
     pub fn is_wild(&self) -> bool {
         matches!(self, MPipType::Wild(_))
     }

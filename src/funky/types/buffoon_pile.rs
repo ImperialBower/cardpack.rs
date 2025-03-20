@@ -1,10 +1,10 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
 use crate::prelude::{BasicPile, CardError, Ranged};
+use crate::preludes::funky::MPipType;
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use crate::preludes::funky::BCardType;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
@@ -18,7 +18,20 @@ impl BuffoonPile {
     /// did on the [`BuffoonCard`] side and apply it at the connection level.
     #[must_use]
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
-
+        match enhancer.enhancement.pip_type {
+            MPipType::MultPlusOnPair(m) => {
+                if self.has_pair() {
+                    m
+                } else {
+                    0
+                }
+            }
+            MPipType::Diamonds(_)
+            | MPipType::Clubs(_)
+            | MPipType::Hearts(_)
+            | MPipType::Spades(_) => self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum(),
+            _ => 0,
+        }
         // if enhancer.is_joker() {
         //
         // }
@@ -27,7 +40,6 @@ impl BuffoonPile {
         //     BCardType::JOLLY => self.basic_pile().calculate_mult_plus(),
         //     _ => self.basic_pile().calculate_mult_plus() + self.calculate_mult_plus_on_suit(enhancer),
         // }
-        self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
     }
 
     pub fn clear(&mut self) {
@@ -87,7 +99,7 @@ impl BuffoonPile {
         self.0.get(position)
     }
 
-    /// **DIARY** This is where I am hoping that the synergy between the BasicPile code can
+    /// **DIARY** This is where I am hoping that the synergy between the `BasicPile` code can
     /// be leveraged to quickly enable `Jokers` that are triggered based on the state of the pile
     /// of cards.
     ///
