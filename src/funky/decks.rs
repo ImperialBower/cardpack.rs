@@ -667,37 +667,46 @@ pub mod joker {
         /// For Joker cards, their cost is set by the rank value.
         pub const JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::JOKER,
+            rank: joker::rank::JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS4,
             debuffed: false,
         };
         pub const GREEDY_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::GREEDY_JOKER,
+            rank: joker::rank::GREEDY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_DIAMONDS,
             debuffed: false,
         };
         pub const LUSTY_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::LUSTY_JOKER,
+            rank: joker::rank::LUSTY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_HEARTS,
             debuffed: false,
         };
         pub const WRATHFUL_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::WRATHFUL_JOKER,
+            rank: joker::rank::WRATHFUL_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_SPADES,
             debuffed: false,
         };
         pub const GLUTTONOUS_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::GLUTTONOUS_JOKER,
+            rank: joker::rank::GLUTTONOUS_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_CLUBS,
+            debuffed: false,
+        };
+        /// The `Jolly Joker` is one that has no effect on a single card, and only returns mult
+        /// on a specific conditions of cards.
+        pub const JOLLY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::JOLLY_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS8_ON_PAIR,
             debuffed: false,
         };
 
@@ -708,49 +717,51 @@ pub mod joker {
         use crate::prelude::{Pip, PipType};
 
         // https://symbl.cc/en/unicode-table/#miscellaneous-symbols
-        pub const JOKER: Pip = Pip {
+        pub const JOKER_RANK: Pip = Pip {
             weight: 1_000,
             pip_type: PipType::Joker,
             index: '⚫',
             symbol: '⚫',
             value: 2,
         };
-        pub const GREEDY_JOKER: Pip = Pip {
+        pub const GREEDY_JOKER_RANK: Pip = Pip {
             weight: 995,
             pip_type: PipType::Joker,
             index: '♦',
             symbol: '♦',
             value: 5,
         };
-        pub const LUSTY_JOKER: Pip = Pip {
+        pub const LUSTY_JOKER_RANK: Pip = Pip {
             weight: 990,
             pip_type: PipType::Joker,
             index: '♥',
             symbol: '♥',
             value: 5,
         };
-        pub const WRATHFUL_JOKER: Pip = Pip {
+        pub const WRATHFUL_JOKER_RANK: Pip = Pip {
             weight: 985,
             pip_type: PipType::Joker,
             index: '♠',
             symbol: '♠',
             value: 5,
         };
-        pub const GLUTTONOUS_JOKER: Pip = Pip {
+        pub const GLUTTONOUS_JOKER_RANK: Pip = Pip {
             weight: 980,
             pip_type: PipType::Joker,
             index: '♣',
             symbol: '♣',
             value: 5,
         };
+        pub const JOLLY_JOKER_RANK: Pip = Pip {
+            weight: 975,
+            pip_type: PipType::Joker,
+            index: '☺',
+            symbol: '☺',
+            value: 3,
+        };
     }
 }
 
-// 1 	Joker 	+4 Mult 	$2 	Common 	Available from start. 	+m 	Indep.
-// 2 	Greedy Joker 	Played cards with  Diamond suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
-// 3 	Lusty Joker 	Played cards with  Heart suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
-// 4 	Wrathful Joker 	Played cards with  Spade suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
-// 5 	Gluttonous Joker 	Played cards with  Club suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
 // 6 	Jolly Joker 	+8 Mult if played hand contains a Pair 	$3 	Common 	Available from start. 	+m 	Indep.
 // 7 	Zany Joker 	+12 Mult if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+m 	Indep.
 // 8 	Mad Joker 	+10 Mult if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+m 	Indep.

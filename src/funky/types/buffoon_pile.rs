@@ -1,9 +1,10 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
-use crate::prelude::{BasicPile, CardError};
+use crate::prelude::{BasicPile, CardError, Ranged};
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use crate::preludes::funky::BCardType;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
@@ -17,6 +18,15 @@ impl BuffoonPile {
     /// did on the [`BuffoonCard`] side and apply it at the connection level.
     #[must_use]
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
+
+        // if enhancer.is_joker() {
+        //
+        // }
+        //
+        // match enhancer.card_type {
+        //     BCardType::JOLLY => self.basic_pile().calculate_mult_plus(),
+        //     _ => self.basic_pile().calculate_mult_plus() + self.calculate_mult_plus_on_suit(enhancer),
+        // }
         self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
     }
 
@@ -75,6 +85,23 @@ impl BuffoonPile {
     #[must_use]
     pub fn get(&self, position: usize) -> Option<&BuffoonCard> {
         self.0.get(position)
+    }
+
+    /// **DIARY** This is where I am hoping that the synergy between the BasicPile code can
+    /// be leveraged to quickly enable `Jokers` that are triggered based on the state of the pile
+    /// of cards.
+    ///
+    /// OK, if these tests pass right out of the box, I will be very happy.
+    ///
+    /// **FIVE SECONDS LATER**
+    ///
+    /// I am very happy.
+    ///
+    /// The basic logic is simple. If there are fewer ranks in a pile of cards than the total
+    /// number of cards, there must be at least one pair.
+    #[must_use]
+    pub fn has_pair(&self) -> bool {
+        self.basic_pile().ranks().len() < self.len()
     }
 
     #[must_use]
@@ -214,6 +241,13 @@ mod funky__types__buffoon_card_tests {
     use super::*;
     use crate::preludes::funky::*;
 
+    #[test]
+    fn basic_pile() {
+        let pile = bcards!("AS KS QS JS TS");
+
+        assert_eq!(pile.basic_pile().to_string(), "A♠ K♠ Q♠ J♠ T♠");
+    }
+
     /// **DIARY** The unit test code that CoPilot generates is baffling to me sometimes. Complete
     /// nonsense:
     ///
@@ -282,6 +316,21 @@ mod funky__types__buffoon_card_tests {
             bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(GLUTTONOUS)),
             0
         );
+    }
+
+    #[test]
+    fn calculate_mult_plus__hands() {
+        assert_eq!(
+            bcards!("AS AD QS JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            8
+        );
+    }
+
+    #[test]
+    fn has_pair() {
+        assert!(bcards!("AS AD QS JS TS").has_pair());
+        assert!(bcards!("AS AD QS QC TS").has_pair());
+        assert!(!bcards!("AS KS QS JS TS").has_pair());
     }
 
     #[test]
