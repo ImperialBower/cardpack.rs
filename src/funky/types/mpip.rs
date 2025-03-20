@@ -20,6 +20,7 @@ pub enum MPipType {
     Lucky(usize, usize),
     MultPlus(usize),
     MultPlusOnPair(usize),
+    MultPlusOnTrips(usize),
     MultPlusOnSuit(usize, char),
     MultTimes(usize),
     MultTimes1Dot(usize),
@@ -61,6 +62,7 @@ impl Display for MPipType {
             MPipType::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             MPipType::MultPlus(value) => write!(f, "MultPlus({value})"),
             MPipType::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
+            MPipType::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
             MPipType::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
             MPipType::MultTimes(value) => write!(f, "MultTimes({value})"),
             MPipType::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
@@ -128,6 +130,10 @@ impl MPip {
     };
     pub const MULT_PLUS8_ON_PAIR: Self = Self {
         pip_type: MPipType::MultPlusOnPair(8),
+        index: 'e',
+    };
+    pub const MULT_PLUS12_ON_TRIPS: Self = Self {
+        pip_type: MPipType::MultPlusOnTrips(12),
         index: 'e',
     };
     pub const GLASS: Self = Self {

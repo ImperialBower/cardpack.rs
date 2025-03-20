@@ -19,27 +19,18 @@ impl BuffoonPile {
     #[must_use]
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement.pip_type {
-            MPipType::MultPlusOnPair(m) => {
-                if self.has_pair() {
-                    m
-                } else {
-                    0
-                }
+            // **DIARY** How do we make this simpler?
+            MPipType::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            MPipType::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
+            MPipType::MultPlusOnSuit(_, _) => {
+                self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
             }
-            MPipType::Diamonds(_)
-            | MPipType::Clubs(_)
-            | MPipType::Hearts(_)
-            | MPipType::Spades(_) => self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum(),
             _ => 0,
         }
-        // if enhancer.is_joker() {
-        //
-        // }
-        //
-        // match enhancer.card_type {
-        //     BCardType::JOLLY => self.basic_pile().calculate_mult_plus(),
-        //     _ => self.basic_pile().calculate_mult_plus() + self.calculate_mult_plus_on_suit(enhancer),
-        // }
+    }
+
+    pub fn funky_num(&self, num: usize, func: fn(&BuffoonPile) -> bool) -> usize {
+        if func(self) { num } else { 0 }
     }
 
     pub fn clear(&mut self) {
@@ -114,6 +105,11 @@ impl BuffoonPile {
     #[must_use]
     pub fn has_pair(&self) -> bool {
         self.basic_pile().ranks().len() < self.len()
+    }
+
+    #[must_use]
+    pub fn has_trips(&self) -> bool {
+        self.basic_pile().ranks().len() < self.len() - 1
     }
 
     #[must_use]
@@ -249,7 +245,7 @@ impl IntoIterator for BuffoonPile {
 
 #[cfg(test)]
 #[allow(non_snake_case)]
-mod funky__types__buffoon_card_tests {
+mod funky__types__buffoon_pile_tests {
     use super::*;
     use crate::preludes::funky::*;
 
@@ -336,12 +332,45 @@ mod funky__types__buffoon_card_tests {
             bcards!("AS AD QS JS TS").calculate_mult_plus(bcard!(JOLLY)),
             8
         );
+        assert_eq!(
+            bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            8
+        );
+        assert_eq!(
+            bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(ZANY)),
+            12
+        );
+    }
+
+    #[test]
+    fn funky_plus_mult() {
+        assert_eq!(
+            bcards!("AS KS QS JS TS").funky_num(4, BuffoonPile::has_pair),
+            0
+        );
+        assert_eq!(
+            bcards!("AS KS JD JS TS").funky_num(4, BuffoonPile::has_pair),
+            4
+        );
+        assert_eq!(
+            bcards!("AS KS AD AC TS").funky_num(4, BuffoonPile::has_trips),
+            4
+        );
     }
 
     #[test]
     fn has_pair() {
         assert!(bcards!("AS AD QS JS TS").has_pair());
         assert!(bcards!("AS AD QS QC TS").has_pair());
+        assert!(!bcards!("AS KS QS JS TS").has_pair());
+    }
+
+    #[test]
+    fn has_trips() {
+        assert!(bcards!("AS AD AH JS TS").has_trips());
+        assert!(bcards!("AS AD AH AC TS").has_trips());
+        assert!(bcards!("AS AD QS QC QH").has_trips());
+        // assert!(!bcards!("AS AD QS QC JH JC").has_trips());
         assert!(!bcards!("AS KS QS JS TS").has_pair());
     }
 
