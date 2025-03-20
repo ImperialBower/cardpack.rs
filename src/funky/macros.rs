@@ -240,6 +240,9 @@ macro_rules! bcard {
     (JOLLY) => {
         $crate::funky::decks::joker::card::JOLLY_JOKER
     };
+    (ZANY) => {
+        $crate::funky::decks::joker::card::ZANY_JOKER
+    };
 }
 
 #[macro_export]

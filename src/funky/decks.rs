@@ -709,6 +709,13 @@ pub mod joker {
             enhancement: MPip::MULT_PLUS8_ON_PAIR,
             debuffed: false,
         };
+        pub const ZANY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::ZANY_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MULT_PLUS12_ON_TRIPS,
+            debuffed: false,
+        };
 
         // Gluttonous Joker
     }
@@ -759,10 +766,16 @@ pub mod joker {
             symbol: '☺',
             value: 3,
         };
+        pub const ZANY_JOKER_RANK: Pip = Pip {
+            weight: 970,
+            pip_type: PipType::Joker,
+            index: '🤪',
+            symbol: '🤪',
+            value: 3,
+        };
     }
 }
 
-// 6 	Jolly Joker 	+8 Mult if played hand contains a Pair 	$3 	Common 	Available from start. 	+m 	Indep.
 // 7 	Zany Joker 	+12 Mult if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+m 	Indep.
 // 8 	Mad Joker 	+10 Mult if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+m 	Indep.
 // 9 	Crazy Joker 	+12 Mult if played hand contains a Straight 	$4 	Common 	Available from start. 	+m 	Indep.
