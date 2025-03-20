@@ -36,6 +36,12 @@ pub enum MPipType {
     Spades(usize),
 }
 
+impl MPipType {
+    pub fn is_wild(&self) -> bool {
+        matches!(self, MPipType::Wild(_))
+    }
+}
+
 impl Display for MPipType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {

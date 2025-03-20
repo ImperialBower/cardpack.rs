@@ -1,6 +1,6 @@
 use crate::funky::decks::{basic, tarot};
 use crate::funky::types::mpip::{MPip, MPipType};
-use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip};
+use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip, PipType};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Display;
@@ -188,6 +188,11 @@ impl BuffoonCard {
     pub fn is_basic(&self) -> bool {
         (self.card_type == BCardType::Basic) && (self.enhancement == MPip::BLANK)
     }
+
+    #[must_use]
+    pub fn is_joker(&self) -> bool {
+        self.suit.pip_type == PipType::Joker
+    }
 }
 
 impl Display for BuffoonCard {
@@ -214,9 +219,9 @@ impl FromStr for BuffoonCard {
             return Err(CardError::InvalidIndex(s.to_string()));
         }
 
-        let index: String = s.chars().take(2).collect();
+        // let index: String = s.chars().take(2).collect();
 
-        match index.as_str() {
+        match s.as_str() {
             "AS" => Ok(basic::card::ACE_SPADES),
             "2S" => Ok(basic::card::DEUCE_SPADES),
             "3S" => Ok(basic::card::TREY_SPADES),
@@ -271,28 +276,28 @@ impl FromStr for BuffoonCard {
             "KC" => Ok(basic::card::KING_CLUBS),
 
             // Tarot
-            "0M" => Ok(tarot::card::FOOL),
-            "1M" => Ok(tarot::card::MAGICIAN),
-            "2M" => Ok(tarot::card::HIGH_PRIESTESS),
-            "3M" => Ok(tarot::card::EMPRESS),
-            "4M" => Ok(tarot::card::EMPEROR),
-            "5M" => Ok(tarot::card::HIEROPHANT),
-            "6M" => Ok(tarot::card::LOVERS),
-            "7M" => Ok(tarot::card::THE_CHARIOT),
-            "8M" => Ok(tarot::card::STRENGTH),
-            "9M" => Ok(tarot::card::HERMIT),
-            "AM" => Ok(tarot::card::WHEEL_OF_FORTUNE),
-            "BM" => Ok(tarot::card::JUSTICE),
-            "CM" => Ok(tarot::card::HANGED_MAN),
-            "DM" => Ok(tarot::card::DEATH),
-            "EM" => Ok(tarot::card::TEMPERANCE),
-            "FM" => Ok(tarot::card::DEVIL),
-            "GM" => Ok(tarot::card::TOWER),
-            "HM" => Ok(tarot::card::STAR),
-            "IM" => Ok(tarot::card::MOON),
-            "JM" => Ok(tarot::card::SUN),
-            "KM" => Ok(tarot::card::JUDGEMENT),
-            "LM" => Ok(tarot::card::WORLD),
+            "0M" | "FOOL" => Ok(tarot::card::FOOL),
+            "1M" | "MAGICIAN" => Ok(tarot::card::MAGICIAN),
+            "2M" | "HIGH_PRIESTESS" => Ok(tarot::card::HIGH_PRIESTESS),
+            "3M" | "EMPRESS" => Ok(tarot::card::EMPRESS),
+            "4M" | "EMPEROR" => Ok(tarot::card::EMPEROR),
+            "5M" | "HIEROPHANT" => Ok(tarot::card::HIEROPHANT),
+            "6M" | "LOVERS" => Ok(tarot::card::LOVERS),
+            "7M" | "THE_CHARIOT" => Ok(tarot::card::THE_CHARIOT),
+            "8M" | "STRENGTH" => Ok(tarot::card::STRENGTH),
+            "9M" | "HERMIT" => Ok(tarot::card::HERMIT),
+            "AM" | "WHEEL_OF_FORTUNE" => Ok(tarot::card::WHEEL_OF_FORTUNE),
+            "BM" | "JUSTICE" => Ok(tarot::card::JUSTICE),
+            "CM" | "HANGED_MAN" => Ok(tarot::card::HANGED_MAN),
+            "DM" | "DEATH" => Ok(tarot::card::DEATH),
+            "EM" | "TEMPERANCE" => Ok(tarot::card::TEMPERANCE),
+            "FM" | "DEVIL" => Ok(tarot::card::DEVIL),
+            "GM" | "TOWER" => Ok(tarot::card::TOWER),
+            "HM" | "STAR" => Ok(tarot::card::STAR),
+            "IM" | "MOON" => Ok(tarot::card::MOON),
+            "JM" | "SUN" => Ok(tarot::card::SUN),
+            "KM" | "JUDGEMENT" => Ok(tarot::card::JUDGEMENT),
+            "LM" | "WORLD" => Ok(tarot::card::WORLD),
 
             _ => Ok(BuffoonCard::default()),
         }
