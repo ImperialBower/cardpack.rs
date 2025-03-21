@@ -163,7 +163,7 @@ impl BuffoonCard {
             | MPip::RandomTarot(_)
             | MPip::JokersValue(_)
             | MPip::RandomJoker(_)
-            | MPip::Wheel(_) => *self,
+            | MPip::Odds1in(_) => *self,
             MPip::Strength => basic::card::plus_rank(*self),
             MPip::Diamonds(_) => basic::card::set_suit(*self, FrenchSuit::DIAMONDS),
             MPip::Clubs(_) => basic::card::set_suit(*self, FrenchSuit::CLUBS),

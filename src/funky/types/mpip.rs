@@ -29,7 +29,7 @@ pub enum MPip {
     RandomTarot(usize),
     Stone(usize),
     Strength,
-    Wheel(usize),
+    Odds1in(usize),
     Wild(PipType),
     Diamonds(usize),
     Clubs(usize),
@@ -38,36 +38,20 @@ pub enum MPip {
 }
 
 impl MPip {
-    pub const BLANK: Self = MPip::Blank;
     pub const BONUS: Self = MPip::Chips(30);
-    pub const DEATH: Self = MPip::Death(1);
     pub const DEVIL: Self = MPip::Gold(3);
-    pub const DOUBLE_MONEY: Self = MPip::DoubleMoney(20);
-    pub const MULT_PLUS4: Self = MPip::MultPlus(4);
     pub const MULT_PLUS3_ON_DIAMONDS: Self = MPip::MultPlusOnSuit(3, 'D');
     pub const MULT_PLUS3_ON_HEARTS: Self = MPip::MultPlusOnSuit(3, 'H');
     pub const MULT_PLUS3_ON_SPADES: Self = MPip::MultPlusOnSuit(3, 'S');
     pub const MULT_PLUS3_ON_CLUBS: Self = MPip::MultPlusOnSuit(3, 'C');
     pub const MULT_PLUS8_ON_PAIR: Self = MPip::MultPlusOnPair(8);
     pub const MULT_PLUS12_ON_TRIPS: Self = MPip::MultPlusOnTrips(12);
-    pub const GLASS: Self = MPip::Glass(2, 4);
-    pub const HANGED: Self = MPip::Hanged(2);
-    pub const PLANET: Self = MPip::Planet(2);
-    pub const LUCKY: Self = MPip::Lucky(5, 15);
-    pub const RANDOM_JOKER: Self = MPip::RandomJoker(1);
-    pub const RANDOM_TAROT: Self = MPip::RandomTarot(2);
     pub const STEEL: Self = MPip::MultTimes1Dot(15); // 1.5
-    pub const STRENGTH: Self = MPip::Strength;
     pub const TEMPERANCE: Self = MPip::JokersValue(50);
     pub const TOWER: Self = MPip::Stone(50);
     pub const WORLD: Self = MPip::MultTimes(2);
-    pub const WHEEL_OF_FORTUNE: Self = MPip::Wheel(4);
-    pub const WILD_SUIT: Self = MPip::Wild(PipType::Suit);
-    pub const DIAMONDS: Self = MPip::Diamonds(3);
-    pub const CLUBS: Self = MPip::Clubs(3);
-    pub const HEARTS: Self = MPip::Hearts(3);
-    pub const JUDGEMENT: Self = MPip::RandomJoker(2);
-    pub const SPADES: Self = MPip::Spades(3);
+    pub const WHEEL_OF_FORTUNE: Self = MPip::Odds1in(4);
+    pub const JUDGEMENT: Self = MPip::RandomJoker(1);
 
     #[must_use]
     pub fn new_chips(chips: usize) -> Self {
@@ -107,7 +91,7 @@ impl Display for MPip {
             MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             MPip::Stone(value) => write!(f, "Stone({value})"),
             MPip::Strength => write!(f, "Strength"),
-            MPip::Wheel(value) => write!(f, "Wheel({value})"),
+            MPip::Odds1in(value) => write!(f, "Wheel({value})"),
             MPip::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
             MPip::Diamonds(value) => write!(f, "Diamonds({value})"),
             MPip::Clubs(value) => write!(f, "Clubs({value})"),
