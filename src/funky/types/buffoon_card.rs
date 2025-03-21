@@ -1,5 +1,5 @@
 use crate::funky::decks::{basic, tarot};
-use crate::funky::types::mpip::{MPip, MPipType};
+use crate::funky::types::mpip::MPip;
 use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip, PipType};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -119,9 +119,9 @@ impl BuffoonCard {
 
     #[must_use]
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
-        match enhancer.enhancement.pip_type {
-            MPipType::MultPlus(value) => value,
-            MPipType::MultPlusOnSuit(value, suit) => {
+        match enhancer.enhancement {
+            MPip::MultPlus(value) => value,
+            MPip::MultPlusOnSuit(value, suit) => {
                 if self.suit.index == suit {
                     value
                 } else {
@@ -134,7 +134,7 @@ impl BuffoonCard {
 
     fn get_enhanced_chips(&self) -> usize {
         let mut chips = 0;
-        if let MPipType::Chips(c) = self.enhancement.pip_type {
+        if let MPip::Chips(c) = self.enhancement {
             chips = c;
         };
         chips
@@ -144,7 +144,7 @@ impl BuffoonCard {
     pub fn get_chips(&self) -> usize {
         let mut chips = 0;
         print!("   chips: {}", self.rank.value);
-        if let MPipType::Chips(c) = self.enhancement.pip_type {
+        if let MPip::Chips(c) = self.enhancement {
             print!(" + {}", self.enhancement);
             chips += c;
         };
@@ -155,20 +155,20 @@ impl BuffoonCard {
     #[must_use]
     pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
         println!("Enhancing {} with: {}", self, enhancer.enhancement);
-        let bc = match enhancer.enhancement.pip_type {
-            MPipType::Death(_)
-            | MPipType::DoubleMoney(_)
-            | MPipType::Hanged(_)
-            | MPipType::Planet(_)
-            | MPipType::RandomTarot(_)
-            | MPipType::JokersValue(_)
-            | MPipType::RandomJoker(_)
-            | MPipType::Wheel(_) => *self,
-            MPipType::Strength => basic::card::plus_rank(*self),
-            MPipType::Diamonds(_) => basic::card::set_suit(*self, FrenchSuit::DIAMONDS),
-            MPipType::Clubs(_) => basic::card::set_suit(*self, FrenchSuit::CLUBS),
-            MPipType::Hearts(_) => basic::card::set_suit(*self, FrenchSuit::HEARTS),
-            MPipType::Spades(_) => basic::card::set_suit(*self, FrenchSuit::SPADES),
+        let bc = match enhancer.enhancement {
+            MPip::Death(_)
+            | MPip::DoubleMoney(_)
+            | MPip::Hanged(_)
+            | MPip::Planet(_)
+            | MPip::RandomTarot(_)
+            | MPip::JokersValue(_)
+            | MPip::RandomJoker(_)
+            | MPip::Wheel(_) => *self,
+            MPip::Strength => basic::card::plus_rank(*self),
+            MPip::Diamonds(_) => basic::card::set_suit(*self, FrenchSuit::DIAMONDS),
+            MPip::Clubs(_) => basic::card::set_suit(*self, FrenchSuit::CLUBS),
+            MPip::Hearts(_) => basic::card::set_suit(*self, FrenchSuit::HEARTS),
+            MPip::Spades(_) => basic::card::set_suit(*self, FrenchSuit::SPADES),
             _ => self.enhance_swap(enhancer.enhancement),
         };
         println!("Enhanced {bc}");

@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
 )]
-pub enum MPipType {
+pub enum MPip {
     #[default]
     Blank,
     AddBaseChips(usize),
@@ -37,200 +37,85 @@ pub enum MPipType {
     Spades(usize),
 }
 
-impl MPipType {
-    #[must_use]
-    pub fn is_wild(&self) -> bool {
-        matches!(self, MPipType::Wild(_))
-    }
-}
-
-impl Display for MPipType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MPipType::Blank => write!(f, "Blank"),
-            MPipType::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
-            MPipType::Chips(chips) => write!(f, "Chips({chips})"),
-            MPipType::ChipsAndMultPlus(chips, value) => {
-                write!(f, "ChipsAndMultPlus({chips}, {value})")
-            }
-            MPipType::Death(value) => write!(f, "Death({value})"),
-            MPipType::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
-            MPipType::Glass(a, b) => write!(f, "Glass({a}, {b})"),
-            MPipType::Gold(value) => write!(f, "Gold({value})"),
-            MPipType::Hanged(value) => write!(f, "Hanged({value})"),
-            MPipType::JokersValue(value) => write!(f, "JokersValue({value})"),
-            MPipType::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
-            MPipType::MultPlus(value) => write!(f, "MultPlus({value})"),
-            MPipType::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
-            MPipType::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
-            MPipType::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
-            MPipType::MultTimes(value) => write!(f, "MultTimes({value})"),
-            MPipType::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
-            MPipType::Planet(value) => write!(f, "Planet({value})"),
-            MPipType::RandomJoker(value) => write!(f, "RandomJoker({value})"),
-            MPipType::RandomTarot(value) => write!(f, "RandomTarot({value})"),
-            MPipType::Stone(value) => write!(f, "Stone({value})"),
-            MPipType::Strength => write!(f, "Strength"),
-            MPipType::Wheel(value) => write!(f, "Wheel({value})"),
-            MPipType::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
-            MPipType::Diamonds(value) => write!(f, "Diamonds({value})"),
-            MPipType::Clubs(value) => write!(f, "Clubs({value})"),
-            MPipType::Hearts(value) => write!(f, "Hearts({value})"),
-            MPipType::Spades(value) => write!(f, "Spades({value})"),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub struct MPip {
-    pub pip_type: MPipType,
-    pub index: char,
-}
-
 impl MPip {
-    pub const BLANK: Self = Self {
-        pip_type: MPipType::Blank,
-        index: '_',
-    };
-    pub const BONUS: Self = Self {
-        pip_type: MPipType::Chips(30),
-        index: 'b',
-    };
-    pub const DEATH: Self = Self {
-        pip_type: MPipType::Death(1),
-        index: 'd',
-    };
-    pub const DEVIL: Self = Self {
-        pip_type: MPipType::Gold(3),
-        index: 'v',
-    };
-    pub const DOUBLE_MONEY: Self = Self {
-        pip_type: MPipType::DoubleMoney(20),
-        index: 'd',
-    };
-    pub const MULT_PLUS4: Self = Self {
-        pip_type: MPipType::MultPlus(4),
-        index: 'e',
-    };
-    pub const MULT_PLUS3_ON_DIAMONDS: Self = Self {
-        pip_type: MPipType::MultPlusOnSuit(3, 'D'),
-        index: 'e',
-    };
-    pub const MULT_PLUS3_ON_HEARTS: Self = Self {
-        pip_type: MPipType::MultPlusOnSuit(3, 'H'),
-        index: 'e',
-    };
-    pub const MULT_PLUS3_ON_SPADES: Self = Self {
-        pip_type: MPipType::MultPlusOnSuit(3, 'S'),
-        index: 'e',
-    };
-    pub const MULT_PLUS3_ON_CLUBS: Self = Self {
-        pip_type: MPipType::MultPlusOnSuit(3, 'C'),
-        index: 'e',
-    };
-    pub const MULT_PLUS8_ON_PAIR: Self = Self {
-        pip_type: MPipType::MultPlusOnPair(8),
-        index: 'e',
-    };
-    pub const MULT_PLUS12_ON_TRIPS: Self = Self {
-        pip_type: MPipType::MultPlusOnTrips(12),
-        index: 'e',
-    };
-    pub const GLASS: Self = Self {
-        pip_type: MPipType::Glass(2, 4),
-        index: 'g',
-    };
-    pub const HANGED: Self = Self {
-        pip_type: MPipType::Hanged(2),
-        index: 'x',
-    };
-    pub const PLANET: Self = Self {
-        pip_type: MPipType::Planet(2),
-        index: 'h',
-    };
-    pub const LUCKY: Self = Self {
-        pip_type: MPipType::Lucky(5, 15),
-        index: 'l',
-    };
-    pub const RANDOM_JOKER: Self = Self {
-        pip_type: MPipType::RandomJoker(1),
-        index: 'j',
-    };
-    pub const RANDOM_TAROT: Self = Self {
-        pip_type: MPipType::RandomTarot(2),
-        index: 'o',
-    };
-    pub const STEEL: Self = Self {
-        pip_type: MPipType::MultTimes1Dot(15), // 1.5
-        index: 'c',
-    };
-    pub const STRENGTH: Self = Self {
-        pip_type: MPipType::Strength,
-        index: 's',
-    };
-    pub const TEMPERANCE: Self = Self {
-        pip_type: MPipType::JokersValue(50),
-        index: 't',
-    };
-    pub const TOWER: Self = Self {
-        pip_type: MPipType::Stone(50),
-        index: 'n',
-    };
-    pub const WORLD: Self = Self {
-        pip_type: MPipType::MultTimes(2),
-        index: 'w',
-    };
-    pub const WHEEL_OF_FORTUNE: Self = Self {
-        pip_type: MPipType::Wheel(4),
-        index: 'f',
-    };
-    pub const WILD_SUIT: Self = Self {
-        pip_type: MPipType::Wild(PipType::Suit),
-        index: 'w',
-    };
-    pub const DIAMONDS: Self = Self {
-        pip_type: MPipType::Diamonds(3),
-        index: 'd',
-    };
-    pub const CLUBS: Self = Self {
-        pip_type: MPipType::Clubs(3),
-        index: 'c',
-    };
-    pub const HEARTS: Self = Self {
-        pip_type: MPipType::Hearts(3),
-        index: 'h',
-    };
-    pub const JUDGEMENT: Self = Self {
-        pip_type: MPipType::RandomJoker(2),
-        index: 'j',
-    };
-    pub const SPADES: Self = Self {
-        pip_type: MPipType::Spades(3),
-        index: 's',
-    };
+    pub const BLANK: Self = MPip::Blank;
+    pub const BONUS: Self = MPip::Chips(30);
+    pub const DEATH: Self = MPip::Death(1);
+    pub const DEVIL: Self = MPip::Gold(3);
+    pub const DOUBLE_MONEY: Self = MPip::DoubleMoney(20);
+    pub const MULT_PLUS4: Self = MPip::MultPlus(4);
+    pub const MULT_PLUS3_ON_DIAMONDS: Self = MPip::MultPlusOnSuit(3, 'D');
+    pub const MULT_PLUS3_ON_HEARTS: Self = MPip::MultPlusOnSuit(3, 'H');
+    pub const MULT_PLUS3_ON_SPADES: Self = MPip::MultPlusOnSuit(3, 'S');
+    pub const MULT_PLUS3_ON_CLUBS: Self = MPip::MultPlusOnSuit(3, 'C');
+    pub const MULT_PLUS8_ON_PAIR: Self = MPip::MultPlusOnPair(8);
+    pub const MULT_PLUS12_ON_TRIPS: Self = MPip::MultPlusOnTrips(12);
+    pub const GLASS: Self = MPip::Glass(2, 4);
+    pub const HANGED: Self = MPip::Hanged(2);
+    pub const PLANET: Self = MPip::Planet(2);
+    pub const LUCKY: Self = MPip::Lucky(5, 15);
+    pub const RANDOM_JOKER: Self = MPip::RandomJoker(1);
+    pub const RANDOM_TAROT: Self = MPip::RandomTarot(2);
+    pub const STEEL: Self = MPip::MultTimes1Dot(15); // 1.5
+    pub const STRENGTH: Self = MPip::Strength;
+    pub const TEMPERANCE: Self = MPip::JokersValue(50);
+    pub const TOWER: Self = MPip::Stone(50);
+    pub const WORLD: Self = MPip::MultTimes(2);
+    pub const WHEEL_OF_FORTUNE: Self = MPip::Wheel(4);
+    pub const WILD_SUIT: Self = MPip::Wild(PipType::Suit);
+    pub const DIAMONDS: Self = MPip::Diamonds(3);
+    pub const CLUBS: Self = MPip::Clubs(3);
+    pub const HEARTS: Self = MPip::Hearts(3);
+    pub const JUDGEMENT: Self = MPip::RandomJoker(2);
+    pub const SPADES: Self = MPip::Spades(3);
 
     #[must_use]
     pub fn new_chips(chips: usize) -> Self {
-        Self {
-            pip_type: MPipType::Chips(chips),
-            index: 'c',
-        }
+        MPip::Chips(chips)
     }
-}
 
-impl Default for MPip {
-    fn default() -> Self {
-        Self::BLANK
+    #[must_use]
+    pub fn is_wild(&self) -> bool {
+        matches!(self, MPip::Wild(_))
     }
 }
 
 impl Display for MPip {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.pip_type)
+        match self {
+            MPip::Blank => write!(f, "Blank"),
+            MPip::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
+            MPip::Chips(chips) => write!(f, "Chips({chips})"),
+            MPip::ChipsAndMultPlus(chips, value) => {
+                write!(f, "ChipsAndMultPlus({chips}, {value})")
+            }
+            MPip::Death(value) => write!(f, "Death({value})"),
+            MPip::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
+            MPip::Glass(a, b) => write!(f, "Glass({a}, {b})"),
+            MPip::Gold(value) => write!(f, "Gold({value})"),
+            MPip::Hanged(value) => write!(f, "Hanged({value})"),
+            MPip::JokersValue(value) => write!(f, "JokersValue({value})"),
+            MPip::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
+            MPip::MultPlus(value) => write!(f, "MultPlus({value})"),
+            MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
+            MPip::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
+            MPip::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
+            MPip::MultTimes(value) => write!(f, "MultTimes({value})"),
+            MPip::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
+            MPip::Planet(value) => write!(f, "Planet({value})"),
+            MPip::RandomJoker(value) => write!(f, "RandomJoker({value})"),
+            MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
+            MPip::Stone(value) => write!(f, "Stone({value})"),
+            MPip::Strength => write!(f, "Strength"),
+            MPip::Wheel(value) => write!(f, "Wheel({value})"),
+            MPip::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
+            MPip::Diamonds(value) => write!(f, "Diamonds({value})"),
+            MPip::Clubs(value) => write!(f, "Clubs({value})"),
+            MPip::Hearts(value) => write!(f, "Hearts({value})"),
+            MPip::Spades(value) => write!(f, "Spades({value})"),
+        }
     }
 }
-
-pub mod enhancement {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
@@ -239,6 +124,6 @@ mod funky__types__mpips_tests {
 
     #[test]
     fn default() {
-        assert_eq!(MPipType::default(), MPipType::Blank);
+        assert_eq!(MPip::default(), MPip::Blank);
     }
 }
