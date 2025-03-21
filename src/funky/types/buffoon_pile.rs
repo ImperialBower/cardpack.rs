@@ -1,6 +1,6 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
 use crate::prelude::{BasicPile, CardError, Ranged};
-use crate::preludes::funky::MPipType;
+use crate::preludes::funky::MPip;
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::fmt::{Display, Formatter};
@@ -18,11 +18,11 @@ impl BuffoonPile {
     /// did on the [`BuffoonCard`] side and apply it at the connection level.
     #[must_use]
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
-        match enhancer.enhancement.pip_type {
+        match enhancer.enhancement {
             // **DIARY** How do we make this simpler?
-            MPipType::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
-            MPipType::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
-            MPipType::MultPlusOnSuit(_, _) => {
+            MPip::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            MPip::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
+            MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
             }
             _ => 0,
