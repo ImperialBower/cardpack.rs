@@ -186,7 +186,7 @@ impl BuffoonCard {
 
     #[must_use]
     pub fn is_basic(&self) -> bool {
-        (self.card_type == BCardType::Basic) && (self.enhancement == MPip::BLANK)
+        (self.card_type == BCardType::Basic) && (self.enhancement == MPip::Blank)
     }
 
     #[must_use]
@@ -340,10 +340,13 @@ mod funky__types__buffoon_card_tests {
     #[test]
     fn enhance__tarot__magician() {
         assert_eq!(
-            TEN_DIAMONDS.enhance_swap(MPip::LUCKY).enhancement,
-            MPip::LUCKY
+            TEN_DIAMONDS.enhance_swap(MPip::Lucky(5, 15)).enhancement,
+            MPip::Lucky(5, 15)
         );
-        assert_eq!(TEN_DIAMONDS.enhance(MAGICIAN).enhancement, MPip::LUCKY);
+        assert_eq!(
+            TEN_DIAMONDS.enhance(MAGICIAN).enhancement,
+            MPip::Lucky(5, 15)
+        );
         assert_eq!(TEN_DIAMONDS.enhance(MAGICIAN).get_chips(), 10);
     }
 
@@ -365,7 +368,7 @@ mod funky__types__buffoon_card_tests {
     fn enhance__tarot__empress() {
         let card = JACK_SPADES.enhance(MAGICIAN);
 
-        assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MULT_PLUS4);
+        assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MultPlus(4));
     }
 
     #[test]
@@ -391,9 +394,9 @@ mod funky__types__buffoon_card_tests {
         let card = TEN_CLUBS;
 
         assert_eq!(card.get_chips(), 10);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(LOVERS).get_chips(), 10);
-        assert_eq!(card.enhance(LOVERS).enhancement, MPip::WILD_SUIT);
+        assert_eq!(card.enhance(LOVERS).enhancement, MPip::Wild(PipType::Suit));
     }
 
     #[test]
@@ -401,7 +404,7 @@ mod funky__types__buffoon_card_tests {
         let card = NINE_CLUBS;
 
         assert_eq!(card.get_chips(), 9);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(THE_CHARIOT).get_chips(), 9);
         assert_eq!(card.enhance(THE_CHARIOT).enhancement, MPip::STEEL);
     }
@@ -411,9 +414,9 @@ mod funky__types__buffoon_card_tests {
         let card = EIGHT_CLUBS;
 
         assert_eq!(card.get_chips(), 8);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(JUSTICE).get_chips(), 8);
-        assert_eq!(card.enhance(JUSTICE).enhancement, MPip::GLASS);
+        assert_eq!(card.enhance(JUSTICE).enhancement, MPip::Glass(2, 4));
     }
 
     #[test]
@@ -421,9 +424,9 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(HERMIT).get_chips(), 7);
-        assert_eq!(card.enhance(HERMIT).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(HERMIT).enhancement, MPip::Blank);
     }
 
     #[test]
@@ -431,9 +434,9 @@ mod funky__types__buffoon_card_tests {
         let card = SIX_CLUBS;
 
         assert_eq!(card.get_chips(), 6);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(WHEEL_OF_FORTUNE).get_chips(), 6);
-        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).enhancement, MPip::Blank);
     }
 
     #[test]
@@ -441,9 +444,9 @@ mod funky__types__buffoon_card_tests {
         let card = FIVE_CLUBS;
 
         assert_eq!(card.get_chips(), 5);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(STRENGTH).get_chips(), 6);
-        assert_eq!(card.enhance(STRENGTH).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(STRENGTH).enhancement, MPip::Blank);
         assert_eq!(card.enhance(STRENGTH), SIX_CLUBS);
         assert_eq!(SIX_CLUBS.enhance(STRENGTH), SEVEN_CLUBS);
         assert_eq!(SEVEN_CLUBS.enhance(STRENGTH), EIGHT_CLUBS);
@@ -464,9 +467,9 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(HANGED_MAN).get_chips(), 7);
-        assert_eq!(card.enhance(HANGED_MAN).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(HANGED_MAN).enhancement, MPip::Blank);
     }
 
     #[test]
@@ -474,9 +477,9 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(DEATH).get_chips(), 7);
-        assert_eq!(card.enhance(DEATH).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(DEATH).enhancement, MPip::Blank);
     }
 
     #[test]
@@ -484,9 +487,9 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(TEMPERANCE).get_chips(), 7);
-        assert_eq!(card.enhance(TEMPERANCE).enhancement, MPip::BLANK);
+        assert_eq!(card.enhance(TEMPERANCE).enhancement, MPip::Blank);
     }
 
     #[test]
@@ -494,7 +497,7 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(DEVIL).get_chips(), 7);
         assert_eq!(card.enhance(DEVIL).enhancement, MPip::DEVIL);
     }
@@ -504,26 +507,26 @@ mod funky__types__buffoon_card_tests {
         let card = SEVEN_CLUBS;
 
         assert_eq!(card.get_chips(), 7);
-        assert_eq!(card.enhancement, MPip::BLANK);
+        assert_eq!(card.enhancement, MPip::Blank);
         assert_eq!(card.enhance(TOWER).get_chips(), 7);
         assert_eq!(card.enhance(TOWER).enhancement, MPip::TOWER);
     }
 
     #[test]
     fn enhance__tarot__suits() {
-        assert_eq!(SIX_CLUBS.enhance(STAR).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(STAR).enhancement, MPip::Blank);
         assert_eq!(SIX_CLUBS.enhance(STAR).suit, FrenchSuit::DIAMONDS);
-        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::Blank);
         assert_eq!(SIX_CLUBS.enhance(MOON).suit, FrenchSuit::CLUBS);
-        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::Blank);
         assert_eq!(SIX_CLUBS.enhance(SUN).suit, FrenchSuit::HEARTS);
-        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::Blank);
         assert_eq!(SIX_CLUBS.enhance(WORLD).suit, FrenchSuit::SPADES);
     }
 
     #[test]
     fn enhance__tarot__judgement() {
-        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::BLANK);
+        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::Blank);
     }
 
     #[test]
