@@ -97,364 +97,364 @@ pub mod basic {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const KING_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const QUEEN_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const JACK_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TEN_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const NINE_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const EIGHT_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SEVEN_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SIX_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FIVE_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FOUR_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TREY_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const DEUCE_SPADES: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::SPADES,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const ACE_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const KING_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const QUEEN_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const JACK_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TEN_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const NINE_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const EIGHT_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SEVEN_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SIX_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FIVE_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FOUR_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TREY_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const DEUCE_HEARTS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::HEARTS,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const ACE_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const KING_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const QUEEN_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const JACK_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TEN_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const NINE_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const EIGHT_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SEVEN_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SIX_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FIVE_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FOUR_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TREY_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const DEUCE_DIAMONDS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::DIAMONDS,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const ACE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const KING_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const QUEEN_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const JACK_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TEN_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const NINE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const EIGHT_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SEVEN_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const SIX_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FIVE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const FOUR_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const TREY_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
         pub const DEUCE_CLUBS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::CLUBS,
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
-            enhancement: MPip::BLANK,
+            enhancement: MPip::Blank,
             debuffed: false,
         };
     }
