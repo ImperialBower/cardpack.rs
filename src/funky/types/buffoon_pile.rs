@@ -1,5 +1,6 @@
+use std::collections::HashMap;
 use crate::funky::types::buffoon_card::BuffoonCard;
-use crate::prelude::{BasicPile, CardError, Ranged};
+use crate::prelude::{BasicPile, CardError, Pip, Ranged};
 use crate::preludes::funky::MPip;
 use rand::prelude::SliceRandom;
 use rand::rng;
@@ -124,6 +125,19 @@ impl BuffoonPile {
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    #[must_use]
+    pub fn map_by_rank(&self) -> HashMap<Pip, usize> {
+        let mut mappy: HashMap<Pip, usize> = HashMap::new();
+
+        for card in self {
+            let rank = card.rank;
+            let count = mappy.get(&rank).unwrap_or(&0) + 1;
+            mappy.insert(rank, count);
+        }
+
+        mappy
     }
 
     pub fn pop(&mut self) -> Option<BuffoonCard> {
@@ -375,10 +389,36 @@ mod funky__types__buffoon_pile_tests {
     }
 
     #[test]
+    fn map_by_rank() {
+        let pile = bcards!("AS AD QS JS TS");
+        let map = pile.map_by_rank();
+
+        for m in map {
+            // println!("{m}");
+        }
+
+        // println!("{:?}", map);
+
+        // assert_eq!(map.get_key_value(&FrenchRank::ACE).unwrap(), 2);
+
+        // assert_eq!(map[&FrenchRank::ACE], 1);
+        // assert_eq!(map[&FrenchRank::KING], 1);
+        // assert_eq!(map[&FrenchRank::QUEEN], 1);
+        // assert_eq!(map[&FrenchRank::JACK], 1);
+        // assert_eq!(map[&FrenchRank::TEN], 1);
+        // assert_eq!(map[&FrenchRank::NINE], 1);
+    }
+
+    #[test]
     fn from_str() {
         let pile = BuffoonPile::from_str("AS KS QS JS TS").unwrap();
         assert_eq!(pile.to_string(), "AS KS QS JS TS");
         assert_eq!(bcards!("AS KS QS JS TS").to_string(), "AS KS QS JS TS");
+    }
+
+    #[test]
+    fn scratch() {
+        let cards = bcards!("AS AD QS QC JH JC");
     }
 }
 
