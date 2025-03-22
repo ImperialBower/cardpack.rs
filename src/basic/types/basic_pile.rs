@@ -380,8 +380,8 @@ impl IntoIterator for BasicPile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
-    use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
+    use crate::{basic, bcards};
     use std::str::FromStr;
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\

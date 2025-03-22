@@ -109,7 +109,10 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn has_trips(&self) -> bool {
-        self.basic_pile().ranks().len() < self.len() - 1
+        match self.combos_by_rank().first() {
+            Some(combo) => combo.len() >= 3,
+            None => false,
+        }
     }
 
     #[must_use]
@@ -376,15 +379,20 @@ mod funky__types__buffoon_pile_tests {
         assert!(bcards!("AS AD AH JS TS").has_trips());
         assert!(bcards!("AS AD AH AC TS").has_trips());
         assert!(bcards!("AS AD QS QC QH").has_trips());
-        // assert!(!bcards!("AS AD QS QC JH JC").has_trips());
+        assert!(bcards!("AS AD 9D QS QC JH 9C 8S 9S").has_trips());
+        assert!(bcards!("AS AC AH AD 9D QS QC JH 9C 8S 9S").has_trips());
+        assert!(!bcards!("AS AD QS QC JH JC").has_trips());
         assert!(!bcards!("AS KS QS JS TS").has_pair());
     }
 
     #[test]
     fn map_by_rank() {
         assert_eq!(
-            "9♣ 9♠ 9♦, Q♠ Q♦, J♠, T♠",
-            bcards!("9C 9S 9D QS QD JS TS").combos_by_rank().to_string()
+            "9♥ 9♦ 9♣, Q♠ Q♦, T♠, J♠",
+            bcards!("9C 9H 9D QS QD JS TS")
+                .combos_by_rank()
+                .sort_internal()
+                .to_string()
         );
     }
 
@@ -393,11 +401,6 @@ mod funky__types__buffoon_pile_tests {
         let pile = BuffoonPile::from_str("AS KS QS JS TS").unwrap();
         assert_eq!(pile.to_string(), "AS KS QS JS TS");
         assert_eq!(bcards!("AS KS QS JS TS").to_string(), "AS KS QS JS TS");
-    }
-
-    #[test]
-    fn scratch() {
-        let cards = bcards!("AS AD QS QC JH JC");
     }
 }
 
