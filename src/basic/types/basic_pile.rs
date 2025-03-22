@@ -375,8 +375,8 @@ impl IntoIterator for BasicPile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
-    use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
+    use crate::{basic, bcards};
     use std::str::FromStr;
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
@@ -452,10 +452,13 @@ mod basic__types__pile_tests {
 
     #[test]
     fn map_by_rank() {
-        let pile = basic!("AS AD KS");
-        let expected = vec![FrenchRank::ACE, FrenchRank::ACE, FrenchRank::KING];
-
-        // assert_eq!(pile.map_by_rank(), expected);
+        assert_eq!(
+            "9♠ 9♦ 9♣, Q♠ Q♦, T♠, J♠",
+            basic!("QD 9C QS 9S 9D TS JS")
+                .combos_by_rank()
+                .sort_internal()
+                .to_string()
+        );
     }
 
     // endregion Ranged
