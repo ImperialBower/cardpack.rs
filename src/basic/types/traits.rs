@@ -345,6 +345,35 @@ pub trait Ranged {
         vec
     }
 
+    fn map_by_rank(&self) -> HashMap<Pip, BasicPile> {
+        let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
+
+        for card in &self.my_basic_pile() {
+            let rank = card.rank;
+
+            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(rank) {
+                let pile = BasicPile::from(vec![*card]);
+                e.insert(pile);
+            } else {
+                let pile = mappy.get_mut(&rank).unwrap();
+                pile.push(*card);
+            }
+        }
+
+        mappy
+    }
+
+    fn combos_by_rank(&self) -> Combos {
+        let mappy = self.map_by_rank();
+
+        let v: Vec<BasicPile> = mappy.values().map(Clone::clone).collect::<Vec<_>>();
+
+        let mut combos = Combos::from(v);
+        combos.sort_by_length();
+        combos.reverse();
+        combos
+    }
+
     fn pip_index<F>(&self, f: F, joiner: &str) -> String
     where
         F: Fn(&BasicCard) -> Pip,

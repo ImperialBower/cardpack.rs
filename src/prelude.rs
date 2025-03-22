@@ -27,6 +27,7 @@ pub use crate::common::errors::CardError;
 pub use crate::localization::{FluentName, Named};
 
 // Macros
+pub use crate::basic;
 pub use crate::card;
 pub use crate::cards;
 pub use crate::french_cards;

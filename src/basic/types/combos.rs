@@ -156,6 +156,14 @@ impl Combos {
         self.0.sort();
     }
 
+    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> std::cmp::Ordering) {
+        self.0.sort_by(f);
+    }
+
+    pub fn sort_by_length(&mut self) {
+        self.0.sort_by_key(BasicPile::len);
+    }
+
     #[must_use]
     pub fn v(&self) -> &Vec<BasicPile> {
         &self.0
