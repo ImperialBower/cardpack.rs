@@ -122,6 +122,16 @@ impl Combos {
     // region vector functions
 
     #[must_use]
+    pub fn first(&self) -> Option<&BasicPile> {
+        self.0.first()
+    }
+
+    #[must_use]
+    pub fn second(&self) -> Option<&BasicPile> {
+        self.0.get(1)
+    }
+
+    #[must_use]
     pub fn get(&self, position: usize) -> Option<&BasicPile> {
         self.0.get(position)
     }
@@ -154,6 +164,23 @@ impl Combos {
 
     pub fn sort(&mut self) {
         self.0.sort();
+    }
+
+    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> std::cmp::Ordering) {
+        self.0.sort_by(f);
+    }
+
+    #[must_use]
+    pub fn sort_internal(&self) -> Self {
+        let mut s: Combos = self.0.iter().map(|pile| pile.clone().sorted()).collect();
+        s.sort();
+        s.sort_by_length();
+        s.reverse();
+        s
+    }
+
+    pub fn sort_by_length(&mut self) {
+        self.0.sort_by_key(BasicPile::len);
     }
 
     #[must_use]

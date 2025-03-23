@@ -93,19 +93,19 @@ impl BasicCard {
 }
 
 impl CKCRevised for BasicCard {
-    fn get_ckc_number(&self) -> u32 {
+    fn get_ckc_number(&self) -> usize {
         if self.is_blank() {
             return 0;
         }
         self.ckc_rank_number() + self.ckc_suit_number()
     }
 
-    fn ckc_rank_number(&self) -> u32 {
+    fn ckc_rank_number(&self) -> usize {
         self.ckc_rank_bits() | self.ckc_rank_shift8() | self.ckc_get_prime()
     }
 
     // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out altogether?
-    fn ckc_suit_number(&self) -> u32 {
+    fn ckc_suit_number(&self) -> usize {
         if self.suit.pip_type == PipType::Joker {
             return 0;
         }
@@ -115,19 +115,19 @@ impl CKCRevised for BasicCard {
         }
     }
 
-    fn ckc_rank_bits(&self) -> u32 {
+    fn ckc_rank_bits(&self) -> usize {
         1 << (Bit::RANK_FLAG_SHIFT + self.rank.weight)
     }
 
-    fn ckc_get_prime(&self) -> u32 {
-        if self.rank.weight as usize >= Pip::PRIMES.len() {
+    fn ckc_get_prime(&self) -> usize {
+        if self.rank.weight >= Pip::PRIMES.len() {
             0
         } else {
-            Pip::PRIMES[(self.rank.weight) as usize]
+            Pip::PRIMES[sself.rank.weight]
         }
     }
 
-    fn ckc_rank_shift8(&self) -> u32 {
+    fn ckc_rank_shift8(&self) -> usize {
         self.rank.weight << 8
     }
 }
@@ -189,60 +189,60 @@ mod basic__types__basic_card_tests {
     }
 
     #[rstest]
-    #[case("A♠", CardNumber::ACE_SPADES)]
-    #[case("ks", CardNumber::KING_SPADES)]
-    #[case("QS", CardNumber::QUEEN_SPADES)]
-    #[case("J♠", CardNumber::JACK_SPADES)]
-    #[case("TS", CardNumber::TEN_SPADES)]
-    #[case("9s", CardNumber::NINE_SPADES)]
-    #[case("8♠", CardNumber::EIGHT_SPADES)]
-    #[case("7S", CardNumber::SEVEN_SPADES)]
-    #[case("6♠", CardNumber::SIX_SPADES)]
-    #[case("5S", CardNumber::FIVE_SPADES)]
-    #[case("4♠", CardNumber::FOUR_SPADES)]
-    #[case("3s", CardNumber::TREY_SPADES)]
-    #[case("2S", CardNumber::DEUCE_SPADES)]
-    #[case("A♥", CardNumber::ACE_HEARTS)]
-    #[case("k♥", CardNumber::KING_HEARTS)]
-    #[case("QH", CardNumber::QUEEN_HEARTS)]
-    #[case("jh", CardNumber::JACK_HEARTS)]
-    #[case("T♥", CardNumber::TEN_HEARTS)]
-    #[case("9♥", CardNumber::NINE_HEARTS)]
-    #[case("8h", CardNumber::EIGHT_HEARTS)]
-    #[case("7H", CardNumber::SEVEN_HEARTS)]
-    #[case("6h", CardNumber::SIX_HEARTS)]
-    #[case("5H", CardNumber::FIVE_HEARTS)]
-    #[case("4♥", CardNumber::FOUR_HEARTS)]
-    #[case("3♥", CardNumber::TREY_HEARTS)]
-    #[case("2h", CardNumber::DEUCE_HEARTS)]
-    #[case("A♦", CardNumber::ACE_DIAMONDS)]
-    #[case("k♦", CardNumber::KING_DIAMONDS)]
-    #[case("Q♦", CardNumber::QUEEN_DIAMONDS)]
-    #[case("Jd", CardNumber::JACK_DIAMONDS)]
-    #[case("tD", CardNumber::TEN_DIAMONDS)]
-    #[case("9♦", CardNumber::NINE_DIAMONDS)]
-    #[case("8D", CardNumber::EIGHT_DIAMONDS)]
-    #[case("7♦", CardNumber::SEVEN_DIAMONDS)]
-    #[case("6D", CardNumber::SIX_DIAMONDS)]
-    #[case("5D", CardNumber::FIVE_DIAMONDS)]
-    #[case("4♦", CardNumber::FOUR_DIAMONDS)]
-    #[case("3♦", CardNumber::TREY_DIAMONDS)]
-    #[case("2d", CardNumber::DEUCE_DIAMONDS)]
-    #[case("a♣", CardNumber::ACE_CLUBS)]
-    #[case("k♣", CardNumber::KING_CLUBS)]
-    #[case("QC", CardNumber::QUEEN_CLUBS)]
-    #[case("jc", CardNumber::JACK_CLUBS)]
-    #[case("tC", CardNumber::TEN_CLUBS)]
-    #[case("9♣", CardNumber::NINE_CLUBS)]
-    #[case("8♣", CardNumber::EIGHT_CLUBS)]
-    #[case("7c", CardNumber::SEVEN_CLUBS)]
-    #[case("6♣", CardNumber::SIX_CLUBS)]
-    #[case("5C", CardNumber::FIVE_CLUBS)]
-    #[case("4c", CardNumber::FOUR_CLUBS)]
-    #[case("3C", CardNumber::TREY_CLUBS)]
-    #[case("2C", CardNumber::DEUCE_CLUBS)]
-    #[case("__", 0u32)]
-    fn card__get_ckc_number(#[case] input: &str, #[case] expected_ckc: u32) {
+    #[case("A♠", CardNumber::ACE_SPADES as usize)]
+    #[case("ks", CardNumber::KING_SPADES as usize)]
+    #[case("QS", CardNumber::QUEEN_SPADES as usize)]
+    #[case("J♠", CardNumber::JACK_SPADES as usize)]
+    #[case("TS", CardNumber::TEN_SPADES as usize)]
+    #[case("9s", CardNumber::NINE_SPADES as usize)]
+    #[case("8♠", CardNumber::EIGHT_SPADES as usize)]
+    #[case("7S", CardNumber::SEVEN_SPADES as usize)]
+    #[case("6♠", CardNumber::SIX_SPADES as usize)]
+    #[case("5S", CardNumber::FIVE_SPADES as usize)]
+    #[case("4♠", CardNumber::FOUR_SPADES as usize)]
+    #[case("3s", CardNumber::TREY_SPADES as usize)]
+    #[case("2S", CardNumber::DEUCE_SPADES as usize)]
+    #[case("A♥", CardNumber::ACE_HEARTS as usize)]
+    #[case("k♥", CardNumber::KING_HEARTS as usize)]
+    #[case("QH", CardNumber::QUEEN_HEARTS as usize)]
+    #[case("jh", CardNumber::JACK_HEARTS as usize)]
+    #[case("T♥", CardNumber::TEN_HEARTS as usize)]
+    #[case("9♥", CardNumber::NINE_HEARTS as usize)]
+    #[case("8h", CardNumber::EIGHT_HEARTS as usize)]
+    #[case("7H", CardNumber::SEVEN_HEARTS as usize)]
+    #[case("6h", CardNumber::SIX_HEARTS as usize)]
+    #[case("5H", CardNumber::FIVE_HEARTS as usize)]
+    #[case("4♥", CardNumber::FOUR_HEARTS as usize)]
+    #[case("3♥", CardNumber::TREY_HEARTS as usize)]
+    #[case("2h", CardNumber::DEUCE_HEARTS as usize)]
+    #[case("A♦", CardNumber::ACE_DIAMONDS as usize)]
+    #[case("k♦", CardNumber::KING_DIAMONDS as usize)]
+    #[case("Q♦", CardNumber::QUEEN_DIAMONDS as usize)]
+    #[case("Jd", CardNumber::JACK_DIAMONDS as usize)]
+    #[case("tD", CardNumber::TEN_DIAMONDS as usize)]
+    #[case("9♦", CardNumber::NINE_DIAMONDS as usize)]
+    #[case("8D", CardNumber::EIGHT_DIAMONDS as usize)]
+    #[case("7♦", CardNumber::SEVEN_DIAMONDS as usize)]
+    #[case("6D", CardNumber::SIX_DIAMONDS as usize)]
+    #[case("5D", CardNumber::FIVE_DIAMONDS as usize)]
+    #[case("4♦", CardNumber::FOUR_DIAMONDS as usize)]
+    #[case("3♦", CardNumber::TREY_DIAMONDS as usize)]
+    #[case("2d", CardNumber::DEUCE_DIAMONDS as usize)]
+    #[case("a♣", CardNumber::ACE_CLUBS as usize)]
+    #[case("k♣", CardNumber::KING_CLUBS as usize)]
+    #[case("QC", CardNumber::QUEEN_CLUBS as usize)]
+    #[case("jc", CardNumber::JACK_CLUBS as usize)]
+    #[case("tC", CardNumber::TEN_CLUBS as usize)]
+    #[case("9♣", CardNumber::NINE_CLUBS as usize)]
+    #[case("8♣", CardNumber::EIGHT_CLUBS as usize)]
+    #[case("7c", CardNumber::SEVEN_CLUBS as usize)]
+    #[case("6♣", CardNumber::SIX_CLUBS as usize)]
+    #[case("5C", CardNumber::FIVE_CLUBS as usize)]
+    #[case("4c", CardNumber::FOUR_CLUBS as usize)]
+    #[case("3C", CardNumber::TREY_CLUBS as usize)]
+    #[case("2C", CardNumber::DEUCE_CLUBS as usize)]
+    #[case("__", 0)]
+    fn card__get_ckc_number(#[case] input: &str, #[case] expected_ckc: usize) {
         let card = Card::<Standard52>::from_str(input).unwrap();
 
         let base_card: BasicCard = card.into();

@@ -140,6 +140,13 @@ impl BasicPile {
         self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
     }
 
+    #[must_use]
+    pub fn sorted(&self) -> Self {
+        let mut pile = self.clone();
+        pile.sort();
+        pile
+    }
+
     /// Returns a new `BasicPile` with the `BasicCards` sorted.
     ///
     /// ```
@@ -152,7 +159,7 @@ impl BasicPile {
     #[must_use]
     pub fn sorted_by_rank(self) -> Self {
         let mut pile = self.clone();
-        pile.0.sort_by(|a, b| b.rank.cmp(&a.rank));
+        pile.sort_by_rank();
         pile
     }
     // endregion
@@ -443,6 +450,17 @@ mod basic__types__pile_tests {
         assert!(!basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
     }
 
+    #[test]
+    fn map_by_rank() {
+        assert_eq!(
+            "9♠ 9♦ 9♣, Q♠ Q♦, T♠, J♠",
+            basic!("QD 9C QS 9S 9D TS JS")
+                .combos_by_rank()
+                .sort_internal()
+                .to_string()
+        );
+    }
+
     // endregion Ranged
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
@@ -622,6 +640,13 @@ mod basic__types__pile_tests {
 
         assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
         assert_eq!(pile2.to_string(), "8♣ 4♠ 2♠");
+    }
+
+    #[test]
+    fn sorted() {
+        let pile = basic!("2♠ 8♣ 4♠").sorted();
+
+        assert_eq!(pile.to_string(), "4♠ 2♠ 8♣");
     }
 
     #[test]

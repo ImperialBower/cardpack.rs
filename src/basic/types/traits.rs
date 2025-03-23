@@ -130,22 +130,22 @@ where
 /// like this organized in a functional way. Traits feel like a good way to do it.
 pub trait CKCRevised {
     #[must_use]
-    fn get_ckc_number(&self) -> u32;
+    fn get_ckc_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_number(&self) -> u32;
+    fn ckc_rank_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_suit_number(&self) -> u32;
+    fn ckc_suit_number(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_bits(&self) -> u32;
+    fn ckc_rank_bits(&self) -> usize;
 
     #[must_use]
-    fn ckc_get_prime(&self) -> u32;
+    fn ckc_get_prime(&self) -> usize;
 
     #[must_use]
-    fn ckc_rank_shift8(&self) -> u32;
+    fn ckc_rank_shift8(&self) -> usize;
 }
 
 /// This trait is a kind of proof of concept for how easy it would be to lay a foundation for creating
@@ -343,6 +343,39 @@ pub trait Ranged {
         vec.sort();
         vec.reverse();
         vec
+    }
+
+    fn map_by_rank(&self) -> HashMap<Pip, BasicPile> {
+        let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
+
+        for card in &self.my_basic_pile() {
+            let rank = card.rank;
+
+            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(rank) {
+                let pile = BasicPile::from(vec![*card]);
+                e.insert(pile);
+            } else {
+                let pile = mappy.get_mut(&rank).unwrap();
+                pile.push(*card);
+            }
+        }
+
+        mappy
+    }
+
+    /// Takes the `BasicPiles` and sorts them based on their length.
+    ///
+    /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades in
+    /// our unit tests. It's annoying but not enough to solve the problem.
+    fn combos_by_rank(&self) -> Combos {
+        let mappy = self.map_by_rank();
+
+        let v: Vec<BasicPile> = mappy.values().map(Clone::clone).collect::<Vec<_>>();
+
+        let mut combos = Combos::from(v);
+        combos.sort_by_length();
+        combos.reverse();
+        combos
     }
 
     fn pip_index<F>(&self, f: F, joiner: &str) -> String
