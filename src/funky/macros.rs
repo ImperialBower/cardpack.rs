@@ -243,6 +243,9 @@ macro_rules! bcard {
     (ZANY) => {
         $crate::funky::decks::joker::card::ZANY_JOKER
     };
+    (MAD) => {
+        $crate::funky::decks::joker::card::MAD_JOKER
+    };
 }
 
 #[macro_export]
@@ -339,5 +342,7 @@ mod funky__macros_tests {
         assert_eq!(bcard!(WRATHFUL), WRATHFUL_JOKER);
         assert_eq!(bcard!(GLUTTONOUS), GLUTTONOUS_JOKER);
         assert_eq!(bcard!(JOLLY), JOLLY_JOKER);
+        assert_eq!(bcard!(ZANY), ZANY_JOKER);
+        assert_eq!(bcard!(MAD), MAD_JOKER);
     }
 }
