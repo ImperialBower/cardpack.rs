@@ -368,12 +368,9 @@ impl IntoIterator for BasicPile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
+    use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
     use std::str::FromStr;
-
-    fn from_str(s: &str) -> BasicPile {
-        BasicPile::from(&Pile::<Standard52>::from_str(s).unwrap())
-    }
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Ranged
@@ -411,39 +408,39 @@ mod basic__types__pile_tests {
 
     #[test]
     fn all_of_rank() {
-        assert!(from_str("AS AD").all_of_rank(FrenchRank::ACE));
-        assert!(from_str("AS AD AS").all_of_rank(FrenchRank::ACE));
-        assert!(!from_str("AS AD").all_of_rank(FrenchRank::KING));
-        assert!(!from_str("AS AD KS").all_of_rank(FrenchRank::ACE));
+        assert!(basic!("AS AD").all_of_rank(FrenchRank::ACE));
+        assert!(basic!("AS AD AS").all_of_rank(FrenchRank::ACE));
+        assert!(!basic!("AS AD").all_of_rank(FrenchRank::KING));
+        assert!(!basic!("AS AD KS").all_of_rank(FrenchRank::ACE));
     }
 
     #[test]
     fn all_of_same_rank() {
-        assert!(from_str("AS AD").all_of_same_rank());
-        assert!(from_str("AS AD AS").all_of_same_rank());
-        assert!(!from_str("AS AD KS").all_of_same_rank());
+        assert!(basic!("AS AD").all_of_same_rank());
+        assert!(basic!("AS AD AS").all_of_same_rank());
+        assert!(!basic!("AS AD KS").all_of_same_rank());
     }
 
     #[test]
     fn all_of_same_suit() {
-        assert!(from_str("AS KS").all_of_same_suit());
-        assert!(from_str("AS KS QS").all_of_same_suit());
-        assert!(!from_str("AS KH QD").all_of_same_suit());
+        assert!(basic!("AS KS").all_of_same_suit());
+        assert!(basic!("AS KS QS").all_of_same_suit());
+        assert!(!basic!("AS KH QD").all_of_same_suit());
     }
 
     // copilot:
-    // assert!(from_str("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
-    // assert!(from_str("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
-    // assert!(from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
-    // assert!(!from_str("AS AD").of_same_or_greater_rank(FrenchRank::KING));
-    // assert!(!from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+    // assert!(basic!("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(basic!("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+    // assert!(!basic!("AS AD").of_same_or_greater_rank(FrenchRank::KING));
+    // assert!(!basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
     #[test]
     fn of_same_or_greater_rank() {
-        assert!(from_str("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
-        assert!(from_str("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
-        assert!(from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
-        assert!(!from_str("AS QD").of_same_or_greater_rank(FrenchRank::KING));
-        assert!(!from_str("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(basic!("AS AD").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(basic!("AS AD AS").of_same_or_greater_rank(FrenchRank::ACE));
+        assert!(basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!basic!("AS QD").of_same_or_greater_rank(FrenchRank::KING));
+        assert!(!basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
     }
 
     // endregion Ranged
@@ -617,7 +614,7 @@ mod basic__types__pile_tests {
 
     #[test]
     fn sort() {
-        let mut pile = from_str("2♠ 8♣ 4♠");
+        let mut pile = basic!("2♠ 8♣ 4♠");
         let mut pile2 = pile.clone();
 
         pile.sort();
