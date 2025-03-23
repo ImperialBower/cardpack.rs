@@ -21,6 +21,7 @@ impl BuffoonPile {
         match enhancer.enhancement {
             // **DIARY** How do we make this simpler?
             MPip::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            MPip::MultPlusOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
             MPip::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
             MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
@@ -105,6 +106,14 @@ impl BuffoonPile {
     #[must_use]
     pub fn has_pair(&self) -> bool {
         self.basic_pile().ranks().len() < self.len()
+    }
+
+    #[must_use]
+    pub fn has_2pair(&self) -> bool {
+        match self.combos_by_rank().second() {
+            Some(combo) => combo.len() >= 2,
+            None => false,
+        }
     }
 
     #[must_use]
@@ -349,6 +358,14 @@ mod funky__types__buffoon_pile_tests {
             bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(ZANY)),
             12
         );
+        assert_eq!(
+            bcards!("AS AD QH JS TS").calculate_mult_plus(bcard!(ZANY)),
+            0
+        );
+        assert_eq!(
+            bcards!("AS AD AH JS JD").calculate_mult_plus(bcard!(MAD)),
+            10
+        );
     }
 
     #[test]
@@ -372,6 +389,13 @@ mod funky__types__buffoon_pile_tests {
         assert!(bcards!("AS AD QS JS TS").has_pair());
         assert!(bcards!("AS AD QS QC TS").has_pair());
         assert!(!bcards!("AS KS QS JS TS").has_pair());
+    }
+
+    #[test]
+    fn has_2pair() {
+        assert!(bcards!("AS AD QS QC TS").has_2pair());
+        assert!(!bcards!("AS AD QS JS TS").has_2pair());
+        assert!(!bcards!("AS KS QS JS TS").has_2pair());
     }
 
     #[test]

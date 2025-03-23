@@ -127,6 +127,11 @@ impl Combos {
     }
 
     #[must_use]
+    pub fn second(&self) -> Option<&BasicPile> {
+        self.0.get(1)
+    }
+
+    #[must_use]
     pub fn get(&self, position: usize) -> Option<&BasicPile> {
         self.0.get(position)
     }
