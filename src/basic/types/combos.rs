@@ -7,6 +7,22 @@ use std::fmt::{Display, Formatter};
 pub struct Combos(Vec<BasicPile>);
 
 impl Combos {
+    /// Returns every possible combination of `Cards` of a given length for a specific `BasicPile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    /// use cardpack::basic::decks::tiny::Tiny;
+    ///
+    /// let pile: BasicPile = (&Pile::<Tiny>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.len(), 4);
+    /// assert_eq!(
+    ///     combos.to_string(),
+    ///     "A♠ K♠, A♠ K♥, A♥ K♠, A♥ K♥"
+    /// );
+    /// ```
+    ///
     /// OK, this refactoring is hot AF. This is what I am looking for when I refactor.
     ///
     /// 1. Find a problem.
