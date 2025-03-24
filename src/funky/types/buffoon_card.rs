@@ -132,6 +132,11 @@ impl BuffoonCard {
         }
     }
 
+    #[must_use]
+    pub fn distance(&self, other: &BuffoonCard) -> usize {
+        todo!()
+    }
+
     fn get_enhanced_chips(&self) -> usize {
         let mut chips = 0;
         if let MPip::Chips(c) = self.enhancement {

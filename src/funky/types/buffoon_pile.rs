@@ -125,6 +125,13 @@ impl BuffoonPile {
     }
 
     #[must_use]
+    pub fn has_connectors(&self, count: usize) -> bool {
+        let pile = self.sorted();
+        todo!()
+
+    }
+
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
