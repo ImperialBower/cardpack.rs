@@ -123,7 +123,7 @@ impl CKCRevised for BasicCard {
         if self.rank.weight >= Pip::PRIMES.len() {
             0
         } else {
-            Pip::PRIMES[sself.rank.weight]
+            Pip::PRIMES[self.rank.weight]
         }
     }
 
