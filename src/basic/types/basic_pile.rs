@@ -140,6 +140,13 @@ impl BasicPile {
         self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
     }
 
+    /// Returns a new `BasicPile` sorted.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert_eq!(basic!("2♠ A♣ 3♠ 4♠ 5♣").sorted().to_string(), "4♠ 3♠ 2♠ A♣ 5♣");
+    /// ```
     #[must_use]
     pub fn sorted(&self) -> Self {
         let mut pile = self.clone();
@@ -152,9 +159,7 @@ impl BasicPile {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let hand = BasicPile::from(vec![FrenchBasicCard::KING_SPADES, FrenchBasicCard::ACE_DIAMONDS]);
-    ///
-    /// assert_eq!(hand.sorted_by_rank().to_string(), "A♦ K♠");
+    /// assert_eq!(basic!("2♠ A♣ 3♠ 4♠ 5♣").sorted_by_rank().to_string(), "A♣ 5♣ 4♠ 3♠ 2♠");
     /// ```
     #[must_use]
     pub fn sorted_by_rank(self) -> Self {

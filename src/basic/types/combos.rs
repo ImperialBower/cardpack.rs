@@ -121,11 +121,36 @@ impl Combos {
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region vector functions
 
+    /// Returns a reference to the first element of the vector, if there is one.
+    ///
+    /// ```
+    /// use cardpack::basic::types::combos::Combos;
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.first().unwrap().to_string(), "A♠ K♠");
+    /// assert!(Combos::default().first().is_none());
+    /// ```
     #[must_use]
     pub fn first(&self) -> Option<&BasicPile> {
         self.0.first()
     }
 
+    /// Returns a reference to the second element of the vector, if there is one.
+    ///
+    /// ```
+    /// use cardpack::basic::types::combos::Combos;
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.second().unwrap().to_string(), "A♠ K♥");
+    /// assert!(Combos::default().second().is_none());
+    /// ```
+    /// Returns a reference to the second element of the vector, if there is one.
     #[must_use]
     pub fn second(&self) -> Option<&BasicPile> {
         self.0.get(1)
