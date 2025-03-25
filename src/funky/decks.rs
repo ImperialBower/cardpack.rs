@@ -706,21 +706,28 @@ pub mod joker {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::JOLLY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MULT_PLUS8_ON_PAIR,
+            enhancement: MPip::MultPlusOnPair(8),
             debuffed: false,
         };
         pub const ZANY_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::ZANY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MULT_PLUS12_ON_TRIPS,
+            enhancement: MPip::MultPlusOnTrips(12),
             debuffed: false,
         };
         pub const MAD_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::MAD_JOKER_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MULT_PLUS10_ON_2PAIR,
+            enhancement: MPip::MultPlusOn2Pair(10),
+            debuffed: false,
+        };
+        pub const CRAZY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CRAZY_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnStraight(12),
             debuffed: false,
         };
 
@@ -787,6 +794,13 @@ pub mod joker {
             symbol: '☹',
             value: 4,
         };
+        pub const CRAZY_JOKER_RANK: Pip = Pip {
+            weight: 960,
+            pip_type: PipType::Joker,
+            index: '▦',
+            symbol: '▦',
+            value: 4,
+        };
     }
 }
 
@@ -798,8 +812,7 @@ pub mod joker {
 // 14 	Devious Joker 	+100 Chips if played hand contains a Straight 	$4 	Common 	Available from start. 	+c 	Indep.
 // 15 	Crafty Joker 	+80 Chips if played hand contains a Flush 	$4 	Common 	Available from start. 	+c 	Indep.
 // 16 	Half Joker 	+20 Mult if played hand contains 3 or fewer cards 	$5 	Common 	Available from start. 	+m 	Indep.
-// 17 	Joker Stencil 	X1 Mult for each empty Joker slot. Joker Stencil included
-// (Curently X1) 	$8 	Uncommon 	Available from start. 	Xm 	Indep.
+// 17 	Joker Stencil 	X1 Mult for each empty Joker slot. Joker Stencil included (Curently X1) 	$8 	Uncommon 	Available from start. 	Xm 	Indep.
 // 18 	Four Fingers 	All Flushes and Straights can be made with 4 cards 	$7 	Uncommon 	Available from start. 	!! 	N/A
 // 19 	Mime 	Retrigger all card held in hand abilities 	$5 	Uncommon 	Available from start. 	... 	On Held
 // 20 	Credit Card 	Go up to -$20 in debt 	$1 	Common 	Available from start. 	+$ 	N/A

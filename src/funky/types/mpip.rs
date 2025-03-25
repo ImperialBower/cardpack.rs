@@ -21,6 +21,7 @@ pub enum MPip {
     MultPlus(usize),
     MultPlusOnPair(usize),
     MultPlusOn2Pair(usize),
+    MultPlusOnStraight(usize),
     MultPlusOnTrips(usize),
     MultPlusOnSuit(usize, char),
     MultTimes(usize),
@@ -45,9 +46,6 @@ impl MPip {
     pub const MULT_PLUS3_ON_HEARTS: Self = MPip::MultPlusOnSuit(3, 'H');
     pub const MULT_PLUS3_ON_SPADES: Self = MPip::MultPlusOnSuit(3, 'S');
     pub const MULT_PLUS3_ON_CLUBS: Self = MPip::MultPlusOnSuit(3, 'C');
-    pub const MULT_PLUS8_ON_PAIR: Self = MPip::MultPlusOnPair(8);
-    pub const MULT_PLUS10_ON_2PAIR: Self = MPip::MultPlusOn2Pair(10);
-    pub const MULT_PLUS12_ON_TRIPS: Self = MPip::MultPlusOnTrips(12);
     pub const STEEL: Self = MPip::MultTimes1Dot(15); // 1.5
     pub const TEMPERANCE: Self = MPip::JokersValue(50);
     pub const TOWER: Self = MPip::Stone(50);
@@ -85,6 +83,7 @@ impl Display for MPip {
             MPip::MultPlus(value) => write!(f, "MultPlus({value})"),
             MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
+            MPip::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),
             MPip::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
             MPip::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
             MPip::MultTimes(value) => write!(f, "MultTimes({value})"),

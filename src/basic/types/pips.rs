@@ -128,6 +128,12 @@ impl Pip {
         self.weight.abs_diff(other.weight)
     }
 
+    /// The fundamental defining characteristic of a `Pip` is its `weight`.
+    #[must_use]
+    pub fn same_weight(&self, other: &Self) -> bool {
+        self.weight == other.weight
+    }
+
     /// Factory method to update values as needed.
     ///
     /// ```
