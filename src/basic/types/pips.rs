@@ -112,6 +112,22 @@ impl Pip {
         }
     }
 
+    /// Returns the absolute difference between the weights of two `Pips`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// assert_eq!(FrenchRank::ACE.distance(&FrenchRank::DEUCE), 12); // Calling 2s deuces really throws the AI off.
+    /// assert_eq!(FrenchRank::DEUCE.distance(&FrenchRank::ACE), 12);
+    /// assert_eq!(FrenchRank::DEUCE.distance(&FrenchRank::DEUCE), 0);
+    /// ```
+    ///
+    /// **DIARY:** Hey! I learned a new function. `asb_diff()` is very cool.
+    #[must_use]
+    pub fn distance(&self, other: &Self) -> usize {
+        self.weight.abs_diff(other.weight)
+    }
+
     /// Factory method to update values as needed.
     ///
     /// ```

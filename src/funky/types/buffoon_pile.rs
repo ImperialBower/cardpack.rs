@@ -1,5 +1,5 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
-use crate::prelude::{BasicPile, CardError, Ranged};
+use crate::prelude::{BasicPile, CardError, Pip, Ranged};
 use crate::preludes::funky::MPip;
 use rand::prelude::SliceRandom;
 use rand::rng;
@@ -28,10 +28,6 @@ impl BuffoonPile {
             }
             _ => 0,
         }
-    }
-
-    pub fn funky_num(&self, num: usize, func: fn(&BuffoonPile) -> bool) -> usize {
-        if func(self) { num } else { 0 }
     }
 
     pub fn clear(&mut self) {
@@ -86,6 +82,45 @@ impl BuffoonPile {
         Self::from_str(index).unwrap_or_else(|_| Self::default())
     }
 
+    /// Returns the number of connectors based on the distance between ranks. For a collection
+    /// of five cards, if 4 is returned, that's a straight. Allows for the scenarios where a
+    /// player has the [`Four Fingers Joker`](https://balatrogame.fandom.com/wiki/Four_Fingers)
+    /// and only needs a four card straight. It also supports when the player has the
+    /// [`Shortcut Joker`](https://balatrogame.fandom.com/wiki/Shortcut).
+    ///
+    /// ```
+    /// use cardpack::preludes::funky::*;
+    ///
+    /// // Royal Flush
+    /// assert_eq!(bcards!("AS KS QS JS TS").fun_connectors(1), 4);
+    ///
+    ///
+    /// assert_eq!(bcards!("AS KS QS JS TS AC 3D 5S").fun_connectors(1), 4);
+    #[must_use]
+    pub fn fun_connectors(&self, distance: usize) -> usize {
+        let mut ranks = self.0.iter().map(|card| card.rank).collect::<Vec<_>>();
+        ranks.sort();
+
+        let mut count = 0;
+        let mut fopt: Option<Pip> = None;
+
+        for rank in ranks {
+            if fopt.is_none() {
+                fopt = Some(rank);
+            } else if let Some(first) = fopt {
+                if (first.distance(&rank) <= distance) && (first.distance(&rank) != 0) {
+                    count += 1;
+                }
+                fopt = Some(rank);
+            }
+        }
+        count
+    }
+
+    pub fn funky_num(&self, num: usize, func: fn(&BuffoonPile) -> bool) -> usize {
+        if func(self) { num } else { 0 }
+    }
+
     #[must_use]
     pub fn get(&self, position: usize) -> Option<&BuffoonCard> {
         self.0.get(position)
@@ -128,7 +163,6 @@ impl BuffoonPile {
     pub fn has_connectors(&self, count: usize) -> bool {
         let pile = self.sorted();
         todo!()
-
     }
 
     #[must_use]
@@ -373,6 +407,19 @@ mod funky__types__buffoon_pile_tests {
             bcards!("AS AD AH JS JD").calculate_mult_plus(bcard!(MAD)),
             10
         );
+    }
+
+    #[test]
+    fn fun_connectors() {
+        assert_eq!(bcards!("AS KS QS JS TS").fun_connectors(1), 4);
+        assert_eq!(bcards!("AS KS QS JS TS AC 3D 5S").fun_connectors(1), 4);
+        assert_eq!(bcards!("AS KS QS JS TS").fun_connectors(2), 4);
+        assert_eq!(bcards!("AS KS KD JS TS").fun_connectors(1), 2);
+        assert_eq!(bcards!("AS KS KD JS TS").fun_connectors(2), 3);
+        assert_eq!(bcards!("JD QS TC 9S KH").fun_connectors(1), 4);
+        assert_eq!(bcards!("JD QS TC 8S KH").fun_connectors(2), 4);
+        assert_eq!(bcards!("JD QS TC 8S KH").fun_connectors(2), 4);
+        assert_eq!(bcards!("JD JC JH 8S 8H").fun_connectors(1), 0);
     }
 
     #[test]

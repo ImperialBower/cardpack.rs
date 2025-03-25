@@ -131,10 +131,10 @@ impl BuffoonCard {
             _ => 0,
         }
     }
-
+    
     #[must_use]
     pub fn distance(&self, other: &BuffoonCard) -> usize {
-        todo!()
+        self.rank.distance(&other.rank)
     }
 
     fn get_enhanced_chips(&self) -> usize {
