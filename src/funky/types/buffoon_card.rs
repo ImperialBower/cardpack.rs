@@ -131,7 +131,7 @@ impl BuffoonCard {
             _ => 0,
         }
     }
-    
+
     #[must_use]
     pub fn distance(&self, other: &BuffoonCard) -> usize {
         self.rank.distance(&other.rank)
