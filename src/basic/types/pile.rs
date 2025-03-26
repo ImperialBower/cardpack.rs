@@ -432,7 +432,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// use crate::cardpack::basic::decks::tiny::Tiny;
     ///
     /// let pile = Pile::<Tiny>::deck();
-    /// let mappie = pile.map_by_suit();
+    /// let mappie = pile.map_pile_by_suit();
     ///
     /// assert_eq!(
     ///     mappie[&FrenchSuit::SPADES].to_string(),
@@ -444,7 +444,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// );
     /// ```
     #[must_use]
-    pub fn map_by_suit(&self) -> HashMap<Pip, Pile<DeckType>> {
+    pub fn map_pile_by_suit(&self) -> HashMap<Pip, Pile<DeckType>> {
         let mut map: HashMap<Pip, Pile<DeckType>> = HashMap::new();
 
         for card in &self.0 {
@@ -1083,10 +1083,10 @@ mod basic__types__deck_tests {
     }
 
     #[test]
-    fn map_by_suit() {
+    fn map_pile_by_suit() {
         let pile = Pile::<Standard52>::deck();
 
-        let map = pile.map_by_suit();
+        let map = pile.map_pile_by_suit();
 
         assert_eq!(map.len(), 4);
         assert_eq!(
