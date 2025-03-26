@@ -9,6 +9,13 @@ use std::str::FromStr;
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
 
+/// # Dimensions
+///
+/// Cards can have effects on the following dimensions of play:
+///
+/// - Enhances a single card
+/// - Enhances a certain number of cards
+/// -
 impl BuffoonPile {
     pub fn basic_pile(&self) -> BasicPile {
         self.iter().map(BuffoonCard::basic_card).collect()
@@ -76,6 +83,14 @@ impl BuffoonPile {
     }
 
     #[must_use]
+    pub fn count_largest_same_suit(&self) -> usize {
+        match self.combos_by_suit().first() {
+            Some(combo) => combo.len(),
+            None => 0,
+        }
+    }
+
+    #[must_use]
     pub fn draw(&mut self, n: usize) -> Option<Self> {
         let mut pile = Self::default();
         for _ in 0..n {
@@ -125,6 +140,11 @@ impl BuffoonPile {
     #[must_use]
     pub fn get(&self, position: usize) -> Option<&BuffoonCard> {
         self.0.get(position)
+    }
+
+    #[must_use]
+    pub fn has_flush(&self) -> bool {
+        self.count_largest_same_suit() >= 5
     }
 
     /// **DIARY** This is where I am hoping that the synergy between the `BasicPile` code can
@@ -446,6 +466,12 @@ mod funky__types__buffoon_pile_tests {
             bcards!("AS KS AD AC TS").funky_num(4, BuffoonPile::has_trips),
             4
         );
+    }
+
+    #[test]
+    fn has_flush() {
+        assert!(bcards!("AS KS QS JS TS").has_flush());
+        assert!(!bcards!("AS AD QS QC TS").has_flush());
     }
 
     #[test]

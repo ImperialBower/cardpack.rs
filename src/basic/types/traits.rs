@@ -363,13 +363,37 @@ pub trait Ranged {
         mappy
     }
 
+    fn map_by_suit(&self) -> HashMap<Pip, BasicPile> {
+        let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
+
+        for card in &self.my_basic_pile() {
+            let suit = card.suit;
+
+            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(suit) {
+                let pile = BasicPile::from(vec![*card]);
+                e.insert(pile);
+            } else {
+                let pile = mappy.get_mut(&suit).unwrap();
+                pile.push(*card);
+            }
+        }
+
+        mappy
+    }
+
     /// Takes the `BasicPiles` and sorts them based on their length.
     ///
     /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades in
     /// our unit tests. It's annoying but not enough to solve the problem.
     fn combos_by_rank(&self) -> Combos {
-        let mappy = self.map_by_rank();
+        self.combos_from_pip_map(self.map_by_rank())
+    }
 
+    fn combos_by_suit(&self) -> Combos {
+        self.combos_from_pip_map(self.map_by_suit())
+    }
+
+    fn combos_from_pip_map(&self, mappy: HashMap<Pip, BasicPile>) -> Combos {
         let v: Vec<BasicPile> = mappy.values().map(Clone::clone).collect::<Vec<_>>();
 
         let mut combos = Combos::from(v);

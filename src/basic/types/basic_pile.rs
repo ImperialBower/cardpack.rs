@@ -455,12 +455,26 @@ mod basic__types__pile_tests {
         assert!(!basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
     }
 
+    /// **DIARY** This is an example of chaining tests in order to have the coverage you want
+    /// without having to write test for both functions. I can see arguments for and against it.
+    /// For me it's a question of utility. They make it easier for me so I do it.
     #[test]
     fn map_by_rank() {
         assert_eq!(
             "9♠ 9♦ 9♣, Q♠ Q♦, T♠, J♠",
             basic!("QD 9C QS 9S 9D TS JS")
                 .combos_by_rank()
+                .sort_internal()
+                .to_string()
+        );
+    }
+
+    #[test]
+    fn map_by_suit() {
+        assert_eq!(
+            "Q♠ J♠ T♠ 9♠, Q♦ 9♦, 9♣",
+            basic!("QD 9C QS 9S 9D TS JS")
+                .combos_by_suit()
                 .sort_internal()
                 .to_string()
         );
