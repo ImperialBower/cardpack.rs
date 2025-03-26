@@ -730,11 +730,11 @@ pub mod joker {
             enhancement: MPip::MultPlusOnStraight(12),
             debuffed: false,
         };
-        pub const DROOL_JOKER_RANK: BuffoonCard = BuffoonCard {
+        pub const DROLL_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::DROOL_JOKER_RANK,
+            rank: joker::rank::DROLL_JOKER_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MultPlusOnStraight(10),
+            enhancement: MPip::MultPlusOnFlush(10),
             debuffed: false,
         };
 
@@ -808,11 +808,11 @@ pub mod joker {
             symbol: '▦',
             value: 4,
         };
-        pub const DROOL_JOKER_RANK: Pip = Pip {
-            weight: 960,
+        pub const DROLL_JOKER_RANK: Pip = Pip {
+            weight: 955,
             pip_type: PipType::Joker,
-            index: '▩',
-            symbol: '▩',
+            index: '▤',
+            symbol: '▤',
             value: 4,
         };
     }

@@ -27,6 +27,7 @@ impl BuffoonPile {
     pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
             // **DIARY** How do we make this simpler?
+            MPip::MultPlusOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
             MPip::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
             MPip::MultPlusOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
             MPip::MultPlusOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
@@ -405,18 +406,8 @@ mod funky__types__buffoon_pile_tests {
             bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(GLUTTONOUS)),
             0
         );
-        assert_eq!(
-            bcards!("AD KD QD JD TD").calculate_mult_plus(bcard!(CRAZY)),
-            12
-        );
-        assert_eq!(
-            bcards!("AD KD QD JD 9D").calculate_mult_plus(bcard!(CRAZY)),
-            0
-        );
-    }
 
-    #[test]
-    fn calculate_mult_plus__hands() {
+        // Hands
         assert_eq!(
             bcards!("AS AD QS JS TS").calculate_mult_plus(bcard!(JOLLY)),
             8
@@ -436,6 +427,22 @@ mod funky__types__buffoon_pile_tests {
         assert_eq!(
             bcards!("AS AD AH JS JD").calculate_mult_plus(bcard!(MAD)),
             10
+        );
+        assert_eq!(
+            bcards!("AD KD QD JD TD").calculate_mult_plus(bcard!(CRAZY)),
+            12
+        );
+        assert_eq!(
+            bcards!("AD KD QD JD 9D").calculate_mult_plus(bcard!(CRAZY)),
+            0
+        );
+        assert_eq!(
+            bcards!("AS JS QS 2S 8S").calculate_mult_plus(bcard!(DROLL)),
+            10
+        );
+        assert_eq!(
+            bcards!("AS JS QS 2S 8H").calculate_mult_plus(bcard!(DROLL)),
+            0
         );
     }
 
