@@ -737,6 +737,13 @@ pub mod joker {
             enhancement: MPip::MultPlusOnFlush(10),
             debuffed: false,
         };
+        pub const SLY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::SLY_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChipsOnPair(50),
+            debuffed: false,
+        };
 
         // Gluttonous Joker
     }
@@ -815,10 +822,16 @@ pub mod joker {
             symbol: '▤',
             value: 4,
         };
+        pub const SLY_JOKER_RANK: Pip = Pip {
+            weight: 955,
+            pip_type: PipType::Joker,
+            index: '⛄',
+            symbol: '⛄',
+            value: 3,
+        };
     }
 }
 
-// 10 	Droll Joker 	+10 Mult if played hand contains a Flush 	$4 	Common 	Available from start. 	+m 	Indep.
 // 11 	Sly Joker 	+50 Chips if played hand contains a Pair 	$3 	Common 	Available from start. 	+c 	Indep.
 // 12 	Wily Joker 	+100 Chips if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+c 	Indep.
 // 13 	Clever Joker 	+80 Chips if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+c 	Indep.
