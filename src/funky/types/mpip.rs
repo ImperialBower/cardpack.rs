@@ -5,33 +5,58 @@ use std::fmt::{Display, Formatter};
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
 )]
+pub enum CardLocation {
+    #[default]
+    Playing,
+    InHand,
+    InPile,
+    Discarded,
+    Deleted,
+}
+
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
+)]
 pub enum MPip {
     #[default]
     Blank,
     AddBaseChips(usize),
+    AddStoneCardWhenBlindSelected,
     Chips(usize),
     ChipsAndMultPlus(usize, usize),
+    ChipsOnFlush(usize),
     ChipsOnPair(usize),
+    ChipsOn2Pair(usize),
+    ChipsOnStraight(usize),
     ChipsOnTrips(usize),
+    ChipsPerRemainingDiscard(usize),
+    Credit(usize),
     Death(usize),
     DoubleMoney(usize),
+    FourFlushAndStraight,
     Glass(usize, usize),
     Gold(usize),
     Hanged(usize),
     JokersValue(usize),
     Lucky(usize, usize),
     MultPlus(usize),
+    MultPlusDoubleValueDestroyJokerOnRight(usize),
     MultPlusOnFlush(usize),
     MultPlusOnPair(usize),
     MultPlusOn2Pair(usize),
     MultPlusOnStraight(usize),
     MultPlusOnTrips(usize),
     MultPlusOnSuit(usize, char),
+    MultPlusOnUpToXCards(usize, usize),
+    MultPlusZeroDiscards(usize),
     MultTimes(usize),
+    MultTimesEveryXHands(usize, usize),
+    MultTimesOnEmptyJokerSlots(usize),
     MultTimes1Dot(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
+    RetriggerCardsInHand(usize),
     Stone(usize),
     Strength,
     Odds1in(usize),
@@ -72,31 +97,52 @@ impl Display for MPip {
         match self {
             MPip::Blank => write!(f, "Blank"),
             MPip::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
+            MPip::AddStoneCardWhenBlindSelected => write!(f, "AddStoneCardWhenBlindSelected"),
             MPip::Chips(chips) => write!(f, "Chips({chips})"),
             MPip::ChipsAndMultPlus(chips, value) => {
                 write!(f, "ChipsAndMultPlus({chips}, {value})")
             }
+            MPip::ChipsOnFlush(chips) => write!(f, "ChipsOnFlush({chips})"),
             MPip::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),
+            MPip::ChipsOn2Pair(chips) => write!(f, "ChipsOn2Pair({chips})"),
+            MPip::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
             MPip::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
+            MPip::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
+            MPip::Credit(value) => write!(f, "Credit({value})"),
             MPip::Death(value) => write!(f, "Death({value})"),
             MPip::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
+            MPip::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
             MPip::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             MPip::Gold(value) => write!(f, "Gold({value})"),
             MPip::Hanged(value) => write!(f, "Hanged({value})"),
             MPip::JokersValue(value) => write!(f, "JokersValue({value})"),
             MPip::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             MPip::MultPlus(value) => write!(f, "MultPlus({value})"),
+            MPip::MultPlusDoubleValueDestroyJokerOnRight(value) => {
+                write!(f, "MultPlusDoubleValueDestroyJokerOnRight({value})")
+            }
             MPip::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
             MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
             MPip::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),
             MPip::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
             MPip::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
+            MPip::MultPlusOnUpToXCards(value, cards) => {
+                write!(f, "MultPlusOnUpToXCards({value}, {cards})")
+            }
+            MPip::MultPlusZeroDiscards(value) => write!(f, "MultPlusZeroDiscards({value})"),
             MPip::MultTimes(value) => write!(f, "MultTimes({value})"),
+            MPip::MultTimesEveryXHands(value, hands) => {
+                write!(f, "MultTimesEveryXHands({value}, {hands})")
+            }
+            MPip::MultTimesOnEmptyJokerSlots(value) => {
+                write!(f, "MultTimesOnEmptyJokerSlots({value})")
+            }
             MPip::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
             MPip::Planet(value) => write!(f, "Planet({value})"),
             MPip::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
+            MPip::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
             MPip::Stone(value) => write!(f, "Stone({value})"),
             MPip::Strength => write!(f, "Strength"),
             MPip::Odds1in(value) => write!(f, "Wheel({value})"),

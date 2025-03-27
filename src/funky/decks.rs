@@ -744,7 +744,6 @@ pub mod joker {
             enhancement: MPip::ChipsOnPair(50),
             debuffed: false,
         };
-
         pub const WILY_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::WILY_JOKER_RANK,
@@ -752,6 +751,551 @@ pub mod joker {
             enhancement: MPip::ChipsOnTrips(100),
             debuffed: false,
         };
+        pub const CLEVER_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CLEVER_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChipsOn2Pair(80),
+            debuffed: false,
+        };
+
+        pub const DEVIOUS_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::DEVIOUS_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChipsOnStraight(100),
+            debuffed: false,
+        };
+
+        pub const CRAFTY_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CRAFTY_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChipsOnFlush(80),
+            debuffed: false,
+        };
+        pub const HALF_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::HALF_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnUpToXCards(20, 3),
+            debuffed: false,
+        };
+        pub const JOKER_STENCIL: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::JOKER_STENCIL_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::MultTimesOnEmptyJokerSlots(1),
+            debuffed: false,
+        };
+        pub const FOUR_FINGERS: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::FOUR_FINGERS_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::FourFlushAndStraight,
+            debuffed: false,
+        };
+        pub const MIME: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::MIME_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::RetriggerCardsInHand(1),
+            debuffed: false,
+        };
+        pub const CREDIT_CARD: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CREDIT_CARD_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Credit(20),
+            debuffed: false,
+        };
+        pub const CEREMONIAL_DAGGER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CEREMONIAL_DAGGER_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::MultPlusDoubleValueDestroyJokerOnRight(0),
+            debuffed: false,
+        };
+        pub const BANNER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::BANNER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChipsPerRemainingDiscard(30),
+            debuffed: false,
+        };
+        pub const MARBLE_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::MARBLE_JOKER_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::AddStoneCardWhenBlindSelected,
+            debuffed: false,
+        };
+        pub const LOYALTY_CARD: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::LOYALTY_CARD_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::MultTimesEveryXHands(4, 6),
+            debuffed: false,
+        };
+
+        // FINISH ME
+        pub const EIGHT_BALL: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::EIGHT_BALL_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const MISPRINT: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::MISPRINT_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const DUSK: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::DUSK_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const RAISED_FIST: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::RAISED_FIST_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const CHAOS_THE_CLOWN: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::CHAOS_THE_CLOWN_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const FIBONACCI: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::FIBONACCI_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const STEEL_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::STEEL_JOKER_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+
+        //
+        // pub const RIDE_THE_BUS: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RIDE_THE_BUS_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnConsecutiveHands(1),
+        //     debuffed: false,
+        // };
+        // pub const SPACE_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SPACE_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::UpgradeHand(25),
+        //     debuffed: false,
+        // };
+        //
+        // pub const EGG: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::EGG_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::SellValue(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const BURGLAR: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BURGLAR_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::GainHands(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const BLACKBOARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BLACKBOARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnSuits(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const RUNNER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RUNNER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnStraight(15),
+        //     debuffed: false,
+        // };
+        //
+        // pub const ICE_CREAM: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::ICE_CREAM_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::Chips(100),
+        //     debuffed: false,
+        // };
+        //
+        // pub const DNA: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::DNA_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CopyCard,
+        //     debuffed: false,
+        // };
+        //
+        // pub const SPLASH: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SPLASH_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CountAllCards,
+        //     debuffed: false,
+        // };
+        //
+        // pub const BLUE_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BLUE_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsPerCard(2),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SIXTH_SENSE: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SIXTH_SENSE_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::DestroyAndCreate,
+        //     debuffed: false,
+        // };
+        //
+        // pub const CONSTELLATION: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::CONSTELLATION_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnPlanetCards(0.1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const HIKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::HIKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::PermanentChips(5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const FACELESS_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::FACELESS_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnDiscard(5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const GREEN_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::GREEN_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnHandAndDiscard(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SUPERPOSITION: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SUPERPOSITION_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateTarotCard,
+        //     debuffed: false,
+        // };
+        //
+        // pub const TO_DO_LIST: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::TO_DO_LIST_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnPokerHand(4),
+        //     debuffed: false,
+        // };
+        //
+        // pub const CAVENDISH: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::CAVENDISH_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultWithChance(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const CARD_SHARP: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::CARD_SHARP_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnPlayedHand(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const RED_CARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RED_CARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnBoosterPack(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const MADNESS: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::MADNESS_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnBlind(0.5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SQUARE_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SQUARE_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnFourCards(4),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SEANCE: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SEANCE_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateSpectralCard,
+        //     debuffed: false,
+        // };
+        //
+        // pub const RIFF_RAFF: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RIFF_RAFF_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateCommonJokers,
+        //     debuffed: false,
+        // };
+        //
+        // pub const VAMPIRE: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::VAMPIRE_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnEnhancedCards(0.1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SHORTCUT: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SHORTCUT_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::AllowGapsInStraight,
+        //     debuffed: false,
+        // };
+        //
+        // pub const HOLOGRAM: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::HOLOGRAM_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnAddedCards(0.25),
+        //     debuffed: false,
+        // };
+        //
+        // pub const VAGABOND: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::VAGABOND_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateTarotCardOnLowValue,
+        //     debuffed: false,
+        // };
+        //
+        // pub const BARON: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BARON_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnKings(1.5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const CLOUD_9: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::CLOUD_9_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnNines(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const ROCKET: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::ROCKET_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnBossBlind(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const EROSION: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::EROSION_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnDeckSize(4),
+        //     debuffed: false,
+        // };
+        //
+        // pub const RESERVED_PARKING: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RESERVED_PARKING_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnFaceCards(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const MAIL_IN_REBATE: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::MAIL_IN_REBATE_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnDiscardedRank(5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const TO_THE_MOON: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::TO_THE_MOON_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::InterestOnChips(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const HALLUCINATION: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::HALLUCINATION_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateTarotCardOnBoosterPack,
+        //     debuffed: false,
+        // };
+        //
+        // pub const FORTUNE_TELLER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::FORTUNE_TELLER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnTarotCards(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const JUGGLER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::JUGGLER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::IncreaseHandSize(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const DRUNKARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::DRUNKARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::IncreaseDiscards(1),
+        //     debuffed: false,
+        // };
+        //
+        // pub const STONE_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::STONE_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsOnStoneCards(25),
+        //     debuffed: false,
+        // };
+        //
+        // pub const GOLDEN_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::GOLDEN_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::Chips(4),
+        //     debuffed: false,
+        // };
+        //
+        // pub const LUCKY_CAT: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::LUCKY_CAT_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnLuckyCards(0.25),
+        //     debuffed: false,
+        // };
+        //
+        // pub const BASEBALL_CARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BASEBALL_CARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnUncommonJokers(1.5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const BULL: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::BULL_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::ChipsPerDollar(2),
+        //     debuffed: false,
+        // };
+        //
+        // pub const DIET_COLA: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::DIET_COLA_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::CreateDoubleTag,
+        //     debuffed: false,
+        // };
+        //
+        // pub const TRADING_CARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::TRADING_CARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::DestroyAndEarn(3),
+        //     debuffed: false,
+        // };
+        //
+        // pub const FLASH_CARD: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::FLASH_CARD_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnReroll(2),
+        //     debuffed: false,
+        // };
+        //
+        // pub const POPCORN: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::POPCORN_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::Mult(20),
+        //     debuffed: false,
+        // };
+        //
+        // pub const SPARE_TROUSERS: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::SPARE_TROUSERS_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnTwoPair(2),
+        //     debuffed: false,
+        // };
+        //
+        // pub const ANCIENT_JOKER: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::ANCIENT_JOKER_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::MultOnSuit(1.5),
+        //     debuffed: false,
+        // };
+        //
+        // pub const RAMEN: BuffoonCard = BuffoonCard {
+        //     suit: FrenchSuit::JOKER,
+        //     rank: joker::rank::RAMEN_RANK,
+        //     card_type: BCardType::CommonJoker,
+        //     enhancement: MPip::Mult(2),
+        //     debuffed: false,
+        // };
     }
 
     pub mod rank {
@@ -829,24 +1373,513 @@ pub mod joker {
             value: 4,
         };
         pub const SLY_JOKER_RANK: Pip = Pip {
-            weight: 955,
+            weight: 950,
             pip_type: PipType::Joker,
             index: '⛄',
             symbol: '⛄',
             value: 3,
         };
         pub const WILY_JOKER_RANK: Pip = Pip {
-            weight: 955,
+            weight: 945,
             pip_type: PipType::Joker,
             index: '⛕',
             symbol: '⛕',
             value: 4,
         };
+        pub const CLEVER_JOKER_RANK: Pip = Pip {
+            weight: 940,
+            pip_type: PipType::Joker,
+            index: '∑',
+            symbol: '∑',
+            value: 4,
+        };
+        pub const DEVIOUS_JOKER_RANK: Pip = Pip {
+            weight: 935,
+            pip_type: PipType::Joker,
+            index: '∫',
+            symbol: '∫',
+            value: 4,
+        };
+        pub const CRAFTY_JOKER_RANK: Pip = Pip {
+            weight: 930,
+            pip_type: PipType::Joker,
+            index: '∞',
+            symbol: '∞',
+            value: 4,
+        };
+        pub const HALF_JOKER_RANK: Pip = Pip {
+            weight: 925,
+            pip_type: PipType::Joker,
+            index: '√',
+            symbol: '√',
+            value: 5,
+        };
+        pub const JOKER_STENCIL_RANK: Pip = Pip {
+            weight: 920,
+            pip_type: PipType::Joker,
+            index: '∛',
+            symbol: '∛',
+            value: 8,
+        };
+        pub const FOUR_FINGERS_RANK: Pip = Pip {
+            weight: 915,
+            pip_type: PipType::Joker,
+            index: '∜',
+            symbol: '∜',
+            value: 7,
+        };
+        pub const MIME_RANK: Pip = Pip {
+            weight: 914,
+            pip_type: PipType::Joker,
+            index: '∝',
+            symbol: '∝',
+            value: 5,
+        };
+        pub const CREDIT_CARD_RANK: Pip = Pip {
+            weight: 913,
+            pip_type: PipType::Joker,
+            index: '⌺',
+            symbol: '⌺',
+            value: 1,
+        };
+        pub const CEREMONIAL_DAGGER_RANK: Pip = Pip {
+            weight: 912,
+            pip_type: PipType::Joker,
+            index: '🗡',
+            symbol: '🗡',
+            value: 6,
+        };
+        pub const BANNER_RANK: Pip = Pip {
+            weight: 911,
+            pip_type: PipType::Joker,
+            index: '🚩',
+            symbol: '🚩',
+            value: 5,
+        };
+        pub const MYSTIC_SUMMIT_RANK: Pip = Pip {
+            weight: 910,
+            pip_type: PipType::Joker,
+            index: '🏔',
+            symbol: '🏔',
+            value: 5,
+        };
+        pub const MARBLE_JOKER_RANK: Pip = Pip {
+            weight: 909,
+            pip_type: PipType::Joker,
+            index: '🔮',
+            symbol: '🔮',
+            value: 6,
+        };
+        pub const LOYALTY_CARD_RANK: Pip = Pip {
+            weight: 908,
+            pip_type: PipType::Joker,
+            index: '🛍',
+            symbol: '🛍',
+            value: 5,
+        };
+        pub const EIGHT_BALL_RANK: Pip = Pip {
+            weight: 907,
+            pip_type: PipType::Joker,
+            index: '🎱',
+            symbol: '🎱',
+            value: 5,
+        };
+        pub const MISPRINT_RANK: Pip = Pip {
+            weight: 906,
+            pip_type: PipType::Joker,
+            index: '🃏',
+            symbol: '🃏',
+            value: 4,
+        };
+        pub const DUSK_RANK: Pip = Pip {
+            weight: 905,
+            pip_type: PipType::Joker,
+            index: '🌆',
+            symbol: '🌆',
+            value: 5,
+        };
+        pub const RAISED_FIST_RANK: Pip = Pip {
+            weight: 904,
+            pip_type: PipType::Joker,
+            index: '✊',
+            symbol: '✊',
+            value: 5,
+        };
+        pub const CHAOS_THE_CLOWN_RANK: Pip = Pip {
+            weight: 903,
+            pip_type: PipType::Joker,
+            index: '🤡',
+            symbol: '🤡',
+            value: 4,
+        };
+        pub const FIBONACCI_RANK: Pip = Pip {
+            weight: 902,
+            pip_type: PipType::Joker,
+            index: '🔢',
+            symbol: '🔢',
+            value: 8,
+        };
+        pub const STEEL_JOKER_RANK: Pip = Pip {
+            weight: 901,
+            pip_type: PipType::Joker,
+            index: '🔩',
+            symbol: '🔩',
+            value: 7,
+        };
+
+        pub const RIDE_THE_BUS_RANK: Pip = Pip {
+            weight: 910,
+            pip_type: PipType::Joker,
+            index: '🚌',
+            symbol: '🚌',
+            value: 5,
+        };
+        pub const SPACE_JOKER_RANK: Pip = Pip {
+            weight: 910,
+            pip_type: PipType::Joker,
+            index: '∝',
+            symbol: '∝',
+            value: 6,
+        };
+        pub const EGG_RANK: Pip = Pip {
+            weight: 905,
+            pip_type: PipType::Joker,
+            index: '∞',
+            symbol: '∞',
+            value: 6,
+        };
+        pub const BURGLAR_RANK: Pip = Pip {
+            weight: 900,
+            pip_type: PipType::Joker,
+            index: '∟',
+            symbol: '∟',
+            value: 6,
+        };
+        pub const BLACKBOARD_RANK: Pip = Pip {
+            weight: 895,
+            pip_type: PipType::Joker,
+            index: '∠',
+            symbol: '∠',
+            value: 5,
+        };
+        pub const RUNNER_RANK: Pip = Pip {
+            weight: 890,
+            pip_type: PipType::Joker,
+            index: '∡',
+            symbol: '∡',
+            value: 5,
+        };
+        pub const ICE_CREAM_RANK: Pip = Pip {
+            weight: 885,
+            pip_type: PipType::Joker,
+            index: '∢',
+            symbol: '∢',
+            value: 6,
+        };
+        pub const DNA_RANK: Pip = Pip {
+            weight: 880,
+            pip_type: PipType::Joker,
+            index: '∣',
+            symbol: '∣',
+            value: 5,
+        };
+        pub const SPLASH_RANK: Pip = Pip {
+            weight: 875,
+            pip_type: PipType::Joker,
+            index: '∤',
+            symbol: '∤',
+            value: 4,
+        };
+        pub const BLUE_JOKER_RANK: Pip = Pip {
+            weight: 870,
+            pip_type: PipType::Joker,
+            index: '∥',
+            symbol: '∥',
+            value: 5,
+        };
+        pub const SIXTH_SENSE_RANK: Pip = Pip {
+            weight: 865,
+            pip_type: PipType::Joker,
+            index: '∦',
+            symbol: '∦',
+            value: 5,
+        };
+        pub const CONSTELLATION_RANK: Pip = Pip {
+            weight: 860,
+            pip_type: PipType::Joker,
+            index: '∧',
+            symbol: '∧',
+            value: 5,
+        };
+        pub const HIKER_RANK: Pip = Pip {
+            weight: 855,
+            pip_type: PipType::Joker,
+            index: '∨',
+            symbol: '∨',
+            value: 5,
+        };
+        pub const FACELESS_JOKER_RANK: Pip = Pip {
+            weight: 850,
+            pip_type: PipType::Joker,
+            index: '∩',
+            symbol: '∩',
+            value: 5,
+        };
+        pub const GREEN_JOKER_RANK: Pip = Pip {
+            weight: 845,
+            pip_type: PipType::Joker,
+            index: '∪',
+            symbol: '∪',
+            value: 5,
+        };
+        pub const SUPERPOSITION_RANK: Pip = Pip {
+            weight: 840,
+            pip_type: PipType::Joker,
+            index: '∫',
+            symbol: '∫',
+            value: 5,
+        };
+        pub const TO_DO_LIST_RANK: Pip = Pip {
+            weight: 835,
+            pip_type: PipType::Joker,
+            index: '∬',
+            symbol: '∬',
+            value: 5,
+        };
+        pub const CAVENDISH_RANK: Pip = Pip {
+            weight: 830,
+            pip_type: PipType::Joker,
+            index: '∭',
+            symbol: '∭',
+            value: 5,
+        };
+        pub const CARD_SHARP_RANK: Pip = Pip {
+            weight: 825,
+            pip_type: PipType::Joker,
+            index: '∮',
+            symbol: '∮',
+            value: 5,
+        };
+        pub const RED_CARD_RANK: Pip = Pip {
+            weight: 820,
+            pip_type: PipType::Joker,
+            index: '∯',
+            symbol: '∯',
+            value: 5,
+        };
+        pub const MADNESS_RANK: Pip = Pip {
+            weight: 815,
+            pip_type: PipType::Joker,
+            index: '∰',
+            symbol: '∰',
+            value: 5,
+        };
+        pub const SQUARE_JOKER_RANK: Pip = Pip {
+            weight: 810,
+            pip_type: PipType::Joker,
+            index: '∱',
+            symbol: '∱',
+            value: 5,
+        };
+        pub const SEANCE_RANK: Pip = Pip {
+            weight: 805,
+            pip_type: PipType::Joker,
+            index: '∲',
+            symbol: '∲',
+            value: 5,
+        };
+        pub const RIFF_RAFF_RANK: Pip = Pip {
+            weight: 800,
+            pip_type: PipType::Joker,
+            index: '∳',
+            symbol: '∳',
+            value: 5,
+        };
+        pub const VAMPIRE_RANK: Pip = Pip {
+            weight: 795,
+            pip_type: PipType::Joker,
+            index: '∴',
+            symbol: '∴',
+            value: 5,
+        };
+        pub const SHORTCUT_RANK: Pip = Pip {
+            weight: 790,
+            pip_type: PipType::Joker,
+            index: '∵',
+            symbol: '∵',
+            value: 5,
+        };
+        pub const HOLOGRAM_RANK: Pip = Pip {
+            weight: 785,
+            pip_type: PipType::Joker,
+            index: '∶',
+            symbol: '∶',
+            value: 5,
+        };
+        pub const VAGABOND_RANK: Pip = Pip {
+            weight: 780,
+            pip_type: PipType::Joker,
+            index: '∷',
+            symbol: '∷',
+            value: 5,
+        };
+        pub const BARON_RANK: Pip = Pip {
+            weight: 775,
+            pip_type: PipType::Joker,
+            index: '∸',
+            symbol: '∸',
+            value: 5,
+        };
+        pub const CLOUD_9_RANK: Pip = Pip {
+            weight: 770,
+            pip_type: PipType::Joker,
+            index: '∹',
+            symbol: '∹',
+            value: 5,
+        };
+        pub const ROCKET_RANK: Pip = Pip {
+            weight: 765,
+            pip_type: PipType::Joker,
+            index: '∺',
+            symbol: '∺',
+            value: 5,
+        };
+        pub const EROSION_RANK: Pip = Pip {
+            weight: 760,
+            pip_type: PipType::Joker,
+            index: '∻',
+            symbol: '∻',
+            value: 5,
+        };
+        pub const RESERVED_PARKING_RANK: Pip = Pip {
+            weight: 755,
+            pip_type: PipType::Joker,
+            index: '∼',
+            symbol: '∼',
+            value: 5,
+        };
+        pub const MAIL_IN_REBATE_RANK: Pip = Pip {
+            weight: 750,
+            pip_type: PipType::Joker,
+            index: '∽',
+            symbol: '∽',
+            value: 5,
+        };
+        pub const TO_THE_MOON_RANK: Pip = Pip {
+            weight: 745,
+            pip_type: PipType::Joker,
+            index: '∾',
+            symbol: '∾',
+            value: 5,
+        };
+        pub const HALLUCINATION_RANK: Pip = Pip {
+            weight: 740,
+            pip_type: PipType::Joker,
+            index: '∿',
+            symbol: '∿',
+            value: 5,
+        };
+        pub const FORTUNE_TELLER_RANK: Pip = Pip {
+            weight: 735,
+            pip_type: PipType::Joker,
+            index: '≀',
+            symbol: '≀',
+            value: 5,
+        };
+        pub const JUGGLER_RANK: Pip = Pip {
+            weight: 730,
+            pip_type: PipType::Joker,
+            index: '≁',
+            symbol: '≁',
+            value: 5,
+        };
+        pub const DRUNKARD_RANK: Pip = Pip {
+            weight: 725,
+            pip_type: PipType::Joker,
+            index: '≂',
+            symbol: '≂',
+            value: 5,
+        };
+        pub const STONE_JOKER_RANK: Pip = Pip {
+            weight: 720,
+            pip_type: PipType::Joker,
+            index: '≃',
+            symbol: '≃',
+            value: 5,
+        };
+        pub const GOLDEN_JOKER_RANK: Pip = Pip {
+            weight: 715,
+            pip_type: PipType::Joker,
+            index: '≄',
+            symbol: '≄',
+            value: 5,
+        };
+        pub const LUCKY_CAT_RANK: Pip = Pip {
+            weight: 710,
+            pip_type: PipType::Joker,
+            index: '≅',
+            symbol: '≅',
+            value: 5,
+        };
+        pub const BASEBALL_CARD_RANK: Pip = Pip {
+            weight: 705,
+            pip_type: PipType::Joker,
+            index: '≆',
+            symbol: '≆',
+            value: 5,
+        };
+        pub const BULL_RANK: Pip = Pip {
+            weight: 700,
+            pip_type: PipType::Joker,
+            index: '≇',
+            symbol: '≇',
+            value: 5,
+        };
+        pub const DIET_COLA_RANK: Pip = Pip {
+            weight: 695,
+            pip_type: PipType::Joker,
+            index: '≈',
+            symbol: '≈',
+            value: 5,
+        };
+        pub const TRADING_CARD_RANK: Pip = Pip {
+            weight: 690,
+            pip_type: PipType::Joker,
+            index: '≉',
+            symbol: '≉',
+            value: 5,
+        };
+        pub const FLASH_CARD_RANK: Pip = Pip {
+            weight: 685,
+            pip_type: PipType::Joker,
+            index: '≊',
+            symbol: '≊',
+            value: 5,
+        };
+        pub const POPCORN_RANK: Pip = Pip {
+            weight: 680,
+            pip_type: PipType::Joker,
+            index: '≋',
+            symbol: '≋',
+            value: 5,
+        };
+        pub const SPARE_TROUSERS_RANK: Pip = Pip {
+            weight: 675,
+            pip_type: PipType::Joker,
+            index: '≌',
+            symbol: '≌',
+            value: 5,
+        };
+        pub const ANCIENT_JOKER_RANK: Pip = Pip {
+            weight: 670,
+            pip_type: PipType::Joker,
+            index: '≍',
+            symbol: '≍',
+            value: 5,
+        };
     }
 }
 
-// 12 	Wily Joker 	+100 Chips if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+c 	Indep.
-// 13 	Clever Joker 	+80 Chips if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+c 	Indep.
 // 14 	Devious Joker 	+100 Chips if played hand contains a Straight 	$4 	Common 	Available from start. 	+c 	Indep.
 // 15 	Crafty Joker 	+80 Chips if played hand contains a Flush 	$4 	Common 	Available from start. 	+c 	Indep.
 // 16 	Half Joker 	+20 Mult if played hand contains 3 or fewer cards 	$5 	Common 	Available from start. 	+m 	Indep.
@@ -858,10 +1891,8 @@ pub mod joker {
 // 22 	Banner 	+30 Chips for each remaining discard 	$5 	Common 	Available from start. 	+c 	Indep.
 // 23 	Mystic Summit 	+15 Mult when 0 discards remaining 	$5 	Common 	Available from start. 	+m 	Indep.
 // 24 	Marble Joker 	Adds one Stone card to the deck when Blind is selected 	$6 	Uncommon 	Available from start. 	!! 	N/A
-// 25 	Loyalty Card 	X4 Mult every 6 hands played
-// 5 reaining 	$5 	Uncommon 	Available from start. 	Xm 	Indep.
-// 26 	8 Ball 	1 in 4 chance for each played 8 to create a Tarot card when scored
-// (Mus have room) 	$5 	Common 	Available from start. 	!! 	On Scored
+// 25 	Loyalty Card 	X4 Mult every 6 hands played 5 reaining 	$5 	Uncommon 	Available from start. 	Xm 	Indep.
+// 26 	8 Ball 	1 in 4 chance for each played 8 to create a Tarot card when scored (Mus have room) 	$5 	Common 	Available from start. 	!! 	On Scored
 // 27 	Misprint 	+0-23 Mult 	$4 	Common 	Available from start. 	+m 	Indep.
 // 28 	Dusk 	Retrigger all played cards in final hand of the round 	$5 	Uncommon 	Available from start. 	... 	On Scored
 // 29 	Raised Fist 	Adds double the rank of lowest ranked card held in hand to Mult 	$5 	Common 	Available from start. 	+m 	On Held
@@ -870,8 +1901,7 @@ pub mod joker {
 // 32 	Steel Joker 	Gives X0.2 Mult for each Steel Card in your full deck
 // (Currently X1 Mult) 	$7 	Uncommon 	Available from start. (Can only appear in the shop when there is a Steel Card in the deck.) 	Xm 	Indep.
 // 33 	Scary Face 	Played face cards give +30 Chips when scored 	$4 	Common 	Available from start. 	+c 	On Scored
-// 34 	Abstract Joker 	+3 Mult for each Joker card
-// (Curently +0 Mult) 	$4 	Common 	Available from start. 	+m 	Indep.
+// 34 	Abstract Joker 	+3 Mult for each Joker card (Curently +0 Mult) 	$4 	Common 	Available from start. 	+m 	Indep.
 // 35 	Delayed Gratification 	Earn $2 per discard if no discards are used by end of the round 	$4 	Common 	Available from start. 	+$ 	N/A
 // 36 	Hack 	Retrigger each played 2, 3, 4, or 5 	$6 	Uncommon 	Available from start. 	... 	On Scored
 // 37 	Pareidolia 	All cards are considered face cards 	$5 	Uncommon 	Available from start. 	!! 	N/A
@@ -884,16 +1914,13 @@ pub mod joker {
 // 41 	Scholar 	Played Aces give +20 Chips and +4 Mult when scored 	$4 	Common 	Available from start. 	++ 	On Scored
 // 42 	Business Card 	Played face cards have a 1 in 2 chance to give $2 when scored 	$4 	Common 	Available from start. 	+$ 	On Scored
 // 43 	Supernova 	Adds the number of times poker hand has been played this run to Mult 	$5 	Common 	Available from start. 	+m 	Indep.
-// 44 	Ride the Bus 	This Joker gains +1 Mult per consecutive hand played without a scoring face card
-// (Currently +0 Mult) 	$6 	Common 	Available from start. 	+m 	Mixed
+// 44 	Ride the Bus 	This Joker gains +1 Mult per consecutive hand played without a scoring face card (Currently +0 Mult) 	$6 	Common 	Available from start. 	+m 	Mixed
 // 45 	Space Joker 	1 in 4 chance to upgrade level of played poker hand 	$5 	Uncommon 	Available from start. 	!! 	On Played
 // 46 	Egg 	Gains $3 of sell value at end of round 	$4 	Common 	Available from start. 	+$ 	N/A
 // 47 	Burglar 	When Blind is selected, gain +3 Hands and lose all discards 	$6 	Uncommon 	Available from start. 	!! 	N/A
 // 48 	Blackboard 	X3 Mult if all cards held in hand are  Spades or  Clubs 	$6 	Uncommon 	Available from start. 	Xm 	Indep.
-// 49 	Runner 	Gains +15 Chips if played hand contains a Straight
-// (Currently +0 Chips) 	$5 	Common 	Available from start. 	+c 	Mixed
-// 50 	Ice Cream 	+100 Chips
-// -5 Chips for every hand played 	$5 	Common 	Available from start. 	+c 	Indep.
+// 49 	Runner 	Gains +15 Chips if played hand contains a Straight (Currently +0 Chips) 	$5 	Common 	Available from start. 	+c 	Mixed
+// 50 	Ice Cream 	+100 Chips -5 Chips for every hand played 	$5 	Common 	Available from start. 	+c 	Indep.
 // 51 	DNA 	If first hand of round has only 1 card, add a permanent copy to deck and draw it to hand 	$8 	Rare 	Available from start. 	!! 	On Played
 // 52 	Splash 	Every played card counts in scoring 	$3 	Common 	Available from start. 	!! 	N/A
 // 53 	Blue Joker 	+2 Chips for each remaining card in deck
