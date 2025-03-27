@@ -39,6 +39,14 @@ impl BuffoonPile {
         }
     }
 
+    #[must_use]
+    pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
+        match enhancer.enhancement {
+            MPip::ChipsOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            _ => 0,
+        }
+    }
+
     pub fn clear(&mut self) {
         self.0.clear();
     }
@@ -417,6 +425,10 @@ mod funky__types__buffoon_pile_tests {
             8
         );
         assert_eq!(
+            bcards!("AS KD QH JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            0
+        );
+        assert_eq!(
             bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(ZANY)),
             12
         );
@@ -442,6 +454,22 @@ mod funky__types__buffoon_pile_tests {
         );
         assert_eq!(
             bcards!("AS JS QS 2S 8H").calculate_mult_plus(bcard!(DROLL)),
+            0
+        );
+    }
+
+    #[test]
+    fn calculate_plus_chips() {
+        assert_eq!(
+            bcards!("AS AD QS JS TS").calculate_plus_chips(bcard!(SLY)),
+            50
+        );
+        assert_eq!(
+            bcards!("AS AD AH JS TS").calculate_plus_chips(bcard!(SLY)),
+            50
+        );
+        assert_eq!(
+            bcards!("AS KD QH JS TS").calculate_plus_chips(bcard!(SLY)),
             0
         );
     }
