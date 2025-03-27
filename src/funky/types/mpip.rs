@@ -12,6 +12,7 @@ pub enum MPip {
     Chips(usize),
     ChipsAndMultPlus(usize, usize),
     ChipsOnPair(usize),
+    ChipsOnTrips(usize),
     Death(usize),
     DoubleMoney(usize),
     Glass(usize, usize),
@@ -76,6 +77,7 @@ impl Display for MPip {
                 write!(f, "ChipsAndMultPlus({chips}, {value})")
             }
             MPip::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),
+            MPip::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
             MPip::Death(value) => write!(f, "Death({value})"),
             MPip::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
             MPip::Glass(a, b) => write!(f, "Glass({a}, {b})"),
