@@ -42,7 +42,10 @@ impl BuffoonPile {
     #[must_use]
     pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
+            MPip::ChipsOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
             MPip::ChipsOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            MPip::ChipsOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
+            MPip::ChipsOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
             MPip::ChipsOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
             _ => 0,
         }
