@@ -227,7 +227,7 @@ impl FluentName {
         if Self::is_alphanumeric_hyphen_dash(name_str) {
             FluentName(name_str.to_string())
         } else {
-            log::warn!("Invalid name: {} - Defaulting to 'blank'.", name_str);
+            log::warn!("Invalid name: {name_str} - Defaulting to 'blank'.");
             FluentName(Self::BLANK.to_string())
         }
     }
