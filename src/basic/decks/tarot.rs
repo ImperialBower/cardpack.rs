@@ -135,9 +135,9 @@ mod basic__card__tarot_tests {
 
     #[test]
     fn fluent__fluent_name_default() {
-        let magician = TarotCard::from_str("mm").unwrap();
+        let magician = TarotCard::from_str("1m").unwrap();
 
-        assert_eq!(magician.index(), "MM");
+        assert_eq!(magician.index(), "1M");
         assert_eq!(magician.fluent_name_default(), "The Magician");
     }
 

@@ -7,6 +7,22 @@ use std::fmt::{Display, Formatter};
 pub struct Combos(Vec<BasicPile>);
 
 impl Combos {
+    /// Returns every possible combination of `Cards` of a given length for a specific `BasicPile`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    /// use cardpack::basic::decks::tiny::Tiny;
+    ///
+    /// let pile: BasicPile = (&Pile::<Tiny>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.len(), 4);
+    /// assert_eq!(
+    ///     combos.to_string(),
+    ///     "A♠ K♠, A♠ K♥, A♥ K♠, A♥ K♥"
+    /// );
+    /// ```
+    ///
     /// OK, this refactoring is hot AF. This is what I am looking for when I refactor.
     ///
     /// 1. Find a problem.
@@ -121,6 +137,41 @@ impl Combos {
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region vector functions
 
+    /// Returns a reference to the first element of the vector, if there is one.
+    ///
+    /// ```
+    /// use cardpack::basic::types::combos::Combos;
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.first().unwrap().to_string(), "A♠ K♠");
+    /// assert!(Combos::default().first().is_none());
+    /// ```
+    #[must_use]
+    pub fn first(&self) -> Option<&BasicPile> {
+        self.0.first()
+    }
+
+    /// Returns a reference to the second element of the vector, if there is one.
+    ///
+    /// ```
+    /// use cardpack::basic::types::combos::Combos;
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+    /// let combos = pile.combos(2).connectors();
+    ///
+    /// assert_eq!(combos.second().unwrap().to_string(), "A♠ K♥");
+    /// assert!(Combos::default().second().is_none());
+    /// ```
+    /// Returns a reference to the second element of the vector, if there is one.
+    #[must_use]
+    pub fn second(&self) -> Option<&BasicPile> {
+        self.0.get(1)
+    }
+
     #[must_use]
     pub fn get(&self, position: usize) -> Option<&BasicPile> {
         self.0.get(position)
@@ -154,6 +205,23 @@ impl Combos {
 
     pub fn sort(&mut self) {
         self.0.sort();
+    }
+
+    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> std::cmp::Ordering) {
+        self.0.sort_by(f);
+    }
+
+    #[must_use]
+    pub fn sort_internal(&self) -> Self {
+        let mut s: Combos = self.0.iter().map(|pile| pile.clone().sorted()).collect();
+        s.sort();
+        s.sort_by_length();
+        s.reverse();
+        s
+    }
+
+    pub fn sort_by_length(&mut self) {
+        self.0.sort_by_key(BasicPile::len);
     }
 
     #[must_use]

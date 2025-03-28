@@ -362,96 +362,95 @@ impl TarotSuit {
 }
 
 impl TarotRank {
-    // ABC___GHIJKL_NO_QR__UVWXYZ
     // Major Arcana
     pub const FOOL: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 22,
-        index: 'F',
+        index: '0',
         symbol: '🤡',
         value: 23,
     };
     pub const MAGICIAN: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 21,
-        index: 'M',
+        index: '1',
         symbol: '🎩',
         value: 22,
     };
     pub const HIGH_PRIESTESS: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 20,
-        index: 'P',
+        index: '2',
         symbol: '😇',
         value: 21,
     };
     pub const EMPRESS: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 19,
-        index: 'E',
+        index: '3',
         symbol: '👸',
         value: 20,
     };
     pub const EMPEROR: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 18,
-        index: 'R',
+        index: '4',
         symbol: '🤴',
         value: 19,
     };
     pub const HIEROPHANT: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 17,
-        index: 'H',
+        index: '5',
         symbol: '👑',
         value: 18,
     };
     pub const LOVERS: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 16,
-        index: 'L',
+        index: '6',
         symbol: '💑',
         value: 17,
     };
     pub const CHARIOT: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 15,
-        index: 'C',
+        index: '7',
         symbol: '🏎',
         value: 16,
     };
     pub const STRENGTH: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 14,
-        index: 'S',
+        index: '8',
         symbol: '💪',
         value: 15,
     };
     pub const HERMIT: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 13,
-        index: 'H',
+        index: '9',
         symbol: '🕵',
         value: 14,
     };
     pub const WHEEL_OF_FORTUNE: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 12,
-        index: 'W',
+        index: 'A',
         symbol: '🎡',
         value: 13,
     };
     pub const JUSTICE: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 11,
-        index: 'J',
+        index: 'B',
         symbol: '⚖',
         value: 12,
     };
     pub const HANGED_MAN: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 10,
-        index: 'H',
+        index: 'C',
         symbol: '🙃',
         value: 11,
     };
@@ -466,56 +465,56 @@ impl TarotRank {
     pub const TEMPERANCE: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 8,
-        index: 'A',
+        index: 'E',
         symbol: '🚭',
         value: 9,
     };
     pub const DEVIL: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 7,
-        index: 'S',
+        index: 'F',
         symbol: '😈',
         value: 8,
     };
     pub const TOWER: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 6,
-        index: 'O',
+        index: 'G',
         symbol: '🗼',
         value: 7,
     };
     pub const STAR: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 5,
-        index: 'S',
+        index: 'H',
         symbol: '⭐',
         value: 6,
     };
     pub const MOON: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 4,
-        index: 'M',
+        index: 'I',
         symbol: '🌜',
         value: 5,
     };
     pub const SUN: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 3,
-        index: 'S',
+        index: 'J',
         symbol: '☀',
         value: 4,
     };
     pub const JUDGEMENT: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 2,
-        index: 'J',
+        index: 'K',
         symbol: '🔔',
         value: 3,
     };
     pub const WORLD: Pip = Pip {
         pip_type: PipType::Rank,
         weight: 0,
-        index: 'W',
+        index: 'L',
         symbol: '🌍',
         value: 1,
     };

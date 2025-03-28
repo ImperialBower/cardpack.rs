@@ -37,6 +37,14 @@ macro_rules! cards {
     };
 }
 
+#[macro_export]
+#[allow(clippy::pedantic)]
+macro_rules! basic {
+    ($card_str:expr) => {
+        Pile::<Standard52>::forgiving_from_str($card_str).my_basic_pile()
+    };
+}
+
 /// This macro is to allow for quick and easy generation of individual cards from the most common
 /// [`Standard52`](crate::basic::decks::standard52::Standard52) deck.
 #[macro_export]

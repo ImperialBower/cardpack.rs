@@ -76,11 +76,11 @@ pub enum PipType {
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Pip {
-    pub weight: u32,
+    pub weight: usize,
     pub pip_type: PipType,
     pub index: char,
     pub symbol: char,
-    pub value: u32,
+    pub value: usize,
 }
 
 impl Pip {
@@ -95,14 +95,14 @@ impl Pip {
     pub const BLANK_INDEX: char = '_';
 
     /// TODO: HACK
-    pub const PRIMES: [u32; 60] = [
+    pub const PRIMES: [usize; 60] = [
         2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
         97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181,
         191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
     ];
 
     #[must_use]
-    pub fn new(pip_type: PipType, weight: u32, index: char, symbol: char) -> Self {
+    pub fn new(pip_type: PipType, weight: usize, index: char, symbol: char) -> Self {
         Self {
             weight,
             pip_type,
@@ -130,7 +130,7 @@ impl Pip {
     /// assert_eq!(updated_as, expected);
     /// ```
     #[must_use]
-    pub fn update_value(&self, value: u32) -> Self {
+    pub fn update_value(&self, value: usize) -> Self {
         Self { value, ..*self }
     }
 }
