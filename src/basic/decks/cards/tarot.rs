@@ -362,7 +362,6 @@ impl TarotSuit {
 }
 
 impl TarotRank {
-    // ABC___GHIJKL_NO_QR__UVWXYZ
     // Major Arcana
     pub const FOOL: Pip = Pip {
         pip_type: PipType::Rank,
