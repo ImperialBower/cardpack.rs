@@ -76,6 +76,7 @@ pub struct BuffoonCard {
     pub rank: Pip,
     pub card_type: BCardType,
     pub enhancement: MPip,
+    pub resell_value: usize,
     pub debuffed: bool,
 }
 
@@ -207,8 +208,13 @@ impl Display for BuffoonCard {
         } else {
             write!(
                 f,
-                "{}{}{}-{}",
-                self.rank.index, self.suit.index, self.card_type, self.enhancement
+                "{}{}{}-{} ${}/${}",
+                self.rank.index,
+                self.suit.index,
+                self.card_type,
+                self.enhancement,
+                self.rank.value,
+                self.resell_value
             )
         }
     }

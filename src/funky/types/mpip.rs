@@ -44,7 +44,9 @@ pub enum MPip {
     MultPlusChipsOnRank(usize, usize, char),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
     MultPlusOn5Ranks(usize, [char; 5]),
+    MultPlusOnConsecutiveHandsNo3Ranks(usize, usize, [char; 3]),
     MultPlusOnFlush(usize),
+    MultPlusOnHandPlays,
     MultPlusOnPair(usize),
     MultPlusOn2Pair(usize),
     MultPlusOnStraight(usize),
@@ -60,9 +62,12 @@ pub enum MPip {
     RandomJoker(usize),
     RandomTarot(usize),
     RetriggerCardsInHand(usize),
+    SellValueIncrement(usize),
     Stone(usize),
     Strength,
     Odds1in(usize),
+    Odds1inCashOn3Ranks(usize, usize, [char; 3]),
+    Odds1inUpgradeHand(usize),
     Wild(PipType),
     Diamonds(usize),
     Clubs(usize),
@@ -133,7 +138,14 @@ impl Display for MPip {
             MPip::MultPlusOn5Ranks(value, ranks) => {
                 write!(f, "MultPlusOn5Ranks({value}, {ranks:?})")
             }
+            MPip::MultPlusOnConsecutiveHandsNo3Ranks(value, increment, ranks) => {
+                write!(
+                    f,
+                    "MultPlusOnConsecutiveHandsNo3Ranks({value}, {increment}, {ranks:?})"
+                )
+            }
             MPip::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
+            MPip::MultPlusOnHandPlays => write!(f, "MultPlusOnHandPlays)"),
             MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
             MPip::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),
@@ -155,9 +167,14 @@ impl Display for MPip {
             MPip::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             MPip::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
+            MPip::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             MPip::Stone(value) => write!(f, "Stone({value})"),
             MPip::Strength => write!(f, "Strength"),
             MPip::Odds1in(value) => write!(f, "Wheel({value})"),
+            MPip::Odds1inCashOn3Ranks(value, cash, ranks) => {
+                write!(f, "Odds1inCashOn3Ranks({value}, {cash}, {ranks:?})")
+            }
+            MPip::Odds1inUpgradeHand(value) => write!(f, "Odds1inUpgradeHand({value})"),
             MPip::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
             MPip::Diamonds(value) => write!(f, "Diamonds({value})"),
             MPip::Clubs(value) => write!(f, "Clubs({value})"),
