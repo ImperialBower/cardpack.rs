@@ -758,7 +758,6 @@ pub mod joker {
             enhancement: MPip::ChipsOn2Pair(80),
             debuffed: false,
         };
-
         pub const DEVIOUS_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::DEVIOUS_JOKER_RANK,
@@ -766,7 +765,6 @@ pub mod joker {
             enhancement: MPip::ChipsOnStraight(100),
             debuffed: false,
         };
-
         pub const CRAFTY_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::CRAFTY_JOKER_RANK,
@@ -934,14 +932,21 @@ pub mod joker {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::EVEN_STEVEN_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MultPlusOnEvenCards(4),
+            enhancement: MPip::MultPlusOn5Ranks(4, ['T', '8', '6', '4', '2']),
             debuffed: false,
         };
         pub const ODD_TODD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: joker::rank::ODD_TODD_RANK,
             card_type: BCardType::CommonJoker,
-            enhancement: MPip::MultPlusOnOddCards(4),
+            enhancement: MPip::MultPlusOn5Ranks(4, ['A', '9', '7', '5', '3']),
+            debuffed: false,
+        };
+        pub const SCHOLAR: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::SCHOLAR_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusChipsOnRank(4, 20, 'A'),
             debuffed: false,
         };
 
@@ -1639,6 +1644,13 @@ pub mod joker {
             index: '▲',
             symbol: '▲',
             value: 5,
+        };
+        pub const SCHOLAR_RANK: Pip = Pip {
+            weight: 860,
+            pip_type: PipType::Joker,
+            index: '▼',
+            symbol: '▼',
+            value: 4,
         };
 
         pub const RIDE_THE_BUS_RANK: Pip = Pip {
