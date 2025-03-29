@@ -1,6 +1,7 @@
 pub mod basic {
     use crate::funky::types::buffoon_card::BuffoonCard;
 
+    // https://www.reddit.com/r/balatro/comments/1b6lito/base_sell_value_calculation/
     pub struct Deck {}
 
     impl Deck {
@@ -98,6 +99,7 @@ pub mod basic {
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const KING_SPADES: BuffoonCard = BuffoonCard {
@@ -105,6 +107,7 @@ pub mod basic {
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const QUEEN_SPADES: BuffoonCard = BuffoonCard {
@@ -112,6 +115,7 @@ pub mod basic {
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const JACK_SPADES: BuffoonCard = BuffoonCard {
@@ -119,6 +123,7 @@ pub mod basic {
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TEN_SPADES: BuffoonCard = BuffoonCard {
@@ -126,6 +131,7 @@ pub mod basic {
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const NINE_SPADES: BuffoonCard = BuffoonCard {
@@ -133,6 +139,7 @@ pub mod basic {
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const EIGHT_SPADES: BuffoonCard = BuffoonCard {
@@ -140,6 +147,7 @@ pub mod basic {
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SEVEN_SPADES: BuffoonCard = BuffoonCard {
@@ -147,6 +155,7 @@ pub mod basic {
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SIX_SPADES: BuffoonCard = BuffoonCard {
@@ -154,6 +163,7 @@ pub mod basic {
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FIVE_SPADES: BuffoonCard = BuffoonCard {
@@ -161,6 +171,7 @@ pub mod basic {
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FOUR_SPADES: BuffoonCard = BuffoonCard {
@@ -168,6 +179,7 @@ pub mod basic {
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TREY_SPADES: BuffoonCard = BuffoonCard {
@@ -175,6 +187,7 @@ pub mod basic {
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const DEUCE_SPADES: BuffoonCard = BuffoonCard {
@@ -182,6 +195,7 @@ pub mod basic {
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const ACE_HEARTS: BuffoonCard = BuffoonCard {
@@ -189,6 +203,7 @@ pub mod basic {
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const KING_HEARTS: BuffoonCard = BuffoonCard {
@@ -196,6 +211,7 @@ pub mod basic {
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const QUEEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -203,6 +219,7 @@ pub mod basic {
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const JACK_HEARTS: BuffoonCard = BuffoonCard {
@@ -210,6 +227,7 @@ pub mod basic {
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -217,6 +235,7 @@ pub mod basic {
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const NINE_HEARTS: BuffoonCard = BuffoonCard {
@@ -224,6 +243,7 @@ pub mod basic {
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const EIGHT_HEARTS: BuffoonCard = BuffoonCard {
@@ -231,6 +251,7 @@ pub mod basic {
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SEVEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -238,6 +259,7 @@ pub mod basic {
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SIX_HEARTS: BuffoonCard = BuffoonCard {
@@ -245,6 +267,7 @@ pub mod basic {
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FIVE_HEARTS: BuffoonCard = BuffoonCard {
@@ -252,6 +275,7 @@ pub mod basic {
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FOUR_HEARTS: BuffoonCard = BuffoonCard {
@@ -259,6 +283,7 @@ pub mod basic {
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TREY_HEARTS: BuffoonCard = BuffoonCard {
@@ -266,6 +291,7 @@ pub mod basic {
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const DEUCE_HEARTS: BuffoonCard = BuffoonCard {
@@ -273,6 +299,7 @@ pub mod basic {
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const ACE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -280,6 +307,7 @@ pub mod basic {
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const KING_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -287,6 +315,7 @@ pub mod basic {
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const QUEEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -294,6 +323,7 @@ pub mod basic {
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const JACK_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -301,6 +331,7 @@ pub mod basic {
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -308,6 +339,7 @@ pub mod basic {
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const NINE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -315,6 +347,7 @@ pub mod basic {
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const EIGHT_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -322,6 +355,7 @@ pub mod basic {
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SEVEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -329,6 +363,7 @@ pub mod basic {
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SIX_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -336,6 +371,7 @@ pub mod basic {
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FIVE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -343,6 +379,7 @@ pub mod basic {
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FOUR_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -350,6 +387,7 @@ pub mod basic {
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TREY_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -357,6 +395,7 @@ pub mod basic {
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const DEUCE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -364,6 +403,7 @@ pub mod basic {
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const ACE_CLUBS: BuffoonCard = BuffoonCard {
@@ -371,6 +411,7 @@ pub mod basic {
             rank: FrenchRank::ACE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const KING_CLUBS: BuffoonCard = BuffoonCard {
@@ -378,6 +419,7 @@ pub mod basic {
             rank: FrenchRank::KING,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const QUEEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -385,6 +427,7 @@ pub mod basic {
             rank: FrenchRank::QUEEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const JACK_CLUBS: BuffoonCard = BuffoonCard {
@@ -392,6 +435,7 @@ pub mod basic {
             rank: FrenchRank::JACK,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -399,6 +443,7 @@ pub mod basic {
             rank: FrenchRank::TEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const NINE_CLUBS: BuffoonCard = BuffoonCard {
@@ -406,6 +451,7 @@ pub mod basic {
             rank: FrenchRank::NINE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const EIGHT_CLUBS: BuffoonCard = BuffoonCard {
@@ -413,6 +459,7 @@ pub mod basic {
             rank: FrenchRank::EIGHT,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SEVEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -420,6 +467,7 @@ pub mod basic {
             rank: FrenchRank::SEVEN,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const SIX_CLUBS: BuffoonCard = BuffoonCard {
@@ -427,6 +475,7 @@ pub mod basic {
             rank: FrenchRank::SIX,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FIVE_CLUBS: BuffoonCard = BuffoonCard {
@@ -434,6 +483,7 @@ pub mod basic {
             rank: FrenchRank::FIVE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const FOUR_CLUBS: BuffoonCard = BuffoonCard {
@@ -441,6 +491,7 @@ pub mod basic {
             rank: FrenchRank::FOUR,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const TREY_CLUBS: BuffoonCard = BuffoonCard {
@@ -448,6 +499,7 @@ pub mod basic {
             rank: FrenchRank::TREY,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
         pub const DEUCE_CLUBS: BuffoonCard = BuffoonCard {
@@ -455,6 +507,7 @@ pub mod basic {
             rank: FrenchRank::DEUCE,
             card_type: BCardType::Basic,
             enhancement: MPip::Blank,
+            resell_value: 0,
             debuffed: false,
         };
     }
@@ -503,6 +556,7 @@ pub mod tarot {
             rank: TarotRank::FOOL,
             card_type: BCardType::Tarot,
             enhancement: MPip::Blank,
+            resell_value: 1,
             debuffed: false,
         };
         pub const MAGICIAN: BuffoonCard = BuffoonCard {
@@ -510,6 +564,7 @@ pub mod tarot {
             rank: TarotRank::MAGICIAN,
             card_type: BCardType::Tarot,
             enhancement: MPip::Lucky(5, 15),
+            resell_value: 1,
             debuffed: false,
         };
         pub const HIGH_PRIESTESS: BuffoonCard = BuffoonCard {
@@ -517,6 +572,7 @@ pub mod tarot {
             rank: TarotRank::HIGH_PRIESTESS,
             card_type: BCardType::Tarot,
             enhancement: MPip::Planet(2),
+            resell_value: 1,
             debuffed: false,
         };
         pub const EMPRESS: BuffoonCard = BuffoonCard {
@@ -524,6 +580,7 @@ pub mod tarot {
             rank: TarotRank::EMPRESS,
             card_type: BCardType::Tarot,
             enhancement: MPip::MultPlus(4),
+            resell_value: 1,
             debuffed: false,
         };
         pub const EMPEROR: BuffoonCard = BuffoonCard {
@@ -531,6 +588,7 @@ pub mod tarot {
             rank: TarotRank::EMPEROR,
             card_type: BCardType::Tarot,
             enhancement: MPip::RandomTarot(2),
+            resell_value: 1,
             debuffed: false,
         };
         pub const HIEROPHANT: BuffoonCard = BuffoonCard {
@@ -538,6 +596,7 @@ pub mod tarot {
             rank: TarotRank::HIEROPHANT,
             card_type: BCardType::Tarot,
             enhancement: MPip::Chips(30),
+            resell_value: 1,
             debuffed: false,
         };
         pub const LOVERS: BuffoonCard = BuffoonCard {
@@ -545,6 +604,7 @@ pub mod tarot {
             rank: TarotRank::LOVERS,
             card_type: BCardType::Tarot,
             enhancement: MPip::Wild(PipType::Suit),
+            resell_value: 1,
             debuffed: false,
         };
         pub const THE_CHARIOT: BuffoonCard = BuffoonCard {
@@ -552,6 +612,7 @@ pub mod tarot {
             rank: TarotRank::CHARIOT,
             card_type: BCardType::Tarot,
             enhancement: MPip::STEEL,
+            resell_value: 1,
             debuffed: false,
         };
         pub const STRENGTH: BuffoonCard = BuffoonCard {
@@ -559,6 +620,7 @@ pub mod tarot {
             rank: TarotRank::STRENGTH,
             card_type: BCardType::Tarot,
             enhancement: MPip::Strength,
+            resell_value: 1,
             debuffed: false,
         };
         pub const HERMIT: BuffoonCard = BuffoonCard {
@@ -566,6 +628,7 @@ pub mod tarot {
             rank: TarotRank::HERMIT,
             card_type: BCardType::Tarot,
             enhancement: MPip::DoubleMoney(20),
+            resell_value: 1,
             debuffed: false,
         };
         pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
@@ -573,6 +636,7 @@ pub mod tarot {
             rank: TarotRank::WHEEL_OF_FORTUNE,
             card_type: BCardType::Tarot,
             enhancement: MPip::WHEEL_OF_FORTUNE,
+            resell_value: 1,
             debuffed: false,
         };
         pub const JUSTICE: BuffoonCard = BuffoonCard {
@@ -580,6 +644,7 @@ pub mod tarot {
             rank: TarotRank::JUSTICE,
             card_type: BCardType::Tarot,
             enhancement: MPip::Glass(2, 4),
+            resell_value: 1,
             debuffed: false,
         };
         pub const HANGED_MAN: BuffoonCard = BuffoonCard {
@@ -587,6 +652,7 @@ pub mod tarot {
             rank: TarotRank::HANGED_MAN,
             card_type: BCardType::Tarot,
             enhancement: MPip::Hanged(2),
+            resell_value: 1,
             debuffed: false,
         };
         pub const DEATH: BuffoonCard = BuffoonCard {
@@ -594,6 +660,7 @@ pub mod tarot {
             rank: TarotRank::DEATH,
             card_type: BCardType::Tarot,
             enhancement: MPip::Death(1),
+            resell_value: 1,
             debuffed: false,
         };
         pub const TEMPERANCE: BuffoonCard = BuffoonCard {
@@ -601,6 +668,7 @@ pub mod tarot {
             rank: TarotRank::TEMPERANCE,
             card_type: BCardType::Tarot,
             enhancement: MPip::TEMPERANCE,
+            resell_value: 1,
             debuffed: false,
         };
         pub const DEVIL: BuffoonCard = BuffoonCard {
@@ -608,6 +676,7 @@ pub mod tarot {
             rank: TarotRank::DEVIL,
             card_type: BCardType::Tarot,
             enhancement: MPip::DEVIL,
+            resell_value: 1,
             debuffed: false,
         };
         pub const TOWER: BuffoonCard = BuffoonCard {
@@ -615,6 +684,7 @@ pub mod tarot {
             rank: TarotRank::TOWER,
             card_type: BCardType::Tarot,
             enhancement: MPip::TOWER,
+            resell_value: 1,
             debuffed: false,
         };
         pub const STAR: BuffoonCard = BuffoonCard {
@@ -622,6 +692,7 @@ pub mod tarot {
             rank: TarotRank::STAR,
             card_type: BCardType::Tarot,
             enhancement: MPip::Diamonds(3),
+            resell_value: 1,
             debuffed: false,
         };
         pub const MOON: BuffoonCard = BuffoonCard {
@@ -629,6 +700,7 @@ pub mod tarot {
             rank: TarotRank::MOON,
             card_type: BCardType::Tarot,
             enhancement: MPip::Clubs(3),
+            resell_value: 1,
             debuffed: false,
         };
         pub const SUN: BuffoonCard = BuffoonCard {
@@ -636,6 +708,7 @@ pub mod tarot {
             rank: TarotRank::SUN,
             card_type: BCardType::Tarot,
             enhancement: MPip::Hearts(3),
+            resell_value: 1,
             debuffed: false,
         };
         pub const JUDGEMENT: BuffoonCard = BuffoonCard {
@@ -643,6 +716,7 @@ pub mod tarot {
             rank: TarotRank::JUDGEMENT,
             card_type: BCardType::Tarot,
             enhancement: MPip::JUDGEMENT,
+            resell_value: 1,
             debuffed: false,
         };
         pub const WORLD: BuffoonCard = BuffoonCard {
@@ -650,6 +724,7 @@ pub mod tarot {
             rank: TarotRank::WORLD,
             card_type: BCardType::Tarot,
             enhancement: MPip::Spades(3),
+            resell_value: 1,
             debuffed: false,
         };
     }
@@ -670,6 +745,7 @@ pub mod joker {
             rank: joker::rank::JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlus(4),
+            resell_value: 1,
             debuffed: false,
         };
         pub const GREEDY_JOKER: BuffoonCard = BuffoonCard {
@@ -677,6 +753,7 @@ pub mod joker {
             rank: joker::rank::GREEDY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_DIAMONDS,
+            resell_value: 2,
             debuffed: false,
         };
         pub const LUSTY_JOKER: BuffoonCard = BuffoonCard {
@@ -684,6 +761,7 @@ pub mod joker {
             rank: joker::rank::LUSTY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_HEARTS,
+            resell_value: 2,
             debuffed: false,
         };
         pub const WRATHFUL_JOKER: BuffoonCard = BuffoonCard {
@@ -691,6 +769,7 @@ pub mod joker {
             rank: joker::rank::WRATHFUL_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_SPADES,
+            resell_value: 2,
             debuffed: false,
         };
         pub const GLUTTONOUS_JOKER: BuffoonCard = BuffoonCard {
@@ -698,6 +777,7 @@ pub mod joker {
             rank: joker::rank::GLUTTONOUS_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MULT_PLUS3_ON_CLUBS,
+            resell_value: 2,
             debuffed: false,
         };
         /// The `Jolly Joker` is one that has no effect on a single card, and only returns mult
@@ -707,6 +787,7 @@ pub mod joker {
             rank: joker::rank::JOLLY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOnPair(8),
+            resell_value: 1,
             debuffed: false,
         };
         pub const ZANY_JOKER: BuffoonCard = BuffoonCard {
@@ -714,6 +795,7 @@ pub mod joker {
             rank: joker::rank::ZANY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOnTrips(12),
+            resell_value: 2,
             debuffed: false,
         };
         pub const MAD_JOKER: BuffoonCard = BuffoonCard {
@@ -721,6 +803,7 @@ pub mod joker {
             rank: joker::rank::MAD_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOn2Pair(10),
+            resell_value: 2,
             debuffed: false,
         };
         pub const CRAZY_JOKER: BuffoonCard = BuffoonCard {
@@ -728,6 +811,7 @@ pub mod joker {
             rank: joker::rank::CRAZY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOnStraight(12),
+            resell_value: 2,
             debuffed: false,
         };
         pub const DROLL_JOKER: BuffoonCard = BuffoonCard {
@@ -735,6 +819,7 @@ pub mod joker {
             rank: joker::rank::DROLL_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOnFlush(10),
+            resell_value: 2,
             debuffed: false,
         };
         pub const SLY_JOKER: BuffoonCard = BuffoonCard {
@@ -742,6 +827,7 @@ pub mod joker {
             rank: joker::rank::SLY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsOnPair(50),
+            resell_value: 1,
             debuffed: false,
         };
         pub const WILY_JOKER: BuffoonCard = BuffoonCard {
@@ -749,6 +835,7 @@ pub mod joker {
             rank: joker::rank::WILY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsOnTrips(100),
+            resell_value: 2,
             debuffed: false,
         };
         pub const CLEVER_JOKER: BuffoonCard = BuffoonCard {
@@ -756,6 +843,7 @@ pub mod joker {
             rank: joker::rank::CLEVER_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsOn2Pair(80),
+            resell_value: 2,
             debuffed: false,
         };
         pub const DEVIOUS_JOKER: BuffoonCard = BuffoonCard {
@@ -763,6 +851,7 @@ pub mod joker {
             rank: joker::rank::DEVIOUS_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsOnStraight(100),
+            resell_value: 2,
             debuffed: false,
         };
         pub const CRAFTY_JOKER: BuffoonCard = BuffoonCard {
@@ -770,6 +859,7 @@ pub mod joker {
             rank: joker::rank::CRAFTY_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsOnFlush(80),
+            resell_value: 2,
             debuffed: false,
         };
         pub const HALF_JOKER: BuffoonCard = BuffoonCard {
@@ -777,6 +867,7 @@ pub mod joker {
             rank: joker::rank::HALF_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOnUpToXCards(20, 3),
+            resell_value: 2,
             debuffed: false,
         };
         pub const JOKER_STENCIL: BuffoonCard = BuffoonCard {
@@ -784,6 +875,7 @@ pub mod joker {
             rank: joker::rank::JOKER_STENCIL_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::MultTimesOnEmptyJokerSlots(1),
+            resell_value: 4,
             debuffed: false,
         };
         pub const FOUR_FINGERS: BuffoonCard = BuffoonCard {
@@ -791,6 +883,7 @@ pub mod joker {
             rank: joker::rank::FOUR_FINGERS_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::FourFlushAndStraight,
+            resell_value: 3,
             debuffed: false,
         };
         pub const MIME: BuffoonCard = BuffoonCard {
@@ -798,6 +891,7 @@ pub mod joker {
             rank: joker::rank::MIME_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::RetriggerCardsInHand(1),
+            resell_value: 2,
             debuffed: false,
         };
         pub const CREDIT_CARD: BuffoonCard = BuffoonCard {
@@ -805,6 +899,7 @@ pub mod joker {
             rank: joker::rank::CREDIT_CARD_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Credit(20),
+            resell_value: 1,
             debuffed: false,
         };
         pub const CEREMONIAL_DAGGER: BuffoonCard = BuffoonCard {
@@ -812,6 +907,7 @@ pub mod joker {
             rank: joker::rank::CEREMONIAL_DAGGER_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::MultPlusDoubleValueDestroyJokerOnRight(0),
+            resell_value: 3,
             debuffed: false,
         };
         pub const BANNER: BuffoonCard = BuffoonCard {
@@ -819,6 +915,7 @@ pub mod joker {
             rank: joker::rank::BANNER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChipsPerRemainingDiscard(30),
+            resell_value: 2,
             debuffed: false,
         };
         pub const MARBLE_JOKER: BuffoonCard = BuffoonCard {
@@ -826,6 +923,7 @@ pub mod joker {
             rank: joker::rank::MARBLE_JOKER_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::AddStoneCardWhenBlindSelected,
+            resell_value: 2,
             debuffed: false,
         };
         pub const LOYALTY_CARD: BuffoonCard = BuffoonCard {
@@ -833,6 +931,7 @@ pub mod joker {
             rank: joker::rank::LOYALTY_CARD_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::MultTimesEveryXHands(4, 6),
+            resell_value: 2,
             debuffed: false,
         };
 
@@ -842,6 +941,7 @@ pub mod joker {
             rank: joker::rank::EIGHT_BALL_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const MISPRINT: BuffoonCard = BuffoonCard {
@@ -849,6 +949,7 @@ pub mod joker {
             rank: joker::rank::MISPRINT_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const DUSK: BuffoonCard = BuffoonCard {
@@ -856,6 +957,7 @@ pub mod joker {
             rank: joker::rank::DUSK_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const RAISED_FIST: BuffoonCard = BuffoonCard {
@@ -863,6 +965,7 @@ pub mod joker {
             rank: joker::rank::RAISED_FIST_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const CHAOS_THE_CLOWN: BuffoonCard = BuffoonCard {
@@ -870,6 +973,7 @@ pub mod joker {
             rank: joker::rank::CHAOS_THE_CLOWN_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const FIBONACCI: BuffoonCard = BuffoonCard {
@@ -877,6 +981,7 @@ pub mod joker {
             rank: joker::rank::FIBONACCI_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 4,
             debuffed: false,
         };
         pub const STEEL_JOKER: BuffoonCard = BuffoonCard {
@@ -884,6 +989,7 @@ pub mod joker {
             rank: joker::rank::STEEL_JOKER_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 3,
             debuffed: false,
         };
         pub const SCARY_FACE: BuffoonCard = BuffoonCard {
@@ -891,6 +997,7 @@ pub mod joker {
             rank: joker::rank::SCARY_FACE_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const ABSTRACT_JOKER: BuffoonCard = BuffoonCard {
@@ -898,6 +1005,7 @@ pub mod joker {
             rank: joker::rank::ABSTRACT_JOKER_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const DELAYED_GRATIFICATION: BuffoonCard = BuffoonCard {
@@ -905,6 +1013,7 @@ pub mod joker {
             rank: joker::rank::DELAYED_GRATIFICATION_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const HACK: BuffoonCard = BuffoonCard {
@@ -912,6 +1021,7 @@ pub mod joker {
             rank: joker::rank::HACK_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 3,
             debuffed: false,
         };
         pub const PAREIDOLIA: BuffoonCard = BuffoonCard {
@@ -919,6 +1029,7 @@ pub mod joker {
             rank: joker::rank::PAREIDOLIA_RANK,
             card_type: BCardType::UncommonJoker,
             enhancement: MPip::Blank,
+            resell_value: 2,
             debuffed: false,
         };
         pub const GROS_MICHEL: BuffoonCard = BuffoonCard {
@@ -926,6 +1037,7 @@ pub mod joker {
             rank: joker::rank::GROS_MICHEL_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::ChanceDestroyed(1, 6),
+            resell_value: 2,
             debuffed: false,
         };
         pub const EVEN_STEVEN: BuffoonCard = BuffoonCard {
@@ -933,6 +1045,7 @@ pub mod joker {
             rank: joker::rank::EVEN_STEVEN_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOn5Ranks(4, ['T', '8', '6', '4', '2']),
+            resell_value: 2,
             debuffed: false,
         };
         pub const ODD_TODD: BuffoonCard = BuffoonCard {
@@ -940,6 +1053,7 @@ pub mod joker {
             rank: joker::rank::ODD_TODD_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusOn5Ranks(4, ['A', '9', '7', '5', '3']),
+            resell_value: 2,
             debuffed: false,
         };
         pub const SCHOLAR: BuffoonCard = BuffoonCard {
@@ -947,32 +1061,54 @@ pub mod joker {
             rank: joker::rank::SCHOLAR_RANK,
             card_type: BCardType::CommonJoker,
             enhancement: MPip::MultPlusChipsOnRank(4, 20, 'A'),
+            resell_value: 2,
+            debuffed: false,
+        };
+        /// **DIARY** I am constantly debating in my head how reasonable this all is. On the one
+        /// hand I love how I can have a constant that represents the state, but I can also mutate
+        /// it through game play, just like in the game, without touching the underlying functions
+        /// that process it. On the other hand, it's convoluted AF.
+        pub const BUSINESS_CARD: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::BUSINESS_CARD_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Odds1inCashOn3Ranks(2, 2, ['K', 'Q', 'J']),
+            resell_value: 2,
+            debuffed: false,
+        };
+        pub const SUPERNOVA: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::SUPERNOVA_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnHandPlays,
+            resell_value: 2,
+            debuffed: false,
+        };
+        pub const RIDE_THE_BUS: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::RIDE_THE_BUS_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnConsecutiveHandsNo3Ranks(0, 1, ['K', 'Q', 'J']),
+            resell_value: 3,
+            debuffed: false,
+        };
+        pub const SPACE_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::SPACE_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Odds1inUpgradeHand(4),
+            resell_value: 2,
             debuffed: false,
         };
 
-        //
-        // pub const RIDE_THE_BUS: BuffoonCard = BuffoonCard {
-        //     suit: FrenchSuit::JOKER,
-        //     rank: joker::rank::RIDE_THE_BUS_RANK,
-        //     card_type: BCardType::CommonJoker,
-        //     enhancement: MPip::MultOnConsecutiveHands(1),
-        //     debuffed: false,
-        // };
-        // pub const SPACE_JOKER: BuffoonCard = BuffoonCard {
-        //     suit: FrenchSuit::JOKER,
-        //     rank: joker::rank::SPACE_JOKER_RANK,
-        //     card_type: BCardType::CommonJoker,
-        //     enhancement: MPip::UpgradeHand(25),
-        //     debuffed: false,
-        // };
-        //
-        // pub const EGG: BuffoonCard = BuffoonCard {
-        //     suit: FrenchSuit::JOKER,
-        //     rank: joker::rank::EGG_RANK,
-        //     card_type: BCardType::CommonJoker,
-        //     enhancement: MPip::SellValue(3),
-        //     debuffed: false,
-        // };
+        pub const EGG: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::EGG_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::SellValueIncrement(3),
+            resell_value: 2,
+            debuffed: false,
+        };
         //
         // pub const BURGLAR: BuffoonCard = BuffoonCard {
         //     suit: FrenchSuit::JOKER,
@@ -1499,8 +1635,8 @@ pub mod joker {
         pub const CREDIT_CARD_RANK: Pip = Pip {
             weight: 913,
             pip_type: PipType::Joker,
-            index: '⌺',
-            symbol: '⌺',
+            index: '💳',
+            symbol: '💳',
             value: 1,
         };
         pub const CEREMONIAL_DAGGER_RANK: Pip = Pip {
@@ -1648,24 +1784,39 @@ pub mod joker {
         pub const SCHOLAR_RANK: Pip = Pip {
             weight: 860,
             pip_type: PipType::Joker,
-            index: '▼',
-            symbol: '▼',
+            index: '🎓',
+            symbol: '🎓',
+            value: 5,
+        };
+        pub const BUSINESS_CARD_RANK: Pip = Pip {
+            weight: 855,
+            pip_type: PipType::Joker,
+            index: '🪪',
+            symbol: '🪪',
             value: 4,
         };
+        pub const SUPERNOVA_RANK: Pip = Pip {
+            weight: 850,
+            pip_type: PipType::Joker,
+            index: '🌌',
+            symbol: '🌌',
+            value: 5,
+        };
 
+        /// CP generated
         pub const RIDE_THE_BUS_RANK: Pip = Pip {
             weight: 910,
             pip_type: PipType::Joker,
             index: '🚌',
             symbol: '🚌',
-            value: 5,
+            value: 6,
         };
         pub const SPACE_JOKER_RANK: Pip = Pip {
             weight: 910,
             pip_type: PipType::Joker,
             index: '∝',
             symbol: '∝',
-            value: 6,
+            value: 5,
         };
         pub const EGG_RANK: Pip = Pip {
             weight: 905,
@@ -2006,6 +2157,19 @@ pub mod joker {
     }
 }
 
+// 1 Joker 	+4 Mult 	$2 	Common 	Available from start. 	+m 	Indep.
+// 2 Greedy Joker 	Played cards with  Diamond suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
+// 3 Lusty Joker 	Played cards with  Heart suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
+// 4 Wrathful Joker 	Played cards with  Spade suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
+// 5 Gluttonous Joker 	Played cards with  Club suit give +3 Mult when scored 	$5 	Common 	Available from start. 	+m 	On Scored
+// 6 Jolly Joker 	+8 Mult if played hand contains a Pair 	$3 	Common 	Available from start. 	+m 	Indep.
+// 7 Zany Joker 	+12 Mult if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+m 	Indep.
+// 8 Mad Joker 	+10 Mult if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+m 	Indep.
+// 9 Crazy Joker 	+12 Mult if played hand contains a Straight 	$4 	Common 	Available from start. 	+m 	Indep.
+// 10 Droll Joker 	+10 Mult if played hand contains a Flush 	$4 	Common 	Available from start. 	+m 	Indep.
+// 11 Sly Joker 	+50 Chips if played hand contains a Pair 	$3 	Common 	Available from start. 	+c 	Indep.
+// 12 Wily Joker 	+100 Chips if played hand contains a Three of a Kind 	$4 	Common 	Available from start. 	+c 	Indep.
+// 13 Clever Joker 	+80 Chips if played hand contains a Two Pair 	$4 	Common 	Available from start. 	+c 	Indep.
 // 14 	Devious Joker 	+100 Chips if played hand contains a Straight 	$4 	Common 	Available from start. 	+c 	Indep.
 // 15 	Crafty Joker 	+80 Chips if played hand contains a Flush 	$4 	Common 	Available from start. 	+c 	Indep.
 // 16 	Half Joker 	+20 Mult if played hand contains 3 or fewer cards 	$5 	Common 	Available from start. 	+m 	Indep.
@@ -2024,19 +2188,15 @@ pub mod joker {
 // 29 	Raised Fist 	Adds double the rank of lowest ranked card held in hand to Mult 	$5 	Common 	Available from start. 	+m 	On Held
 // 30 	Chaos the Clown 	1 free Reroll per shop 	$4 	Common 	Available from start. 	!! 	N/A
 // 31 	Fibonacci 	Each played Ace, 2, 3, 5, or 8 gives +8 Mult when scored 	$8 	Uncommon 	Available from start. 	+m 	On Scored
-// 32 	Steel Joker 	Gives X0.2 Mult for each Steel Card in your full deck
-// (Currently X1 Mult) 	$7 	Uncommon 	Available from start. (Can only appear in the shop when there is a Steel Card in the deck.) 	Xm 	Indep.
+// 32 	Steel Joker 	Gives X0.2 Mult for each Steel Card in your full deck (Currently X1 Mult) 	$7 	Uncommon 	Available from start. (Can only appear in the shop when there is a Steel Card in the deck.) 	Xm 	Indep.
 // 33 	Scary Face 	Played face cards give +30 Chips when scored 	$4 	Common 	Available from start. 	+c 	On Scored
 // 34 	Abstract Joker 	+3 Mult for each Joker card (Curently +0 Mult) 	$4 	Common 	Available from start. 	+m 	Indep.
 // 35 	Delayed Gratification 	Earn $2 per discard if no discards are used by end of the round 	$4 	Common 	Available from start. 	+$ 	N/A
 // 36 	Hack 	Retrigger each played 2, 3, 4, or 5 	$6 	Uncommon 	Available from start. 	... 	On Scored
 // 37 	Pareidolia 	All cards are considered face cards 	$5 	Uncommon 	Available from start. 	!! 	N/A
-// 38 	Gros Michel 	+15 Mult
-// 1 in6 chance this is destroyed at the end of round. 	$5 	Common 	Available from start. 	+m 	Indep.
-// 39 	Even Steven 	Played cards with even rank give +4 Mult when scored
-// (10, 8, 6, 4, 2) 	$4 	Common 	Available from start. 	+m 	On Scored
-// 40 	Odd Todd 	Played cards with odd rank give +31 Chips when scored
-// (A, 9, 7, 5, 3) 	$4 	Common 	Available from start. 	+c 	On Scored
+// 38 	Gros Michel 	+15 Mult 1 in6 chance this is destroyed at the end of round. 	$5 	Common 	Available from start. 	+m 	Indep.
+// 39 	Even Steven 	Played cards with even rank give +4 Mult when scored (10, 8, 6, 4, 2) 	$4 	Common 	Available from start. 	+m 	On Scored
+// 40 	Odd Todd 	Played cards with odd rank give +31 Chips when scored (A, 9, 7, 5, 3) 	$4 	Common 	Available from start. 	+c 	On Scored
 // 41 	Scholar 	Played Aces give +20 Chips and +4 Mult when scored 	$4 	Common 	Available from start. 	++ 	On Scored
 // 42 	Business Card 	Played face cards have a 1 in 2 chance to give $2 when scored 	$4 	Common 	Available from start. 	+$ 	On Scored
 // 43 	Supernova 	Adds the number of times poker hand has been played this run to Mult 	$5 	Common 	Available from start. 	+m 	Indep.
