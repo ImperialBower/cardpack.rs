@@ -258,6 +258,42 @@ macro_rules! bcard {
     (WILY) => {
         $crate::funky::decks::joker::card::WILY_JOKER
     };
+    (CLEVER) => {
+        $crate::funky::decks::joker::card::CLEVER_JOKER
+    };
+    (DEVIOUS) => {
+        $crate::funky::decks::joker::card::DEVIOUS_JOKER
+    };
+    (CRAFTY) => {
+        $crate::funky::decks::joker::card::CRAFTY_JOKER
+    };
+    (HALF) => {
+        $crate::funky::decks::joker::card::HALF_JOKER
+    };
+    (STENCIL) => {
+        $crate::funky::decks::joker::card::JOKER_STENCIL
+    };
+    (FOUR_FINGERS) => {
+        $crate::funky::decks::joker::card::FOUR_FINGERS
+    };
+    (MIME) => {
+        $crate::funky::decks::joker::card::MIME
+    };
+    (CREDIT_CARD) => {
+        $crate::funky::decks::joker::card::CREDIT_CARD
+    };
+    (CEREMONIAL_DAGGER) => {
+        $crate::funky::decks::joker::card::CEREMONIAL_DAGGER
+    };
+    (BANNER) => {
+        $crate::funky::decks::joker::card::BANNER
+    };
+    (MARBLE) => {
+        $crate::funky::decks::joker::card::MARBLE_JOKER
+    };
+    (LOYALTY_CARD) => {
+        $crate::funky::decks::joker::card::LOYALTY_CARD
+    };
 }
 
 #[macro_export]

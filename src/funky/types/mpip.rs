@@ -41,9 +41,9 @@ pub enum MPip {
     JokersValue(usize),
     Lucky(usize, usize),
     MultPlus(usize),
+    MultPlusChipsOnRank(usize, usize, char),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
-    MultPlusOnEvenCards(usize),
-    MultPlusOnOddCards(usize),
+    MultPlusOn5Ranks(usize, [char; 5]),
     MultPlusOnFlush(usize),
     MultPlusOnPair(usize),
     MultPlusOn2Pair(usize),
@@ -124,11 +124,15 @@ impl Display for MPip {
             MPip::JokersValue(value) => write!(f, "JokersValue({value})"),
             MPip::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             MPip::MultPlus(value) => write!(f, "MultPlus({value})"),
+            MPip::MultPlusChipsOnRank(mult, chips, rank_char) => {
+                write!(f, "MultPlusChipsOnRank({mult}, {chips}, {rank_char})")
+            }
             MPip::MultPlusDoubleValueDestroyJokerOnRight(value) => {
                 write!(f, "MultPlusDoubleValueDestroyJokerOnRight({value})")
             }
-            MPip::MultPlusOnEvenCards(value) => write!(f, "MultPlusOnEvenCards({value})"),
-            MPip::MultPlusOnOddCards(value) => write!(f, "MultPlusOnOddCards({value})"),
+            MPip::MultPlusOn5Ranks(value, ranks) => {
+                write!(f, "MultPlusOn5Ranks({value}, {ranks:?})")
+            }
             MPip::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
             MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
