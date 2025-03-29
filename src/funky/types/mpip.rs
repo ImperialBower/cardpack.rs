@@ -22,6 +22,7 @@ pub enum MPip {
     Blank,
     AddBaseChips(usize),
     AddStoneCardWhenBlindSelected,
+    ChanceDestroyed(usize, usize),
     Chips(usize),
     ChipsAndMultPlus(usize, usize),
     ChipsOnFlush(usize),
@@ -41,6 +42,8 @@ pub enum MPip {
     Lucky(usize, usize),
     MultPlus(usize),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
+    MultPlusOnEvenCards(usize),
+    MultPlusOnOddCards(usize),
     MultPlusOnFlush(usize),
     MultPlusOnPair(usize),
     MultPlusOn2Pair(usize),
@@ -98,6 +101,9 @@ impl Display for MPip {
             MPip::Blank => write!(f, "Blank"),
             MPip::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
             MPip::AddStoneCardWhenBlindSelected => write!(f, "AddStoneCardWhenBlindSelected"),
+            MPip::ChanceDestroyed(chips, value) => {
+                write!(f, "ChanceDestroyed({chips}, {value})")
+            }
             MPip::Chips(chips) => write!(f, "Chips({chips})"),
             MPip::ChipsAndMultPlus(chips, value) => {
                 write!(f, "ChipsAndMultPlus({chips}, {value})")
@@ -121,6 +127,8 @@ impl Display for MPip {
             MPip::MultPlusDoubleValueDestroyJokerOnRight(value) => {
                 write!(f, "MultPlusDoubleValueDestroyJokerOnRight({value})")
             }
+            MPip::MultPlusOnEvenCards(value) => write!(f, "MultPlusOnEvenCards({value})"),
+            MPip::MultPlusOnOddCards(value) => write!(f, "MultPlusOnOddCards({value})"),
             MPip::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
             MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
