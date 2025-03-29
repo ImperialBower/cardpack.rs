@@ -1115,6 +1115,7 @@ pub mod joker {
         //     rank: joker::rank::BURGLAR_RANK,
         //     card_type: BCardType::CommonJoker,
         //     enhancement: MPip::GainHands(3),
+        //     resell_value: 3,
         //     debuffed: false,
         // };
         //
@@ -1123,6 +1124,7 @@ pub mod joker {
         //     rank: joker::rank::BLACKBOARD_RANK,
         //     card_type: BCardType::CommonJoker,
         //     enhancement: MPip::MultOnSuits(3),
+        //     resell_value: 3,
         //     debuffed: false,
         // };
         //
@@ -1131,6 +1133,7 @@ pub mod joker {
         //     rank: joker::rank::RUNNER_RANK,
         //     card_type: BCardType::CommonJoker,
         //     enhancement: MPip::ChipsOnStraight(15),
+        //     resell_value: 2,
         //     debuffed: false,
         // };
         //
