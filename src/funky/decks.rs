@@ -888,6 +888,62 @@ pub mod joker {
             enhancement: MPip::Blank,
             debuffed: false,
         };
+        pub const SCARY_FACE: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::SCARY_FACE_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const ABSTRACT_JOKER: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::ABSTRACT_JOKER_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const DELAYED_GRATIFICATION: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::DELAYED_GRATIFICATION_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const HACK: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::HACK_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const PAREIDOLIA: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::PAREIDOLIA_RANK,
+            card_type: BCardType::UncommonJoker,
+            enhancement: MPip::Blank,
+            debuffed: false,
+        };
+        pub const GROS_MICHEL: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::GROS_MICHEL_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::ChanceDestroyed(1, 6),
+            debuffed: false,
+        };
+        pub const EVEN_STEVEN: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::EVEN_STEVEN_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnEvenCards(4),
+            debuffed: false,
+        };
+        pub const ODD_TODD: BuffoonCard = BuffoonCard {
+            suit: FrenchSuit::JOKER,
+            rank: joker::rank::ODD_TODD_RANK,
+            card_type: BCardType::CommonJoker,
+            enhancement: MPip::MultPlusOnOddCards(4),
+            debuffed: false,
+        };
 
         //
         // pub const RIDE_THE_BUS: BuffoonCard = BuffoonCard {
@@ -1525,6 +1581,64 @@ pub mod joker {
             index: '🔩',
             symbol: '🔩',
             value: 7,
+        };
+        pub const SCARY_FACE_RANK: Pip = Pip {
+            weight: 900,
+            pip_type: PipType::Joker,
+            index: '👻',
+            symbol: '👻',
+            value: 4,
+        };
+        pub const ABSTRACT_JOKER_RANK: Pip = Pip {
+            weight: 895,
+            pip_type: PipType::Joker,
+            index: '🎨',
+            symbol: '🎨',
+            value: 4,
+        };
+        pub const DELAYED_GRATIFICATION_RANK: Pip = Pip {
+            weight: 890,
+            pip_type: PipType::Joker,
+            index: '🕰',
+            symbol: '🕰',
+            value: 4,
+        };
+        pub const HACK_RANK: Pip = Pip {
+            weight: 885,
+            pip_type: PipType::Joker,
+            index: '💻',
+            symbol: '💻',
+            value: 6,
+        };
+        pub const PAREIDOLIA_RANK: Pip = Pip {
+            weight: 880,
+            pip_type: PipType::Joker,
+            index: '👁',
+            symbol: '👁',
+            value: 5,
+        };
+        pub const GROS_MICHEL_RANK: Pip = Pip {
+            weight: 875,
+            pip_type: PipType::Joker,
+            index: '🍌',
+            symbol: '🍌',
+            value: 5,
+        };
+        pub const EVEN_STEVEN_RANK: Pip = Pip {
+            weight: 870,
+            pip_type: PipType::Joker,
+            index: '▤',
+            symbol: '▤',
+            value: 5,
+        };
+        // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Dingbats
+
+        pub const ODD_TODD_RANK: Pip = Pip {
+            weight: 865,
+            pip_type: PipType::Joker,
+            index: '▲',
+            symbol: '▲',
+            value: 5,
         };
 
         pub const RIDE_THE_BUS_RANK: Pip = Pip {
