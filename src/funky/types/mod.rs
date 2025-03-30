@@ -3,3 +3,4 @@ pub mod buffoon_pile;
 pub mod fpips;
 pub mod mpip;
 pub mod score;
+pub mod toggle;
