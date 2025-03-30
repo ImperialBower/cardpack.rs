@@ -1,4 +1,5 @@
 use crate::prelude::PipType;
+use crate::preludes::funky::BCardType;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -21,7 +22,7 @@ pub enum MPip {
     #[default]
     Blank,
     AddBaseChips(usize),
-    AddStoneCardWhenBlindSelected,
+    AddCardTypeWhenBlindSelected(BCardType),
     ChanceDestroyed(usize, usize),
     Chips(usize),
     ChipsAndMultPlus(usize, usize),
@@ -31,10 +32,12 @@ pub enum MPip {
     ChipsOnStraight(usize),
     ChipsOnTrips(usize),
     ChipsPerRemainingDiscard(usize),
+    CreateCardOnRankPlay(usize, char, BCardType),
     Credit(usize),
     Death(usize),
     DoubleMoney(usize),
     FourFlushAndStraight,
+    FreeReroll(usize),
     Glass(usize, usize),
     Gold(usize),
     Hanged(usize),
@@ -53,6 +56,9 @@ pub enum MPip {
     MultPlusOnTrips(usize),
     MultPlusOnSuit(usize, char),
     MultPlusOnUpToXCards(usize, usize),
+    MultPlusOnZeroDiscards(usize),
+    MultPlusXOnLowestRankInHand(usize),
+    MultPlusRandomTo(usize),
     MultPlusZeroDiscards(usize),
     MultTimes(usize),
     MultTimesEveryXHands(usize, usize),
@@ -62,6 +68,7 @@ pub enum MPip {
     RandomJoker(usize),
     RandomTarot(usize),
     RetriggerCardsInHand(usize),
+    RetriggerPlayedCardsInFinalRound,
     SellValueIncrement(usize),
     Stone(usize),
     Strength,
@@ -105,7 +112,9 @@ impl Display for MPip {
         match self {
             MPip::Blank => write!(f, "Blank"),
             MPip::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
-            MPip::AddStoneCardWhenBlindSelected => write!(f, "AddStoneCardWhenBlindSelected"),
+            MPip::AddCardTypeWhenBlindSelected(card_type) => {
+                write!(f, "AddStoneCardWhenBlindSelected({card_type:?})")
+            }
             MPip::ChanceDestroyed(chips, value) => {
                 write!(f, "ChanceDestroyed({chips}, {value})")
             }
@@ -119,10 +128,17 @@ impl Display for MPip {
             MPip::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
             MPip::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
             MPip::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
+            MPip::CreateCardOnRankPlay(odds, rank_char, card_type) => {
+                write!(
+                    f,
+                    "CreateCardOnRankPlay({odds}, {rank_char}, {card_type:?})"
+                )
+            }
             MPip::Credit(value) => write!(f, "Credit({value})"),
             MPip::Death(value) => write!(f, "Death({value})"),
             MPip::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
             MPip::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
+            MPip::FreeReroll(value) => write!(f, "FreeReroll({value})"),
             MPip::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             MPip::Gold(value) => write!(f, "Gold({value})"),
             MPip::Hanged(value) => write!(f, "Hanged({value})"),
@@ -154,6 +170,11 @@ impl Display for MPip {
             MPip::MultPlusOnUpToXCards(value, cards) => {
                 write!(f, "MultPlusOnUpToXCards({value}, {cards})")
             }
+            MPip::MultPlusOnZeroDiscards(value) => write!(f, "MultPlusOnZeroDiscards({value})"),
+            MPip::MultPlusXOnLowestRankInHand(value) => {
+                write!(f, "MultPlusXOnLowestRankInHand({value})")
+            }
+            MPip::MultPlusRandomTo(value) => write!(f, "MultPlusRandomTo({value})"),
             MPip::MultPlusZeroDiscards(value) => write!(f, "MultPlusZeroDiscards({value})"),
             MPip::MultTimes(value) => write!(f, "MultTimes({value})"),
             MPip::MultTimesEveryXHands(value, hands) => {
@@ -167,6 +188,7 @@ impl Display for MPip {
             MPip::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             MPip::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
+            MPip::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
             MPip::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             MPip::Stone(value) => write!(f, "Stone({value})"),
             MPip::Strength => write!(f, "Strength"),
