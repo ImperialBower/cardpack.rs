@@ -734,11 +734,12 @@ pub mod joker {
     pub struct Joker {}
 
     pub mod card {
-        use crate::funky::decks::joker;
         use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
         use crate::funky::types::mpip::MPip;
         use crate::prelude::{FrenchSuit, Pip, PipType};
 
+        // https://symbl.cc/en/unicode-table/#miscellaneous-symbols
+        // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Dingbats
         /// For Joker cards, their cost is set by the rank value.
         pub const JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
@@ -1378,7 +1379,6 @@ pub mod joker {
             resell_value: 2,
             debuffed: false,
         };
-
         pub const EGG: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1393,7 +1393,6 @@ pub mod joker {
             resell_value: 2,
             debuffed: false,
         };
-
         pub const BURGLAR: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1408,7 +1407,6 @@ pub mod joker {
             resell_value: 3,
             debuffed: false,
         };
-
         pub const BLACKBOARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1423,7 +1421,6 @@ pub mod joker {
             resell_value: 3,
             debuffed: false,
         };
-
         pub const RUNNER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1438,7 +1435,6 @@ pub mod joker {
             resell_value: 2,
             debuffed: false,
         };
-
         pub const ICE_CREAM: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1453,7 +1449,6 @@ pub mod joker {
             resell_value: 2,
             debuffed: false,
         };
-
         pub const DNA: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1468,385 +1463,594 @@ pub mod joker {
             resell_value: 2,
             debuffed: false,
         };
-
         pub const SPLASH: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SPLASH_RANK,
+            rank: Pip {
+                weight: 875,
+                pip_type: PipType::Joker,
+                index: '∤',
+                symbol: '∤',
+                value: 4,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const BLUE_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::BLUE_JOKER_RANK,
+            rank: Pip {
+                weight: 870,
+                pip_type: PipType::Joker,
+                index: '∥',
+                symbol: '∥',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SIXTH_SENSE: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SIXTH_SENSE_RANK,
+            rank: Pip {
+                weight: 865,
+                pip_type: PipType::Joker,
+                index: '∦',
+                symbol: '∦',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const CONSTELLATION: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::CONSTELLATION_RANK,
+            rank: Pip {
+                weight: 860,
+                pip_type: PipType::Joker,
+                index: '∧',
+                symbol: '∧',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const HIKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::HIKER_RANK,
+            rank: Pip {
+                weight: 855,
+                pip_type: PipType::Joker,
+                index: '∨',
+                symbol: '∨',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const FACELESS_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::FACELESS_JOKER_RANK,
+            rank: Pip {
+                weight: 850,
+                pip_type: PipType::Joker,
+                index: '∩',
+                symbol: '∩',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const GREEN_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::GREEN_JOKER_RANK,
+            rank: Pip {
+                weight: 845,
+                pip_type: PipType::Joker,
+                index: '∪',
+                symbol: '∪',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SUPERPOSITION: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SUPERPOSITION_RANK,
+            rank: Pip {
+                weight: 840,
+                pip_type: PipType::Joker,
+                index: '∫',
+                symbol: '∫',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const TO_DO_LIST: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::TO_DO_LIST_RANK,
+            rank: Pip {
+                weight: 835,
+                pip_type: PipType::Joker,
+                index: '∬',
+                symbol: '∬',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const CAVENDISH: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::CAVENDISH_RANK,
+            rank: Pip {
+                weight: 830,
+                pip_type: PipType::Joker,
+                index: '∭',
+                symbol: '∭',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const CARD_SHARP: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::CARD_SHARP_RANK,
+            rank: Pip {
+                weight: 825,
+                pip_type: PipType::Joker,
+                index: '∮',
+                symbol: '∮',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const RED_CARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::RED_CARD_RANK,
+            rank: Pip {
+                weight: 820,
+                pip_type: PipType::Joker,
+                index: '∯',
+                symbol: '∯',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const MADNESS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::MADNESS_RANK,
+            rank: Pip {
+                weight: 815,
+                pip_type: PipType::Joker,
+                index: '∰',
+                symbol: '∰',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SQUARE_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SQUARE_JOKER_RANK,
+            rank: Pip {
+                weight: 810,
+                pip_type: PipType::Joker,
+                index: '∱',
+                symbol: '∱',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SEANCE: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SEANCE_RANK,
+            rank: Pip {
+                weight: 805,
+                pip_type: PipType::Joker,
+                index: '∲',
+                symbol: '∲',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const RIFF_RAFF: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::RIFF_RAFF_RANK,
+            rank: Pip {
+                weight: 800,
+                pip_type: PipType::Joker,
+                index: '∳',
+                symbol: '∳',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const VAMPIRE: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::VAMPIRE_RANK,
+            rank: Pip {
+                weight: 795,
+                pip_type: PipType::Joker,
+                index: '∴',
+                symbol: '∴',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SHORTCUT: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SHORTCUT_RANK,
+            rank: Pip {
+                weight: 790,
+                pip_type: PipType::Joker,
+                index: '∵',
+                symbol: '∵',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const HOLOGRAM: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::HOLOGRAM_RANK,
+            rank: Pip {
+                weight: 785,
+                pip_type: PipType::Joker,
+                index: '∶',
+                symbol: '∶',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const VAGABOND: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::VAGABOND_RANK,
+            rank: Pip {
+                weight: 780,
+                pip_type: PipType::Joker,
+                index: '∷',
+                symbol: '∷',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const BARON: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::BARON_RANK,
+            rank: Pip {
+                weight: 775,
+                pip_type: PipType::Joker,
+                index: '∸',
+                symbol: '∸',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const CLOUD_9: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::CLOUD_9_RANK,
+            rank: Pip {
+                weight: 770,
+                pip_type: PipType::Joker,
+                index: '∹',
+                symbol: '∹',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const ROCKET: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::ROCKET_RANK,
+            rank: Pip {
+                weight: 765,
+                pip_type: PipType::Joker,
+                index: '∺',
+                symbol: '∺',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const EROSION: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::EROSION_RANK,
+            rank: Pip {
+                weight: 760,
+                pip_type: PipType::Joker,
+                index: '∻',
+                symbol: '∻',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const RESERVED_PARKING: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::RESERVED_PARKING_RANK,
+            rank: Pip {
+                weight: 755,
+                pip_type: PipType::Joker,
+                index: '∼',
+                symbol: '∼',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const MAIL_IN_REBATE: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::MAIL_IN_REBATE_RANK,
+            rank: Pip {
+                weight: 750,
+                pip_type: PipType::Joker,
+                index: '∽',
+                symbol: '∽',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const TO_THE_MOON: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::TO_THE_MOON_RANK,
+            rank: Pip {
+                weight: 745,
+                pip_type: PipType::Joker,
+                index: '∾',
+                symbol: '∾',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const HALLUCINATION: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::HALLUCINATION_RANK,
+            rank: Pip {
+                weight: 740,
+                pip_type: PipType::Joker,
+                index: '∿',
+                symbol: '∿',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const FORTUNE_TELLER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::FORTUNE_TELLER_RANK,
+            rank: Pip {
+                weight: 735,
+                pip_type: PipType::Joker,
+                index: '≀',
+                symbol: '≀',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const JUGGLER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::JUGGLER_RANK,
+            rank: Pip {
+                weight: 730,
+                pip_type: PipType::Joker,
+                index: '≁',
+                symbol: '≁',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const DRUNKARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::DRUNKARD_RANK,
+            rank: Pip {
+                weight: 725,
+                pip_type: PipType::Joker,
+                index: '≂',
+                symbol: '≂',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const STONE_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::STONE_JOKER_RANK,
+            rank: Pip {
+                weight: 720,
+                pip_type: PipType::Joker,
+                index: '≃',
+                symbol: '≃',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const GOLDEN_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::GOLDEN_JOKER_RANK,
+            rank: Pip {
+                weight: 715,
+                pip_type: PipType::Joker,
+                index: '≄',
+                symbol: '≄',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Chips(4),
             resell_value: 0,
             debuffed: false,
         };
-
         pub const LUCKY_CAT: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::LUCKY_CAT_RANK,
+            rank: Pip {
+                weight: 710,
+                pip_type: PipType::Joker,
+                index: '≅',
+                symbol: '≅',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const BASEBALL_CARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::BASEBALL_CARD_RANK,
+            rank: Pip {
+                weight: 705,
+                pip_type: PipType::Joker,
+                index: '≆',
+                symbol: '≆',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const BULL: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::BULL_RANK,
+            rank: Pip {
+                weight: 700,
+                pip_type: PipType::Joker,
+                index: '≇',
+                symbol: '≇',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const DIET_COLA: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::DIET_COLA_RANK,
+            rank: Pip {
+                weight: 695,
+                pip_type: PipType::Joker,
+                index: '≈',
+                symbol: '≈',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const TRADING_CARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::TRADING_CARD_RANK,
+            rank: Pip {
+                weight: 690,
+                pip_type: PipType::Joker,
+                index: '≉',
+                symbol: '≉',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const FLASH_CARD: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::FLASH_CARD_RANK,
+            rank: Pip {
+                weight: 685,
+                pip_type: PipType::Joker,
+                index: '≊',
+                symbol: '≊',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const POPCORN: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::POPCORN_RANK,
+            rank: Pip {
+                weight: 680,
+                pip_type: PipType::Joker,
+                index: '≋',
+                symbol: '≋',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const SPARE_TROUSERS: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::SPARE_TROUSERS_RANK,
+            rank: Pip {
+                weight: 675,
+                pip_type: PipType::Joker,
+                index: '≌',
+                symbol: '≌',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const ANCIENT_JOKER: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
-            rank: joker::rank::ANCIENT_JOKER_RANK,
+            rank: Pip {
+                weight: 670,
+                pip_type: PipType::Joker,
+                index: '≍',
+                symbol: '≍',
+                value: 5,
+            },
             card_type: BCardType::CommonJoker,
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
         };
-
         pub const RAMEN: BuffoonCard = BuffoonCard {
             suit: FrenchSuit::JOKER,
             rank: Pip {
@@ -1860,310 +2064,6 @@ pub mod joker {
             enhancement: MPip::Blank,
             resell_value: 0,
             debuffed: false,
-        };
-    }
-
-    pub mod rank {
-        use crate::prelude::{Pip, PipType};
-
-        // https://symbl.cc/en/unicode-table/#miscellaneous-symbols
-
-        // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Dingbats
-
-        /// CP generated
-        pub const SPLASH_RANK: Pip = Pip {
-            weight: 875,
-            pip_type: PipType::Joker,
-            index: '∤',
-            symbol: '∤',
-            value: 4,
-        };
-        pub const BLUE_JOKER_RANK: Pip = Pip {
-            weight: 870,
-            pip_type: PipType::Joker,
-            index: '∥',
-            symbol: '∥',
-            value: 5,
-        };
-        pub const SIXTH_SENSE_RANK: Pip = Pip {
-            weight: 865,
-            pip_type: PipType::Joker,
-            index: '∦',
-            symbol: '∦',
-            value: 5,
-        };
-        pub const CONSTELLATION_RANK: Pip = Pip {
-            weight: 860,
-            pip_type: PipType::Joker,
-            index: '∧',
-            symbol: '∧',
-            value: 5,
-        };
-        pub const HIKER_RANK: Pip = Pip {
-            weight: 855,
-            pip_type: PipType::Joker,
-            index: '∨',
-            symbol: '∨',
-            value: 5,
-        };
-        pub const FACELESS_JOKER_RANK: Pip = Pip {
-            weight: 850,
-            pip_type: PipType::Joker,
-            index: '∩',
-            symbol: '∩',
-            value: 5,
-        };
-        pub const GREEN_JOKER_RANK: Pip = Pip {
-            weight: 845,
-            pip_type: PipType::Joker,
-            index: '∪',
-            symbol: '∪',
-            value: 5,
-        };
-        pub const SUPERPOSITION_RANK: Pip = Pip {
-            weight: 840,
-            pip_type: PipType::Joker,
-            index: '∫',
-            symbol: '∫',
-            value: 5,
-        };
-        pub const TO_DO_LIST_RANK: Pip = Pip {
-            weight: 835,
-            pip_type: PipType::Joker,
-            index: '∬',
-            symbol: '∬',
-            value: 5,
-        };
-        pub const CAVENDISH_RANK: Pip = Pip {
-            weight: 830,
-            pip_type: PipType::Joker,
-            index: '∭',
-            symbol: '∭',
-            value: 5,
-        };
-        pub const CARD_SHARP_RANK: Pip = Pip {
-            weight: 825,
-            pip_type: PipType::Joker,
-            index: '∮',
-            symbol: '∮',
-            value: 5,
-        };
-        pub const RED_CARD_RANK: Pip = Pip {
-            weight: 820,
-            pip_type: PipType::Joker,
-            index: '∯',
-            symbol: '∯',
-            value: 5,
-        };
-        pub const MADNESS_RANK: Pip = Pip {
-            weight: 815,
-            pip_type: PipType::Joker,
-            index: '∰',
-            symbol: '∰',
-            value: 5,
-        };
-        pub const SQUARE_JOKER_RANK: Pip = Pip {
-            weight: 810,
-            pip_type: PipType::Joker,
-            index: '∱',
-            symbol: '∱',
-            value: 5,
-        };
-        pub const SEANCE_RANK: Pip = Pip {
-            weight: 805,
-            pip_type: PipType::Joker,
-            index: '∲',
-            symbol: '∲',
-            value: 5,
-        };
-        pub const RIFF_RAFF_RANK: Pip = Pip {
-            weight: 800,
-            pip_type: PipType::Joker,
-            index: '∳',
-            symbol: '∳',
-            value: 5,
-        };
-        pub const VAMPIRE_RANK: Pip = Pip {
-            weight: 795,
-            pip_type: PipType::Joker,
-            index: '∴',
-            symbol: '∴',
-            value: 5,
-        };
-        pub const SHORTCUT_RANK: Pip = Pip {
-            weight: 790,
-            pip_type: PipType::Joker,
-            index: '∵',
-            symbol: '∵',
-            value: 5,
-        };
-        pub const HOLOGRAM_RANK: Pip = Pip {
-            weight: 785,
-            pip_type: PipType::Joker,
-            index: '∶',
-            symbol: '∶',
-            value: 5,
-        };
-        pub const VAGABOND_RANK: Pip = Pip {
-            weight: 780,
-            pip_type: PipType::Joker,
-            index: '∷',
-            symbol: '∷',
-            value: 5,
-        };
-        pub const BARON_RANK: Pip = Pip {
-            weight: 775,
-            pip_type: PipType::Joker,
-            index: '∸',
-            symbol: '∸',
-            value: 5,
-        };
-        pub const CLOUD_9_RANK: Pip = Pip {
-            weight: 770,
-            pip_type: PipType::Joker,
-            index: '∹',
-            symbol: '∹',
-            value: 5,
-        };
-        pub const ROCKET_RANK: Pip = Pip {
-            weight: 765,
-            pip_type: PipType::Joker,
-            index: '∺',
-            symbol: '∺',
-            value: 5,
-        };
-        pub const EROSION_RANK: Pip = Pip {
-            weight: 760,
-            pip_type: PipType::Joker,
-            index: '∻',
-            symbol: '∻',
-            value: 5,
-        };
-        pub const RESERVED_PARKING_RANK: Pip = Pip {
-            weight: 755,
-            pip_type: PipType::Joker,
-            index: '∼',
-            symbol: '∼',
-            value: 5,
-        };
-        pub const MAIL_IN_REBATE_RANK: Pip = Pip {
-            weight: 750,
-            pip_type: PipType::Joker,
-            index: '∽',
-            symbol: '∽',
-            value: 5,
-        };
-        pub const TO_THE_MOON_RANK: Pip = Pip {
-            weight: 745,
-            pip_type: PipType::Joker,
-            index: '∾',
-            symbol: '∾',
-            value: 5,
-        };
-        pub const HALLUCINATION_RANK: Pip = Pip {
-            weight: 740,
-            pip_type: PipType::Joker,
-            index: '∿',
-            symbol: '∿',
-            value: 5,
-        };
-        pub const FORTUNE_TELLER_RANK: Pip = Pip {
-            weight: 735,
-            pip_type: PipType::Joker,
-            index: '≀',
-            symbol: '≀',
-            value: 5,
-        };
-        pub const JUGGLER_RANK: Pip = Pip {
-            weight: 730,
-            pip_type: PipType::Joker,
-            index: '≁',
-            symbol: '≁',
-            value: 5,
-        };
-        pub const DRUNKARD_RANK: Pip = Pip {
-            weight: 725,
-            pip_type: PipType::Joker,
-            index: '≂',
-            symbol: '≂',
-            value: 5,
-        };
-        pub const STONE_JOKER_RANK: Pip = Pip {
-            weight: 720,
-            pip_type: PipType::Joker,
-            index: '≃',
-            symbol: '≃',
-            value: 5,
-        };
-        pub const GOLDEN_JOKER_RANK: Pip = Pip {
-            weight: 715,
-            pip_type: PipType::Joker,
-            index: '≄',
-            symbol: '≄',
-            value: 5,
-        };
-        pub const LUCKY_CAT_RANK: Pip = Pip {
-            weight: 710,
-            pip_type: PipType::Joker,
-            index: '≅',
-            symbol: '≅',
-            value: 5,
-        };
-        pub const BASEBALL_CARD_RANK: Pip = Pip {
-            weight: 705,
-            pip_type: PipType::Joker,
-            index: '≆',
-            symbol: '≆',
-            value: 5,
-        };
-        pub const BULL_RANK: Pip = Pip {
-            weight: 700,
-            pip_type: PipType::Joker,
-            index: '≇',
-            symbol: '≇',
-            value: 5,
-        };
-        pub const DIET_COLA_RANK: Pip = Pip {
-            weight: 695,
-            pip_type: PipType::Joker,
-            index: '≈',
-            symbol: '≈',
-            value: 5,
-        };
-        pub const TRADING_CARD_RANK: Pip = Pip {
-            weight: 690,
-            pip_type: PipType::Joker,
-            index: '≉',
-            symbol: '≉',
-            value: 5,
-        };
-        pub const FLASH_CARD_RANK: Pip = Pip {
-            weight: 685,
-            pip_type: PipType::Joker,
-            index: '≊',
-            symbol: '≊',
-            value: 5,
-        };
-        pub const POPCORN_RANK: Pip = Pip {
-            weight: 680,
-            pip_type: PipType::Joker,
-            index: '≋',
-            symbol: '≋',
-            value: 5,
-        };
-        pub const SPARE_TROUSERS_RANK: Pip = Pip {
-            weight: 675,
-            pip_type: PipType::Joker,
-            index: '≌',
-            symbol: '≌',
-            value: 5,
-        };
-        pub const ANCIENT_JOKER_RANK: Pip = Pip {
-            weight: 670,
-            pip_type: PipType::Joker,
-            index: '≍',
-            symbol: '≍',
-            value: 5,
         };
     }
 }
