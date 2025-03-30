@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub enum HandType {
     #[default]
     HighCard,
