@@ -1,8 +1,7 @@
+use crate::preludes::funky::BuffoonCard;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::fmt::{Display, Formatter};
-use crate::prelude::Card;
-use crate::preludes::funky::BuffoonCard;
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct ToggleCard {
@@ -11,6 +10,7 @@ pub struct ToggleCard {
 }
 
 impl ToggleCard {
+    #[must_use]
     pub fn new(card: BuffoonCard) -> Self {
         // Create a new ToggleCard with a default Toggle
         Self {
@@ -63,11 +63,7 @@ impl Default for Toggle {
 
 impl Display for Toggle {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let state = if self.is_on() {
-            "+"
-        } else {
-            "-"
-        };
+        let state = if self.is_on() { "+" } else { "-" };
         write!(f, "{state}")
     }
 }
@@ -75,8 +71,8 @@ impl Display for Toggle {
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod funky__types__toggle_tests {
-    use crate::preludes::funky::ACE_SPADES;
     use super::*;
+    use crate::preludes::funky::ACE_SPADES;
 
     #[test]
     fn toggle_card() {

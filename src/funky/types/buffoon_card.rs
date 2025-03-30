@@ -14,6 +14,7 @@ use std::str::FromStr;
 pub enum BCardType {
     #[default]
     Basic,
+    Stone,
     CommonJoker,
     UncommonJoker,
     RareJoker,
@@ -28,6 +29,7 @@ impl Display for BCardType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             BCardType::CommonJoker => 'j',
+            BCardType::Stone => '■',
             BCardType::UncommonJoker => 'u',
             BCardType::RareJoker => 'r',
             BCardType::LegendaryJoker => 'l',
@@ -45,6 +47,7 @@ impl From<char> for BCardType {
     fn from(c: char) -> Self {
         match c {
             'j' | 'J' => BCardType::CommonJoker,
+            '■' => BCardType::Stone,
             'u' | 'U' => BCardType::UncommonJoker,
             'r' | 'R' => BCardType::RareJoker,
             'l' | 'L' => BCardType::LegendaryJoker,
