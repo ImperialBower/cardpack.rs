@@ -4,3 +4,4 @@ pub mod fpips;
 pub mod mpip;
 pub mod score;
 pub mod toggle;
+pub mod hands;
