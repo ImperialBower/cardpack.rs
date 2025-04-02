@@ -4,6 +4,6 @@ pub struct Board {
     pub deck: BuffoonPile,
     pub in_hand: BuffoonPile,
     pub played: BuffoonPile,
-    pub consummables: BuffoonCard,
+    pub consumables: BuffoonCard,
     pub jokers: BuffoonCard,
 }

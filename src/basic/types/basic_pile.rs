@@ -84,6 +84,11 @@ impl BasicPile {
     }
 
     #[must_use]
+    pub fn first(&self) -> Option<&BasicCard> {
+        self.0.first()
+    }
+
+    #[must_use]
     pub fn get(&self, position: usize) -> Option<&BasicCard> {
         self.0.get(position)
     }

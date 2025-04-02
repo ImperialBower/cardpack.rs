@@ -1,5 +1,6 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
-use crate::prelude::{BasicPile, CardError, Pip, Ranged};
+use crate::funky::types::hands::HandType;
+use crate::prelude::{BasicPile, CardError, FrenchRank, Pip, Ranged};
 use crate::preludes::funky::MPip;
 use rand::prelude::SliceRandom;
 use rand::rng;
@@ -103,6 +104,28 @@ impl BuffoonPile {
         }
     }
 
+    /// TODO: HACKY
+    #[must_use]
+    pub fn determine_hand_type(&self) -> HandType {
+        if self.has_royal_flush() {
+            HandType::RoyalFlush
+        } else if self.has_straight_flush() {
+            HandType::StraightFlush
+        } else if self.has_flush() {
+            HandType::Flush
+        } else if self.has_straight() {
+            HandType::Straight
+        } else if self.has_trips() {
+            HandType::ThreeOfAKind
+        } else if self.has_2pair() {
+            HandType::TwoPair
+        } else if self.has_pair() {
+            HandType::Pair
+        } else {
+            HandType::HighCard
+        }
+    }
+
     #[must_use]
     pub fn draw(&mut self, n: usize) -> Option<Self> {
         let mut pile = Self::default();
@@ -185,11 +208,25 @@ impl BuffoonPile {
         }
     }
 
+    /// TODO: HACKY
+    #[must_use]
+    pub fn has_royal_flush(&self) -> bool {
+        match self.basic_pile().sorted().first() {
+            Some(card) => self.has_straight_flush() && card.rank == FrenchRank::ACE,
+            None => false,
+        }
+    }
+
     /// TODO: This is going to get harder when we need to take into account the `Jokers`
     /// that alter what is acceptable as a straight.
     #[must_use]
     pub fn has_straight(&self) -> bool {
         self.connectors(1) >= 4
+    }
+
+    #[must_use]
+    pub fn has_straight_flush(&self) -> bool {
+        self.has_straight() && self.has_flush()
     }
 
     #[must_use]
@@ -342,6 +379,7 @@ impl Ranged for BuffoonPile {
 mod funky__types__buffoon_pile_tests {
     use super::*;
     use crate::preludes::funky::*;
+    use rstest::rstest;
 
     #[test]
     fn basic_pile() {
@@ -491,6 +529,12 @@ mod funky__types__buffoon_pile_tests {
         );
     }
 
+    #[rstest]
+    #[case("AS KS QS JS TS", HandType::RoyalFlush)]
+    fn determine_hand_type(#[case] input: &str, #[case] expected: HandType) {
+        assert_eq!(bcards!(input).determine_hand_type(), expected);
+    }
+
     #[test]
     fn fun_connectors() {
         assert_eq!(bcards!("AS KS QS JS TS").connectors(1), 4);
@@ -531,6 +575,19 @@ mod funky__types__buffoon_pile_tests {
         assert!(bcards!("AS AD QS JS TS").has_pair());
         assert!(bcards!("AS AD QS QC TS").has_pair());
         assert!(!bcards!("AS KS QS JS TS").has_pair());
+    }
+
+    #[test]
+    fn has_royal_flush() {
+        assert!(bcards!("AS KS QS JS TS").has_royal_flush());
+        assert!(!bcards!("9S KS QS JS TS").has_royal_flush());
+    }
+
+    #[test]
+    fn has_straight_flush() {
+        assert!(bcards!("AS KS QS JS TS").has_straight_flush());
+        assert!(bcards!("9S KS QS JS TS").has_straight_flush());
+        assert!(!bcards!("8S KS QS JS TS").has_straight_flush());
     }
 
     #[test]
