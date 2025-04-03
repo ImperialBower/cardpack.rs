@@ -107,10 +107,18 @@ impl BuffoonPile {
     /// TODO: HACKY
     #[must_use]
     pub fn determine_hand_type(&self) -> HandType {
-        if self.has_royal_flush() {
+        if self.has_5_of_a_kind() {
+            HandType::FiveOfAKind
+        } else if self.has_flush_house() {
+            HandType::FlushHouse
+        } else if self.has_royal_flush() {
             HandType::RoyalFlush
         } else if self.has_straight_flush() {
             HandType::StraightFlush
+        } else if self.has_4_of_a_kind() {
+            HandType::FourOfAKind
+        } else if self.has_full_house() {
+            HandType::FullHouse
         } else if self.has_flush() {
             HandType::Flush
         } else if self.has_straight() {
@@ -183,6 +191,46 @@ impl BuffoonPile {
         self.count_largest_same_suit() >= 5
     }
 
+    #[must_use]
+    pub fn has_flush_house(&self) -> bool {
+        self.has_flush() && self.has_full_house()
+    }
+
+    #[must_use]
+    pub fn has_full_house(&self) -> bool {
+        let combos = self.combos_by_rank();
+        match combos.first() {
+            None => false,
+            Some(combo) => {
+                if combo.len() < 3 {
+                    return false;
+                }
+                match combos.second() {
+                    Some(first_combo) => first_combo.len() >= 2,
+                    None => false,
+                }
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn has_x_of_a_kind(&self, x: usize) -> bool {
+        match self.combos_by_rank().first() {
+            Some(combo) => combo.len() >= x,
+            None => false,
+        }
+    }
+
+    #[must_use]
+    pub fn has_4_of_a_kind(&self) -> bool {
+        self.has_x_of_a_kind(4)
+    }
+
+    #[must_use]
+    pub fn has_5_of_a_kind(&self) -> bool {
+        self.has_x_of_a_kind(5)
+    }
+
     /// **DIARY** This is where I am hoping that the synergy between the `BasicPile` code can
     /// be leveraged to quickly enable `Jokers` that are triggered based on the state of the pile
     /// of cards.
@@ -197,7 +245,7 @@ impl BuffoonPile {
     /// number of cards, there must be at least one pair.
     #[must_use]
     pub fn has_pair(&self) -> bool {
-        self.basic_pile().ranks().len() < self.len()
+        self.has_x_of_a_kind(2)
     }
 
     #[must_use]
@@ -231,10 +279,7 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn has_trips(&self) -> bool {
-        match self.combos_by_rank().first() {
-            Some(combo) => combo.len() >= 3,
-            None => false,
-        }
+        self.has_x_of_a_kind(3)
     }
 
     #[must_use]
@@ -530,9 +575,31 @@ mod funky__types__buffoon_pile_tests {
     }
 
     #[rstest]
+    #[case("9S 9D 9C 9H 9D", HandType::FiveOfAKind)]
+    #[case("9S 9S 9S 8S 8S", HandType::FlushHouse)]
+    #[case("QS AS KS JS TS", HandType::RoyalFlush)]
     #[case("AS KS QS JS TS", HandType::RoyalFlush)]
+    #[case("AD KD QD JD TD", HandType::RoyalFlush)]
+    #[case("9S KS QS JS TS", HandType::StraightFlush)]
+    #[case("9S KS QS JS TS", HandType::StraightFlush)]
+    #[case("9S 9D 9C 9H TS", HandType::FourOfAKind)]
+    #[case("9S 9S 9S 8S 8D", HandType::FullHouse)]
+    #[case("9S 9S 9S 8S 7S", HandType::Flush)]
+    #[case("9S KS QS JD TS", HandType::Straight)]
+    #[case("9S KS QC JS TS", HandType::Straight)]
+    #[case("9S 9S 9S 7S 6C", HandType::ThreeOfAKind)]
+    #[case("9S 9S 7D 7S 6C", HandType::TwoPair)]
+    #[case("9S 9S 7D 3S 6C", HandType::Pair)]
     fn determine_hand_type(#[case] input: &str, #[case] expected: HandType) {
         assert_eq!(bcards!(input).determine_hand_type(), expected);
+    }
+
+    /// *DIARY** I really don't want to write any more tests.
+    #[rstest]
+    #[case("AD KS QS JS TS", HandType::RoyalFlush)]
+    #[case("9S KS QS JS TS", HandType::RoyalFlush)]
+    fn determine_hand_type__negative(#[case] input: &str, #[case] expected: HandType) {
+        assert_ne!(bcards!(input).determine_hand_type(), expected);
     }
 
     #[test]
@@ -568,6 +635,22 @@ mod funky__types__buffoon_pile_tests {
     fn has_flush() {
         assert!(bcards!("AS KS QS JS TS").has_flush());
         assert!(!bcards!("AS AD QS QC TS").has_flush());
+    }
+
+    #[test]
+    fn has_flush_house() {
+        let hand = bcards!("9S 9S 9S 8S 8S");
+
+        assert!(hand.has_flush());
+        assert!(hand.has_full_house());
+        assert!(!bcards!("AS AD QS QC TS").has_flush_house());
+    }
+
+    #[test]
+    fn has_full_house() {
+        assert!(bcards!("AS AD QS QH QC").has_full_house());
+        assert!(bcards!("AS AS QS QS QS").has_full_house());
+        assert!(!bcards!("AS AS QS QS JS").has_full_house());
     }
 
     #[test]
