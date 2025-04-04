@@ -1,3 +1,4 @@
+use crate::funky::types::hands::HandType;
 use crate::prelude::PipType;
 use crate::preludes::funky::BCardType;
 use serde::{Deserialize, Serialize};
@@ -25,7 +26,8 @@ pub enum MPip {
     AddCardTypeWhenBlindSelected(BCardType),
     ChanceDestroyed(usize, usize),
     Chips(usize),
-    ChipsAndMultPlus(usize, usize),
+    ChipsMultPlus(usize, usize),
+    ChipsMultPlusOnHand(usize, usize, HandType),
     ChipsOnFlush(usize),
     ChipsOnPair(usize),
     ChipsOn2Pair(usize),
@@ -119,8 +121,11 @@ impl Display for MPip {
                 write!(f, "ChanceDestroyed({chips}, {value})")
             }
             MPip::Chips(chips) => write!(f, "Chips({chips})"),
-            MPip::ChipsAndMultPlus(chips, value) => {
-                write!(f, "ChipsAndMultPlus({chips}, {value})")
+            MPip::ChipsMultPlus(chips, value) => {
+                write!(f, "ChipsMultPlus({chips}, {value})")
+            }
+            MPip::ChipsMultPlusOnHand(chips, mult, hand_type) => {
+                write!(f, "ChipsMultPlusOnHand({chips}, {mult}, {hand_type:?})")
             }
             MPip::ChipsOnFlush(chips) => write!(f, "ChipsOnFlush({chips})"),
             MPip::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),

@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
+)]
 pub enum HandType {
     #[default]
     HighCard,
@@ -13,8 +16,8 @@ pub enum HandType {
     FourOfAKind,
     StraightFlush,
     RoyalFlush,
-    FlushHouse,
     FiveOfAKind,
+    FlushFive,
 }
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]

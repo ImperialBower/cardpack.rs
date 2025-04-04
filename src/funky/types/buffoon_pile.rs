@@ -110,7 +110,7 @@ impl BuffoonPile {
         if self.has_5_of_a_kind() {
             HandType::FiveOfAKind
         } else if self.has_flush_house() {
-            HandType::FlushHouse
+            HandType::FlushFive
         } else if self.has_royal_flush() {
             HandType::RoyalFlush
         } else if self.has_straight_flush() {
