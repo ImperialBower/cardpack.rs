@@ -1,4 +1,4 @@
-use crate::preludes::funky::{BCardType, BuffoonCard};
+use crate::preludes::funky::{BCardType, BuffoonCard, MPip};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -76,6 +76,18 @@ impl PokerHands {
             HandType::StraightFlush,
             PokerHand::new(HandType::StraightFlush, 100, 8),
         );
+        hands.insert(
+            HandType::FiveOfAKind,
+            PokerHand::new(HandType::FiveOfAKind, 120, 12),
+        );
+        hands.insert(
+            HandType::FlushHouse,
+            PokerHand::new(HandType::FlushHouse, 140, 14),
+        );
+        hands.insert(
+            HandType::FlushFive,
+            PokerHand::new(HandType::FlushHouse, 160, 16),
+        );
         Self { hands }
     }
 
@@ -89,18 +101,67 @@ impl PokerHands {
     }
 
     pub fn increment(&mut self, planet_card: BuffoonCard) {
-        if planet_card.card_type != BCardType::Planet {
-            return;
+        if planet_card.card_type == BCardType::Planet {
+            if let MPip::ChipsMultPlusOnHand(chips, mult, hand_type) = planet_card.enhancement {
+                if let Some(poker_hand) = self.get_mut(&hand_type) {
+                    poker_hand.chips += chips;
+                    poker_hand.mult += mult;
+                    poker_hand.level += 1;
+                }
+            }
         }
     }
 
-    pub fn insert(&mut self, hand_type: HandType, poker_hand: PokerHand) {
-        self.hands.insert(hand_type, poker_hand);
+    pub fn play_hand(&mut self, hand_type: &HandType) {
+        if let Some(poker_hand) = self.get_mut(hand_type) {
+            poker_hand.times_played += 1;
+        }
     }
 }
 
 impl Default for PokerHands {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod funky__types__hands_tests {
+    use super::*;
+    use crate::funky::decks::planet;
+    use crate::preludes::funky::*;
+    use rstest::rstest;
+
+    #[test]
+    fn increment() {
+        let mut hands = PokerHands::default();
+        let expected = PokerHand {
+            hand_type: HandType::HighCard,
+            level: 2,
+            chips: 15,
+            mult: 2,
+            times_played: 0,
+        };
+
+        hands.increment(planet::card::PLUTO);
+
+        assert_eq!(hands.get(&HandType::HighCard).unwrap(), &expected);
+    }
+
+    #[test]
+    fn play_hand() {
+        let mut hands = PokerHands::default();
+        let expected = PokerHand {
+            hand_type: HandType::HighCard,
+            level: 1,
+            chips: 5,
+            mult: 1,
+            times_played: 1,
+        };
+
+        hands.play_hand(&HandType::HighCard);
+
+        assert_eq!(hands.get(&HandType::HighCard).unwrap(), &expected);
     }
 }
