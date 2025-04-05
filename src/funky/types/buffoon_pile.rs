@@ -107,10 +107,12 @@ impl BuffoonPile {
     /// TODO: HACKY
     #[must_use]
     pub fn determine_hand_type(&self) -> HandType {
-        if self.has_5_of_a_kind() {
+        if self.has_flush_five() {
+            HandType::FlushFive
+        } else if self.has_5_of_a_kind() {
             HandType::FiveOfAKind
         } else if self.has_flush_house() {
-            HandType::FlushFive
+            HandType::FlushHouse
         } else if self.has_royal_flush() {
             HandType::RoyalFlush
         } else if self.has_straight_flush() {
@@ -189,6 +191,11 @@ impl BuffoonPile {
     #[must_use]
     pub fn has_flush(&self) -> bool {
         self.count_largest_same_suit() >= 5
+    }
+
+    #[must_use]
+    pub fn has_flush_five(&self) -> bool {
+        self.has_flush() && self.has_x_of_a_kind(5)
     }
 
     #[must_use]
@@ -576,6 +583,7 @@ mod funky__types__buffoon_pile_tests {
 
     #[rstest]
     #[case("9S 9D 9C 9H 9D", HandType::FiveOfAKind)]
+    #[case("9D 9D 9D 9D 9D", HandType::FlushFive)] //
     #[case("9S 9S 9S 8S 8S", HandType::FlushHouse)]
     #[case("QS AS KS JS TS", HandType::RoyalFlush)]
     #[case("AS KS QS JS TS", HandType::RoyalFlush)]

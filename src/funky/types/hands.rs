@@ -1,3 +1,4 @@
+use crate::preludes::funky::{BCardType, BuffoonCard};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -17,6 +18,7 @@ pub enum HandType {
     StraightFlush,
     RoyalFlush,
     FiveOfAKind,
+    FlushHouse,
     FlushFive,
 }
 
@@ -84,6 +86,12 @@ impl PokerHands {
 
     pub fn get_mut(&mut self, hand_type: &HandType) -> Option<&mut PokerHand> {
         self.hands.get_mut(hand_type)
+    }
+
+    pub fn increment(&mut self, planet_card: BuffoonCard) {
+        if planet_card.card_type != BCardType::Planet {
+            return;
+        }
     }
 
     pub fn insert(&mut self, hand_type: HandType, poker_hand: PokerHand) {
