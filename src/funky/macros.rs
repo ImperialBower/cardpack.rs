@@ -222,6 +222,44 @@ macro_rules! bcard {
     (WORLD) => {
         $crate::funky::decks::tarot::card::WORLD
     };
+
+    (PLUTO) => {
+        $crate::funky::decks::planet::card::PLUTO
+    };
+    (MERCURY) => {
+        $crate::funky::decks::planet::card::MERCURY
+    };
+    (URANUS) => {
+        $crate::funky::decks::planet::card::URANUS
+    };
+    (VENUS) => {
+        $crate::funky::decks::planet::card::VENUS
+    };
+    (SATURN) => {
+        $crate::funky::decks::planet::card::SATURN
+    };
+    (JUPITER) => {
+        $crate::funky::decks::planet::card::JUPITER
+    };
+    (EARTH) => {
+        $crate::funky::decks::planet::card::EARTH
+    };
+    (MARS) => {
+        $crate::funky::decks::planet::card::MARS
+    };
+    (NEPTUNE) => {
+        $crate::funky::decks::planet::card::NEPTUNE
+    };
+    (PLANET_X) => {
+        $crate::funky::decks::planet::card::PLANET_X
+    };
+    (CERES) => {
+        $crate::funky::decks::planet::card::CERES
+    };
+    (ERIS) => {
+        $crate::funky::decks::planet::card::ERIS
+    };
+
     (JOKER) => {
         $crate::funky::decks::joker::card::JOKER
     };
@@ -293,6 +331,210 @@ macro_rules! bcard {
     };
     (LOYALTY_CARD) => {
         $crate::funky::decks::joker::card::LOYALTY_CARD
+    };
+    (EIGHT_BALL) => {
+        $crate::funky::decks::joker::card::EIGHT_BALL
+    };
+    (MISPRINT) => {
+        $crate::funky::decks::joker::card::MISPRINT
+    };
+    (DUSK) => {
+        $crate::funky::decks::joker::card::MISPRINT
+    };
+    (RAISED_FIST) => {
+        $crate::funky::decks::joker::card::RAISED_FIST
+    };
+    (CHAOS_THE_CLOWN) => {
+        $crate::funky::decks::joker::card::CHAOS_THE_CLOWN
+    };
+    (FIBONACCI) => {
+        $crate::funky::decks::joker::card::FIBONACCI
+    };
+    (STEEL_JOKER) => {
+        $crate::funky::decks::joker::card::STEEL_JOKER
+    };
+    (SCARY_FACE) => {
+        $crate::funky::decks::joker::card::SCARY_FACE
+    };
+    (ABSTRACT_JOKER) => {
+        $crate::funky::decks::joker::card::ABSTRACT_JOKER
+    };
+    (DELAYED_GRATIFICATION) => {
+        $crate::funky::decks::joker::card::DELAYED_GRATIFICATION
+    };
+    (PAREIDOLIA) => {
+        $crate::funky::decks::joker::card::PAREIDOLIA
+    };
+    (GROS_MICHEL) => {
+        $crate::funky::decks::joker::card::GROS_MICHEL
+    };
+    (ODD_TODD) => {
+        $crate::funky::decks::joker::card::ODD_TODD
+    };
+    (SCHOLAR) => {
+        $crate::funky::decks::joker::card::SCHOLAR
+    };
+    (BUSINESS_CARD) => {
+        $crate::funky::decks::joker::card::BUSINESS_CARD
+    };
+    (SUPERNOVA) => {
+        $crate::funky::decks::joker::card::SUPERNOVA
+    };
+    (RIDE_THE_BUS) => {
+        $crate::funky::decks::joker::card::RIDE_THE_BUS
+    };
+    (SPACE_JOKER) => {
+        $crate::funky::decks::joker::card::SPACE_JOKER
+    };
+    (EGG) => {
+        $crate::funky::decks::joker::card::EGG
+    };
+    (BURGLAR) => {
+        $crate::funky::decks::joker::card::BURGLAR
+    };
+    (BLACKBOARD) => {
+        $crate::funky::decks::joker::card::BLACKBOARD
+    };
+    (RUNNER) => {
+        $crate::funky::decks::joker::card::RUNNER
+    };
+    (ICE_CREAM) => {
+        $crate::funky::decks::joker::card::ICE_CREAM
+    };
+    (DNA) => {
+        $crate::funky::decks::joker::card::DNA
+    };
+    (SPLASH) => {
+        $crate::funky::decks::joker::card::SPLASH
+    };
+    (BLUE_JOKER) => {
+        $crate::funky::decks::joker::card::BLUE_JOKER
+    };
+    (SIXTH_SENSE) => {
+        $crate::funky::decks::joker::card::SIXTH_SENSE
+    };
+    (CONSTELLATION) => {
+        $crate::funky::decks::joker::card::CONSTELLATION
+    };
+    (HIKER) => {
+        $crate::funky::decks::joker::card::HIKER
+    };
+    (FACELESS_JOKER) => {
+        $crate::funky::decks::joker::card::FACELESS_JOKER
+    };
+    (GREEN_JOKER) => {
+        $crate::funky::decks::joker::card::GREEN_JOKER
+    };
+    (SUPERPOSITION) => {
+        $crate::funky::decks::joker::card::SUPERPOSITION
+    };
+    (TO_DO_LIST) => {
+        $crate::funky::decks::joker::card::TO_DO_LIST
+    };
+    (CAVENDISH) => {
+        $crate::funky::decks::joker::card::CAVENDISH
+    };
+    (CARD_SHARP) => {
+        $crate::funky::decks::joker::card::CARD_SHARP
+    };
+    (RED_CARD) => {
+        $crate::funky::decks::joker::card::RED_CARD
+    };
+    (MADNESS) => {
+        $crate::funky::decks::joker::card::MADNESS
+    };
+    (SQUARE_JOKER) => {
+        $crate::funky::decks::joker::card::SQUARE_JOKER
+    };
+    (SEANCE) => {
+        $crate::funky::decks::joker::card::SEANCE
+    };
+    (RIFF_RAFF) => {
+        $crate::funky::decks::joker::card::RIFF_RAFF
+    };
+    (VAMPIRE) => {
+        $crate::funky::decks::joker::card::VAMPIRE
+    };
+    (SHORTCUT) => {
+        $crate::funky::decks::joker::card::SHORTCUT
+    };
+    (HOLOGRAM) => {
+        $crate::funky::decks::joker::card::HOLOGRAM
+    };
+    (VAGABOND) => {
+        $crate::funky::decks::joker::card::VAGABOND
+    };
+    (BARON) => {
+        $crate::funky::decks::joker::card::BARON
+    };
+    (CLOUD_9) => {
+        $crate::funky::decks::joker::card::CLOUD_9
+    };
+    (ROCKET) => {
+        $crate::funky::decks::joker::card::ROCKET
+    };
+    (EROSION) => {
+        $crate::funky::decks::joker::card::EROSION
+    };
+    (RESERVED_PARKING) => {
+        $crate::funky::decks::joker::card::RESERVED_PARKING
+    };
+    (MAIL_IN_REBATE) => {
+        $crate::funky::decks::joker::card::MAIL_IN_REBATE
+    };
+    (TO_THE_MOON) => {
+        $crate::funky::decks::joker::card::TO_THE_MOON
+    };
+    (HALLUCINATION) => {
+        $crate::funky::decks::joker::card::HALLUCINATION
+    };
+    (FORTUNE_TELLER) => {
+        $crate::funky::decks::joker::card::FORTUNE_TELLER
+    };
+    (JUGGLER) => {
+        $crate::funky::decks::joker::card::JUGGLER
+    };
+    (DRUNKARD) => {
+        $crate::funky::decks::joker::card::DRUNKARD
+    };
+    (STONE_JOKER) => {
+        $crate::funky::decks::joker::card::STONE_JOKER
+    };
+    (GOLDEN_JOKER) => {
+        $crate::funky::decks::joker::card::GOLDEN_JOKER
+    };
+    (LUCKY_CAT) => {
+        $crate::funky::decks::joker::card::LUCKY_CAT
+    };
+    (BASEBALL_CARD) => {
+        $crate::funky::decks::joker::card::BASEBALL_CARD
+    };
+    (BULL) => {
+        $crate::funky::decks::joker::card::BULL
+    };
+    (DIET_COLA) => {
+        $crate::funky::decks::joker::card::DIET_COLA
+    };
+    (TRADING_CARD) => {
+        $crate::funky::decks::joker::card::TRADING_CARD
+    };
+    (FLASH_CARD) => {
+        $crate::funky::decks::joker::card::FLASH_CARD
+    };
+    (POPCORN) => {
+        $crate::funky::decks::joker::card::POPCORN
+    };
+    (SPARE_TROUSERS) => {
+        $crate::funky::decks::joker::card::SPARE_TROUSERS
+    };
+    (ANCIENT_JOKER) => {
+        $crate::funky::decks::joker::card::ANCIENT_JOKER
+    };
+    (RAMEN) => {
+        $crate::funky::decks::joker::card::RAMEN
+    };
+    (WALKIE_TALKIE) => {
+        $crate::funky::decks::joker::card::WALKIE_TALKIE
     };
 }
 
