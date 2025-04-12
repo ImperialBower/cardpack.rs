@@ -1,4 +1,40 @@
+use crate::preludes::funky::{BuffoonCard, BuffoonPile};
+
 pub struct Joker {}
+
+impl Joker {
+    pub const COMMON_JOKERS_SIZE: usize = 22;
+
+    pub const COMMON_JOKERS: [BuffoonCard; Joker::COMMON_JOKERS_SIZE] = [
+        card::JOKER,
+        card::GREEDY_JOKER,
+        card::LUSTY_JOKER,
+        card::WRATHFUL_JOKER,
+        card::GLUTTONOUS_JOKER,
+        card::JOLLY_JOKER,
+        card::ZANY_JOKER,
+        card::MAD_JOKER,
+        card::CRAZY_JOKER,
+        card::DROLL_JOKER,
+        card::SLY_JOKER,
+        card::WILY_JOKER,
+        card::CLEVER_JOKER,
+        card::DEVIOUS_JOKER,
+        card::CRAFTY_JOKER,
+        card::HALF_JOKER,
+        card::CREDIT_CARD,
+        card::BANNER,
+        card::EIGHT_BALL,
+        card::MISPRINT,
+        card::RAISED_FIST,
+        card::CHAOS_THE_CLOWN,
+    ];
+
+    #[must_use]
+    pub fn pile_common() -> BuffoonPile {
+        BuffoonPile::from(&Joker::COMMON_JOKERS[..])
+    }
+}
 
 pub mod card {
     use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
