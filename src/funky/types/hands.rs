@@ -22,7 +22,9 @@ pub enum HandType {
     FlushFive,
 }
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
+)]
 pub struct PokerHand {
     pub hand_type: HandType,
     pub level: usize,
@@ -44,6 +46,7 @@ impl PokerHand {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PokerHands {
     pub hands: HashMap<HandType, PokerHand>,
 }
