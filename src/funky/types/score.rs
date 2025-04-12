@@ -1,6 +1,9 @@
+use crate::preludes::funky::BuffoonPile;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
+)]
 pub struct Score {
     pub chips: usize,
     pub mult: usize,
@@ -33,12 +36,6 @@ impl Score {
     #[must_use]
     pub fn current(&self) -> usize {
         self.chips * self.mult
-    }
-}
-
-impl Default for Score {
-    fn default() -> Self {
-        Self { chips: 0, mult: 1 }
     }
 }
 

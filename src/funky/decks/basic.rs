@@ -1,9 +1,15 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
+use crate::preludes::funky::BuffoonPile;
 
 // https://www.reddit.com/r/balatro/comments/1b6lito/base_sell_value_calculation/
 pub struct Deck {}
 
 impl Deck {
+    #[must_use]
+    pub fn basic_buffoon_pile() -> BuffoonPile {
+        BuffoonPile::from(Deck::DECK.to_vec())
+    }
+
     pub const DECK_SIZE: usize = 52;
 
     pub const DECK: [BuffoonCard; Deck::DECK_SIZE] = [

@@ -376,6 +376,12 @@ impl Display for BuffoonPile {
     }
 }
 
+impl From<&[BuffoonCard]> for BuffoonPile {
+    fn from(slice: &[BuffoonCard]) -> Self {
+        Self(slice.to_vec())
+    }
+}
+
 impl From<Vec<BuffoonCard>> for BuffoonPile {
     fn from(v: Vec<BuffoonCard>) -> Self {
         Self(v)
@@ -708,6 +714,13 @@ mod funky__types__buffoon_pile_tests {
                 .sort_internal()
                 .to_string()
         );
+    }
+
+    #[test]
+    fn from__buffoon_card_slice() {
+        let pile = BuffoonPile::from(&Joker::COMMON_JOKERS[..]);
+
+        assert_eq!(pile, Joker::pile_common());
     }
 
     #[test]
