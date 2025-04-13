@@ -1,10 +1,10 @@
+use crate::funky::types::draws::Draws;
 use crate::preludes::funky::{BuffoonPile, PokerHands};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BuffoonBoard {
-    pub hands_to_play: usize,
-    pub discards: usize,
+    pub draws: Draws,
     pub deck: BuffoonPile,
     pub in_hand: BuffoonPile,
     pub played: BuffoonPile,
@@ -14,10 +14,9 @@ pub struct BuffoonBoard {
 }
 
 impl BuffoonBoard {
-    pub fn new(deck: BuffoonPile) -> Self {
+    pub fn new(draws: Draws, deck: BuffoonPile) -> Self {
         Self {
-            hands_to_play: 0,
-            discards: 0,
+            draws,
             deck,
             in_hand: BuffoonPile::default(),
             played: BuffoonPile::default(),

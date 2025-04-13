@@ -4,10 +4,11 @@ use crate::prelude::{BasicPile, CardError, FrenchRank, Pip, Ranged};
 use crate::preludes::funky::MPip;
 use rand::prelude::SliceRandom;
 use rand::rng;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
 
 /// # Dimensions
