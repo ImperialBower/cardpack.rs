@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Still, `Display` gives me a way to quickly write unit tests that act as sanity checks, and I
 /// use them all the time for my interactive example programs where I can pluy with the libraries.
-/// Unit tests are one thing, but they don't replace being able to play with the code. 
+/// Unit tests are one thing, but they don't replace being able to play with the code.
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
 )]
@@ -26,7 +26,7 @@ impl std::fmt::Display for Draws {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Draws {{ hands_to_play: {}, discards: {} }}",
+            "Draws {{ hands: {}, discards: {} }}",
             self.hands_to_play, self.discards
         )
     }
@@ -39,5 +39,17 @@ impl Draws {
             hands_to_play,
             discards,
         }
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__types__draws_tests {
+    use super::*;
+
+    #[test]
+    fn display() {
+        let draws = Draws::new(1, 2);
+        assert_eq!(draws.to_string(), "Draws { hands: 1, discards: 2 }");
     }
 }

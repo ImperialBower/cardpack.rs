@@ -46,7 +46,7 @@ impl PokerHand {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PokerHands {
     pub hands: HashMap<HandType, PokerHand>,
 }
