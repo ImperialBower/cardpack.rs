@@ -14,6 +14,7 @@ pub struct BuffoonBoard {
 }
 
 impl BuffoonBoard {
+    #[must_use]
     pub fn new(draws: Draws, deck: BuffoonPile) -> Self {
         Self {
             draws,
