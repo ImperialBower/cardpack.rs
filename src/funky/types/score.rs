@@ -1,5 +1,6 @@
 use crate::preludes::funky::BuffoonPile;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -36,6 +37,27 @@ impl Score {
     #[must_use]
     pub fn current(&self) -> usize {
         self.chips * self.mult
+    }
+
+    #[must_use]
+    pub fn multi_mult(&self, mult: usize) -> Self {
+        let mult = self.mult * mult;
+        Self {
+            chips: self.chips,
+            mult,
+        }
+    }
+}
+
+impl Display for Score {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Score {{ {} chips times {} mult }} = {}",
+            self.chips,
+            self.mult,
+            self.current()
+        )
     }
 }
 
