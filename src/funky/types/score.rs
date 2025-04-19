@@ -1,6 +1,6 @@
-use crate::preludes::funky::BuffoonPile;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use std::ops::Add;
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -40,11 +40,27 @@ impl Score {
     }
 
     #[must_use]
-    pub fn multi_mult(&self, mult: usize) -> Self {
-        let mult = self.mult * mult;
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_precision_loss,
+        clippy::cast_sign_loss
+    )]
+    pub fn multi_mult(&self, mult: f32) -> Self {
+        let mult = self.mult as f32 * mult;
         Self {
             chips: self.chips,
-            mult,
+            mult: mult.ceil() as usize,
+        }
+    }
+}
+
+impl Add for Score {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            chips: self.chips + other.chips,
+            mult: self.mult + other.mult,
         }
     }
 }
@@ -90,5 +106,11 @@ mod funky__types__score_tests {
     #[test]
     fn default() {
         assert_eq!(Score::default().current(), 0);
+    }
+
+    #[test]
+    fn display() {
+        let score = Score::new(2, 2);
+        assert_eq!(score.to_string(), "Score { 2 chips times 2 mult } = 4");
     }
 }
