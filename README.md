@@ -153,3 +153,4 @@ Other examples are:
   * [Sakura](https://en.wikipedia.org/wiki/Sakura_(card_game))
 * [Cinch](https://en.wikipedia.org/wiki/Cinch_(card_game))
 * [Zwickern](https://en.wikipedia.org/wiki/Zwickern)
+* [Beggar-my-neighbour](https://en.wikipedia.org/wiki/Beggar-my-neighbour)
