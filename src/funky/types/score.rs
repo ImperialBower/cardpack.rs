@@ -104,6 +104,20 @@ mod funky__types__score_tests {
     }
 
     #[test]
+    fn multi_mult() {
+        let original = Score::new(100, 10);
+        let multi = original.multi_mult(1.5);
+    }
+
+    #[test]
+    fn add() {
+        let original = Score::new(2, 2);
+        let expected = Score::new(4, 4);
+
+        assert_eq!(original + original, expected);
+    }
+
+    #[test]
     fn default() {
         assert_eq!(Score::default().current(), 0);
     }
