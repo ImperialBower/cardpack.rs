@@ -35,11 +35,6 @@ impl Score {
     }
 
     #[must_use]
-    pub fn current(&self) -> usize {
-        self.chips * self.mult
-    }
-
-    #[must_use]
     #[allow(
         clippy::cast_possible_truncation,
         clippy::cast_precision_loss,
@@ -51,6 +46,11 @@ impl Score {
             chips: self.chips,
             mult: mult.ceil() as usize,
         }
+    }
+
+    #[must_use]
+    pub fn score(&self) -> usize {
+        self.chips * self.mult
     }
 }
 
@@ -72,7 +72,7 @@ impl Display for Score {
             "Score {{ {} chips times {} mult }} = {}",
             self.chips,
             self.mult,
-            self.current()
+            self.score()
         )
     }
 }
@@ -85,28 +85,33 @@ mod funky__types__score_tests {
     /// This is an example of a test that I would normally skip.
     #[test]
     fn new() {
-        assert_eq!(Score::new(1, 2).current(), 2);
-        assert_eq!(Score::new(2, 3).current(), 6);
+        assert_eq!(Score::new(1, 2).score(), 2);
+        assert_eq!(Score::new(2, 3).score(), 6);
     }
 
     #[test]
     fn add_chips() {
-        assert_eq!(Score::new(1, 2).add_chips(1).current(), 4);
-        assert_eq!(Score::new(2, 3).add_chips(1).current(), 9);
+        assert_eq!(Score::new(1, 2).add_chips(1).score(), 4);
+        assert_eq!(Score::new(2, 3).add_chips(1).score(), 9);
     }
 
     /// I love it when the AI suggests something that is basically wrong. The original
     /// second test had the result as 12.
     #[test]
     fn add_mult() {
-        assert_eq!(Score::new(1, 2).add_mult(1).current(), 3);
-        assert_eq!(Score::new(2, 3).add_mult(1).current(), 8);
+        assert_eq!(Score::new(1, 2).add_mult(1).score(), 3);
+        assert_eq!(Score::new(2, 3).add_mult(1).score(), 8);
     }
 
     #[test]
     fn multi_mult() {
         let original = Score::new(100, 10);
         let multi = original.multi_mult(1.5);
+
+        let expected = Score::new(100, 15);
+
+        assert_eq!(expected, multi);
+        assert_eq!(1500, expected.score());
     }
 
     #[test]
@@ -119,7 +124,7 @@ mod funky__types__score_tests {
 
     #[test]
     fn default() {
-        assert_eq!(Score::default().current(), 0);
+        assert_eq!(Score::default().score(), 0);
     }
 
     #[test]
