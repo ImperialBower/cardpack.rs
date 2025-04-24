@@ -1,7 +1,7 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
 use crate::funky::types::hands::HandType;
 use crate::prelude::{BasicPile, CardError, FrenchRank, Pip, Ranged};
-use crate::preludes::funky::MPip;
+use crate::preludes::funky::{MPip, Score};
 use rand::prelude::SliceRandom;
 use rand::rng;
 use serde::{Deserialize, Serialize};
@@ -22,11 +22,15 @@ impl BuffoonPile {
     pub fn basic_pile(&self) -> BasicPile {
         self.iter().map(BuffoonCard::basic_card).collect()
     }
+    
+    pub fn calculate_plus(&self) -> Score {
+        todo!()
+    }
 
     /// **DIARY** OK here is where we put our coding to the test. We should be able to take what we
     /// did on the [`BuffoonCard`] side and apply it at the connection level.
     #[must_use]
-    pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
+    pub fn calculate_plus_mult(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
             // **DIARY** How do we make this simpler?
             MPip::MultPlusOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
@@ -35,7 +39,7 @@ impl BuffoonPile {
             MPip::MultPlusOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
             MPip::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
             MPip::MultPlusOnSuit(_, _) => {
-                self.iter().map(|c| c.calculate_mult_plus(enhancer)).sum()
+                self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
             _ => 0,
         }
@@ -456,105 +460,105 @@ mod funky__types__buffoon_pile_tests {
     ///     BuffoonCard::new(3, 4),
     /// ]);
     /// let enhancer = BuffoonCard::new(5, 6);
-    /// assert_eq!(pile.calculate_mult_plus(enhancer), 44);
+    /// assert_eq!(pile.calculate_plus_mult(enhancer), 44);
     /// ```
     #[test]
-    fn calculate_mult_plus() {
+    fn calculate_plus_mult() {
         assert_eq!(
-            bcards!("AD KD QD JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            bcards!("AD KD QD JD TD").calculate_plus_mult(bcard!(GREEDY)),
             15
         );
         assert_eq!(
-            bcards!("AS KD QS JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            bcards!("AS KD QS JD TD").calculate_plus_mult(bcard!(GREEDY)),
             9
         );
         assert_eq!(
-            bcards!("AS KS QS JD TD").calculate_mult_plus(bcard!(GREEDY)),
+            bcards!("AS KS QS JD TD").calculate_plus_mult(bcard!(GREEDY)),
             6
         );
         assert_eq!(
-            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(GREEDY)),
+            bcards!("AS KS QS JS TS").calculate_plus_mult(bcard!(GREEDY)),
             0
         );
 
         assert_eq!(
-            bcards!("AH KH QH JH TH").calculate_mult_plus(bcard!(LUSTY)),
+            bcards!("AH KH QH JH TH").calculate_plus_mult(bcard!(LUSTY)),
             15
         );
         assert_eq!(
-            bcards!("AS KH QS JH TS").calculate_mult_plus(bcard!(LUSTY)),
+            bcards!("AS KH QS JH TS").calculate_plus_mult(bcard!(LUSTY)),
             6
         );
         assert_eq!(
-            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(LUSTY)),
+            bcards!("AS KS QS JS TS").calculate_plus_mult(bcard!(LUSTY)),
             0
         );
 
         assert_eq!(
-            bcards!("AS KS QS JS TS").calculate_mult_plus(bcard!(WRATHFUL)),
+            bcards!("AS KS QS JS TS").calculate_plus_mult(bcard!(WRATHFUL)),
             15
         );
         assert_eq!(
-            bcards!("AS KD QD JS 2S").calculate_mult_plus(bcard!(WRATHFUL)),
+            bcards!("AS KD QD JS 2S").calculate_plus_mult(bcard!(WRATHFUL)),
             9
         );
         assert_eq!(
-            bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(WRATHFUL)),
+            bcards!("AD KD QD JD 2D").calculate_plus_mult(bcard!(WRATHFUL)),
             0
         );
 
         assert_eq!(
-            bcards!("AC KC QC JC TC").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            bcards!("AC KC QC JC TC").calculate_plus_mult(bcard!(GLUTTONOUS)),
             15
         );
         assert_eq!(
-            bcards!("AC KD QC JS 2C").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            bcards!("AC KD QC JS 2C").calculate_plus_mult(bcard!(GLUTTONOUS)),
             9
         );
         assert_eq!(
-            bcards!("AD KD QD JD 2D").calculate_mult_plus(bcard!(GLUTTONOUS)),
+            bcards!("AD KD QD JD 2D").calculate_plus_mult(bcard!(GLUTTONOUS)),
             0
         );
 
         // Hands
         assert_eq!(
-            bcards!("AS AD QS JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            bcards!("AS AD QS JS TS").calculate_plus_mult(bcard!(JOLLY)),
             8
         );
         assert_eq!(
-            bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            bcards!("AS AD AH JS TS").calculate_plus_mult(bcard!(JOLLY)),
             8
         );
         assert_eq!(
-            bcards!("AS KD QH JS TS").calculate_mult_plus(bcard!(JOLLY)),
+            bcards!("AS KD QH JS TS").calculate_plus_mult(bcard!(JOLLY)),
             0
         );
         assert_eq!(
-            bcards!("AS AD AH JS TS").calculate_mult_plus(bcard!(ZANY)),
+            bcards!("AS AD AH JS TS").calculate_plus_mult(bcard!(ZANY)),
             12
         );
         assert_eq!(
-            bcards!("AS AD QH JS TS").calculate_mult_plus(bcard!(ZANY)),
+            bcards!("AS AD QH JS TS").calculate_plus_mult(bcard!(ZANY)),
             0
         );
         assert_eq!(
-            bcards!("AS AD AH JS JD").calculate_mult_plus(bcard!(MAD)),
+            bcards!("AS AD AH JS JD").calculate_plus_mult(bcard!(MAD)),
             10
         );
         assert_eq!(
-            bcards!("AD KD QD JD TD").calculate_mult_plus(bcard!(CRAZY)),
+            bcards!("AD KD QD JD TD").calculate_plus_mult(bcard!(CRAZY)),
             12
         );
         assert_eq!(
-            bcards!("AD KD QD JD 9D").calculate_mult_plus(bcard!(CRAZY)),
+            bcards!("AD KD QD JD 9D").calculate_plus_mult(bcard!(CRAZY)),
             0
         );
         assert_eq!(
-            bcards!("AS JS QS 2S 8S").calculate_mult_plus(bcard!(DROLL)),
+            bcards!("AS JS QS 2S 8S").calculate_plus_mult(bcard!(DROLL)),
             10
         );
         assert_eq!(
-            bcards!("AS JS QS 2S 8H").calculate_mult_plus(bcard!(DROLL)),
+            bcards!("AS JS QS 2S 8H").calculate_plus_mult(bcard!(DROLL)),
             0
         );
     }

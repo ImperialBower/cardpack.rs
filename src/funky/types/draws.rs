@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// I am obsessed with having a simple way to print out the values of data structures. Perhaps
 /// this is a callback to my early days when I didn't know how to do logging, or testing and
 /// debugging for that matter. When things went wrong, I would dump everything out as a print
-/// statement. That's true for everybody I guess. The faster you get past it the better.
+/// statement. That's true for everybody, I guess. The faster you get past it the better.
 ///
 /// Still, `Display` gives me a way to quickly write unit tests that act as sanity checks, and I
 /// use them all the time for my interactive example programs where I can pluy with the libraries.

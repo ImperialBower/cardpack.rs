@@ -122,7 +122,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_mult_plus(&self, enhancer: BuffoonCard) -> usize {
+    pub fn calculate_plus_mult(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
             MPip::MultPlus(value) => value,
             MPip::MultPlusOnSuit(value, suit) => {
@@ -624,23 +624,23 @@ mod funky__types__buffoon_card_tests {
     }
 
     #[test]
-    fn calculate_mult_plus__joker() {
-        assert_eq!(bcard!(JD).calculate_mult_plus(joker::card::JOKER), 4);
-        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(JOKER)), 4);
+    fn calculate_plus_mult__joker() {
+        assert_eq!(bcard!(JD).calculate_plus_mult(joker::card::JOKER), 4);
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(JOKER)), 4);
     }
 
     #[test]
-    fn calculate_mult_plus__greedy_joker() {
-        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(GREEDY)), 3);
-        assert_eq!(bcard!(JC).calculate_mult_plus(joker::card::GREEDY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_mult_plus(bcard!(GREEDY)), 0);
-        assert_eq!(bcard!(JH).calculate_mult_plus(joker::card::GREEDY_JOKER), 0);
+    fn calculate_plus_mult__greedy_joker() {
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(GREEDY)), 3);
+        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(GREEDY)), 0);
+        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
     }
     #[test]
-    fn calculate_mult_plus__lusty_joker() {
-        assert_eq!(bcard!(JH).calculate_mult_plus(joker::card::LUSTY_JOKER), 3);
-        assert_eq!(bcard!(JD).calculate_mult_plus(bcard!(LUSTY)), 0);
-        assert_eq!(bcard!(JC).calculate_mult_plus(joker::card::LUSTY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_mult_plus(bcard!(LUSTY)), 0);
+    fn calculate_plus_mult__lusty_joker() {
+        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::LUSTY_JOKER), 3);
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::LUSTY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(LUSTY)), 0);
     }
 }
