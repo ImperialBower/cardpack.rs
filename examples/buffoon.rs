@@ -1,6 +1,8 @@
 use cardpack::preludes::funky::*;
 
 fn main() {
+    env_logger::init();
+
     let mut deck = Deck::basic_buffoon_pile().shuffled();
 
     let hand = bcards!("AS KS QS JS TS");
