@@ -1,11 +1,11 @@
 use crate::funky::decks::{basic, tarot};
 use crate::funky::types::mpip::MPip;
 use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip, PipType};
+use crate::preludes::funky::Score;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Display;
 use std::str::FromStr;
-
 // region BCardType
 
 #[derive(
@@ -119,6 +119,16 @@ impl BuffoonCard {
             suit: self.suit,
             rank: self.rank,
         }
+    }
+
+    #[must_use]
+    pub fn calculate_plus(&self) -> Score {
+        todo!()
+    }
+
+    #[must_use]
+    pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
+        todo!()
     }
 
     #[must_use]

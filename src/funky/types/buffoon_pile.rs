@@ -22,9 +22,22 @@ impl BuffoonPile {
     pub fn basic_pile(&self) -> BasicPile {
         self.iter().map(BuffoonCard::basic_card).collect()
     }
-    
+
+    #[must_use]
     pub fn calculate_plus(&self) -> Score {
         todo!()
+    }
+
+    #[must_use]
+    pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
+        match enhancer.enhancement {
+            MPip::ChipsOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
+            MPip::ChipsOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
+            MPip::ChipsOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
+            MPip::ChipsOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
+            MPip::ChipsOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
+            _ => 0,
+        }
     }
 
     /// **DIARY** OK here is where we put our coding to the test. We should be able to take what we
@@ -41,18 +54,6 @@ impl BuffoonPile {
             MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
-            _ => 0,
-        }
-    }
-
-    #[must_use]
-    pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
-        match enhancer.enhancement {
-            MPip::ChipsOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
-            MPip::ChipsOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
-            MPip::ChipsOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
-            MPip::ChipsOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
-            MPip::ChipsOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
             _ => 0,
         }
     }
@@ -451,6 +452,35 @@ mod funky__types__buffoon_pile_tests {
         assert_eq!(pile.basic_pile().to_string(), "A♠ K♠ Q♠ J♠ T♠");
     }
 
+    #[test]
+    fn calculate_plus_chips() {
+        assert_eq!(
+            bcards!("AS AD QS JS TS").calculate_plus_chips(bcard!(SLY)),
+            50
+        );
+        assert_eq!(
+            bcards!("AS AD AH JS TS").calculate_plus_chips(bcard!(SLY)),
+            50
+        );
+        assert_eq!(
+            bcards!("AS KD QH JS TS").calculate_plus_chips(bcard!(SLY)),
+            0
+        );
+
+        assert_eq!(
+            bcards!("AS AD AH JS TS").calculate_plus_chips(bcard!(WILY)),
+            100
+        );
+        assert_eq!(
+            bcards!("AS AD AH AC TS").calculate_plus_chips(bcard!(WILY)),
+            100
+        );
+        assert_eq!(
+            bcards!("AS KD QH JS TS").calculate_plus_chips(bcard!(WILY)),
+            0
+        );
+    }
+
     /// **DIARY** The unit test code that CoPilot generates is baffling to me sometimes. Complete
     /// nonsense:
     ///
@@ -559,35 +589,6 @@ mod funky__types__buffoon_pile_tests {
         );
         assert_eq!(
             bcards!("AS JS QS 2S 8H").calculate_plus_mult(bcard!(DROLL)),
-            0
-        );
-    }
-
-    #[test]
-    fn calculate_plus_chips() {
-        assert_eq!(
-            bcards!("AS AD QS JS TS").calculate_plus_chips(bcard!(SLY)),
-            50
-        );
-        assert_eq!(
-            bcards!("AS AD AH JS TS").calculate_plus_chips(bcard!(SLY)),
-            50
-        );
-        assert_eq!(
-            bcards!("AS KD QH JS TS").calculate_plus_chips(bcard!(SLY)),
-            0
-        );
-
-        assert_eq!(
-            bcards!("AS AD AH JS TS").calculate_plus_chips(bcard!(WILY)),
-            100
-        );
-        assert_eq!(
-            bcards!("AS AD AH AC TS").calculate_plus_chips(bcard!(WILY)),
-            100
-        );
-        assert_eq!(
-            bcards!("AS KD QH JS TS").calculate_plus_chips(bcard!(WILY)),
             0
         );
     }
