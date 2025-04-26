@@ -604,7 +604,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::MultPlusOn5Ranks(4, ['A', '9', '7', '5', '3']),
+        enhancement: MPip::ChipsPlusOn5Ranks(31, ['A', '9', '7', '5', '3']),
         resell_value: 2,
         debuffed: false,
     };
