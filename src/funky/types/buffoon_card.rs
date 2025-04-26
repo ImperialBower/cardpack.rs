@@ -122,7 +122,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus(&self) -> Score {
+    pub fn calculate_plus(&self, enhancer: BuffoonCard) -> Score {
         todo!()
     }
 
@@ -361,6 +361,11 @@ mod funky__types__buffoon_card_tests {
     use crate::funky::decks::basic::card::*;
     use crate::funky::decks::joker;
     use crate::funky::decks::tarot::card::*;
+
+    #[test]
+    fn calculate_plus() {
+        assert_eq!(bcard!(AD).calculate_plus(joker::card::ODD_TODD), Score::new(31, 0));
+    }
 
     #[test]
     fn calculate_plus_chips__odd_todd() {
