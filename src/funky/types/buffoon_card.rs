@@ -128,7 +128,16 @@ impl BuffoonCard {
 
     #[must_use]
     pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
-        todo!()
+        match enhancer.enhancement {
+            MPip::ChipsPlusOn5Ranks(value, ranks) => {
+                if ranks.contains(&self.rank.index) {
+                    value
+                } else {
+                    0
+                }
+            }
+            _ => 0,
+        }
     }
 
     #[must_use]
@@ -155,7 +164,7 @@ impl BuffoonCard {
         let mut chips = 0;
         if let MPip::Chips(c) = self.enhancement {
             chips = c;
-        };
+        }
         chips
     }
 
@@ -166,7 +175,7 @@ impl BuffoonCard {
         if let MPip::Chips(c) = self.enhancement {
             print!(" + {}", self.enhancement);
             chips += c;
-        };
+        }
         println!();
         chips + self.rank.value
     }
@@ -352,6 +361,31 @@ mod funky__types__buffoon_card_tests {
     use crate::funky::decks::basic::card::*;
     use crate::funky::decks::joker;
     use crate::funky::decks::tarot::card::*;
+
+    #[test]
+    fn calculate_plus_chips__odd_todd() {
+        assert_eq!(bcard!(AD).calculate_plus_chips(joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(9C).calculate_plus_chips(joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(7S).calculate_plus_chips(joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(5C).calculate_plus_chips(joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(3H).calculate_plus_chips(joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(ODD_TODD)), 0);
+    }
+
+    #[test]
+    fn calculate_plus_mult__greedy_joker() {
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(GREEDY)), 3);
+        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(GREEDY)), 0);
+        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
+    }
+    #[test]
+    fn calculate_plus_mult__lusty_joker() {
+        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::LUSTY_JOKER), 3);
+        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::LUSTY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(LUSTY)), 0);
+    }
 
     #[test]
     fn get_chips() {
@@ -631,26 +665,5 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(BuffoonCard::from_str("JM").unwrap(), SUN);
         assert_eq!(BuffoonCard::from_str("KM").unwrap(), JUDGEMENT);
         assert_eq!(BuffoonCard::from_str("LM").unwrap(), WORLD);
-    }
-
-    #[test]
-    fn calculate_plus_mult__joker() {
-        assert_eq!(bcard!(JD).calculate_plus_mult(joker::card::JOKER), 4);
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(JOKER)), 4);
-    }
-
-    #[test]
-    fn calculate_plus_mult__greedy_joker() {
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(GREEDY)), 3);
-        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(GREEDY)), 0);
-        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
-    }
-    #[test]
-    fn calculate_plus_mult__lusty_joker() {
-        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::LUSTY_JOKER), 3);
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(LUSTY)), 0);
-        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::LUSTY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(LUSTY)), 0);
     }
 }

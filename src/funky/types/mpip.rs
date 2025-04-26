@@ -34,6 +34,7 @@ pub enum MPip {
     ChipsOnStraight(usize),
     ChipsOnTrips(usize),
     ChipsPerRemainingDiscard(usize),
+    ChipsPlusOn5Ranks(usize, [char; 5]),
     CreateCardOnRankPlay(usize, char, BCardType),
     Credit(usize),
     Death(usize),
@@ -133,6 +134,9 @@ impl Display for MPip {
             MPip::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
             MPip::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
             MPip::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
+            MPip::ChipsPlusOn5Ranks(chips, ranks) => {
+                write!(f, "ChipsPlusOn5Ranks({chips}, {ranks:?})")
+            }
             MPip::CreateCardOnRankPlay(odds, rank_char, card_type) => {
                 write!(
                     f,
