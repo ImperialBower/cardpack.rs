@@ -364,7 +364,10 @@ mod funky__types__buffoon_card_tests {
 
     #[test]
     fn calculate_plus() {
-        assert_eq!(bcard!(AD).calculate_plus(joker::card::ODD_TODD), Score::new(31, 0));
+        assert_eq!(
+            bcard!(AD).calculate_plus(joker::card::ODD_TODD),
+            Score::new(31, 0)
+        );
     }
 
     #[test]
