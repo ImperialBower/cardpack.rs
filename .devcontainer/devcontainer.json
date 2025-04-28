@@ -8,11 +8,25 @@
   },
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},              // https://github.com/devcontainers/features/tree/main/src/github-cli
     "ghcr.io/devcontainers-contrib/features/actions-runner:1": {},  // https://github.com/devcontainers-contrib/features/tree/main/src/actions-runner
     "ghcr.io/devcontainers-contrib/features/actionlint:1": {},      // https://github.com/devcontainers-contrib/features/tree/main/src/actionlint
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "upgradePackages": true,
+      "username": "devcontainer",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
     "ghcr.io/devcontainers-contrib/features/direnv:1": {},          // https://github.com/devcontainers-contrib/features/tree/main/src/direnv
     "ghcr.io/devcontainers-contrib/features/fd:1": {},              // https://github.com/devcontainers-contrib/features/tree/main/src/fd
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/schlich/devcontainer-features/powerlevel10k:1": {}
   },
 
   // Configure tool-specific properties.
@@ -22,10 +36,10 @@
       "settings": {},
       "extensions": [
         "eamodio.gitlens",
-        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker"
       ]
     }
-  },
+  }
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 
