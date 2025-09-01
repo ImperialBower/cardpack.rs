@@ -10,7 +10,7 @@ pub struct Tiny {}
 impl Tiny {
     pub const DECK_SIZE: usize = 4;
 
-    pub const DECK: [BasicCard; Tiny::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::KING_SPADES,
         FrenchBasicCard::ACE_HEARTS,
@@ -20,7 +20,7 @@ impl Tiny {
 
 impl DeckedBase for Tiny {
     fn base_vec() -> Vec<BasicCard> {
-        Tiny::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -37,7 +37,7 @@ impl DeckedBase for Tiny {
 }
 
 // Let's you call Decked methods directly on the Tiny type:
-impl Decked<Tiny> for Tiny {}
+impl Decked<Self> for Tiny {}
 
 #[allow(unused_macros)]
 macro_rules! tiny {

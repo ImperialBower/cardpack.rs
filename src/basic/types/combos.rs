@@ -74,10 +74,10 @@ impl Combos {
         self.iter()
             .filter(|pile| pile.is_connector())
             .cloned()
-            .collect::<Combos>()
+            .collect::<Self>()
             .iter()
             .map(|pile| pile.clone().sorted_by_rank())
-            .collect::<Combos>()
+            .collect::<Self>()
     }
 
     /// I love how the `CoPilot` version recommends functions that don't exist instead of
@@ -107,6 +107,7 @@ impl Combos {
             .collect()
     }
 
+    #[allow(clippy::or_fun_call)]
     #[must_use]
     pub fn of_same_rank_or_above(&self, rank: Pip) -> Self {
         self.of_same_rank()
@@ -182,7 +183,7 @@ impl Combos {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<BasicPile> {
+    pub fn iter(&self) -> std::slice::Iter<'_, BasicPile> {
         self.0.iter()
     }
 
@@ -213,7 +214,7 @@ impl Combos {
 
     #[must_use]
     pub fn sort_internal(&self) -> Self {
-        let mut s: Combos = self.0.iter().map(|pile| pile.clone().sorted()).collect();
+        let mut s: Self = self.0.iter().map(|pile| pile.clone().sorted()).collect();
         s.sort();
         s.sort_by_length();
         s.reverse();

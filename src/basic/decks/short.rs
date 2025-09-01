@@ -22,7 +22,7 @@ pub type ShortCard = Card<Short>;
 impl Short {
     pub const DECK_SIZE: usize = 36;
 
-    pub const DECK: [BasicCard; Short::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::KING_SPADES,
         FrenchBasicCard::QUEEN_SPADES,
@@ -64,7 +64,7 @@ impl Short {
 
 impl DeckedBase for Short {
     fn base_vec() -> Vec<BasicCard> {
-        Short::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -80,7 +80,7 @@ impl DeckedBase for Short {
     }
 }
 
-impl Decked<Short> for Short {}
+impl Decked<Self> for Short {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

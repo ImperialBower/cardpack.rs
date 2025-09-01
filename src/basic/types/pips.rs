@@ -140,8 +140,8 @@ impl Default for Pip {
         Self {
             pip_type: PipType::Blank,
             weight: 0,
-            index: Pip::BLANK_INDEX,
-            symbol: Pip::BLANK_INDEX,
+            index: Self::BLANK_INDEX,
+            symbol: Self::BLANK_INDEX,
             value: 0,
         }
     }

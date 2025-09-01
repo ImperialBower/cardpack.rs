@@ -17,7 +17,7 @@ pub type SkatCard = Card<Skat>;
 impl Skat {
     pub const DECK_SIZE: usize = 32;
 
-    pub const DECK: [BasicCard; Skat::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         SkatBasicCard::DAUSE_EICHEL,
         SkatBasicCard::ZHEN_EICHEL,
         SkatBasicCard::KÖNIG_EICHEL,
@@ -55,7 +55,7 @@ impl Skat {
 
 impl DeckedBase for Skat {
     fn base_vec() -> Vec<BasicCard> {
-        Skat::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -81,7 +81,7 @@ impl DeckedBase for Skat {
     }
 }
 
-impl Decked<Skat> for Skat {}
+impl Decked<Self> for Skat {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

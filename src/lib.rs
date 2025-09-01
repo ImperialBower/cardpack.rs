@@ -1,6 +1,40 @@
-#![warn(clippy::pedantic)]
-#![allow(clippy::struct_field_names)]
+#![warn(
+    clippy::all,
+    // clippy::restriction,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::cargo,
+    clippy::suspicious,
+)]
+#![allow(
+    clippy::disallowed_script_idents,
+    clippy::missing_const_for_fn,
+    clippy::multiple_crate_versions,
+    clippy::self_named_module_files,
+    clippy::struct_field_names
+)]
 #![allow(dead_code)]
+// clippy::as_conversions
+// clippy::float_arithmetic
+// clippy::integer_arithmetic
+// clippy::unwrap_used
+// clippy::expect_used
+// clippy::panic
+// clippy::print_stdout
+// clippy::print_stderr
+// clippy::dbg_macro
+// clippy::todo
+// clippy::unimplemented
+// clippy::wildcard_enum_match_arm
+// clippy::wildcard_imports
+// clippy::mod_module_files
+// clippy::missing_docs_in_private_items
+// clippy::shadow_unrelated
+// clippy::exhaustive_enums
+// clippy::exhaustive_structs
+// clippy::pub_use
+// clippy::pub_with_shorthand
+// clippy::missing_inline_in_public_items
 
 //! [Cardpack](https://crates.io/crates/cardpack) is a library to represent various decks of playing
 //! cards. The library is designed to support the following features:
@@ -243,7 +277,7 @@
 //! ```
 
 #![allow(clippy::needless_doctest_main)]
-#![doc = include_str!("../README.md")]
+#![cfg_attr(doc, doc = include_str!("../README.md"))]
 
 pub mod basic;
 pub mod common;

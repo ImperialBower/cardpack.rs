@@ -13,7 +13,7 @@ pub type TarotCard = Card<Tarot>;
 impl Tarot {
     pub const DECK_SIZE: usize = 78;
 
-    pub const DECK: [BasicCard; Tarot::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         TarotBasicCard::FOOL,
         TarotBasicCard::MAGICIAN,
         TarotBasicCard::HIGH_PRIESTESS,
@@ -97,7 +97,7 @@ impl Tarot {
 
 impl DeckedBase for Tarot {
     fn base_vec() -> Vec<BasicCard> {
-        Tarot::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -123,7 +123,7 @@ impl DeckedBase for Tarot {
     }
 }
 
-impl Decked<Tarot> for Tarot {}
+impl Decked<Self> for Tarot {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

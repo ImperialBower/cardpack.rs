@@ -20,7 +20,7 @@ pub type PinochleCard = Card<Pinochle>;
 impl Pinochle {
     pub const DECK_SIZE: usize = 48;
 
-    pub const DECK: [BasicCard; Pinochle::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::ACE_SPADES,
         PinochleBasicCard::TEN_SPADES,
@@ -74,7 +74,7 @@ impl Pinochle {
 
 impl DeckedBase for Pinochle {
     fn base_vec() -> Vec<BasicCard> {
-        Pinochle::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -90,7 +90,7 @@ impl DeckedBase for Pinochle {
     }
 }
 
-impl Decked<Pinochle> for Pinochle {}
+impl Decked<Self> for Pinochle {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

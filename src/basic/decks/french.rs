@@ -21,7 +21,7 @@ pub type FrenchCard = Card<French>;
 impl French {
     pub const DECK_SIZE: usize = 54;
 
-    pub const DECK: [BasicCard; French::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::BIG_JOKER,
         FrenchBasicCard::LITTLE_JOKER,
         FrenchBasicCard::ACE_SPADES,
@@ -81,7 +81,7 @@ impl French {
 
 impl DeckedBase for French {
     fn base_vec() -> Vec<BasicCard> {
-        French::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -103,7 +103,7 @@ impl DeckedBase for French {
     }
 }
 
-impl Decked<French> for French {}
+impl Decked<Self> for French {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

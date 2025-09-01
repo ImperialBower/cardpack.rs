@@ -40,7 +40,7 @@ impl DeckedBase for Razz {
     }
 }
 
-impl Decked<Razz> for Razz {}
+impl Decked<Self> for Razz {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
