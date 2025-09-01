@@ -383,8 +383,8 @@ pub trait Ranged {
 
     /// Takes the `BasicPiles` and sorts them based on their length.
     ///
-    /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades in
-    /// our unit tests. It's annoying but not enough to solve the problem.
+    /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades. In
+    /// our unit test below. It's annoying but not enough to solve the problem.
     fn combos_by_rank(&self) -> Combos {
         self.combos_from_pip_map(self.map_by_rank())
     }
