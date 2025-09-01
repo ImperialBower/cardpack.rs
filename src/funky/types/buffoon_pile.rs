@@ -215,14 +215,18 @@ impl BuffoonPile {
                 if combo.len() < 3 {
                     return false;
                 }
-                combos.second().is_some_and(|first_combo| first_combo.len() >= 2)
+                combos
+                    .second()
+                    .is_some_and(|first_combo| first_combo.len() >= 2)
             }
         }
     }
 
     #[must_use]
     pub fn has_x_of_a_kind(&self, x: usize) -> bool {
-        self.combos_by_rank().first().is_some_and(|combo| combo.len() >= x)
+        self.combos_by_rank()
+            .first()
+            .is_some_and(|combo| combo.len() >= x)
     }
 
     #[must_use]
@@ -254,13 +258,18 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn has_2pair(&self) -> bool {
-        self.combos_by_rank().second().is_some_and(|combo| combo.len() >= 2)
+        self.combos_by_rank()
+            .second()
+            .is_some_and(|combo| combo.len() >= 2)
     }
 
     /// TODO: HACKY
     #[must_use]
     pub fn has_royal_flush(&self) -> bool {
-        self.basic_pile().sorted().first().is_some_and(|card| self.has_straight_flush() && card.rank == FrenchRank::ACE)
+        self.basic_pile()
+            .sorted()
+            .first()
+            .is_some_and(|card| self.has_straight_flush() && card.rank == FrenchRank::ACE)
     }
 
     /// TODO: This is going to get harder when we need to take into account the `Jokers`
