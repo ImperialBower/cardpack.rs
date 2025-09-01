@@ -13,28 +13,28 @@ impl Bit {
     pub const SUIT_FLAG_SHIFT: usize = 11;
 
     #[must_use]
-    pub fn ckc_bits(ckc: usize) -> usize {
-        ckc & Bit::RANK_FLAG_FILTER
+    pub const fn ckc_bits(ckc: usize) -> usize {
+        ckc & Self::RANK_FLAG_FILTER
     }
 
     #[must_use]
     pub fn ckc_prime(ckc: usize) -> usize {
-        ckc & Bit::RANK_PRIME_FILTER
+        ckc & Self::RANK_PRIME_FILTER
     }
 
     #[must_use]
     pub fn ckc_shift8(ckc: usize) -> usize {
-        ckc & Bit::RANK_NUMBER_FILTER
+        ckc & Self::RANK_NUMBER_FILTER
     }
 
     #[must_use]
     pub fn only_suit_flags(ckc: usize) -> usize {
-        ckc & Bit::SUIT_FLAG_FILTER
+        ckc & Self::SUIT_FLAG_FILTER
     }
 
     #[must_use]
     pub fn strip_suit_flags(ckc: usize) -> usize {
-        ckc & !Bit::SUIT_FLAG_FILTER
+        ckc & !Self::SUIT_FLAG_FILTER
     }
 
     /// These utility methods come from `pkcore`, a library that is currently a work in progress.

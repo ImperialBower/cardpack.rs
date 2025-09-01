@@ -225,10 +225,10 @@ impl FluentName {
     #[must_use]
     pub fn new(name_str: &str) -> Self {
         if Self::is_alphanumeric_hyphen_dash(name_str) {
-            FluentName(name_str.to_string())
+            Self(name_str.to_string())
         } else {
             log::warn!("Invalid name: {name_str} - Defaulting to 'blank'.");
-            FluentName(Self::BLANK.to_string())
+            Self(Self::BLANK.to_string())
         }
     }
 
@@ -240,7 +240,7 @@ impl FluentName {
 
 impl Default for FluentName {
     fn default() -> Self {
-        FluentName(Self::BLANK.to_string())
+        Self(Self::BLANK.to_string())
     }
 }
 
@@ -281,7 +281,7 @@ impl FromStr for FluentName {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if Self::is_alphanumeric_hyphen_dash(s) {
-            Ok(FluentName(s.to_string()))
+            Ok(Self(s.to_string()))
         } else {
             Err(CardError::InvalidFluentName(s.to_string()))
         }

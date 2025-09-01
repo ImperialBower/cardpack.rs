@@ -8,6 +8,8 @@ homepage = "https://github.com/ImperialBower/cardpack.rs"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
+keywords = ["poker", "cards", "library"]
+categories = ["game-development"] # https://crates.io/category_slugs
 include = ["src/**", "Cargo.toml", "LICENSE", "README.md", "src/basic/decks/yaml/*.yaml"]
 
 [lib]
@@ -24,7 +26,7 @@ log = "0.4.26"
 rand = "0.9"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_yml = "0.0.12"
-thiserror = "2.0.12"
+thiserror = "1.0.69"
 
 [dev-dependencies]
 ckc-rs = "0.1.15"

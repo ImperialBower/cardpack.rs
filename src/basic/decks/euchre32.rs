@@ -23,7 +23,7 @@ pub type Euchre32Card = Card<Euchre32>;
 impl Euchre32 {
     pub const DECK_SIZE: usize = 32;
 
-    pub const DECK: [BasicCard; Euchre32::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::KING_SPADES,
         FrenchBasicCard::QUEEN_SPADES,
@@ -61,7 +61,7 @@ impl Euchre32 {
 
 impl DeckedBase for Euchre32 {
     fn base_vec() -> Vec<BasicCard> {
-        Euchre32::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -77,7 +77,7 @@ impl DeckedBase for Euchre32 {
     }
 }
 
-impl Decked<Euchre32> for Euchre32 {}
+impl Decked<Self> for Euchre32 {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

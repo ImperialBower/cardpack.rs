@@ -83,16 +83,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// ANSWER: Turns out it's used by the `BridgeBoard` example.
     #[must_use]
     pub fn card_by_index<S: Into<String>>(&self, index: S) -> Option<Card<DeckType>> {
-        match Card::<DeckType>::from_str(index.into().as_str()) {
-            Ok(c) => {
-                if self.contains(&c) {
-                    Some(c)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
+        Card::<DeckType>::from_str(index.into().as_str())
+            .map_or(None, |c| if self.contains(&c) { Some(c) } else { None })
     }
 
     /// Returns a reference to the underlying [`Card`] vector for the Pile.
@@ -185,7 +177,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             return None;
         }
 
-        let mut cards = Pile::<DeckType>::default();
+        let mut cards = Self::default();
         for _ in 0..n {
             cards.push(self.draw_first()?);
         }
@@ -292,7 +284,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// it to just sweep under the dev/null how things go wrong.
     #[must_use]
     pub fn forgiving_from_str(index: &str) -> Self {
-        Pile::<DeckType>::from_str(index).unwrap_or_else(|_| {
+        Self::from_str(index).unwrap_or_else(|_| {
             log::warn!("Pile::forgiving_from_str(): {index} is invalid. Returning empty Pile.");
             Self::default()
         })
@@ -414,7 +406,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(iter.next(), Some(&card!(4S)));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> std::slice::Iter<Card<DeckType>> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Card<DeckType>> {
         self.0.iter()
     }
 
@@ -444,8 +436,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// );
     /// ```
     #[must_use]
-    pub fn map_by_suit(&self) -> HashMap<Pip, Pile<DeckType>> {
-        let mut map: HashMap<Pip, Pile<DeckType>> = HashMap::new();
+    pub fn map_by_suit(&self) -> HashMap<Pip, Self> {
+        let mut map: HashMap<Pip, Self> = HashMap::new();
 
         for card in &self.0 {
             let suit = card.base_card.suit;
@@ -544,7 +536,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(pile.to_string(), "A♠ K♠ Q♠ J♠ T♠");
     /// ```
-    pub fn prepend(&mut self, other: &Pile<DeckType>) {
+    pub fn prepend(&mut self, other: &Self) {
         let mut product = other.0.clone();
         product.append(&mut self.0);
         self.0 = product;
@@ -670,7 +662,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert!(pile1.same(&pile2));
     /// ```
     #[must_use]
-    pub fn same(&self, cards: &Pile<DeckType>) -> bool {
+    pub fn same(&self, cards: &Self) -> bool {
         let left = self.sorted();
         let right = cards.sorted();
 
@@ -892,14 +884,14 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<Card<DeckType>
 
 impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<BasicCard>> for Pile<DeckType> {
     fn from(cards: Vec<BasicCard>) -> Self {
-        let cards = Pile::<DeckType>::into_cards(&cards);
+        let cards = Self::into_cards(&cards);
         Self(cards)
     }
 }
 
 impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<BasicPile> for Pile<DeckType> {
     fn from(pile: BasicPile) -> Self {
-        let cards = Pile::<DeckType>::into_cards(pile.v());
+        let cards = Self::into_cards(pile.v());
         Self(cards)
     }
 }
@@ -917,7 +909,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> FromStr for Pile<DeckTy
             return Err(CardError::InvalidCard(index.to_string()));
         }
 
-        Ok(Pile::<DeckType>::from(
+        Ok(Self::from(
             good.into_iter()
                 .map(Result::unwrap_or_default)
                 .collect::<Vec<_>>(),

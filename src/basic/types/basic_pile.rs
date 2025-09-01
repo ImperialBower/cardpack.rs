@@ -93,7 +93,7 @@ impl BasicPile {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<BasicCard> {
+    pub fn iter(&self) -> std::slice::Iter<'_, BasicCard> {
         self.0.iter()
     }
 
@@ -163,7 +163,7 @@ impl BasicPile {
     /// ```
     #[must_use]
     pub fn sorted_by_rank(self) -> Self {
-        let mut pile = self.clone();
+        let mut pile = self;
         pile.sort_by_rank();
         pile
     }

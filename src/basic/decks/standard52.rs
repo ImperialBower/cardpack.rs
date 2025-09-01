@@ -18,7 +18,7 @@ pub type Standard52Card = Card<Standard52>;
 impl Standard52 {
     pub const DECK_SIZE: usize = 52;
 
-    pub const DECK: [BasicCard; Standard52::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::KING_SPADES,
         FrenchBasicCard::QUEEN_SPADES,
@@ -76,7 +76,7 @@ impl Standard52 {
 
 impl DeckedBase for Standard52 {
     fn base_vec() -> Vec<BasicCard> {
-        Standard52::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -97,7 +97,7 @@ impl DeckedBase for Standard52 {
     }
 }
 
-impl Decked<Standard52> for Standard52 {}
+impl Decked<Self> for Standard52 {}
 
 #[cfg(test)]
 #[allow(non_snake_case)]

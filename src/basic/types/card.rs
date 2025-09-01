@@ -73,10 +73,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
         let binding = DeckType::colors();
         let color = binding.get(&self.base_card.suit);
 
-        match color {
-            Some(color) => *color,
-            None => Color::White,
-        }
+        color.map_or(Color::White, |color| *color)
     }
 
     /// Returns the color designated for a Card's specific suit in the deck's configuration.
@@ -207,7 +204,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     #[must_use]
     pub fn fluent_name(&self, lid: &LanguageIdentifier) -> String {
         match self.base_card.suit.pip_type {
-            PipType::Special => self.fluent_rank_name(lid).to_string(),
+            PipType::Special => self.fluent_rank_name(lid),
             PipType::Joker => {
                 format!("Joker {}", self.fluent_rank_name(lid))
             }
@@ -337,7 +334,7 @@ impl<DeckType: DeckedBase> From<BasicCard> for Card<DeckType> {
 
 impl<DeckType: DeckedBase> From<&BasicCard> for Card<DeckType> {
     fn from(pips: &BasicCard) -> Self {
-        Card::<DeckType>::from(*pips)
+        Self::from(*pips)
     }
 }
 
@@ -371,7 +368,7 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim().to_uppercase();
 
-        let mut cards = Card::<DeckType>::base_vec();
+        let mut cards = Self::base_vec();
         // Add a blank card to the list of cards so that it is considered valid.
         cards.push(BasicCard::default());
 
@@ -379,8 +376,8 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
             .iter()
             .find(|c| (c.to_string() == s) || (c.index() == s))
             .copied()
-            .map(Card::<DeckType>::from)
-            .ok_or(CardError::InvalidCard(s.to_string()))
+            .map(Self::from)
+            .ok_or_else(|| CardError::InvalidCard(s.to_string()))
     }
 }
 

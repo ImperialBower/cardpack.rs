@@ -23,7 +23,7 @@ pub type Euchre24Card = Card<Euchre24>;
 impl Euchre24 {
     pub const DECK_SIZE: usize = 24;
 
-    pub const DECK: [BasicCard; Euchre24::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         FrenchBasicCard::ACE_SPADES,
         FrenchBasicCard::KING_SPADES,
         FrenchBasicCard::QUEEN_SPADES,
@@ -53,7 +53,7 @@ impl Euchre24 {
 
 impl DeckedBase for Euchre24 {
     fn base_vec() -> Vec<BasicCard> {
-        Euchre24::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -69,7 +69,7 @@ impl DeckedBase for Euchre24 {
     }
 }
 
-impl Decked<Euchre24> for Euchre24 {}
+impl Decked<Self> for Euchre24 {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]

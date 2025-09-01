@@ -125,8 +125,10 @@ where
     }
 }
 
-/// This is a trait of convenience to organize what needs to be done in order to create a revised
-/// [Cactus Kev](https://suffe.cool/poker/evaluator.html) number. I like having functional blocks
+/// Trait of convenience to organize what needs to be done in order to create a revised
+/// [Cactus Kev](https://suffe.cool/poker/evaluator.html) number.
+///
+/// I like having functional blocks
 /// like this organized in a functional way. Traits feel like a good way to do it.
 pub trait CKCRevised {
     #[must_use]
@@ -148,9 +150,11 @@ pub trait CKCRevised {
     fn ckc_rank_shift8(&self) -> usize;
 }
 
-/// This trait is a kind of proof of concept for how easy it would be to lay a foundation for creating
+/// Proof of concept for how easy it would be to lay a foundation for creating
 /// a [GTO (Game Theory Optimal)](https://www.888poker.com/magazine/strategy/beginners-guide-gto-poker)
-/// style poker solver. A foundation to that is around what they call poker ranges. Where, instead
+/// style poker solver.
+///
+/// A foundation to that is around what they call poker ranges. Where, instead
 /// of trying to figure out exactly what hand an opponent has, you base your moves on what you
 /// believe is the range of hands that they player could have given their particular style.
 pub trait Ranged {
@@ -168,7 +172,7 @@ pub trait Ranged {
     fn combos(&self, k: usize) -> Combos {
         let mut hs: HashSet<BasicPile> = HashSet::new();
 
-        for combo in self.my_basic_pile().clone().into_iter().combinations(k) {
+        for combo in self.my_basic_pile().into_iter().combinations(k) {
             let pile = BasicPile::from(combo).sorted_by_rank();
             hs.insert(pile);
         }
@@ -182,7 +186,7 @@ pub trait Ranged {
     fn combos_with_dups(&self, k: usize) -> Combos {
         let mut combos = Combos::default();
 
-        for combo in self.my_basic_pile().clone().into_iter().combinations(k) {
+        for combo in self.my_basic_pile().into_iter().combinations(k) {
             let pile = BasicPile::from(combo).sorted_by_rank();
             combos.push(pile);
         }
@@ -197,23 +201,19 @@ pub trait Ranged {
     }
 
     fn all_of_same_rank(&self) -> bool {
-        if let Some(first_card) = self.my_basic_pile().v().first() {
+        self.my_basic_pile().v().first().is_none_or(|first_card| {
             self.my_basic_pile()
                 .iter()
                 .all(|card| card.rank == first_card.rank)
-        } else {
-            true
-        }
+        })
     }
 
     fn all_of_same_suit(&self) -> bool {
-        if let Some(first_card) = self.my_basic_pile().v().first() {
+        self.my_basic_pile().v().first().is_none_or(|first_card| {
             self.my_basic_pile()
                 .iter()
                 .all(|card| card.suit == first_card.suit)
-        } else {
-            true
-        }
+        })
     }
 
     /// I love how `CoPilot` can have the earlier version of the function from Pile and
@@ -242,7 +242,7 @@ pub trait Ranged {
     ///
     /// OK, the `core::slice::windows()` function is officially cool.
     fn is_connector(&self) -> bool {
-        let mut pile = self.my_basic_pile().clone();
+        let mut pile = self.my_basic_pile();
         pile.sort_by_rank();
         pile.v()
             .windows(2)

@@ -10,7 +10,8 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::Read;
 
-/// I've created this intermediary struct to make it easier to mix and match cards for related decks.
+/// Intermediary struct to help mix and match cards for related decks.
+///
 /// Whilst [`Card`] needs to be generic so that we can easily share processing code in collections,
 /// the raw data in the [`BasicCard`] should be simple and flexible.
 ///
@@ -47,13 +48,13 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
-    pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
+    pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
 
         file.read_to_string(&mut contents)?;
 
-        BasicCard::cards_from_yaml_str(&contents)
+        Self::cards_from_yaml_str(&contents)
     }
 
     /// Takes in a YAML string and returns a vector of `BasicCards`.
@@ -61,8 +62,8 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
-    pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
-        let cards: Vec<BasicCard> = serde_yml::from_str(yaml_str)?;
+    pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
+        let cards: Vec<Self> = serde_yml::from_str(yaml_str)?;
 
         Ok(cards)
     }

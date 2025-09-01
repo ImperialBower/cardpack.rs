@@ -11,16 +11,16 @@ use std::collections::HashMap;
 
 /// [Canasta](https://en.wikipedia.org/wiki/Canasta) deck
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Canasta {}
-#[allow(clippy::module_name_repetitions)]
+pub struct Canasta;
+#[expect(clippy::module_name_repetitions)]
 pub type CanastaDeck = Pile<Canasta>;
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions)]
 pub type CanastaCard = Card<Canasta>;
 
 impl Canasta {
     pub const DECK_SIZE: usize = 108;
 
-    pub const DECK: [BasicCard; Canasta::DECK_SIZE] = [
+    pub const DECK: [BasicCard; Self::DECK_SIZE] = [
         CanastaBasicCard::TREY_HEARTS,
         CanastaBasicCard::TREY_HEARTS,
         CanastaBasicCard::TREY_DIAMONDS,
@@ -134,7 +134,7 @@ impl Canasta {
 
 impl DeckedBase for Canasta {
     fn base_vec() -> Vec<BasicCard> {
-        Canasta::DECK.to_vec()
+        Self::DECK.to_vec()
     }
 
     fn colors() -> HashMap<Pip, Color> {
@@ -150,7 +150,7 @@ impl DeckedBase for Canasta {
     }
 }
 
-impl Decked<Canasta> for Canasta {}
+impl Decked<Self> for Canasta {}
 
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
