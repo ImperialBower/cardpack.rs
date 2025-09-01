@@ -7,7 +7,7 @@ pub struct Planet {}
 impl Planet {
     pub const DECK_SIZE: usize = 8;
 
-    pub const DECK: [BuffoonCard; Planet::DECK_SIZE] = [
+    pub const DECK: [BuffoonCard; Self::DECK_SIZE] = [
         card::PLUTO,
         card::VENUS,
         card::EARTH,
@@ -38,7 +38,7 @@ impl Planet {
 
     #[must_use]
     pub fn add_planets(original: BuffoonCard, add: BuffoonCard) -> BuffoonCard {
-        if Planet::same_planet(original, add) {
+        if Self::same_planet(original, add) {
             if let MPip::ChipsMultPlusOnHand(chips1, mult1, hand_type) = original.enhancement {
                 if let MPip::ChipsMultPlusOnHand(chips2, mult2, _) = add.enhancement {
                     let chips = chips1 + chips2;

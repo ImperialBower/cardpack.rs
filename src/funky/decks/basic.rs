@@ -7,12 +7,12 @@ pub struct Deck {}
 impl Deck {
     #[must_use]
     pub fn basic_buffoon_pile() -> BuffoonPile {
-        BuffoonPile::from(Deck::DECK.to_vec())
+        BuffoonPile::from(Self::DECK.to_vec())
     }
 
     pub const DECK_SIZE: usize = 52;
 
-    pub const DECK: [BuffoonCard; Deck::DECK_SIZE] = [
+    pub const DECK: [BuffoonCard; Self::DECK_SIZE] = [
         card::ACE_SPADES,
         card::KING_SPADES,
         card::QUEEN_SPADES,
@@ -69,7 +69,7 @@ impl Deck {
 
     pub const ABANDONED_DECK_SIZE: usize = 40;
 
-    pub const ABANDONED_DECK: [BuffoonCard; Deck::ABANDONED_DECK_SIZE] = [
+    pub const ABANDONED_DECK: [BuffoonCard; Self::ABANDONED_DECK_SIZE] = [
         card::ACE_SPADES,
         card::TEN_SPADES,
         card::NINE_SPADES,
@@ -114,7 +114,7 @@ impl Deck {
 
     pub const CHECKERED_DECK_SIZE: usize = 52;
 
-    pub const CHECKERED_DECK: [BuffoonCard; Deck::CHECKERED_DECK_SIZE] = [
+    pub const CHECKERED_DECK: [BuffoonCard; Self::CHECKERED_DECK_SIZE] = [
         card::ACE_SPADES,
         card::ACE_SPADES,
         card::KING_SPADES,

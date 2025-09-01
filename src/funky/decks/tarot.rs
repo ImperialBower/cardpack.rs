@@ -4,7 +4,7 @@ pub struct MajorArcana {}
 
 impl MajorArcana {
     pub const DECK_SIZE: usize = 22;
-    pub const DECK: [BuffoonCard; MajorArcana::DECK_SIZE] = [
+    pub const DECK: [BuffoonCard; Self::DECK_SIZE] = [
         card::FOOL,
         card::MAGICIAN,
         card::HIGH_PRIESTESS,

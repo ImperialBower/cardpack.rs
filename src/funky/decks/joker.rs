@@ -5,7 +5,7 @@ pub struct Joker {}
 impl Joker {
     pub const COMMON_JOKERS_SIZE: usize = 22;
 
-    pub const COMMON_JOKERS: [BuffoonCard; Joker::COMMON_JOKERS_SIZE] = [
+    pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -32,7 +32,7 @@ impl Joker {
 
     #[must_use]
     pub fn pile_common() -> BuffoonPile {
-        BuffoonPile::from(&Joker::COMMON_JOKERS[..])
+        BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 }
 
@@ -622,8 +622,9 @@ pub mod card {
         resell_value: 2,
         debuffed: false,
     };
-    /// **DIARY** I am constantly debating in my head how reasonable this all is. On the one
-    /// hand I love how I can have a constant that represents the state, but I can also mutate
+    /// **DIARY** I am constantly debating in my head how reasonable this all is.
+    ///
+    /// On the one hand I love how I can have a constant that represents the state, but I can also mutate
     /// it through game play, just like in the game, without touching the underlying functions
     /// that process it. On the other hand, it's convoluted AF.
     pub const BUSINESS_CARD: BuffoonCard = BuffoonCard {

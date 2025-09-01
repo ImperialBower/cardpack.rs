@@ -28,16 +28,16 @@ pub enum BCardType {
 impl Display for BCardType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            BCardType::CommonJoker => 'j',
-            BCardType::Stone => '■',
-            BCardType::UncommonJoker => 'u',
-            BCardType::RareJoker => 'r',
-            BCardType::LegendaryJoker => 'l',
-            BCardType::Planet => 'p',
-            BCardType::Spectral => 's',
-            BCardType::Tarot => 't',
-            BCardType::Voucher => 'v',
-            BCardType::Basic => '_',
+            Self::CommonJoker => 'j',
+            Self::Stone => '■',
+            Self::UncommonJoker => 'u',
+            Self::RareJoker => 'r',
+            Self::LegendaryJoker => 'l',
+            Self::Planet => 'p',
+            Self::Spectral => 's',
+            Self::Tarot => 't',
+            Self::Voucher => 'v',
+            Self::Basic => '_',
         };
         write!(f, "{s}")
     }
@@ -46,16 +46,16 @@ impl Display for BCardType {
 impl From<char> for BCardType {
     fn from(c: char) -> Self {
         match c {
-            'j' | 'J' => BCardType::CommonJoker,
-            '■' => BCardType::Stone,
-            'u' | 'U' => BCardType::UncommonJoker,
-            'r' | 'R' => BCardType::RareJoker,
-            'l' | 'L' => BCardType::LegendaryJoker,
-            'p' | 'P' => BCardType::Planet,
-            's' | 'S' => BCardType::Spectral,
-            't' | 'T' => BCardType::Tarot,
-            'v' | 'V' => BCardType::Voucher,
-            _ => BCardType::Basic,
+            'j' | 'J' => Self::CommonJoker,
+            '■' => Self::Stone,
+            'u' | 'U' => Self::UncommonJoker,
+            'r' | 'R' => Self::RareJoker,
+            'l' | 'L' => Self::LegendaryJoker,
+            'p' | 'P' => Self::Planet,
+            's' | 'S' => Self::Spectral,
+            't' | 'T' => Self::Tarot,
+            'v' | 'V' => Self::Voucher,
+            _ => Self::Basic,
         }
     }
 }
@@ -122,12 +122,12 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus(&self, enhancer: BuffoonCard) -> Score {
+    pub fn calculate_plus(&self, _enhancer: Self) -> Score {
         todo!()
     }
 
     #[must_use]
-    pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
+    pub fn calculate_plus_chips(&self, enhancer: Self) -> usize {
         match enhancer.enhancement {
             MPip::ChipsPlusOn5Ranks(value, ranks) => {
                 if ranks.contains(&self.rank.index) {
@@ -141,7 +141,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus_mult(&self, enhancer: BuffoonCard) -> usize {
+    pub fn calculate_plus_mult(&self, enhancer: Self) -> usize {
         match enhancer.enhancement {
             MPip::MultPlus(value) => value,
             MPip::MultPlusOnSuit(value, suit) => {
@@ -156,7 +156,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn distance(&self, other: &BuffoonCard) -> usize {
+    pub fn distance(&self, other: &Self) -> usize {
         self.rank.distance(&other.rank)
     }
 
@@ -181,7 +181,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
+    pub fn enhance(&self, enhancer: Self) -> Self {
         println!("Enhancing {} with: {}", self, enhancer.enhancement);
         let bc = match enhancer.enhancement {
             MPip::Death(_)
@@ -249,7 +249,7 @@ impl FromStr for BuffoonCard {
         let s = s.trim().to_uppercase();
 
         if s.len() < 2 {
-            return Err(CardError::InvalidIndex(s.to_string()));
+            return Err(CardError::InvalidIndex(s));
         }
 
         // let index: String = s.chars().take(2).collect();
@@ -332,7 +332,7 @@ impl FromStr for BuffoonCard {
             "KM" | "JUDGEMENT" => Ok(tarot::card::JUDGEMENT),
             "LM" | "WORLD" => Ok(tarot::card::WORLD),
 
-            _ => Ok(BuffoonCard::default()),
+            _ => Ok(Self::default()),
         }
     }
 }

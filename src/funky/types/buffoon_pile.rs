@@ -31,11 +31,11 @@ impl BuffoonPile {
     #[must_use]
     pub fn calculate_plus_chips(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
-            MPip::ChipsOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
-            MPip::ChipsOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
-            MPip::ChipsOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
-            MPip::ChipsOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
-            MPip::ChipsOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
+            MPip::ChipsOnFlush(m) => self.funky_num(m, Self::has_flush),
+            MPip::ChipsOnPair(m) => self.funky_num(m, Self::has_pair),
+            MPip::ChipsOn2Pair(m) => self.funky_num(m, Self::has_2pair),
+            MPip::ChipsOnStraight(m) => self.funky_num(m, Self::has_straight),
+            MPip::ChipsOnTrips(m) => self.funky_num(m, Self::has_trips),
             _ => 0,
         }
     }
@@ -46,11 +46,11 @@ impl BuffoonPile {
     pub fn calculate_plus_mult(&self, enhancer: BuffoonCard) -> usize {
         match enhancer.enhancement {
             // **DIARY** How do we make this simpler?
-            MPip::MultPlusOnFlush(m) => self.funky_num(m, BuffoonPile::has_flush),
-            MPip::MultPlusOnPair(m) => self.funky_num(m, BuffoonPile::has_pair),
-            MPip::MultPlusOn2Pair(m) => self.funky_num(m, BuffoonPile::has_2pair),
-            MPip::MultPlusOnStraight(m) => self.funky_num(m, BuffoonPile::has_straight),
-            MPip::MultPlusOnTrips(m) => self.funky_num(m, BuffoonPile::has_trips),
+            MPip::MultPlusOnFlush(m) => self.funky_num(m, Self::has_flush),
+            MPip::MultPlusOnPair(m) => self.funky_num(m, Self::has_pair),
+            MPip::MultPlusOn2Pair(m) => self.funky_num(m, Self::has_2pair),
+            MPip::MultPlusOnStraight(m) => self.funky_num(m, Self::has_straight),
+            MPip::MultPlusOnTrips(m) => self.funky_num(m, Self::has_trips),
             MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
@@ -104,10 +104,7 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn count_largest_same_suit(&self) -> usize {
-        match self.combos_by_suit().first() {
-            Some(combo) => combo.len(),
-            None => 0,
-        }
+        self.combos_by_suit().first().map_or(0, BasicPile::len)
     }
 
     /// TODO: HACKY
@@ -185,7 +182,7 @@ impl BuffoonPile {
         Self::from_str(index).unwrap_or_else(|_| Self::default())
     }
 
-    pub fn funky_num(&self, num: usize, func: fn(&BuffoonPile) -> bool) -> usize {
+    pub fn funky_num(&self, num: usize, func: fn(&Self) -> bool) -> usize {
         if func(self) { num } else { 0 }
     }
 
@@ -218,20 +215,14 @@ impl BuffoonPile {
                 if combo.len() < 3 {
                     return false;
                 }
-                match combos.second() {
-                    Some(first_combo) => first_combo.len() >= 2,
-                    None => false,
-                }
+                combos.second().is_some_and(|first_combo| first_combo.len() >= 2)
             }
         }
     }
 
     #[must_use]
     pub fn has_x_of_a_kind(&self, x: usize) -> bool {
-        match self.combos_by_rank().first() {
-            Some(combo) => combo.len() >= x,
-            None => false,
-        }
+        self.combos_by_rank().first().is_some_and(|combo| combo.len() >= x)
     }
 
     #[must_use]
@@ -263,19 +254,13 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn has_2pair(&self) -> bool {
-        match self.combos_by_rank().second() {
-            Some(combo) => combo.len() >= 2,
-            None => false,
-        }
+        self.combos_by_rank().second().is_some_and(|combo| combo.len() >= 2)
     }
 
     /// TODO: HACKY
     #[must_use]
     pub fn has_royal_flush(&self) -> bool {
-        match self.basic_pile().sorted().first() {
-            Some(card) => self.has_straight_flush() && card.rank == FrenchRank::ACE,
-            None => false,
-        }
+        self.basic_pile().sorted().first().is_some_and(|card| self.has_straight_flush() && card.rank == FrenchRank::ACE)
     }
 
     /// TODO: This is going to get harder when we need to take into account the `Jokers`
@@ -300,7 +285,7 @@ impl BuffoonPile {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<BuffoonCard> {
+    pub fn iter(&self) -> std::slice::Iter<'_, BuffoonCard> {
         self.0.iter()
     }
 
@@ -357,7 +342,7 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn sorted_by_rank(self) -> Self {
-        let mut pile = self.clone();
+        let mut pile = self;
         pile.sort_by_rank();
         pile
     }

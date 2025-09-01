@@ -13,7 +13,7 @@ pub enum FPipType {
 }
 
 /// NOTE
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub struct FIntPip {
     pub index: char,
     pub symbol: char,

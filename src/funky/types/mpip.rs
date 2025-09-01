@@ -86,131 +86,131 @@ pub enum MPip {
 }
 
 impl MPip {
-    pub const BONUS: Self = MPip::Chips(30);
-    pub const DEVIL: Self = MPip::Gold(3);
-    pub const MULT_PLUS3_ON_DIAMONDS: Self = MPip::MultPlusOnSuit(3, 'D');
-    pub const MULT_PLUS3_ON_HEARTS: Self = MPip::MultPlusOnSuit(3, 'H');
-    pub const MULT_PLUS3_ON_SPADES: Self = MPip::MultPlusOnSuit(3, 'S');
-    pub const MULT_PLUS3_ON_CLUBS: Self = MPip::MultPlusOnSuit(3, 'C');
-    pub const STEEL: Self = MPip::MultTimes1Dot(15); // 1.5
-    pub const TEMPERANCE: Self = MPip::JokersValue(50);
-    pub const TOWER: Self = MPip::Stone(50);
-    pub const WORLD: Self = MPip::MultTimes(2);
-    pub const WHEEL_OF_FORTUNE: Self = MPip::Odds1in(4);
-    pub const JUDGEMENT: Self = MPip::RandomJoker(1);
+    pub const BONUS: Self = Self::Chips(30);
+    pub const DEVIL: Self = Self::Gold(3);
+    pub const MULT_PLUS3_ON_DIAMONDS: Self = Self::MultPlusOnSuit(3, 'D');
+    pub const MULT_PLUS3_ON_HEARTS: Self = Self::MultPlusOnSuit(3, 'H');
+    pub const MULT_PLUS3_ON_SPADES: Self = Self::MultPlusOnSuit(3, 'S');
+    pub const MULT_PLUS3_ON_CLUBS: Self = Self::MultPlusOnSuit(3, 'C');
+    pub const STEEL: Self = Self::MultTimes1Dot(15); // 1.5
+    pub const TEMPERANCE: Self = Self::JokersValue(50);
+    pub const TOWER: Self = Self::Stone(50);
+    pub const WORLD: Self = Self::MultTimes(2);
+    pub const WHEEL_OF_FORTUNE: Self = Self::Odds1in(4);
+    pub const JUDGEMENT: Self = Self::RandomJoker(1);
 
     #[must_use]
     pub fn new_chips(chips: usize) -> Self {
-        MPip::Chips(chips)
+        Self::Chips(chips)
     }
 
     #[must_use]
     pub fn is_wild(&self) -> bool {
-        matches!(self, MPip::Wild(_))
+        matches!(self, Self::Wild(_))
     }
 }
 
 impl Display for MPip {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            MPip::Blank => write!(f, "Blank"),
-            MPip::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
-            MPip::AddCardTypeWhenBlindSelected(card_type) => {
+            Self::Blank => write!(f, "Blank"),
+            Self::AddBaseChips(chips) => write!(f, "AddBaseChips({chips}) "),
+            Self::AddCardTypeWhenBlindSelected(card_type) => {
                 write!(f, "AddStoneCardWhenBlindSelected({card_type:?})")
             }
-            MPip::ChanceDestroyed(chips, value) => {
+            Self::ChanceDestroyed(chips, value) => {
                 write!(f, "ChanceDestroyed({chips}, {value})")
             }
-            MPip::Chips(chips) => write!(f, "Chips({chips})"),
-            MPip::ChipsMultPlus(chips, value) => {
+            Self::Chips(chips) => write!(f, "Chips({chips})"),
+            Self::ChipsMultPlus(chips, value) => {
                 write!(f, "ChipsMultPlus({chips}, {value})")
             }
-            MPip::ChipsMultPlusOnHand(chips, mult, hand_type) => {
+            Self::ChipsMultPlusOnHand(chips, mult, hand_type) => {
                 write!(f, "ChipsMultPlusOnHand({chips}, {mult}, {hand_type:?})")
             }
-            MPip::ChipsOnFlush(chips) => write!(f, "ChipsOnFlush({chips})"),
-            MPip::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),
-            MPip::ChipsOn2Pair(chips) => write!(f, "ChipsOn2Pair({chips})"),
-            MPip::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
-            MPip::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
-            MPip::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
-            MPip::ChipsPlusOn5Ranks(chips, ranks) => {
+            Self::ChipsOnFlush(chips) => write!(f, "ChipsOnFlush({chips})"),
+            Self::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),
+            Self::ChipsOn2Pair(chips) => write!(f, "ChipsOn2Pair({chips})"),
+            Self::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
+            Self::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
+            Self::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
+            Self::ChipsPlusOn5Ranks(chips, ranks) => {
                 write!(f, "ChipsPlusOn5Ranks({chips}, {ranks:?})")
             }
-            MPip::CreateCardOnRankPlay(odds, rank_char, card_type) => {
+            Self::CreateCardOnRankPlay(odds, rank_char, card_type) => {
                 write!(
                     f,
                     "CreateCardOnRankPlay({odds}, {rank_char}, {card_type:?})"
                 )
             }
-            MPip::Credit(value) => write!(f, "Credit({value})"),
-            MPip::Death(value) => write!(f, "Death({value})"),
-            MPip::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
-            MPip::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
-            MPip::FreeReroll(value) => write!(f, "FreeReroll({value})"),
-            MPip::Glass(a, b) => write!(f, "Glass({a}, {b})"),
-            MPip::Gold(value) => write!(f, "Gold({value})"),
-            MPip::Hanged(value) => write!(f, "Hanged({value})"),
-            MPip::JokersValue(value) => write!(f, "JokersValue({value})"),
-            MPip::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
-            MPip::MultPlus(value) => write!(f, "MultPlus({value})"),
-            MPip::MultPlusChipsOnRank(mult, chips, rank_char) => {
+            Self::Credit(value) => write!(f, "Credit({value})"),
+            Self::Death(value) => write!(f, "Death({value})"),
+            Self::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
+            Self::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
+            Self::FreeReroll(value) => write!(f, "FreeReroll({value})"),
+            Self::Glass(a, b) => write!(f, "Glass({a}, {b})"),
+            Self::Gold(value) => write!(f, "Gold({value})"),
+            Self::Hanged(value) => write!(f, "Hanged({value})"),
+            Self::JokersValue(value) => write!(f, "JokersValue({value})"),
+            Self::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
+            Self::MultPlus(value) => write!(f, "MultPlus({value})"),
+            Self::MultPlusChipsOnRank(mult, chips, rank_char) => {
                 write!(f, "MultPlusChipsOnRank({mult}, {chips}, {rank_char})")
             }
-            MPip::MultPlusDoubleValueDestroyJokerOnRight(value) => {
+            Self::MultPlusDoubleValueDestroyJokerOnRight(value) => {
                 write!(f, "MultPlusDoubleValueDestroyJokerOnRight({value})")
             }
-            MPip::MultPlusOn5Ranks(value, ranks) => {
+            Self::MultPlusOn5Ranks(value, ranks) => {
                 write!(f, "MultPlusOn5Ranks({value}, {ranks:?})")
             }
-            MPip::MultPlusOnConsecutiveHandsNo3Ranks(value, increment, ranks) => {
+            Self::MultPlusOnConsecutiveHandsNo3Ranks(value, increment, ranks) => {
                 write!(
                     f,
                     "MultPlusOnConsecutiveHandsNo3Ranks({value}, {increment}, {ranks:?})"
                 )
             }
-            MPip::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
-            MPip::MultPlusOnHandPlays => write!(f, "MultPlusOnHandPlays)"),
-            MPip::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
-            MPip::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
-            MPip::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),
-            MPip::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
-            MPip::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
-            MPip::MultPlusOnUpToXCards(value, cards) => {
+            Self::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
+            Self::MultPlusOnHandPlays => write!(f, "MultPlusOnHandPlays)"),
+            Self::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
+            Self::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
+            Self::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),
+            Self::MultPlusOnTrips(value) => write!(f, "MultPlusOnTrips({value})"),
+            Self::MultPlusOnSuit(value, c) => write!(f, "MultPlusOnSuit({value}, {c})"),
+            Self::MultPlusOnUpToXCards(value, cards) => {
                 write!(f, "MultPlusOnUpToXCards({value}, {cards})")
             }
-            MPip::MultPlusOnZeroDiscards(value) => write!(f, "MultPlusOnZeroDiscards({value})"),
-            MPip::MultPlusXOnLowestRankInHand(value) => {
+            Self::MultPlusOnZeroDiscards(value) => write!(f, "MultPlusOnZeroDiscards({value})"),
+            Self::MultPlusXOnLowestRankInHand(value) => {
                 write!(f, "MultPlusXOnLowestRankInHand({value})")
             }
-            MPip::MultPlusRandomTo(value) => write!(f, "MultPlusRandomTo({value})"),
-            MPip::MultPlusZeroDiscards(value) => write!(f, "MultPlusZeroDiscards({value})"),
-            MPip::MultTimes(value) => write!(f, "MultTimes({value})"),
-            MPip::MultTimesEveryXHands(value, hands) => {
+            Self::MultPlusRandomTo(value) => write!(f, "MultPlusRandomTo({value})"),
+            Self::MultPlusZeroDiscards(value) => write!(f, "MultPlusZeroDiscards({value})"),
+            Self::MultTimes(value) => write!(f, "MultTimes({value})"),
+            Self::MultTimesEveryXHands(value, hands) => {
                 write!(f, "MultTimesEveryXHands({value}, {hands})")
             }
-            MPip::MultTimesOnEmptyJokerSlots(value) => {
+            Self::MultTimesOnEmptyJokerSlots(value) => {
                 write!(f, "MultTimesOnEmptyJokerSlots({value})")
             }
-            MPip::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
-            MPip::Planet(value) => write!(f, "Planet({value})"),
-            MPip::RandomJoker(value) => write!(f, "RandomJoker({value})"),
-            MPip::RandomTarot(value) => write!(f, "RandomTarot({value})"),
-            MPip::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
-            MPip::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
-            MPip::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
-            MPip::Stone(value) => write!(f, "Stone({value})"),
-            MPip::Strength => write!(f, "Strength"),
-            MPip::Odds1in(value) => write!(f, "Wheel({value})"),
-            MPip::Odds1inCashOn3Ranks(value, cash, ranks) => {
+            Self::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
+            Self::Planet(value) => write!(f, "Planet({value})"),
+            Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
+            Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
+            Self::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
+            Self::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
+            Self::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
+            Self::Stone(value) => write!(f, "Stone({value})"),
+            Self::Strength => write!(f, "Strength"),
+            Self::Odds1in(value) => write!(f, "Wheel({value})"),
+            Self::Odds1inCashOn3Ranks(value, cash, ranks) => {
                 write!(f, "Odds1inCashOn3Ranks({value}, {cash}, {ranks:?})")
             }
-            MPip::Odds1inUpgradeHand(value) => write!(f, "Odds1inUpgradeHand({value})"),
-            MPip::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
-            MPip::Diamonds(value) => write!(f, "Diamonds({value})"),
-            MPip::Clubs(value) => write!(f, "Clubs({value})"),
-            MPip::Hearts(value) => write!(f, "Hearts({value})"),
-            MPip::Spades(value) => write!(f, "Spades({value})"),
+            Self::Odds1inUpgradeHand(value) => write!(f, "Odds1inUpgradeHand({value})"),
+            Self::Wild(pip_type) => write!(f, "Wild({pip_type:?})"),
+            Self::Diamonds(value) => write!(f, "Diamonds({value})"),
+            Self::Clubs(value) => write!(f, "Clubs({value})"),
+            Self::Hearts(value) => write!(f, "Hearts({value})"),
+            Self::Spades(value) => write!(f, "Spades({value})"),
         }
     }
 }
