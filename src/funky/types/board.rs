@@ -1,5 +1,5 @@
 use crate::funky::types::draws::Draws;
-use crate::preludes::funky::{BuffoonPile, PokerHands};
+use crate::preludes::funky::{BuffoonPile, PokerHands, Score};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -25,5 +25,37 @@ impl BuffoonBoard {
             jokers: BuffoonPile::default(),
             poker_hands: PokerHands::default(),
         }
+    }
+
+    /// From [Detailed Break down of Balatro Scoring System and some tips to optimise your hand scoring.](https://www.reddit.com/r/balatro/comments/1blbexa/detailed_break_down_of_balatro_scoring_system_and/)
+    pub fn scoring_phase1_pre_scoring(&self) {
+        todo!()
+    }
+
+    pub fn scoring_phase2_dealt_hand_scoring(&self) {
+        todo!()
+    }
+
+    pub fn scoring_phase3_effects_in_hand(&self) {
+        todo!()
+    }
+
+    pub fn scoring_phase4_joker_scoring(&self) -> Score {
+        Score::default()
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__types__board__buffoon_board_tests {
+    use super::*;
+
+    #[test]
+    fn phase_4_joker_scoring() {
+        let draws = Draws::new(4, 3);
+        let mut board = BuffoonBoard::new(draws, BuffoonPile::default());
+
+        let score = board.scoring_phase4_joker_scoring();
+        assert_eq!(score, Score::default());
     }
 }
