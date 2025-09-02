@@ -122,7 +122,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus(&self, enhancer: Self) -> Score {
+    pub fn calculate_plus(&self, enhancer: &Self) -> Score {
         match enhancer.enhancement {
             MPip::MultPlusChipsOnRank(mult, chips, rank_char) => {
                 if self.rank.index == rank_char {
@@ -139,7 +139,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus_chips(&self, enhancer: Self) -> usize {
+    pub fn calculate_plus_chips(&self, enhancer: &Self) -> usize {
         match enhancer.enhancement {
             MPip::ChipsPlusOn5Ranks(value, ranks) => {
                 if ranks.contains(&self.rank.index) {
@@ -153,7 +153,7 @@ impl BuffoonCard {
     }
 
     #[must_use]
-    pub fn calculate_plus_mult(&self, enhancer: Self) -> usize {
+    pub fn calculate_plus_mult(&self, enhancer: &Self) -> usize {
         match enhancer.enhancement {
             MPip::MultPlus(value) => value,
             MPip::MultPlusOnSuit(value, suit) => {
@@ -377,39 +377,45 @@ mod funky__types__buffoon_card_tests {
     #[test]
     fn calculate_plus() {
         assert_eq!(
-            bcard!(AD).calculate_plus(bcard!(ODD_TODD)),
+            bcard!(AD).calculate_plus(&bcard!(ODD_TODD)),
             Score::new(31, 0)
         );
-        assert_eq!(bcard!(AD).calculate_plus(bcard!(GREEDY)), Score::new(0, 3));
+        assert_eq!(bcard!(AD).calculate_plus(&bcard!(GREEDY)), Score::new(0, 3));
         assert_eq!(
-            bcard!(AD).calculate_plus(bcard!(SCHOLAR)),
+            bcard!(AD).calculate_plus(&bcard!(SCHOLAR)),
             Score::new(20, 4)
         );
     }
 
     #[test]
     fn calculate_plus_chips__odd_todd() {
-        assert_eq!(bcard!(AD).calculate_plus_chips(joker::card::ODD_TODD), 31);
-        assert_eq!(bcard!(9C).calculate_plus_chips(joker::card::ODD_TODD), 31);
-        assert_eq!(bcard!(7S).calculate_plus_chips(joker::card::ODD_TODD), 31);
-        assert_eq!(bcard!(5C).calculate_plus_chips(joker::card::ODD_TODD), 31);
-        assert_eq!(bcard!(3H).calculate_plus_chips(joker::card::ODD_TODD), 31);
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(ODD_TODD)), 0);
+        assert_eq!(bcard!(AD).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(9C).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(7S).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(5C).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(3H).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(ODD_TODD)), 0);
     }
 
     #[test]
     fn calculate_plus_mult__greedy_joker() {
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(GREEDY)), 3);
-        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(GREEDY)), 0);
-        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::GREEDY_JOKER), 0);
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(GREEDY)), 3);
+        assert_eq!(
+            bcard!(JC).calculate_plus_mult(&joker::card::GREEDY_JOKER),
+            0
+        );
+        assert_eq!(bcard!(JS).calculate_plus_mult(&bcard!(GREEDY)), 0);
+        assert_eq!(
+            bcard!(JH).calculate_plus_mult(&joker::card::GREEDY_JOKER),
+            0
+        );
     }
     #[test]
     fn calculate_plus_mult__lusty_joker() {
-        assert_eq!(bcard!(JH).calculate_plus_mult(joker::card::LUSTY_JOKER), 3);
-        assert_eq!(bcard!(JD).calculate_plus_mult(bcard!(LUSTY)), 0);
-        assert_eq!(bcard!(JC).calculate_plus_mult(joker::card::LUSTY_JOKER), 0);
-        assert_eq!(bcard!(JS).calculate_plus_mult(bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JH).calculate_plus_mult(&joker::card::LUSTY_JOKER), 3);
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JC).calculate_plus_mult(&joker::card::LUSTY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(&bcard!(LUSTY)), 0);
     }
 
     #[test]

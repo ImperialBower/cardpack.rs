@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::ops::Add;
+use std::ops::{Add, AddAssign};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -62,6 +62,13 @@ impl Add for Score {
             chips: self.chips + other.chips,
             mult: self.mult + other.mult,
         }
+    }
+}
+
+impl AddAssign for Score {
+    fn add_assign(&mut self, other: Self) {
+        self.chips += other.chips;
+        self.mult += other.mult;
     }
 }
 
