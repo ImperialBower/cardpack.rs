@@ -61,7 +61,7 @@ mod funky__types__board__buffoon_board_tests {
     use crate::preludes::funky::Deck;
 
     #[test]
-    fn phase_4_joker_scoring() {
+    fn phase_4_joker_scoring_basic1_5() {
         let draws = Draws::new(4, 3);
         let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile());
         board.played = bcards!("AS KD QC JS TH");
@@ -70,8 +70,24 @@ mod funky__types__board__buffoon_board_tests {
         board.jokers.push(card::LUSTY_JOKER);
         board.jokers.push(card::WRATHFUL_JOKER);
         board.jokers.push(card::GLUTTONOUS_JOKER);
+        board.jokers.push(card::GLUTTONOUS_JOKER);
+        board.jokers.push(card::JOLLY_JOKER);
 
         let score = board.scoring_phase4_joker_scoring();
-        assert_eq!(score, Score { chips: 0, mult: 19 });
+        assert_eq!(score, Score { chips: 0, mult: 22 });
+    }
+
+    #[test]
+    fn phase_4_joker_scoring_basic6_8() {
+        let draws = Draws::new(4, 3);
+        let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile());
+        board.played = bcards!("AS AD AC JS JH");
+        board.jokers.push(card::GLUTTONOUS_JOKER); // Does nothing
+        board.jokers.push(card::JOLLY_JOKER);
+        board.jokers.push(card::ZANY_JOKER);
+        board.jokers.push(card::MAD_JOKER);
+
+        let score = board.scoring_phase4_joker_scoring();
+        assert_eq!(score, Score { chips: 0, mult: 33 });
     }
 }
