@@ -58,6 +58,13 @@ impl BuffoonPile {
             MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
+            MPip::MultPlusOnUpToXCards(m, x) => {
+                if self.has_x_or_fewer_cards(x) {
+                    m
+                } else {
+                    0
+                }
+            }
             _ => 0,
         }
     }
@@ -265,6 +272,11 @@ impl BuffoonPile {
         self.combos_by_rank()
             .second()
             .is_some_and(|combo| combo.len() >= 2)
+    }
+
+    #[must_use]
+    pub fn has_x_or_fewer_cards(&self, x: usize) -> bool {
+        self.len() <= x
     }
 
     /// TODO: HACKY

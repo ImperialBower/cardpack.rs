@@ -78,7 +78,7 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
-    fn phase_4_joker_scoring_basic6_8() {
+    fn phase_4_joker_scoring_basic6_8_11_13() {
         let draws = Draws::new(4, 3);
         let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile());
         board.played = bcards!("AS AD AC JS JH");
@@ -86,8 +86,49 @@ mod funky__types__board__buffoon_board_tests {
         board.jokers.push(card::JOLLY_JOKER);
         board.jokers.push(card::ZANY_JOKER);
         board.jokers.push(card::MAD_JOKER);
+        board.jokers.push(card::SLY_JOKER);
+        board.jokers.push(card::WILY_JOKER);
+        board.jokers.push(card::CLEVER_JOKER);
 
         let score = board.scoring_phase4_joker_scoring();
-        assert_eq!(score, Score { chips: 0, mult: 33 });
+        assert_eq!(
+            score,
+            Score {
+                chips: 230,
+                mult: 33
+            }
+        );
+    }
+
+    #[test]
+    fn phase_4_joker_scoring_basic9_10_14_15() {
+        let draws = Draws::new(4, 3);
+        let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile());
+        board.played = bcards!("AH KH QH JH TH");
+        board.jokers.push(card::GLUTTONOUS_JOKER); // Does nothing
+        board.jokers.push(card::CRAZY_JOKER);
+        board.jokers.push(card::DROLL_JOKER);
+        board.jokers.push(card::DEVIOUS_JOKER);
+        board.jokers.push(card::CRAFTY_JOKER);
+
+        let score = board.scoring_phase4_joker_scoring();
+        assert_eq!(
+            score,
+            Score {
+                chips: 180,
+                mult: 22
+            }
+        );
+    }
+
+    #[test]
+    fn phase_4_joker_scoring_basic16() {
+        let draws = Draws::new(4, 3);
+        let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile());
+        board.played = bcards!("AH KH QH");
+        board.jokers.push(card::HALF_JOKER);
+
+        let score = board.scoring_phase4_joker_scoring();
+        assert_eq!(score, Score { chips: 0, mult: 20 });
     }
 }
