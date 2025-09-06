@@ -19,6 +19,11 @@ pub struct BuffoonPile(Vec<BuffoonCard>);
 /// - Enhances a certain number of cards
 /// -
 impl BuffoonPile {
+    #[must_use]
+    pub fn new_with_capacity(capacity: usize) -> Self {
+        Self(Vec::with_capacity(capacity))
+    }
+
     pub fn basic_pile(&self) -> BasicPile {
         self.iter().map(BuffoonCard::basic_card).collect()
     }
@@ -67,6 +72,11 @@ impl BuffoonPile {
             }
             _ => 0,
         }
+    }
+
+    #[must_use]
+    pub fn capacity(&self) -> usize {
+        self.0.capacity()
     }
 
     pub fn clear(&mut self) {
@@ -191,6 +201,11 @@ impl BuffoonPile {
     #[must_use]
     pub fn forgiving_from_str(index: &str) -> Self {
         Self::from_str(index).unwrap_or_else(|_| Self::default())
+    }
+
+    #[must_use]
+    pub fn free(&self) -> usize {
+        self.capacity() - self.len()
     }
 
     pub fn funky_num(&self, num: usize, func: fn(&Self) -> bool) -> usize {
@@ -630,6 +645,16 @@ mod funky__types__buffoon_pile_tests {
     #[case("9S KS QS JS TS", HandType::RoyalFlush)]
     fn determine_hand_type__negative(#[case] input: &str, #[case] expected: HandType) {
         assert_ne!(bcards!(input).determine_hand_type(), expected);
+    }
+
+    #[test]
+    fn free() {
+        let mut pile = BuffoonPile::new_with_capacity(10);
+        assert_eq!(pile.free(), 10);
+        pile.push(bcard!(AS));
+        assert_eq!(pile.free(), 9);
+        pile.push(bcard!(KS));
+        assert_eq!(pile.free(), 8);
     }
 
     #[test]

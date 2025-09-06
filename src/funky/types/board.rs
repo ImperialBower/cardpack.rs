@@ -21,8 +21,8 @@ impl BuffoonBoard {
             deck,
             in_hand: BuffoonPile::default(),
             played: BuffoonPile::default(),
-            consumables: BuffoonPile::default(),
-            jokers: BuffoonPile::default(),
+            consumables: BuffoonPile::new_with_capacity(2),
+            jokers: BuffoonPile::new_with_capacity(5),
             poker_hands: PokerHands::default(),
         }
     }
