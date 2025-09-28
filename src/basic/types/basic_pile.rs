@@ -16,7 +16,7 @@ impl BasicPile {
         &self.0
     }
 
-    /// Returns n number of [`BasicCards`](crate::basic::types::basic_card::BasicCard) from the
+    /// Returns n number of [`BasicCards`](BasicCard) from the
     /// beginning of the `BasicPile`. If there are not enough cards in the `BasicPile` to satisfy
     /// the request, `None` is returned.
     ///

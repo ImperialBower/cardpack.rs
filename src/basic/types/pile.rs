@@ -362,6 +362,12 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         BasicPile::from(self)
     }
 
+    /// Returns the `Pile` as a `BasicPileCell`.
+    #[must_use]
+    pub fn basic_pile_cell() -> crate::basic::types::basic::BasicPileCell {
+        crate::basic::types::basic::BasicPileCell::new(Self::basic_pile())
+    }
+
     /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
     ///
     /// ```
