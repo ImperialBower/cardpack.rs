@@ -1,4 +1,4 @@
-use crate::prelude::BasicPile;
+use crate::prelude::{BasicCard, BasicPile, Ranged};
 use std::cell::Cell;
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
@@ -10,10 +10,19 @@ pub struct BasicPileCell(Cell<BasicPile>);
 
 impl BasicPileCell {
     /// Creates a new `BasicPileCell` containing the given `BasicPile`.
+    #[must_use]
     pub fn new(pile: BasicPile) -> Self {
         Self(Cell::new(pile))
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    ///
+    /// let drawn = pile.draw(5).unwrap();
+    /// assert_eq!(drawn.to_string(), "A♠ K♠ Q♠ J♠ T♠");
+    /// ```
     pub fn draw(&self, n: usize) -> Option<BasicPile> {
         let mut inner_pile = self.0.take();
         let drawn_cards = inner_pile.draw(n);
@@ -21,9 +30,155 @@ impl BasicPileCell {
         drawn_cards
     }
 
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    ///
+    /// let card = pile.draw_first().unwrap();
+    /// assert_eq!(card, FrenchBasicCard::ACE_SPADES);
+    /// ```
+    pub fn draw_first(&self) -> Option<BasicCard> {
+        match self.len() {
+            0 => None,
+            _ => Some(self.remove(0)),
+        }
+    }
+
+    pub fn shuffle(&mut self) {
+        let mut inner_pile = self.0.take();
+        inner_pile.shuffle();
+        self.0.set(inner_pile);
+    }
+
+    /// ```
+    ///  use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    /// // println!("{}", pile.shuffled());
+    /// ```
+    #[must_use]
+    pub fn shuffled(&self) -> Self {
+        let inner_pile = self.0.take();
+        let shuffled_pile = inner_pile.shuffled();
+        self.0.set(inner_pile);
+        Self::new(shuffled_pile)
+    }
+
+    /// Takes the value of the cell, leaving `Default::default()` in its place.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    ///
+    /// assert_eq!(Standard52::DECK_SIZE, pile.take().len());
+    /// assert_eq!(0, pile.take().len());
+    /// ```
     pub fn take(&self) -> BasicPile {
         self.0.take()
     }
+
+    //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+    // region vector functions
+
+    #[must_use]
+    pub fn contains(&self, card: &BasicCard) -> bool {
+        let inner_pile = self.0.take();
+        let result = inner_pile.contains(card);
+        self.0.set(inner_pile);
+        result
+    }
+
+    pub fn extend(&mut self, other: &Self) {
+        let mut inner_pile = self.0.take();
+        let other_pile = other.0.take();
+        inner_pile.extend(&other_pile);
+        self.0.set(inner_pile);
+        other.0.set(other_pile);
+    }
+
+    /// ```
+    ///  use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    ///
+    /// assert!(!pile.is_empty());
+    /// assert!(BasicPileCell::default().is_empty());
+    /// ```
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        let pile = self.0.take();
+        let empty = pile.len() == 0;
+        self.0.set(pile);
+        empty
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        let inner_pile = self.0.take();
+        let length = inner_pile.len();
+        self.0.set(inner_pile);
+        length
+    }
+
+    pub fn pop(&self) -> Option<BasicCard> {
+        let mut inner_pile = self.0.take();
+        let card = inner_pile.pop();
+        self.0.set(inner_pile);
+        card
+    }
+
+    pub fn push(&self, card: BasicCard) {
+        let mut inner_pile = self.0.take();
+        inner_pile.push(card);
+        self.0.set(inner_pile);
+    }
+
+    /// ```
+    ///  use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    ///
+    /// let card = pile.remove(0);
+    /// assert_eq!(card.to_string(), "A♠");
+    /// let card = pile.remove(50);
+    /// assert_eq!(card.to_string(), "2♣");
+    /// assert_eq!(
+    ///     pile.to_string(),
+    ///     "K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣"
+    /// );
+    /// ```
+    pub fn remove(&self, position: usize) -> BasicCard {
+        let mut inner_pile = self.0.take();
+        let card = inner_pile.remove(position);
+        self.0.set(inner_pile);
+        card
+    }
+
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile_cell();
+    /// pile.reverse();
+    ///
+    /// assert_eq!(
+    ///     pile.to_string(),
+    ///     "2♣ 3♣ 4♣ 5♣ 6♣ 7♣ 8♣ 9♣ T♣ J♣ Q♣ K♣ A♣ 2♦ 3♦ 4♦ 5♦ 6♦ 7♦ 8♦ 9♦ T♦ J♦ Q♦ K♦ A♦ 2♥ 3♥ 4♥ 5♥ 6♥ 7♥ 8♥ 9♥ T♥ J♥ Q♥ K♥ A♥ 2♠ 3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ T♠ J♠ Q♠ K♠ A♠"
+    /// );
+    /// ```
+    pub fn reverse(&self) {
+        let mut inner_pile = self.0.take();
+        inner_pile.reverse();
+        self.0.set(inner_pile);
+    }
+
+    pub fn sort(&self) {
+        let mut inner_pile = self.0.take();
+        inner_pile.sort();
+        self.0.set(inner_pile);
+    }
+    // endregion
 }
 
 impl Clone for BasicPileCell {
@@ -56,6 +211,21 @@ impl Display for BasicPileCell {
     }
 }
 
+impl From<Vec<BasicCard>> for BasicPileCell {
+    fn from(value: Vec<BasicCard>) -> Self {
+        Self(Cell::new(BasicPile::from(value)))
+    }
+}
+
+impl Ranged for BasicPileCell {
+    fn my_basic_pile(&self) -> BasicPile {
+        let inner_pile = self.0.take();
+        let pile_clone = inner_pile.clone();
+        self.0.set(inner_pile);
+        pile_clone
+    }
+}
+
 impl Eq for BasicPileCell {}
 
 impl PartialEq for BasicPileCell {
@@ -79,12 +249,7 @@ impl Hash for BasicPileCell {
 
 impl PartialOrd<Self> for BasicPileCell {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let a = self.0.take();
-        let b = other.0.take();
-        let result = a.partial_cmp(&b);
-        self.0.set(a);
-        other.0.set(b);
-        result
+        Some(self.cmp(other))
     }
 }
 
@@ -104,22 +269,6 @@ impl Ord for BasicPileCell {
 mod basic__types__basic_tests {
     use super::*;
     use crate::prelude::{DeckedBase, Pile, Standard52};
-
-    #[test]
-    fn draw() {
-        let pile = Pile::<Standard52>::basic_pile_cell();
-
-        let drawn = pile.draw(5).unwrap();
-        assert_eq!(drawn.to_string(), "A♠ K♠ Q♠ J♠ T♠");
-    }
-
-    #[test]
-    fn take() {
-        let pile = Pile::<Standard52>::basic_pile_cell();
-
-        assert_eq!(Standard52::DECK_SIZE, pile.take().len());
-        assert_eq!(0, pile.take().len());
-    }
 
     #[test]
     fn debug() {
@@ -178,5 +327,4 @@ mod basic__types__basic_tests {
 
         assert_ne!(hasher_a.finish(), hasher_shuffled.finish());
     }
-
 }
