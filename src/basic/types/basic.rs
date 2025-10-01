@@ -298,8 +298,8 @@ mod basic__types__basic_tests {
 
         let shuffled = BasicPileCell::new(Pile::<Standard52>::basic_pile().shuffled());
         assert_ne!(shuffled, basic);
-        println!("{basic}");
-        println!("{shuffled}");
+        // println!("{basic}");
+        // println!("{shuffled}");
 
         let taken = Pile::<Standard52>::basic_pile_cell();
         taken.take();

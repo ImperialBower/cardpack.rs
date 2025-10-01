@@ -113,11 +113,11 @@ mod basic__decks__cards__french__tests {
     #[test]
     fn serde() {
         let pips = vec![PinochleRank::KING];
-        let yml = serde_yml::to_string(&pips).unwrap();
+        let yml = serde_norway::to_string(&pips).unwrap();
 
         // println!("{yml}");
 
-        let pip2: Vec<Pip> = serde_yml::from_str(&yml).unwrap();
+        let pip2: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
         assert_eq!(pips, pip2);
     }
 }

@@ -63,7 +63,7 @@ impl BasicCard {
     ///
     /// Throws an error for an invalid path or invalid data.
     pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
-        let cards: Vec<Self> = serde_yml::from_str(yaml_str)?;
+        let cards: Vec<Self> = serde_norway::from_str(yaml_str)?;
 
         Ok(cards)
     }
