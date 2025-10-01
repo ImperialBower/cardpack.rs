@@ -1,3 +1,5 @@
+use crate::prelude::BasicPileCell;
+
 /// A macro to create a [Pile](crate::basic::types::pile::Pile) of
 /// [`French Deck`](crate::basic::decks::french::French) cards
 /// from a string.
@@ -44,6 +46,14 @@ macro_rules! cards {
 macro_rules! basic {
     ($card_str:expr) => {
         Pile::<Standard52>::forgiving_from_str($card_str).my_basic_pile()
+    };
+}
+
+#[macro_export]
+#[allow(clippy::pedantic)]
+macro_rules! basic_cell {
+    ($card_str:expr) => {
+        BasicPileCell::new(Pile::<Standard52>::forgiving_from_str($card_str).my_basic_pile())
     };
 }
 
