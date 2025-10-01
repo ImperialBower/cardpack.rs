@@ -267,8 +267,8 @@ impl Ord for BasicPileCell {
 #[cfg(test)]
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__basic_tests {
-    use crate::basic_cell;
     use super::*;
+    use crate::basic_cell;
     use crate::prelude::{DeckedBase, Pile, Standard52};
 
     #[test]
@@ -332,6 +332,9 @@ mod basic__types__basic_tests {
     #[test]
     fn basic_cell() {
         let pile = basic_cell!("AS KS QS JS TS");
-        assert_eq!(Standard52::deck_cell().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
+        assert_eq!(
+            Standard52::deck_cell().draw(5).unwrap().to_string(),
+            "A♠ K♠ Q♠ J♠ T♠"
+        );
     }
 }

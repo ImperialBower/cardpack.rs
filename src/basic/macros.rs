@@ -1,5 +1,3 @@
-use crate::prelude::BasicPileCell;
-
 /// A macro to create a [Pile](crate::basic::types::pile::Pile) of
 /// [`French Deck`](crate::basic::decks::french::French) cards
 /// from a string.
