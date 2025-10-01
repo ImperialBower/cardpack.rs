@@ -7,6 +7,7 @@ pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 use crate::prelude::PipType;
 use itertools::Itertools;
+use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::str::FromStr;
@@ -16,6 +17,11 @@ pub trait DeckedBase {
     #[must_use]
     fn basic_pile() -> BasicPile {
         BasicPile::from(Self::base_vec())
+    }
+
+    #[must_use]
+    fn basic_pile_cell() -> Cell<BasicPile> {
+        Cell::from(BasicPile::from(Self::base_vec()))
     }
 
     fn base_vec() -> Vec<BasicCard>;
