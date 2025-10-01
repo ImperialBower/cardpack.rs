@@ -29,6 +29,7 @@ pub use crate::localization::{FluentName, Named};
 
 // Macros
 pub use crate::basic;
+pub use crate::basic_cell;
 pub use crate::card;
 pub use crate::cards;
 pub use crate::french_cards;
