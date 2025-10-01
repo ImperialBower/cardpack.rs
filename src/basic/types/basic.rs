@@ -23,11 +23,11 @@ impl BasicPileCell {
     /// let drawn = pile.draw(5).unwrap();
     /// assert_eq!(drawn.to_string(), "A♠ K♠ Q♠ J♠ T♠");
     /// ```
-    pub fn draw(&self, n: usize) -> Option<BasicPile> {
+    pub fn draw(&self, n: usize) -> Option<Self> {
         let mut inner_pile = self.0.take();
         let drawn_cards = inner_pile.draw(n);
         self.0.set(inner_pile);
-        drawn_cards
+        drawn_cards.map(Self::new)
     }
 
     /// ```
@@ -268,6 +268,7 @@ impl Ord for BasicPileCell {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__basic_tests {
     use super::*;
+    use crate::basic_cell;
     use crate::prelude::{DeckedBase, Pile, Standard52};
 
     #[test]
@@ -326,5 +327,11 @@ mod basic__types__basic_tests {
         shuffled.hash(&mut hasher_shuffled);
 
         assert_ne!(hasher_a.finish(), hasher_shuffled.finish());
+    }
+
+    #[test]
+    fn basic_cell() {
+        let pile = basic_cell!("AS KS QS JS TS");
+        assert_eq!(Standard52::deck_cell().draw(5).unwrap(), pile);
     }
 }
