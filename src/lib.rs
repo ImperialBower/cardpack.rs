@@ -5,6 +5,8 @@
     clippy::nursery,
     clippy::cargo,
     clippy::suspicious,
+    clippy::unwrap_used,
+    clippy::expect_used,
 )]
 #![allow(
     clippy::disallowed_script_idents,
