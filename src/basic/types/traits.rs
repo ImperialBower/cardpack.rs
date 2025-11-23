@@ -125,9 +125,9 @@ where
     #[must_use]
     fn validate() -> bool {
         let deck = Self::deck();
-        let deckfromstr = Pile::<DeckType>::from_str(&deck.to_string()).unwrap();
-
-        deck == deck.clone().shuffled().sorted() && deck == deckfromstr
+        Pile::<DeckType>::from_str(&deck.to_string()).is_ok_and(|deckfromstr| {
+            deck == deck.clone().shuffled().sorted() && deck == deckfromstr
+        })
     }
 }
 
@@ -360,8 +360,7 @@ pub trait Ranged {
             if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(rank) {
                 let pile = BasicPile::from(vec![*card]);
                 e.insert(pile);
-            } else {
-                let pile = mappy.get_mut(&rank).unwrap();
+            } else if let Some(pile) = mappy.get_mut(&rank) {
                 pile.push(*card);
             }
         }
