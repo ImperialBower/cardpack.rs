@@ -102,12 +102,67 @@ Long in English and German:
   ...
 ```
 
+Display a hand of [Bridge](https://en.wikipedia.org/wiki/Contract_bridge):
+
+```shell
+❯ cargo run --example bridge                                                          
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running `target/debug/examples/bridge`
+First, let's deal out a random bridge hand.
+
+Here it is in Portable Bridge Notation:
+    W:KJT.JT63.K8.QJT9 A75.KQ9874.65.AK Q6432.5.AJ74.853 98.A2.QT932.7642
+
+How does it look as a traditional compass?
+               NORTH
+            ♠ A 7 5
+            ♥ K Q 9 8 7 4
+            ♦ 6 5
+            ♣ A K
+
+       WEST              EAST
+    ♠ K J T           ♠ Q 6 4 3 2
+    ♥ J T 6 3         ♥ 5
+    ♦ K 8             ♦ A J 7 4
+    ♣ Q J T 9         ♣ 8 5 3
+
+                SOUTH
+             ♠ 9 8
+             ♥ A 2
+             ♦ Q T 9 3 2
+             ♣ 7 6 4 2
+
+Now, let's take a PBN Deal String and convert it into a bridge hand.
+Here's the original' Portable Bridge Notation:
+    S:Q42.Q52.AQT943.Q 97.AT93.652.T743 AJT85.J76.KJ.A65 K63.K84.87.KJ982
+
+As a bridge compass:
+
+                NORTH
+             ♠ A J T 8 5
+             ♥ J 7 6
+             ♦ K J
+             ♣ A 6 5
+
+       WEST              EAST
+    ♠ 9 7             ♠ K 6 3
+    ♥ A T 9 3         ♥ K 8 4
+    ♦ 6 5 2           ♦ 8 7
+    ♣ T 7 4 3         ♣ K J 9 8 2
+
+               SOUTH
+            ♠ Q 4 2
+            ♥ Q 5 2
+            ♦ A Q T 9 4 3
+            ♣ Q
+
+```
+
 Other decks in the demo program are `canasta`, `euchre`, `short`, `pinochle`, `skat`, `spades`,
 `standard`, and `tarot`.
 
 Other examples are:
 
-- `cargo run --example bridge` - Prints out a [Bridge](https://en.wikipedia.org/wiki/Contract_bridge) deal.
 - `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
 - `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
 
