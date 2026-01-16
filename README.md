@@ -13,6 +13,20 @@ Generic pack of cards library written in Rust. The goals of the library include:
 **UPDATE:** This is a complete rewrite of the library taking advantage of generics
 in order to make the code cleaner, and easier to extend. 
 
+## Setup
+
+This program uses [cargo make](https://github.com/sagiegurari/cargo-make) to manage tasks. Install it with:
+
+```shell
+cargo install cargo-make
+```
+
+Then you can build the project with:
+
+```shell
+cargo make
+````
+
 ## Usage
 
 ```rust
