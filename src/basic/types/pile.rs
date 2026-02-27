@@ -7,6 +7,7 @@ use crate::prelude::{BasicPile, Decked};
 use colored::Color;
 use rand::seq::SliceRandom;
 use rand::{Rng, rng};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use std::hash::Hash;
@@ -56,7 +57,7 @@ use std::vec::IntoIter;
 /// assert_eq!(modern_deck.suit_symbol_index(), "🃟 ♠ ♥ ♦ ♣");
 /// assert_eq!(modern_deck.suit_index(), "J S H D C");
 /// ```
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct Pile<DeckType: DeckedBase>(Vec<Card<DeckType>>)
 where
     DeckType: Default + Ord + Copy + Hash;
