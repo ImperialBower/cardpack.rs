@@ -2,11 +2,12 @@ use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
 use rand::prelude::SliceRandom;
 use rand::rng;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Display;
 use std::hash::Hash;
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BasicPile(Vec<BasicCard>);
 
 impl BasicPile {
