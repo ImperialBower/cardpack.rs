@@ -5,17 +5,26 @@ use crate::preludes::funky::{BCardType, MPip};
 pub struct Planet {}
 
 impl Planet {
-    pub const DECK_SIZE: usize = 8;
+    pub const DECK_SIZE: usize = 9;
 
     pub const DECK: [BuffoonCard; Self::DECK_SIZE] = [
         card::PLUTO,
+        card::MERCURY,
+        card::URANUS,
         card::VENUS,
+        card::SATURN,
+        card::JUPITER,
         card::EARTH,
         card::MARS,
-        card::JUPITER,
-        card::SATURN,
-        card::URANUS,
         card::NEPTUNE,
+    ];
+
+    pub const SECRET_DECK_SIZE: usize = 3;
+
+    pub const SECRET_DECK: [BuffoonCard; Self::SECRET_DECK_SIZE] = [
+        card::PLANET_X,
+        card::CERES,
+        card::ERIS,
     ];
 
     /// Crude but effective. I would rather have a tight data type that's a pain to access
@@ -240,4 +249,95 @@ pub mod card {
         resell_value: 1,
         debuffed: false,
     };
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__decks__planet_tests {
+    use super::*;
+    use crate::funky::types::buffoon_card::BCardType;
+    use crate::funky::types::hands::HandType;
+    use crate::funky::types::mpip::MPip;
+
+    #[test]
+    fn deck_size() {
+        assert_eq!(Planet::DECK.len(), Planet::DECK_SIZE);
+        assert_eq!(Planet::DECK_SIZE, 9);
+    }
+
+    #[test]
+    fn secret_deck_size() {
+        assert_eq!(Planet::SECRET_DECK.len(), Planet::SECRET_DECK_SIZE);
+        assert_eq!(Planet::SECRET_DECK_SIZE, 3);
+    }
+
+    #[test]
+    fn deck_all_planet_type() {
+        for card in Planet::DECK {
+            assert_eq!(card.card_type, BCardType::Planet);
+        }
+        for card in Planet::SECRET_DECK {
+            assert_eq!(card.card_type, BCardType::Planet);
+        }
+    }
+
+    #[test]
+    fn deck_covers_all_standard_hand_types() {
+        let hand_types: Vec<HandType> = Planet::DECK
+            .iter()
+            .filter_map(|c| {
+                if let MPip::ChipsMultPlusOnHand(_, _, ht) = c.enhancement {
+                    Some(ht)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        assert!(hand_types.contains(&HandType::HighCard), "missing HighCard (Pluto)");
+        assert!(hand_types.contains(&HandType::Pair), "missing Pair (Mercury)");
+        assert!(hand_types.contains(&HandType::TwoPair), "missing TwoPair (Uranus)");
+        assert!(hand_types.contains(&HandType::ThreeOfAKind), "missing ThreeOfAKind (Venus)");
+        assert!(hand_types.contains(&HandType::Straight), "missing Straight (Saturn)");
+        assert!(hand_types.contains(&HandType::Flush), "missing Flush (Jupiter)");
+        assert!(hand_types.contains(&HandType::FullHouse), "missing FullHouse (Earth)");
+        assert!(hand_types.contains(&HandType::FourOfAKind), "missing FourOfAKind (Mars)");
+        assert!(hand_types.contains(&HandType::StraightFlush), "missing StraightFlush (Neptune)");
+    }
+
+    #[test]
+    fn secret_deck_covers_secret_hand_types() {
+        let hand_types: Vec<HandType> = Planet::SECRET_DECK
+            .iter()
+            .filter_map(|c| {
+                if let MPip::ChipsMultPlusOnHand(_, _, ht) = c.enhancement {
+                    Some(ht)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        assert!(hand_types.contains(&HandType::FiveOfAKind), "missing FiveOfAKind (Planet X)");
+        assert!(hand_types.contains(&HandType::FlushFive) || hand_types.iter().filter(|&&h| h == HandType::FlushFive).count() >= 1, "missing FlushFive (Ceres/Eris)");
+    }
+
+    #[test]
+    fn same_planet_mercury_pairs() {
+        assert!(Planet::same_planet(card::MERCURY, card::MERCURY));
+    }
+
+    #[test]
+    fn same_planet_rejects_different() {
+        assert!(!Planet::same_planet(card::MERCURY, card::PLUTO));
+    }
+
+    #[test]
+    fn add_planets_mercury_accumulates() {
+        let doubled = Planet::add_planets(card::MERCURY, card::MERCURY);
+        assert_eq!(
+            doubled.enhancement,
+            MPip::ChipsMultPlusOnHand(30, 2, HandType::Pair)
+        );
+    }
 }

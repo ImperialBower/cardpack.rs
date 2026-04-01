@@ -30,9 +30,77 @@ impl Joker {
         card::CHAOS_THE_CLOWN,
     ];
 
+    pub const UNCOMMON_JOKERS_SIZE: usize = 35;
+
+    pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
+        card::JOKER_STENCIL,
+        card::FOUR_FINGERS,
+        card::MIME,
+        card::CEREMONIAL_DAGGER,
+        card::MYSTIC_SUMMIT,
+        card::MARBLE_JOKER,
+        card::LOYALTY_CARD,
+        card::DUSK,
+        card::FIBONACCI,
+        card::STEEL_JOKER,
+        card::HACK,
+        card::PAREIDOLIA,
+        card::SPACE_JOKER,
+        card::BURGLAR,
+        card::BLACKBOARD,
+        card::SIXTH_SENSE,
+        card::CONSTELLATION,
+        card::HIKER,
+        card::CARD_SHARP,
+        card::MADNESS,
+        card::SEANCE,
+        card::VAMPIRE,
+        card::SHORTCUT,
+        card::VAGABOND,
+        card::ROCKET,
+        card::EROSION,
+        card::TO_THE_MOON,
+        card::STONE_JOKER,
+        card::LUCKY_CAT,
+        card::BASEBALL_CARD,
+        card::BULL,
+        card::DIET_COLA,
+        card::FLASH_CARD,
+        card::SPARE_TROUSERS,
+        card::RAMEN,
+    ];
+
+    pub const RARE_JOKERS_SIZE: usize = 4;
+
+    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
+        card::DNA,
+        card::HOLOGRAM,
+        card::BARON,
+        card::ANCIENT_JOKER,
+    ];
+
+    pub const LEGENDARY_JOKERS_SIZE: usize = 0;
+
+    pub const LEGENDARY_JOKERS: [BuffoonCard; Self::LEGENDARY_JOKERS_SIZE] = [];
+
     #[must_use]
     pub fn pile_common() -> BuffoonPile {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
+    }
+
+    #[must_use]
+    pub fn pile_uncommon() -> BuffoonPile {
+        BuffoonPile::from(&Self::UNCOMMON_JOKERS[..])
+    }
+
+    #[must_use]
+    pub fn pile_rare() -> BuffoonPile {
+        BuffoonPile::from(&Self::RARE_JOKERS[..])
+    }
+
+    #[must_use]
+    pub fn pile_legendary() -> BuffoonPile {
+        BuffoonPile::from(&Self::LEGENDARY_JOKERS[..])
     }
 }
 
@@ -678,7 +746,7 @@ pub mod card {
             symbol: '∝',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Odds1inUpgradeHand(4),
         resell_value: 2,
         debuffed: false,
@@ -706,7 +774,7 @@ pub mod card {
             symbol: '∟',
             value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 3,
         debuffed: false,
@@ -720,7 +788,7 @@ pub mod card {
             symbol: '∠',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 3,
         debuffed: false,
@@ -762,7 +830,7 @@ pub mod card {
             symbol: '∣',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         enhancement: MPip::Blank,
         resell_value: 2,
         debuffed: false,
@@ -804,7 +872,7 @@ pub mod card {
             symbol: '∦',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -818,7 +886,7 @@ pub mod card {
             symbol: '∧',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -832,7 +900,7 @@ pub mod card {
             symbol: '∨',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -916,7 +984,7 @@ pub mod card {
             symbol: '∮',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -944,7 +1012,7 @@ pub mod card {
             symbol: '∰',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -972,7 +1040,7 @@ pub mod card {
             symbol: '∲',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1000,7 +1068,7 @@ pub mod card {
             symbol: '∴',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1014,7 +1082,7 @@ pub mod card {
             symbol: '∵',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1028,7 +1096,7 @@ pub mod card {
             symbol: '∶',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1042,7 +1110,7 @@ pub mod card {
             symbol: '∷',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1056,7 +1124,7 @@ pub mod card {
             symbol: '∸',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1084,7 +1152,7 @@ pub mod card {
             symbol: '∺',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1098,7 +1166,7 @@ pub mod card {
             symbol: '∻',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1140,7 +1208,7 @@ pub mod card {
             symbol: '∾',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1210,7 +1278,7 @@ pub mod card {
             symbol: '≃',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1238,7 +1306,7 @@ pub mod card {
             symbol: '≅',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1252,7 +1320,7 @@ pub mod card {
             symbol: '≆',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1266,7 +1334,7 @@ pub mod card {
             symbol: '≇',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1280,7 +1348,7 @@ pub mod card {
             symbol: '≈',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1308,7 +1376,7 @@ pub mod card {
             symbol: '≊',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1336,7 +1404,7 @@ pub mod card {
             symbol: '≌',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1350,7 +1418,7 @@ pub mod card {
             symbol: '≍',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
@@ -1364,7 +1432,7 @@ pub mod card {
             symbol: '🍜',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
