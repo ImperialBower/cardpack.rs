@@ -1,22 +1,22 @@
-# Plan: Complete Balatro Card Type Definitions
+# Plan: Complete Balatro Card Type Definitions — COMPLETED ✅
 
-## Current State Summary
+## Final State Summary
 
 | Card Type | `BCardType` | Module | Constants | Deck/Array |
 |---|---|---|---|---|
 | Standard (Basic) | ✅ | `decks/basic.rs` | ✅ 52 cards | ✅ |
 | Tarot (22) | ✅ | `decks/tarot.rs` | ✅ all 22 | ✅ `MajorArcana::DECK` |
-| Planet (12) | ✅ | `decks/planet.rs` | ⚠️ 12 defined, **Mercury missing from DECK** | ⚠️ `Planet::DECK` has 8, should be 9 |
+| Planet (9 + 3 secret) | ✅ | `decks/planet.rs` | ✅ all 12 | ✅ `Planet::DECK` (9) + `Planet::SECRET_DECK` (3) |
 | Jokers — Common (22) | ✅ | `decks/joker.rs` | ✅ 22 | ✅ `Joker::COMMON_JOKERS` |
-| Jokers — Uncommon/Rare | ✅ | `decks/joker.rs` | ✅ ~58 consts exist | ❌ **no arrays** |
-| Jokers — Legendary (5) | ✅ | `decks/joker.rs` | ❌ only comments | ❌ |
-| Jokers — remaining (101–150) | ✅ | `decks/joker.rs` | ❌ only comments | ❌ |
-| Spectral (18) | ✅ | ❌ **missing** | ❌ | ❌ |
-| Voucher (32) | ✅ | ❌ **missing** | ❌ | ❌ |
+| Jokers — Uncommon | ✅ | `decks/joker.rs` | ✅ 60 consts | ✅ `Joker::UNCOMMON_JOKERS` |
+| Jokers — Rare | ✅ | `decks/joker.rs` | ✅ 18 consts | ✅ `Joker::RARE_JOKERS` |
+| Jokers — Legendary (5) | ✅ | `decks/joker.rs` | ✅ 5 consts | ✅ `Joker::LEGENDARY_JOKERS` |
+| Spectral (18) | ✅ | ✅ `decks/spectral.rs` | ✅ all 18 | ✅ |
+| Voucher (32) | ✅ | ✅ `decks/voucher.rs` | ✅ all 32 | ✅ |
 
 ---
 
-## Step 1 — Fix `Planet::DECK` (small bug)
+## Step 1 — Fix `Planet::DECK` (small bug) ✅
 
 `src/funky/decks/planet.rs`
 
@@ -28,7 +28,7 @@ Mercury (`Pair`) is already defined as `card::MERCURY` but is absent from the `D
 
 ---
 
-## Step 2 — Complete Joker constants (101–150)
+## Step 2 — Complete Joker constants (101–150) ✅
 
 `src/funky/decks/joker.rs`
 
@@ -41,7 +41,7 @@ The bottom ~70 lines are commented-out descriptions for jokers 101–150 that ha
 
 ---
 
-## Step 3 — Organize Jokers into rarity arrays
+## Step 3 — Organize Jokers into rarity arrays ✅
 
 `src/funky/decks/joker.rs`
 
@@ -55,7 +55,7 @@ The `Joker` struct only has `COMMON_JOKERS`. The ~58 existing uncommon/rare cons
 
 ---
 
-## Step 4 — Create `decks/spectral.rs`
+## Step 4 — Create `decks/spectral.rs` ✅
 
 Balatro has **18 spectral cards**: Familiar, Grim, Incantation, Talisman, Aura, Wraith, Sigil, Ouija, Ectoplasm, Immolate, Ankh, Deja Vu, Hex, Trance, Medium, Cryptid, Soul, Black Hole.
 
@@ -69,7 +69,7 @@ Balatro has **18 spectral cards**: Familiar, Grim, Incantation, Talisman, Aura, 
 
 ---
 
-## Step 5 — Add missing `MPip` variants
+## Step 5 — Add missing `MPip` variants ✅
 
 `src/funky/types/mpip.rs`
 
@@ -84,7 +84,7 @@ Several joker and spectral/voucher effects don't map to any existing `MPip` vari
 
 ---
 
-## Step 6 — Create `decks/voucher.rs`
+## Step 6 — Create `decks/voucher.rs` ✅
 
 Balatro has **32 vouchers** — 16 base vouchers plus 16 upgraded versions (each upgrade is unlocked by purchasing the base).
 
@@ -101,17 +101,15 @@ Balatro has **32 vouchers** — 16 base vouchers plus 16 upgraded versions (each
 
 ---
 
-## Recommended Order of Execution
+## Execution Order (all completed ✅)
 
 ```
-1. Fix Planet::DECK (Mercury bug)             — small, low risk
-2. Add MPip variants for remaining jokers     — prerequisite for step 3
-3. Complete joker consts (#101–150)           — largest chunk
-4. Organize jokers into rarity arrays
-5. Add MPip variants for spectral effects
-6. Create spectral.rs
-7. Add MPip variants for voucher effects
-8. Create voucher.rs
+1. Fix Planet::DECK (Mercury bug)             ✅
+2. Add MPip variants for remaining jokers     ✅
+3. Complete joker consts (#101–150)           ✅
+4. Organize jokers into rarity arrays         ✅
+5. Add MPip variants for spectral effects     ✅
+6. Create spectral.rs                         ✅
+7. Add MPip variants for voucher effects      ✅
+8. Create voucher.rs                          ✅
 ```
-
-Steps 2–4 can be done incrementally (one rarity tier at a time). Steps 5–8 are largely independent and could be parallelized.
