@@ -1524,7 +1524,11 @@ mod funky__decks__joker_tests {
             let mut seen = std::collections::HashSet::new();
             all.iter().filter(|c| seen.insert(c.rank.index)).count()
         };
-        assert_eq!(unique_count, all.len(), "duplicate joker found across rarity arrays");
+        assert_eq!(
+            unique_count,
+            all.len(),
+            "duplicate joker found across rarity arrays"
+        );
     }
 }
 
