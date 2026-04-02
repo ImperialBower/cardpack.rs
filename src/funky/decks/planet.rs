@@ -21,11 +21,8 @@ impl Planet {
 
     pub const SECRET_DECK_SIZE: usize = 3;
 
-    pub const SECRET_DECK: [BuffoonCard; Self::SECRET_DECK_SIZE] = [
-        card::PLANET_X,
-        card::CERES,
-        card::ERIS,
-    ];
+    pub const SECRET_DECK: [BuffoonCard; Self::SECRET_DECK_SIZE] =
+        [card::PLANET_X, card::CERES, card::ERIS];
 
     /// Crude but effective. I would rather have a tight data type that's a pain to access
     /// than a fat one that easy to get the data out of.
@@ -294,15 +291,42 @@ mod funky__decks__planet_tests {
             })
             .collect();
 
-        assert!(hand_types.contains(&HandType::HighCard), "missing HighCard (Pluto)");
-        assert!(hand_types.contains(&HandType::Pair), "missing Pair (Mercury)");
-        assert!(hand_types.contains(&HandType::TwoPair), "missing TwoPair (Uranus)");
-        assert!(hand_types.contains(&HandType::ThreeOfAKind), "missing ThreeOfAKind (Venus)");
-        assert!(hand_types.contains(&HandType::Straight), "missing Straight (Saturn)");
-        assert!(hand_types.contains(&HandType::Flush), "missing Flush (Jupiter)");
-        assert!(hand_types.contains(&HandType::FullHouse), "missing FullHouse (Earth)");
-        assert!(hand_types.contains(&HandType::FourOfAKind), "missing FourOfAKind (Mars)");
-        assert!(hand_types.contains(&HandType::StraightFlush), "missing StraightFlush (Neptune)");
+        assert!(
+            hand_types.contains(&HandType::HighCard),
+            "missing HighCard (Pluto)"
+        );
+        assert!(
+            hand_types.contains(&HandType::Pair),
+            "missing Pair (Mercury)"
+        );
+        assert!(
+            hand_types.contains(&HandType::TwoPair),
+            "missing TwoPair (Uranus)"
+        );
+        assert!(
+            hand_types.contains(&HandType::ThreeOfAKind),
+            "missing ThreeOfAKind (Venus)"
+        );
+        assert!(
+            hand_types.contains(&HandType::Straight),
+            "missing Straight (Saturn)"
+        );
+        assert!(
+            hand_types.contains(&HandType::Flush),
+            "missing Flush (Jupiter)"
+        );
+        assert!(
+            hand_types.contains(&HandType::FullHouse),
+            "missing FullHouse (Earth)"
+        );
+        assert!(
+            hand_types.contains(&HandType::FourOfAKind),
+            "missing FourOfAKind (Mars)"
+        );
+        assert!(
+            hand_types.contains(&HandType::StraightFlush),
+            "missing StraightFlush (Neptune)"
+        );
     }
 
     #[test]
@@ -318,8 +342,19 @@ mod funky__decks__planet_tests {
             })
             .collect();
 
-        assert!(hand_types.contains(&HandType::FiveOfAKind), "missing FiveOfAKind (Planet X)");
-        assert!(hand_types.contains(&HandType::FlushFive) || hand_types.iter().filter(|&&h| h == HandType::FlushFive).count() >= 1, "missing FlushFive (Ceres/Eris)");
+        assert!(
+            hand_types.contains(&HandType::FiveOfAKind),
+            "missing FiveOfAKind (Planet X)"
+        );
+        assert!(
+            hand_types.contains(&HandType::FlushFive)
+                || hand_types
+                    .iter()
+                    .filter(|&&h| h == HandType::FlushFive)
+                    .count()
+                    >= 1,
+            "missing FlushFive (Ceres/Eris)"
+        );
     }
 
     #[test]

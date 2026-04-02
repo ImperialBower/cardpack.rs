@@ -173,11 +173,7 @@ impl BuffoonCard {
     }
 
     fn get_enhanced_chips(&self) -> usize {
-        let mut chips = 0;
-        if let MPip::Chips(c) = self.enhancement {
-            chips = c;
-        }
-        chips
+        if let MPip::Chips(c) = self.enhancement { c } else { 0 }
     }
 
     #[must_use]

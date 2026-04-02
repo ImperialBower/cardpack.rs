@@ -377,7 +377,7 @@ impl<DeckType: DeckedBase> FromStr for Card<DeckType> {
             .find(|c| (c.to_string() == s) || (c.index() == s))
             .copied()
             .map(Self::from)
-            .ok_or_else(|| CardError::InvalidCard(s.to_string()))
+            .ok_or_else(|| CardError::InvalidCard(s.clone()))
     }
 }
 

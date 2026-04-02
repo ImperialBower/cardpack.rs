@@ -72,12 +72,8 @@ impl Joker {
 
     pub const RARE_JOKERS_SIZE: usize = 4;
 
-    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
-        card::DNA,
-        card::HOLOGRAM,
-        card::BARON,
-        card::ANCIENT_JOKER,
-    ];
+    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] =
+        [card::DNA, card::HOLOGRAM, card::BARON, card::ANCIENT_JOKER];
 
     pub const LEGENDARY_JOKERS_SIZE: usize = 0;
 
@@ -742,8 +738,8 @@ pub mod card {
         rank: Pip {
             weight: 910,
             pip_type: PipType::Joker,
-            index: '∝',
-            symbol: '∝',
+            index: '≎',
+            symbol: '≎',
             value: 5,
         },
         card_type: BCardType::UncommonJoker,
@@ -1451,6 +1447,85 @@ pub mod card {
         resell_value: 0,
         debuffed: false,
     };
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__decks__joker_tests {
+    use super::*;
+    use crate::funky::types::buffoon_card::BCardType;
+
+    #[test]
+    fn common_jokers_size() {
+        assert_eq!(Joker::COMMON_JOKERS.len(), Joker::COMMON_JOKERS_SIZE);
+    }
+
+    #[test]
+    fn uncommon_jokers_size() {
+        assert_eq!(Joker::UNCOMMON_JOKERS.len(), Joker::UNCOMMON_JOKERS_SIZE);
+    }
+
+    #[test]
+    fn rare_jokers_size() {
+        assert_eq!(Joker::RARE_JOKERS.len(), Joker::RARE_JOKERS_SIZE);
+    }
+
+    #[test]
+    fn legendary_jokers_size() {
+        assert_eq!(Joker::LEGENDARY_JOKERS.len(), Joker::LEGENDARY_JOKERS_SIZE);
+        assert_eq!(Joker::LEGENDARY_JOKERS_SIZE, 0);
+    }
+
+    #[test]
+    fn common_jokers_all_correct_type() {
+        for card in Joker::COMMON_JOKERS {
+            assert_eq!(
+                card.card_type,
+                BCardType::CommonJoker,
+                "{:?} should be CommonJoker",
+                card
+            );
+        }
+    }
+
+    #[test]
+    fn uncommon_jokers_all_correct_type() {
+        for card in Joker::UNCOMMON_JOKERS {
+            assert_eq!(
+                card.card_type,
+                BCardType::UncommonJoker,
+                "{:?} should be UncommonJoker",
+                card
+            );
+        }
+    }
+
+    #[test]
+    fn rare_jokers_all_correct_type() {
+        for card in Joker::RARE_JOKERS {
+            assert_eq!(
+                card.card_type,
+                BCardType::RareJoker,
+                "{:?} should be RareJoker",
+                card
+            );
+        }
+    }
+
+    #[test]
+    fn no_duplicates_across_rarity_arrays() {
+        let all: Vec<_> = Joker::COMMON_JOKERS
+            .iter()
+            .chain(Joker::UNCOMMON_JOKERS.iter())
+            .chain(Joker::RARE_JOKERS.iter())
+            .chain(Joker::LEGENDARY_JOKERS.iter())
+            .collect();
+        let unique_count = {
+            let mut seen = std::collections::HashSet::new();
+            all.iter().filter(|c| seen.insert(c.rank.index)).count()
+        };
+        assert_eq!(unique_count, all.len(), "duplicate joker found across rarity arrays");
+    }
 }
 
 // 101 Walkie Talkie 	Each played 10 or 4 gives +10 Chips and +4 Mult when scored 	$4 	Common 	Available from start. 	++ 	On Scored
