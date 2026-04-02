@@ -170,6 +170,86 @@ pub enum MPip {
     Spades(usize),
     Planet(usize),
 
+    // ── Spectral card effects ─────────────────────────────────────────────────
+    /// Destroy N random cards in deck, add M random Enhanced face cards (Familiar)
+    DestroyAndAddEnhancedFaceCards(usize, usize),
+    /// Destroy N random cards in deck, add M random Enhanced Aces (Grim)
+    DestroyAndAddEnhancedAces(usize, usize),
+    /// Destroy N random cards in deck, add M random Enhanced numbered cards 2–10 (Incantation)
+    DestroyAndAddEnhancedNumbered(usize, usize),
+    /// Add a Gold Seal to a random card in the full deck (Talisman)
+    AddGoldSealToRandomCard,
+    /// Add a random edition (Foil/Holographic/Polychrome) to a selected Joker (Aura)
+    AddEditionToSelectedJoker,
+    /// Create a random Rare Joker and set money to $0 (Wraith)
+    CreateRareJokerSetMoneyZero,
+    /// Convert all cards in hand to a single random suit (Sigil)
+    ConvertHandToRandomSuit,
+    /// Convert all cards in hand to a single random rank, -1 hand size (Ouija)
+    ConvertHandToRandomRankReduceHandSize,
+    /// Add Negative edition to a random Joker, -1 Joker slot (Ectoplasm)
+    AddNegativeToRandomJokerReduceSlots,
+    /// Destroy N random cards in deck, gain $M (Immolate)
+    DestroyRandomCardsGainCash(usize, usize),
+    /// Copy a random Joker, destroy all other Jokers (Ankh)
+    CopyRandomJokerDestroyOthers,
+    /// Add a Red Seal to a selected playing card (Deja Vu)
+    AddRedSealToSelectedCard,
+    /// Add Polychrome edition to a random Joker, destroy all other Jokers (Hex)
+    AddPolychromeToRandomJokerDestroyOthers,
+    /// Add a Blue Seal to a selected playing card (Trance)
+    AddBlueSealToSelectedCard,
+    /// Add a Purple Seal to a selected playing card (Medium)
+    AddPurpleSealToSelectedCard,
+    /// Create N copies of a selected playing card in the full deck (Cryptid)
+    CreateCopiesOfSelectedCard(usize),
+    /// Create a random Legendary Joker (Soul)
+    CreateLegendaryJoker,
+    /// Upgrade every poker hand by 1 level (Black Hole)
+    UpgradeAllPokerHands,
+
+    // ── Voucher effects ──────────────────────────────────────────────────────────
+    /// +N card slots in the shop (Overstock: 1, Overstock Plus: 2)
+    AddShopSlot(usize),
+    /// All items in the shop cost N% less (Clearance Sale: 50, Liquidation: 75)
+    ShopDiscount(usize),
+    /// Edition (Foil/Holo/Poly) spawn probability ×N (Hone: 2)
+    EditionChanceMultiplier(usize),
+    /// Edition probability ×N and Negative editions added to pool (Glow Up: 2)
+    EditionChanceMultiplierWithNegative(usize),
+    /// Shop reroll cost reduced by $N; 0 = always free (Reroll Surplus: 2, Reroll Glut: 0)
+    RerollCostReduction(usize),
+    /// +N consumable card slots (Crystal Ball: 1)
+    AddConsumableSlot(usize),
+    /// Celestial Packs always contain planet card for most-played hand (Telescope)
+    TelescopeFocusMostPlayedHand,
+    /// Standard packs may contain any Tarot card (Omen Globe)
+    OmenGlobeEffect,
+    /// ×(1 + N/10) mult per planet used for most-played hand this run (Observatory: N=5 → ×1.5)
+    MultTimesPerPlanetUsedForBestHand(usize),
+    /// +N hands per round (Grabber: 1, Nacho Tong: 2)
+    AddHandsPerRound(usize),
+    /// +N discards per round (Wasteful: 1)
+    AddDiscardsPerRound(usize),
+    /// +N discards per round and discarded cards return to deck (Recyclomancer: 1)
+    RecyclomancerEffect(usize),
+    /// Card type appears N× more often in the shop (Tarot/Planet Merchant: 2, Tycoon: 4)
+    BoostCardTypeInShop(usize, BCardType),
+    /// Playing cards may appear in the shop (Magic Trick)
+    AllowPlayingCardsInShop,
+    /// Playing cards in the shop may have an edition (Illusion)
+    PlayingCardsInShopHaveEdition,
+    /// -N hands per round and -M antes (Hieroglyph: 1,1 / Petroglyph: 1,2)
+    ReduceHandsAndAnte(usize, usize),
+    /// +N hand size (Paint Brush: 1, Palette: 2)
+    AddHandSize(usize),
+    /// +N Joker slots (Antimatter: 1)
+    AddJokerSlot(usize),
+    /// Go up to -$N in debt (Credit Card: 20)
+    AllowDebt(usize),
+    /// Reroll the Boss Blind for $N per use (Retcon: 10)
+    RerollBossBlind(usize),
+
     // ── Game-state markers (non-scoring rule modifiers) ───────────────────────
     FourFlushAndStraight,
     FreeReroll(usize),
@@ -403,6 +483,66 @@ impl Display for MPip {
             Self::UpgradeHandOnDiscard => write!(f, "UpgradeHandOnDiscard"),
             Self::DisableBossBlind => write!(f, "DisableBossBlind"),
             Self::CreateNegativeCopyOfConsumable => write!(f, "CreateNegativeCopyOfConsumable"),
+            Self::AddShopSlot(n) => write!(f, "AddShopSlot({n})"),
+            Self::ShopDiscount(pct) => write!(f, "ShopDiscount({pct})"),
+            Self::EditionChanceMultiplier(n) => write!(f, "EditionChanceMultiplier({n})"),
+            Self::EditionChanceMultiplierWithNegative(n) => {
+                write!(f, "EditionChanceMultiplierWithNegative({n})")
+            }
+            Self::RerollCostReduction(n) => write!(f, "RerollCostReduction({n})"),
+            Self::AddConsumableSlot(n) => write!(f, "AddConsumableSlot({n})"),
+            Self::TelescopeFocusMostPlayedHand => write!(f, "TelescopeFocusMostPlayedHand"),
+            Self::OmenGlobeEffect => write!(f, "OmenGlobeEffect"),
+            Self::MultTimesPerPlanetUsedForBestHand(n) => {
+                write!(f, "MultTimesPerPlanetUsedForBestHand({n})")
+            }
+            Self::AddHandsPerRound(n) => write!(f, "AddHandsPerRound({n})"),
+            Self::AddDiscardsPerRound(n) => write!(f, "AddDiscardsPerRound({n})"),
+            Self::RecyclomancerEffect(n) => write!(f, "RecyclomancerEffect({n})"),
+            Self::BoostCardTypeInShop(n, card_type) => {
+                write!(f, "BoostCardTypeInShop({n}, {card_type:?})")
+            }
+            Self::AllowPlayingCardsInShop => write!(f, "AllowPlayingCardsInShop"),
+            Self::PlayingCardsInShopHaveEdition => write!(f, "PlayingCardsInShopHaveEdition"),
+            Self::ReduceHandsAndAnte(hands, ante) => {
+                write!(f, "ReduceHandsAndAnte({hands}, {ante})")
+            }
+            Self::AddHandSize(n) => write!(f, "AddHandSize({n})"),
+            Self::AddJokerSlot(n) => write!(f, "AddJokerSlot({n})"),
+            Self::AllowDebt(n) => write!(f, "AllowDebt({n})"),
+            Self::RerollBossBlind(n) => write!(f, "RerollBossBlind({n})"),
+            Self::DestroyAndAddEnhancedFaceCards(destroy, add) => {
+                write!(f, "DestroyAndAddEnhancedFaceCards({destroy}, {add})")
+            }
+            Self::DestroyAndAddEnhancedAces(destroy, add) => {
+                write!(f, "DestroyAndAddEnhancedAces({destroy}, {add})")
+            }
+            Self::DestroyAndAddEnhancedNumbered(destroy, add) => {
+                write!(f, "DestroyAndAddEnhancedNumbered({destroy}, {add})")
+            }
+            Self::AddGoldSealToRandomCard => write!(f, "AddGoldSealToRandomCard"),
+            Self::AddEditionToSelectedJoker => write!(f, "AddEditionToSelectedJoker"),
+            Self::CreateRareJokerSetMoneyZero => write!(f, "CreateRareJokerSetMoneyZero"),
+            Self::ConvertHandToRandomSuit => write!(f, "ConvertHandToRandomSuit"),
+            Self::ConvertHandToRandomRankReduceHandSize => {
+                write!(f, "ConvertHandToRandomRankReduceHandSize")
+            }
+            Self::AddNegativeToRandomJokerReduceSlots => {
+                write!(f, "AddNegativeToRandomJokerReduceSlots")
+            }
+            Self::DestroyRandomCardsGainCash(destroy, cash) => {
+                write!(f, "DestroyRandomCardsGainCash({destroy}, {cash})")
+            }
+            Self::CopyRandomJokerDestroyOthers => write!(f, "CopyRandomJokerDestroyOthers"),
+            Self::AddRedSealToSelectedCard => write!(f, "AddRedSealToSelectedCard"),
+            Self::AddPolychromeToRandomJokerDestroyOthers => {
+                write!(f, "AddPolychromeToRandomJokerDestroyOthers")
+            }
+            Self::AddBlueSealToSelectedCard => write!(f, "AddBlueSealToSelectedCard"),
+            Self::AddPurpleSealToSelectedCard => write!(f, "AddPurpleSealToSelectedCard"),
+            Self::CreateCopiesOfSelectedCard(n) => write!(f, "CreateCopiesOfSelectedCard({n})"),
+            Self::CreateLegendaryJoker => write!(f, "CreateLegendaryJoker"),
+            Self::UpgradeAllPokerHands => write!(f, "UpgradeAllPokerHands"),
         }
     }
 }
@@ -461,6 +601,24 @@ mod funky__types__mpips_tests {
             MPip::UpgradeHandOnDiscard,
             MPip::DisableBossBlind,
             MPip::CreateNegativeCopyOfConsumable,
+            MPip::DestroyAndAddEnhancedFaceCards(2, 3),
+            MPip::DestroyAndAddEnhancedAces(2, 2),
+            MPip::DestroyAndAddEnhancedNumbered(2, 4),
+            MPip::AddGoldSealToRandomCard,
+            MPip::AddEditionToSelectedJoker,
+            MPip::CreateRareJokerSetMoneyZero,
+            MPip::ConvertHandToRandomSuit,
+            MPip::ConvertHandToRandomRankReduceHandSize,
+            MPip::AddNegativeToRandomJokerReduceSlots,
+            MPip::DestroyRandomCardsGainCash(5, 20),
+            MPip::CopyRandomJokerDestroyOthers,
+            MPip::AddRedSealToSelectedCard,
+            MPip::AddPolychromeToRandomJokerDestroyOthers,
+            MPip::AddBlueSealToSelectedCard,
+            MPip::AddPurpleSealToSelectedCard,
+            MPip::CreateCopiesOfSelectedCard(2),
+            MPip::CreateLegendaryJoker,
+            MPip::UpgradeAllPokerHands,
         ];
         for mpip in cases {
             // Display must not panic and must produce a non-empty string

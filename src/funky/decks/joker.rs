@@ -3,7 +3,7 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 28;
+    pub const COMMON_JOKERS_SIZE: usize = 61;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::JOKER,
@@ -28,12 +28,45 @@ impl Joker {
         card::MISPRINT,
         card::RAISED_FIST,
         card::CHAOS_THE_CLOWN,
-        card::WALKIE_TALKIE,   // 101
-        card::SMILEY_FACE,     // 104
-        card::GOLDEN_TICKET,   // 106
-        card::SWASHBUCKLER,    // 110
-        card::HANGING_CHAD,    // 115
-        card::SHOOT_THE_MOON,  // 140
+        card::ABSTRACT_JOKER,
+        card::BLUE_JOKER,
+        card::BUSINESS_CARD,
+        card::CAVENDISH,
+        card::CLOUD_9,
+        card::DELAYED_GRATIFICATION,
+        card::DRUNKARD,
+        card::EGG,
+        card::EVEN_STEVEN,
+        card::FACELESS_JOKER,
+        card::FORTUNE_TELLER,
+        card::GOLDEN_JOKER,
+        card::GREEN_JOKER,
+        card::GROS_MICHEL,
+        card::HALLUCINATION,
+        card::ICE_CREAM,
+        card::JUGGLER,
+        card::MAIL_IN_REBATE,
+        card::ODD_TODD,
+        card::POPCORN,
+        card::RED_CARD,
+        card::RESERVED_PARKING,
+        card::RIDE_THE_BUS,
+        card::RIFF_RAFF,
+        card::RUNNER,
+        card::SCARY_FACE,
+        card::SCHOLAR,
+        card::SPLASH,
+        card::SQUARE_JOKER,
+        card::SUPERNOVA,
+        card::SUPERPOSITION,
+        card::TO_DO_LIST,
+        card::TRADING_CARD,
+        card::WALKIE_TALKIE,  // 101
+        card::SMILEY_FACE,    // 104
+        card::GOLDEN_TICKET,  // 106
+        card::SWASHBUCKLER,   // 110
+        card::HANGING_CHAD,   // 115
+        card::SHOOT_THE_MOON, // 140
     ];
 
     pub const UNCOMMON_JOKERS_SIZE: usize = 60;
@@ -705,8 +738,8 @@ pub mod card {
         rank: Pip {
             weight: 870,
             pip_type: PipType::Joker,
-            index: '▤',
-            symbol: '▤',
+            index: '∆',
+            symbol: '∆',
             value: 5,
         },
         card_type: BCardType::CommonJoker,
@@ -808,8 +841,8 @@ pub mod card {
         rank: Pip {
             weight: 905,
             pip_type: PipType::Joker,
-            index: '∞',
-            symbol: '∞',
+            index: '∅',
+            symbol: '∅',
             value: 6,
         },
         card_type: BCardType::CommonJoker,
@@ -990,8 +1023,8 @@ pub mod card {
         rank: Pip {
             weight: 840,
             pip_type: PipType::Joker,
-            index: '∫',
-            symbol: '∫',
+            index: '∇',
+            symbol: '∇',
             value: 5,
         },
         card_type: BCardType::CommonJoker,
