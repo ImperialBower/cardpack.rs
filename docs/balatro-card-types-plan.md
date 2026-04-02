@@ -101,6 +101,61 @@ Balatro has **32 vouchers** — 16 base vouchers plus 16 upgraded versions (each
 
 ---
 
+---
+
+## Step 7 — Implement `Decked` trait for Funky deck types
+
+`src/funky/decks/` + `src/funky/types/`
+
+The `basic` module exposes a `Decked<DeckType>` / `DeckedBase` trait pair that gives any deck type a uniform interface: `deck()`, `decks(n)`, `validate()`, `demo()`, etc., backed by `Pile<DeckType>`. The funky module has parallel deck structs (`Deck`, `MajorArcana`, `Planet`, `Joker`, `Spectral`, `Voucher`) but none of them implement these traits — each exposes ad-hoc methods like `basic_buffoon_pile()` / `pile_common()` / `pile_rare()` with no shared contract.
+
+### Design decision: adapt vs. new trait
+
+`DeckedBase` requires `base_vec() -> Vec<BasicCard>`, which is bridgeable because every `BuffoonCard` already exposes `.basic_card() -> BasicCard`. The harder constraint is that `Decked<DeckType>` requires `DeckType: Copy + Default + Ord + Hash`, and the funky deck structs currently satisfy none of those bounds. Two approaches:
+
+**Option A — Fit the existing trait**
+- Derive `Copy, Default, Ord, Hash` on `Deck`, `MajorArcana`, `Planet`, `Joker`, `Spectral`, `Voucher`
+- Implement `DeckedBase` on each (providing `base_vec()` by calling `.basic_card()` on every `BuffoonCard` constant)
+- Add a blanket `impl Decked<Self>` for each — same single line as `impl Decked<Self> for Standard52 {}`
+- Gain `Pile<Deck>`, `Pile<Planet>`, etc. and the full `Decked` API "for free"
+- **Downside:** `Pile<DeckType>` holds `Card<DeckType>`, not `BuffoonCard`, so you lose `MPip`, `BCardType`, and all funky metadata unless you add a separate conversion step
+
+**Option B — New `FunkyDecked` trait**
+- Define a `FunkyDecked` trait in `src/funky/types/` (or `src/funky/decks/mod.rs`) mirroring `Decked` but over `BuffoonCard` / `BuffoonPile`
+- Core method: `fn buffoon_pile() -> BuffoonPile`; optional: `fn validate() -> bool`, `fn deck_name() -> &'static str`
+- Implement on each funky deck struct
+- **Upside:** preserves full `BuffoonCard` fidelity (MPip, BCardType, weight, etc.); each struct already has the raw arrays needed
+- **Downside:** duplicates some infrastructure already in `Decked`
+
+**Recommended: Option B**, because the funky decks' primary value is the `MPip`/`BCardType` metadata, which `Pile<DeckType>`/`BasicCard` would silently discard.
+
+### Tasks
+
+- Define `FunkyDecked` trait in `src/funky/types/mod.rs` (or a new `src/funky/types/traits.rs`):
+  ```rust
+  pub trait FunkyDecked {
+      fn buffoon_pile() -> BuffoonPile;
+      fn deck_name() -> &'static str;
+      fn validate() -> bool { ... } // default impl: round-trip via Display/FromStr
+  }
+  ```
+- Implement `FunkyDecked` for:
+  - `funky::decks::basic::Deck` (52 basic cards)
+  - `funky::decks::tarot::MajorArcana` (22 tarots)
+  - `funky::decks::planet::Planet` (9 planets; `SECRET_DECK` handled separately)
+  - `funky::decks::joker::Joker` — decide whether `buffoon_pile()` returns all jokers combined or only common; consider `pile_by_rarity()` returning a struct or tuple
+  - `funky::decks::spectral::Spectral` (18 spectrals)
+  - `funky::decks::voucher::Voucher` (32 vouchers)
+- Add `pub use` for `FunkyDecked` to `src/funky/mod.rs` and `src/preludes/funky.rs`
+- Add tests: for each impl assert `buffoon_pile().len() == DECK_SIZE` and that `deck_name()` returns a non-empty string
+
+### Open questions
+
+- Should `FunkyDecked::buffoon_pile()` for `Joker` return all ~105 jokers combined, or only common? Probably the combined pile is most useful; rarity-specific access stays on the `Joker` struct directly.
+- Is `validate()` meaningful for funky cards? Round-tripping through `Display`/`FromStr` is only possible if those are already implemented on `BuffoonCard`. Check before adding the default impl.
+
+---
+
 ## Execution Order (all completed ✅)
 
 ```
