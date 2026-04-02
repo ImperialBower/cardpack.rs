@@ -3,7 +3,7 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 22;
+    pub const COMMON_JOKERS_SIZE: usize = 28;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::JOKER,
@@ -28,9 +28,15 @@ impl Joker {
         card::MISPRINT,
         card::RAISED_FIST,
         card::CHAOS_THE_CLOWN,
+        card::WALKIE_TALKIE,   // 101
+        card::SMILEY_FACE,     // 104
+        card::GOLDEN_TICKET,   // 106
+        card::SWASHBUCKLER,    // 110
+        card::HANGING_CHAD,    // 115
+        card::SHOOT_THE_MOON,  // 140
     ];
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 35;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 60;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -68,16 +74,65 @@ impl Joker {
         card::FLASH_CARD,
         card::SPARE_TROUSERS,
         card::RAMEN,
+        card::SELTZER,         // 102
+        card::CASTLE,          // 103
+        card::MR_BONES,        // 107
+        card::ACROBAT,         // 108
+        card::SOCK_AND_BUSKIN, // 109
+        card::TROUBADOUR,      // 111
+        card::CERTIFICATE,     // 112
+        card::SMEARED_JOKER,   // 113
+        card::THROWBACK,       // 114
+        card::ROUGH_GEM,       // 116
+        card::BLOODSTONE,      // 117
+        card::ARROWHEAD,       // 118
+        card::ONYX_AGATE,      // 119
+        card::GLASS_JOKER,     // 120
+        card::SHOWMAN,         // 121
+        card::FLOWER_POT,      // 122
+        card::MERRY_ANDY,      // 125
+        card::OOPS_ALL_6S,     // 126
+        card::THE_IDOL,        // 127
+        card::SEEING_DOUBLE,   // 128
+        card::MATADOR,         // 129
+        card::SATELLITE,       // 139
+        card::CARTOMANCER,     // 142
+        card::ASTRONOMER,      // 143
+        card::BOOTSTRAPS,      // 145
     ];
 
-    pub const RARE_JOKERS_SIZE: usize = 4;
+    pub const RARE_JOKERS_SIZE: usize = 18;
 
-    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] =
-        [card::DNA, card::HOLOGRAM, card::BARON, card::ANCIENT_JOKER];
+    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
+        card::DNA,
+        card::HOLOGRAM,
+        card::BARON,
+        card::ANCIENT_JOKER,
+        card::CAMPFIRE,        // 105
+        card::BLUEPRINT,       // 123
+        card::WEE_JOKER,       // 124
+        card::HIT_THE_ROAD,    // 130
+        card::THE_DUO,         // 131
+        card::THE_TRIO,        // 132
+        card::THE_FAMILY,      // 133
+        card::THE_ORDER,       // 134
+        card::THE_TRIBE,       // 135
+        card::STUNTMAN,        // 136
+        card::INVISIBLE_JOKER, // 137
+        card::BRAINSTORM,      // 138
+        card::DRIVERS_LICENSE, // 141
+        card::BURNT_JOKER,     // 144
+    ];
 
-    pub const LEGENDARY_JOKERS_SIZE: usize = 0;
+    pub const LEGENDARY_JOKERS_SIZE: usize = 5;
 
-    pub const LEGENDARY_JOKERS: [BuffoonCard; Self::LEGENDARY_JOKERS_SIZE] = [];
+    pub const LEGENDARY_JOKERS: [BuffoonCard; Self::LEGENDARY_JOKERS_SIZE] = [
+        card::CANIO,     // 146
+        card::TRIBOULET, // 147
+        card::YORICK,    // 148
+        card::CHICOT,    // 149
+        card::PERKEO,    // 150
+    ];
 
     #[must_use]
     pub fn pile_common() -> BuffoonPile {
@@ -102,6 +157,7 @@ impl Joker {
 
 pub mod card {
     use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
+    use crate::funky::types::hands::HandType;
     use crate::funky::types::mpip::MPip;
     use crate::prelude::{FrenchSuit, Pip, PipType};
 
@@ -1436,14 +1492,700 @@ pub mod card {
     pub const WALKIE_TALKIE: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 800,
+            weight: 660,
             pip_type: PipType::Joker,
             index: '📻',
             symbol: '📻',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::ChipsMultPlusOn2Ranks(10, 4, ['T', '4']),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const SELTZER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 655,
+            pip_type: PipType::Joker,
+            index: '≏',
+            symbol: '≏',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerAllPlayedCardsForNHands(10),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const CASTLE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 650,
+            pip_type: PipType::Joker,
+            index: '≐',
+            symbol: '≐',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::GainChipsOnDiscardedSuit(0),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SMILEY_FACE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 645,
+            pip_type: PipType::Joker,
+            index: '≑',
+            symbol: '≑',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::MultPlusOnFaceCard(5),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const CAMPFIRE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 640,
+            pip_type: PipType::Joker,
+            index: '≒',
+            symbol: '≒',
+            value: 9,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::GainMultTimesOnCardSold(0),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const GOLDEN_TICKET: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 635,
+            pip_type: PipType::Joker,
+            index: '≓',
+            symbol: '≓',
             value: 5,
         },
         card_type: BCardType::CommonJoker,
+        enhancement: MPip::CashOnGoldCard(4),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const MR_BONES: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 630,
+            pip_type: PipType::Joker,
+            index: '≔',
+            symbol: '≔',
+            value: 5,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::PreventDeathAtPercent(25),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const ACROBAT: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 625,
+            pip_type: PipType::Joker,
+            index: '≕',
+            symbol: '≕',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultTimesOnFinalHand(3),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SOCK_AND_BUSKIN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 620,
+            pip_type: PipType::Joker,
+            index: '≖',
+            symbol: '≖',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerFaceCards,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SWASHBUCKLER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 615,
+            pip_type: PipType::Joker,
+            index: '≗',
+            symbol: '≗',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::MultPlusFromOtherJokerSellValues,
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const TROUBADOUR: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 610,
+            pip_type: PipType::Joker,
+            index: '≘',
+            symbol: '≘',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const CERTIFICATE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 605,
+            pip_type: PipType::Joker,
+            index: '≙',
+            symbol: '≙',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::AddRandomSealedCardOnRoundStart,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SMEARED_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 600,
+            pip_type: PipType::Joker,
+            index: '≚',
+            symbol: '≚',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::SmearedSuits,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const THROWBACK: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 595,
+            pip_type: PipType::Joker,
+            index: '≛',
+            symbol: '≛',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultTimesPerBlindSkipped(0),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 590,
+            pip_type: PipType::Joker,
+            index: '≜',
+            symbol: '≜',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::RetriggerFirstScoringCard(2),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const ROUGH_GEM: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 585,
+            pip_type: PipType::Joker,
+            index: '≝',
+            symbol: '≝',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::CashOnSuit(1, 'D'),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const BLOODSTONE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 580,
+            pip_type: PipType::Joker,
+            index: '≞',
+            symbol: '≞',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::OddsMultTimesOnSuit(1, 2, 'H'),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const ARROWHEAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 575,
+            pip_type: PipType::Joker,
+            index: '≟',
+            symbol: '≟',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::ChipsOnSuit(50, 'S'),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const ONYX_AGATE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 570,
+            pip_type: PipType::Joker,
+            index: '≠',
+            symbol: '≠',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultPlusOnSuit(7, 'C'),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const GLASS_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 565,
+            pip_type: PipType::Joker,
+            index: '≡',
+            symbol: '≡',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::GainMultTimesOnGlassDestroyed(0),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SHOWMAN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 560,
+            pip_type: PipType::Joker,
+            index: '≢',
+            symbol: '≢',
+            value: 5,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::AllowCardTypeDuplicates,
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const FLOWER_POT: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 555,
+            pip_type: PipType::Joker,
+            index: '≣',
+            symbol: '≣',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultTimesOnAllFourSuits(3),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const BLUEPRINT: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 550,
+            pip_type: PipType::Joker,
+            index: '≤',
+            symbol: '≤',
+            value: 10,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::CopyJokerToRight,
+        resell_value: 5,
+        debuffed: false,
+    };
+    pub const WEE_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 545,
+            pip_type: PipType::Joker,
+            index: '≥',
+            symbol: '≥',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::GainChipsOnRankScored(0, '2'),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const MERRY_ANDY: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 540,
+            pip_type: PipType::Joker,
+            index: '≦',
+            symbol: '≦',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::Blank,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const OOPS_ALL_6S: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 535,
+            pip_type: PipType::Joker,
+            index: '≧',
+            symbol: '≧',
+            value: 4,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::DoubleProbabilities,
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const THE_IDOL: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 530,
+            pip_type: PipType::Joker,
+            index: '≨',
+            symbol: '≨',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultTimesOnDynamicRankSuit(2),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SEEING_DOUBLE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 525,
+            pip_type: PipType::Joker,
+            index: '≩',
+            symbol: '≩',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultTimesOnClubPlusAnySuit(2),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const MATADOR: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 520,
+            pip_type: PipType::Joker,
+            index: '≪',
+            symbol: '≪',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::CashOnBossBlindTrigger(8),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const HIT_THE_ROAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 515,
+            pip_type: PipType::Joker,
+            index: '≫',
+            symbol: '≫',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::GainMultTimesOnRankDiscarded(0, 'J'),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const THE_DUO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 510,
+            pip_type: PipType::Joker,
+            index: '≬',
+            symbol: '≬',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnHand(2, HandType::Pair),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const THE_TRIO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 505,
+            pip_type: PipType::Joker,
+            index: '≭',
+            symbol: '≭',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnHand(3, HandType::ThreeOfAKind),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const THE_FAMILY: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 500,
+            pip_type: PipType::Joker,
+            index: '≮',
+            symbol: '≮',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnHand(4, HandType::FourOfAKind),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const THE_ORDER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 495,
+            pip_type: PipType::Joker,
+            index: '≯',
+            symbol: '≯',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnHand(3, HandType::Straight),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const THE_TRIBE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 490,
+            pip_type: PipType::Joker,
+            index: '≰',
+            symbol: '≰',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnHand(2, HandType::Flush),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const STUNTMAN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 485,
+            pip_type: PipType::Joker,
+            index: '≱',
+            symbol: '≱',
+            value: 7,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::Chips(250),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const INVISIBLE_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 480,
+            pip_type: PipType::Joker,
+            index: '≲',
+            symbol: '≲',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::DuplicateRandomJokerAfterRounds(2),
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const BRAINSTORM: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 475,
+            pip_type: PipType::Joker,
+            index: '≳',
+            symbol: '≳',
+            value: 10,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::CopyLeftmostJoker,
+        resell_value: 5,
+        debuffed: false,
+    };
+    pub const SATELLITE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 470,
+            pip_type: PipType::Joker,
+            index: '≴',
+            symbol: '≴',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::CashPerUniquePlanetUsed(1),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const SHOOT_THE_MOON: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 465,
+            pip_type: PipType::Joker,
+            index: '≵',
+            symbol: '≵',
+            value: 5,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::MultPlusOnRankInHand(13, 'Q'),
+        resell_value: 2,
+        debuffed: false,
+    };
+    pub const DRIVERS_LICENSE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 460,
+            pip_type: PipType::Joker,
+            index: '≶',
+            symbol: '≶',
+            value: 7,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnEnhancedCardCount(3, 16),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const CARTOMANCER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 455,
+            pip_type: PipType::Joker,
+            index: '≷',
+            symbol: '≷',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::AddCardTypeWhenBlindSelected(BCardType::Tarot),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const ASTRONOMER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 450,
+            pip_type: PipType::Joker,
+            index: '≸',
+            symbol: '≸',
+            value: 8,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::FreePlanetCards,
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const BURNT_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 445,
+            pip_type: PipType::Joker,
+            index: '≹',
+            symbol: '≹',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::UpgradeHandOnDiscard,
+        resell_value: 4,
+        debuffed: false,
+    };
+    pub const BOOTSTRAPS: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 440,
+            pip_type: PipType::Joker,
+            index: '≺',
+            symbol: '≺',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultPlusPerDollars(2, 5),
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const CANIO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 435,
+            pip_type: PipType::Joker,
+            index: '≻',
+            symbol: '≻',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::GainMultTimesOnFaceCardDestroyed(0),
+        resell_value: 0,
+        debuffed: false,
+    };
+    pub const TRIBOULET: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 430,
+            pip_type: PipType::Joker,
+            index: '≼',
+            symbol: '≼',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::MultTimesOnRoyalFaceCards(2),
+        resell_value: 0,
+        debuffed: false,
+    };
+    pub const YORICK: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 425,
+            pip_type: PipType::Joker,
+            index: '≽',
+            symbol: '≽',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::GainMultTimesEveryXDiscards(0, 23),
+        resell_value: 0,
+        debuffed: false,
+    };
+    pub const CHICOT: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 420,
+            pip_type: PipType::Joker,
+            index: '≾',
+            symbol: '≾',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::DisableBossBlind,
+        resell_value: 0,
+        debuffed: false,
+    };
+    pub const PERKEO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 415,
+            pip_type: PipType::Joker,
+            index: '≿',
+            symbol: '≿',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::CreateNegativeCopyOfConsumable,
         resell_value: 0,
         debuffed: false,
     };
@@ -1473,7 +2215,7 @@ mod funky__decks__joker_tests {
     #[test]
     fn legendary_jokers_size() {
         assert_eq!(Joker::LEGENDARY_JOKERS.len(), Joker::LEGENDARY_JOKERS_SIZE);
-        assert_eq!(Joker::LEGENDARY_JOKERS_SIZE, 0);
+        assert_eq!(Joker::LEGENDARY_JOKERS_SIZE, 5);
     }
 
     #[test]
@@ -1507,6 +2249,18 @@ mod funky__decks__joker_tests {
                 card.card_type,
                 BCardType::RareJoker,
                 "{:?} should be RareJoker",
+                card
+            );
+        }
+    }
+
+    #[test]
+    fn legendary_jokers_all_correct_type() {
+        for card in Joker::LEGENDARY_JOKERS {
+            assert_eq!(
+                card.card_type,
+                BCardType::LegendaryJoker,
+                "{:?} should be LegendaryJoker",
                 card
             );
         }
