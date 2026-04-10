@@ -372,15 +372,7 @@ pub trait Ranged {
         let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
 
         for card in &self.my_basic_pile() {
-            let suit = card.suit;
-
-            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(suit) {
-                let pile = BasicPile::from(vec![*card]);
-                e.insert(pile);
-            } else {
-                let pile = mappy.get_mut(&suit).unwrap();
-                pile.push(*card);
-            }
+            mappy.entry(card.suit).or_default().push(*card);
         }
 
         mappy

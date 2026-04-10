@@ -67,7 +67,10 @@ impl FromStr for BCardType {
         if s.len() != 1 {
             return Err(CardError::InvalidIndex(s.to_string()));
         }
-        Ok(s.chars().next().unwrap().into())
+        s.chars()
+            .next()
+            .ok_or_else(|| CardError::InvalidIndex(s.to_string()))
+            .map(Into::into)
     }
 }
 
