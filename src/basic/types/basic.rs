@@ -4,7 +4,26 @@ use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 
-//  Ord, PartialOrd
+/// A [`BasicPile`] wrapped in a [`Cell`] to allow interior mutability through shared references.
+///
+/// Most `Pile` operations need `&mut self`, which is fine for owned values but prevents holding
+/// the pile behind a shared reference. `BasicPileCell` solves this by wrapping `BasicPile` in
+/// `Cell<T>`, letting callers use `&self` methods everywhere.
+///
+/// ## Why `Cell` and not `RefCell`?
+///
+/// `RefCell` adds runtime borrow-checking overhead. `Cell` is zero-cost but only provides
+/// [`Cell::get`] for `Copy` types — and `BasicPile` (which contains a `Vec`) is not `Copy`.
+/// Instead every method uses the **take → mutate → set** pattern:
+///
+/// ```ignore
+/// let mut inner = self.0.take();  // moves the pile out, leaving Default in place
+/// // ... operate on inner ...
+/// self.0.set(inner);             // move it back
+/// ```
+///
+/// This is safe because `Cell` is `!Sync`, so only one thread can ever hold the `BasicPileCell`,
+/// and the window between `take` and `set` is never observable from outside.
 #[derive(Default)]
 pub struct BasicPileCell(Cell<BasicPile>);
 

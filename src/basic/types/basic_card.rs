@@ -105,7 +105,6 @@ impl CKCRevised for BasicCard {
         self.ckc_rank_bits() | self.ckc_rank_shift8() | self.ckc_get_prime()
     }
 
-    // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out altogether?
     fn ckc_suit_number(&self) -> usize {
         if self.suit.pip_type == PipType::Joker {
             return 0;

@@ -68,16 +68,12 @@ impl Combos {
     /// The main lesson I've gotten from all that is to strive to learn the basic idiomatic ways
     /// to work within a language.
     ///
-    /// TODO: RF - This code is ugly AF.
     #[must_use]
     pub fn connectors(&self) -> Self {
         self.iter()
             .filter(|pile| pile.is_connector())
-            .cloned()
-            .collect::<Self>()
-            .iter()
             .map(|pile| pile.clone().sorted_by_rank())
-            .collect::<Self>()
+            .collect()
     }
 
     /// I love how the `CoPilot` version recommends functions that don't exist instead of
