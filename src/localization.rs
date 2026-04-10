@@ -22,7 +22,9 @@ static_loader! {
 /// [`BasicCard`](crate::basic::types::basic_card::BasicCard) struct. The only one that is
 /// still actively used is the `name` attribute, which is called with the `Named.long()` method.
 ///
-/// TODO: RF is it time to remove fluent templates all together?
+/// Fluent templates are intentionally kept as the localization mechanism to support i18n beyond
+/// English and German. Adding a new locale requires only a new `.ftl` file under
+/// `src/localization/locales/`.
 ///
 /// The types of `Named` attributes are
 ///

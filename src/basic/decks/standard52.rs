@@ -3,7 +3,7 @@ use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Pile};
+use crate::prelude::{BasicPileCell, Card, Pile};
 use colored::Color;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -72,6 +72,11 @@ impl Standard52 {
         FrenchBasicCard::TREY_CLUBS,
         FrenchBasicCard::DEUCE_CLUBS,
     ];
+
+    #[must_use]
+    pub fn deck_cell() -> BasicPileCell {
+        Pile::<Self>::basic_pile_cell()
+    }
 }
 
 impl DeckedBase for Standard52 {

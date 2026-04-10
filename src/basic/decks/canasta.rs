@@ -169,7 +169,7 @@ mod basic__decks__canasta_tests {
 
     #[test]
     pub fn ranks_index() {
-        let pile = Canasta::deck().shuffled();
+        let pile = Canasta::deck();
         let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
         let ranks_index = pile.ranks_index("~");
@@ -177,16 +177,18 @@ mod basic__decks__canasta_tests {
         assert_eq!(ranks_index, expected);
     }
 
-    /// TODO: WTF??!!
-    /// TODO: WTF do I mean by WTF??? Don't do this.
+    /// `suits_index` deduplicates and sorts by `Pip` weight, so the result is deterministic
+    /// regardless of card order. Canasta has 11 distinct suit `Pip` objects (7 canasta-specific
+    /// + 4 French), some sharing an index character (e.g. two different 'H' pips with different
+    /// weights), which is why the output contains apparent duplicates.
     #[test]
     pub fn suits_index() {
-        let pile = Canasta::deck().shuffled();
+        let pile = Canasta::deck();
         let expected = "H~D~J~S~H~D~C~S~H~D~C";
 
-        let ranks_index = pile.suits_index("~");
+        let suits_index = pile.suits_index("~");
 
-        assert_eq!(ranks_index, expected);
+        assert_eq!(suits_index, expected);
     }
 
     #[test]

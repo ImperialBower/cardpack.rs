@@ -2,11 +2,12 @@ use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
 use rand::prelude::SliceRandom;
 use rand::rng;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Display;
 use std::hash::Hash;
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BasicPile(Vec<BasicCard>);
 
 impl BasicPile {
@@ -16,7 +17,7 @@ impl BasicPile {
         &self.0
     }
 
-    /// Returns n number of [`BasicCards`](crate::basic::types::basic_card::BasicCard) from the
+    /// Returns n number of [`BasicCards`](BasicCard) from the
     /// beginning of the `BasicPile`. If there are not enough cards in the `BasicPile` to satisfy
     /// the request, `None` is returned.
     ///
@@ -29,22 +30,22 @@ impl BasicPile {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let mut pile = Pinochle::deck();
+    /// let mut pile = Pinochle::deck().into_basic_pile();
     /// let hand = pile.draw(5).unwrap();
     ///
     /// assert_eq!(hand.to_string(), "A♠ A♠ T♠ T♠ K♠");
     /// ```
     #[must_use]
     pub fn draw(&mut self, n: usize) -> Option<Self> {
-        let mut pile = Self::default();
-        for _ in 0..n {
-            if let Some(card) = self.pop() {
-                pile.push(card);
-            } else {
-                return None;
-            }
+        if n > self.len() {
+            return None;
         }
-        Some(pile)
+
+        let mut cards = Self::default();
+        for _ in 0..n {
+            cards.push(self.draw_first()?);
+        }
+        Some(cards)
     }
 
     /// This is very much suboptimal, but I don't have an easy way to

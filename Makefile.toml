@@ -1,0 +1,44 @@
+[tasks.build]
+command = "cargo"
+args = ["build"]
+dependencies = ["clean"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.clippy]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["clippy"]
+
+[tasks.fmt]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = ["clean"]
+
+[tasks.create_docs]
+command = "cargo"
+args = ["doc", "--no-deps"]
+
+[tasks.docs]
+command = "open"
+args = ["./target/doc/cardpack.rs/index.html"]
+
+[tasks.ayce]
+dependencies = [
+    "fmt",
+    "build",
+    "test",
+    "clippy",
+    "create_docs"
+]
+
+# ayce = All You Can Eat
+[tasks.default]
+alias = "ayce"

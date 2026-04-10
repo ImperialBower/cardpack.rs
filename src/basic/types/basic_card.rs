@@ -63,7 +63,7 @@ impl BasicCard {
     ///
     /// Throws an error for an invalid path or invalid data.
     pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
-        let cards: Vec<Self> = serde_yml::from_str(yaml_str)?;
+        let cards: Vec<Self> = serde_norway::from_str(yaml_str)?;
 
         Ok(cards)
     }
@@ -105,7 +105,6 @@ impl CKCRevised for BasicCard {
         self.ckc_rank_bits() | self.ckc_rank_shift8() | self.ckc_get_prime()
     }
 
-    // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out altogether?
     fn ckc_suit_number(&self) -> usize {
         if self.suit.pip_type == PipType::Joker {
             return 0;

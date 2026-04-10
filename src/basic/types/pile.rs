@@ -7,6 +7,7 @@ use crate::prelude::{BasicPile, Decked};
 use colored::Color;
 use rand::seq::SliceRandom;
 use rand::{Rng, rng};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use std::hash::Hash;
@@ -36,27 +37,18 @@ use std::vec::IntoIter;
 /// assert_eq!(hand.to_string(), "A♦ K♦ Q♦ J♦ T♦");
 /// ```
 ///
-/// TODO: fixme
-/// ```txt
+/// ```
 /// use cardpack::prelude::*;
-/// let mut deck: Pile<Standard52> = Standard52::deck();
 ///
-/// assert_eq!(deck(" "), "A K Q J T 9 8 7 6 5 4 3 2");
-/// assert_eq!(deck.suit_symbol_index(), "♠ ♥ ♦ ♣");
-/// assert_eq!(deck.suit_index(), "S H D C");
-/// assert_eq!(deck.draw(5).to_string(), "A♠ K♠ Q♠ J♠ T♠");
+/// let mut deck = Standard52::deck();
+///
+/// assert_eq!(deck.ranks_index(" "), "A K Q J T 9 8 7 6 5 4 3 2");
+/// assert_eq!(deck.suit_symbol_index(" "), "♠ ♥ ♦ ♣");
+/// assert_eq!(deck.suits_index(" "), "S H D C");
+/// assert_eq!(deck.draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 /// assert_eq!(deck.len(), 47);
 /// ```
-///
-/// ```txt
-/// use cardpack::rev1_prelude::{Decked, Modern, Pile};
-/// let modern_deck: Pile<Modern, Modern> = Modern::deck();
-///
-/// assert_eq!(modern_deck.rank_index(""), "BLAKQJT98765432");
-/// assert_eq!(modern_deck.suit_symbol_index(), "🃟 ♠ ♥ ♦ ♣");
-/// assert_eq!(modern_deck.suit_index(), "J S H D C");
-/// ```
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct Pile<DeckType: DeckedBase>(Vec<Card<DeckType>>)
 where
     DeckType: Default + Ord + Copy + Hash;
@@ -362,6 +354,12 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         BasicPile::from(self)
     }
 
+    /// Returns the `Pile` as a `BasicPileCell`.
+    #[must_use]
+    pub fn basic_pile_cell() -> crate::basic::types::basic::BasicPileCell {
+        crate::basic::types::basic::BasicPileCell::new(Self::basic_pile())
+    }
+
     /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
     ///
     /// ```
@@ -498,7 +496,9 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     /// I am not seeing a need for this function.
     ///
-    /// TODO: delete me
+    #[deprecated(
+        note = "use `piles.iter().map(ToString::to_string).collect::<Vec<_>>().join(\", \")` directly"
+    )]
     #[must_use]
     pub fn piles_to_string(piles: &[Self]) -> String {
         piles
