@@ -1,4 +1,4 @@
-.PHONY: clean build test build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly tree tree-duplicates deny audit unused-deps install-tools watch install-watch
+.PHONY: clean build test test-unit test-doc build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants watch install-watch
 
 # Default target
 default: ayce
@@ -9,7 +9,9 @@ help:
 	@echo "  make (default)       - Run ayce"
 	@echo "  make build           - Build the project"
 	@echo "  make clean           - Clean build artifacts"
-	@echo "  make test            - Run tests"
+	@echo "  make test            - Run all tests (nextest for unit, cargo test for doc)"
+	@echo "  make test-unit       - Run unit tests via cargo-nextest"
+	@echo "  make test-doc        - Run doc tests via cargo test --doc"
 	@echo "  make build_test      - Clean once, then build and test"
 	@echo "  make fmt             - Format code"
 	@echo "  make clippy          - Run clippy linter"
@@ -22,6 +24,8 @@ help:
 	@echo "  make test-nightly    - Run all tests with nightly"
 	@echo "  make clippy-nightly  - Run clippy with nightly and deny warnings"
 	@echo "  make nightly         - Run nightly test and clippy checks"
+	@echo "  make miri            - Run tests under Miri"
+	@echo "  make mutants         - Run mutation tests via cargo-mutants"
 	@echo "  make unused-deps     - Find unused dependencies with cargo-udeps"
 	@echo ""
 	@echo "Dependencies and Security:"
@@ -31,7 +35,9 @@ help:
 	@echo "  make audit           - Run advisory-only security audit"
 	@echo ""
 	@echo "Tools and Workflow:"
-	@echo "  make install-tools   - Install cargo-deny and cargo-udeps"
+	@echo "  make install-tools   - Install cargo-deny, cargo-udeps, cargo-nextest, and cargo-mutants"
+	@echo "  make install-nextest - Install cargo-nextest"
+	@echo "  make install-mutants - Install cargo-mutants"
 	@echo "  make watch           - Run cargo-watch for check/test loop"
 	@echo "  make install-watch   - Install cargo-watch"
 	@echo ""
@@ -44,9 +50,52 @@ clean:
 build:
 	cargo build
 
-# Run tests
-test:
-	cargo test
+# Check for cargo-nextest, prompt to install if missing
+define check_nextest
+	@if ! cargo nextest --version >/dev/null 2>&1; then \
+		echo "cargo-nextest is not installed."; \
+		printf "Install it now? [y/N] "; \
+		read answer; \
+		if [ "$$answer" = "y" ] || [ "$$answer" = "Y" ]; then \
+			cargo install cargo-nextest --locked; \
+		else \
+			echo "Aborting: cargo-nextest is required for unit tests."; \
+			exit 1; \
+		fi; \
+	fi
+endef
+
+# Run unit tests via nextest
+test-unit:
+	$(check_nextest)
+	cargo nextest run
+
+# Run doc tests
+test-doc:
+	cargo test --doc
+
+# Run all tests: unit tests via nextest, doc tests via cargo test
+test: test-unit test-doc
+
+# Check for cargo-mutants, prompt to install if missing
+define check_mutants
+	@if ! cargo mutants --version >/dev/null 2>&1; then \
+		echo "cargo-mutants is not installed."; \
+		printf "Install it now? [y/N] "; \
+		read answer; \
+		if [ "$$answer" = "y" ] || [ "$$answer" = "Y" ]; then \
+			cargo install cargo-mutants; \
+		else \
+			echo "Aborting: cargo-mutants is required for mutation testing."; \
+			exit 1; \
+		fi; \
+	fi
+endef
+
+# Run mutation tests
+mutants:
+	$(check_mutants)
+	cargo mutants
 
 # Clean once, then run build + test
 build_test: clean build test
@@ -66,6 +115,10 @@ clippy-nightly:
 	cargo +nightly clippy --lib --all-features -- -D warnings
 
 nightly: test-nightly clippy-nightly
+
+# Run tests under Miri
+miri:
+	cargo miri test
 
 # Show dependency tree
 tree:
@@ -112,13 +165,23 @@ docs: create_docs
 # All You Can Eat - Run all checks
 ayce: fmt build_test clippy create_docs
 
+# Install cargo-nextest
+install-nextest:
+	cargo install cargo-nextest --locked
+
+# Install cargo-mutants
+install-mutants:
+	cargo install cargo-mutants
+
 # Install required tools
 install-tools:
 	@echo "Installing development tools..."
 	cargo install cargo-deny
 	cargo install cargo-udeps
+	cargo install cargo-nextest --locked
+	cargo install cargo-mutants
 	@echo ""
-	@echo "✓ Tools installed!"
+	@echo "Tools installed!"
 	@echo ""
 
 # Watch mode for development (requires cargo-watch)

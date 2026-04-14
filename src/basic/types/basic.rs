@@ -353,4 +353,113 @@ mod basic__types__basic_tests {
         let pile = basic_cell!("AS KS QS JS TS");
         assert_eq!(Standard52::deck_cell().draw(5).unwrap(), pile);
     }
+
+    #[test]
+    fn draw_first__empty() {
+        let cell = BasicPileCell::default();
+        assert!(cell.draw_first().is_none());
+    }
+
+    #[test]
+    fn draw_first__non_empty() {
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        let card = cell.draw_first();
+        assert!(card.is_some());
+        assert_eq!(cell.len(), Standard52::DECK_SIZE - 1);
+    }
+
+    #[test]
+    fn shuffle__preserves_length() {
+        let mut cell = Pile::<Standard52>::basic_pile_cell();
+        cell.shuffle();
+        assert_eq!(cell.len(), Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn shuffled__same_length() {
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        let shuffled = cell.shuffled();
+        assert_eq!(shuffled.len(), Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn contains__true_and_false() {
+        use crate::prelude::FrenchBasicCard;
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        assert!(cell.contains(&FrenchBasicCard::ACE_SPADES));
+        assert!(!cell.contains(&BasicCard::default()));
+    }
+
+    #[test]
+    fn extend__adds_cards() {
+        let mut cell = basic_cell!("AS KS");
+        let other = basic_cell!("QS JS");
+        cell.extend(&other);
+        assert_eq!(cell.len(), 4);
+    }
+
+    #[test]
+    fn len__correct() {
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        assert_eq!(cell.len(), Standard52::DECK_SIZE);
+        assert_ne!(cell.len(), 1);
+    }
+
+    #[test]
+    fn pop__some_and_none() {
+        let cell = basic_cell!("AS KS");
+        let card1 = cell.pop();
+        assert!(card1.is_some());
+        assert_ne!(card1, Some(BasicCard::default()));
+        cell.pop();
+        assert!(cell.pop().is_none());
+    }
+
+    #[test]
+    fn push__increases_len() {
+        use crate::prelude::FrenchBasicCard;
+        let cell = BasicPileCell::default();
+        cell.push(FrenchBasicCard::ACE_SPADES);
+        assert_eq!(cell.len(), 1);
+    }
+
+    #[test]
+    fn sort__reorders() {
+        let cell = basic_cell!("2S 8C 4S");
+        cell.sort();
+        // after sorting, pile is in order
+        assert_eq!(cell.to_string(), "4♠ 2♠ 8♣");
+    }
+
+    #[test]
+    fn clone__equals_original() {
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        let cloned = cell.clone();
+        assert_eq!(cell, cloned);
+        assert_ne!(cloned, BasicPileCell::default());
+    }
+
+    #[test]
+    fn from_vec__round_trips() {
+        use crate::prelude::FrenchBasicCard;
+        let cards = vec![FrenchBasicCard::ACE_SPADES, FrenchBasicCard::KING_SPADES];
+        let cell = BasicPileCell::from(cards);
+        assert_eq!(cell.len(), 2);
+        assert_ne!(cell, BasicPileCell::default());
+    }
+
+    #[test]
+    fn my_basic_pile__not_default() {
+        let cell = Pile::<Standard52>::basic_pile_cell();
+        let pile = cell.my_basic_pile();
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+        assert_ne!(pile, BasicPile::default());
+    }
+
+    #[test]
+    fn partial_cmp__returns_some() {
+        let cell_a = basic_cell!("AS KS");
+        let cell_b = basic_cell!("QS JS");
+        assert!(cell_a.partial_cmp(&cell_b).is_some());
+    }
 }

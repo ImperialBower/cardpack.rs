@@ -195,4 +195,22 @@ mod basic__decks__canasta_tests {
     fn decked__validate() {
         assert!(Canasta::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Canasta::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Canasta::deck_name(), "Canasta");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Canasta::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_CANASTA.to_string()
+        );
+    }
 }

@@ -110,6 +110,24 @@ mod basic__card__skat_tests {
     }
 
     #[test]
+    fn decked__colors() {
+        assert!(!Skat::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Skat::deck_name(), "Skat");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Skat::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_SKAT.to_string()
+        );
+    }
+
+    #[test]
     fn fluent__name() {
         let mut deck = Skat::deck();
         let dause_eichel = deck.draw_first().unwrap();

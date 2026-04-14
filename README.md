@@ -15,17 +15,13 @@ in order to make the code cleaner, and easier to extend.
 
 ## Setup
 
-This program uses [cargo make](https://github.com/sagiegurari/cargo-make) to manage tasks. Install it with:
+Build and run common tasks with [GNU make](https://www.gnu.org/software/make/):
 
 ```shell
-cargo install cargo-make
+make
 ```
 
-Then you can build the project with:
-
-```shell
-cargo make
-````
+Run `make help` to see all available targets.
 
 ## Usage
 

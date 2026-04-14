@@ -664,4 +664,68 @@ mod basic__types__pile_tests {
             "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
         );
     }
+
+    #[test]
+    fn draw__boundary_conditions() {
+        let mut pile = basic!("AS KS QS JS");
+
+        // Drawing more than available returns None (catches > -> == and > -> >= mutations)
+        assert!(pile.draw(5).is_none());
+        // Drawing exactly the pile length returns all cards
+        let drawn = pile.draw(4);
+        assert!(drawn.is_some());
+        assert_eq!(drawn.unwrap().len(), 4);
+        // Drawing from empty pile returns None
+        assert!(pile.draw(1).is_none());
+    }
+
+    #[test]
+    fn draw__zero_returns_empty() {
+        let mut pile = basic!("AS KS");
+        let drawn = pile.draw(0);
+        assert!(drawn.is_some());
+        assert_eq!(drawn.unwrap().len(), 0);
+        assert_eq!(pile.len(), 2); // pile unchanged
+    }
+
+    #[test]
+    fn draw_first__empty() {
+        let mut pile = BasicPile::default();
+        assert!(pile.draw_first().is_none());
+    }
+
+    #[test]
+    fn extend__adds_cards() {
+        let mut pile = basic!("AS KS");
+        let other = basic!("QS JS");
+        pile.extend(&other);
+        assert_eq!(pile.len(), 4);
+        assert_eq!(pile.to_string(), "A♠ K♠ Q♠ J♠");
+    }
+
+    #[test]
+    fn get__returns_correct() {
+        let pile = basic!("AS KS QS");
+        // get(0) returns the first card
+        assert!(pile.get(0).is_some());
+        // get out of bounds returns None
+        assert!(pile.get(100).is_none());
+    }
+
+    #[test]
+    fn is_empty__false_when_populated() {
+        let pile = basic!("AS KS");
+        assert!(!pile.is_empty());
+    }
+
+    #[test]
+    fn pop__removes_last() {
+        let mut pile = basic!("AS KS");
+        let popped = pile.pop();
+        assert!(popped.is_some());
+        assert_eq!(pile.len(), 1);
+        // pop from empty returns None
+        let mut empty = BasicPile::default();
+        assert!(empty.pop().is_none());
+    }
 }

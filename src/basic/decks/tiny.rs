@@ -102,4 +102,22 @@ mod basic__card__tiny__tests {
     fn validate() {
         assert!(Tiny::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Tiny::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Tiny::deck_name(), "Tiny");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Tiny::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
+    }
 }

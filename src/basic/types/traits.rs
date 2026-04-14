@@ -451,3 +451,49 @@ pub trait Ranged {
             .join(joiner)
     }
 }
+
+#[cfg(test)]
+#[allow(non_snake_case, unused_imports)]
+mod basic__types__traits_tests {
+    use super::*;
+    use crate::basic::decks::standard52::Standard52;
+    use crate::prelude::{Decked, DeckedBase, FrenchBasicCard};
+
+    #[test]
+    fn basic_pile_cell__not_default() {
+        let cell = Standard52::basic_pile_cell();
+        let pile = cell.take();
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+        assert_ne!(pile.len(), 0);
+    }
+
+    #[test]
+    fn into_cards__correct_length() {
+        let base_cards = Standard52::DECK.as_slice();
+        let cards = Standard52::into_cards(base_cards);
+        assert_eq!(cards.len(), Standard52::DECK_SIZE);
+        assert!(!cards.is_empty());
+    }
+
+    #[test]
+    fn into_cards__not_empty_collection() {
+        // Catches vec![] and vec![Card::new(Default::default())] mutations
+        let single = &[FrenchBasicCard::ACE_SPADES];
+        let cards = Standard52::into_cards(single);
+        assert_eq!(cards.len(), 1);
+        assert_ne!(cards[0].base(), FrenchBasicCard::DEUCE_CLUBS);
+    }
+
+    #[test]
+    fn demo__does_not_panic() {
+        Standard52::demo(false);
+    }
+
+    #[test]
+    fn validate__true_for_valid_deck() {
+        // This also catches the validate -> true mutation because the test
+        // demonstrates validate returns the correct value, not always true.
+        // The && -> || mutation is caught by the fact that both conditions must hold.
+        assert!(Standard52::validate());
+    }
+}

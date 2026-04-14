@@ -129,4 +129,22 @@ mod basic__card__spades_tests {
     fn decked__validate() {
         assert!(Spades::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Spades::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Spades::deck_name(), "Spades");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Spades::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
+    }
 }

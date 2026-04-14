@@ -103,4 +103,22 @@ mod basic__card__short_tests {
     fn decked__validate() {
         assert!(Short::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Short::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Short::deck_name(), "Short");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Short::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
+    }
 }

@@ -139,4 +139,12 @@ mod basic__card__french__tests {
     fn decked__deck_name() {
         assert_eq!(Pile::<French>::deck_name(), "French");
     }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            French::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
+    }
 }

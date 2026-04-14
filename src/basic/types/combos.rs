@@ -365,4 +365,101 @@ mod basic__types__combos_tests {
             assert_eq!(pile, p);
         }
     }
+
+    #[test]
+    fn get__returns_correct_element() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        // get(0) returns Some with a real pile, not None or an empty default
+        let first = combos.get(0);
+        assert!(first.is_some());
+        assert!(!first.unwrap().is_empty());
+        // out-of-bounds returns None
+        assert!(combos.get(usize::MAX).is_none());
+    }
+
+    #[test]
+    fn is_empty__false_when_populated() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        assert!(!combos.is_empty());
+    }
+
+    #[test]
+    fn is_empty__true_when_empty() {
+        let combos = Combos::default();
+        assert!(combos.is_empty());
+    }
+
+    #[test]
+    fn pop__returns_some() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let popped = combos.pop();
+        assert!(popped.is_some());
+        assert_ne!(popped, Some(BasicPile::default()));
+    }
+
+    #[test]
+    fn sort__reorders() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let len_before = combos.len();
+        combos.sort();
+        assert_eq!(combos.len(), len_before);
+        // verify it's actually sorted — first element should compare <= last
+        let first = combos.get(0).unwrap().clone();
+        let last = combos.get(combos.len() - 1).unwrap().clone();
+        assert!(first <= last);
+    }
+
+    #[test]
+    fn sort_by__works() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let len_before = combos.len();
+        combos.sort_by(|a, b| a.len().cmp(&b.len()));
+        assert_eq!(combos.len(), len_before);
+    }
+
+    #[test]
+    fn v__not_empty() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        let v = combos.v();
+        assert!(!v.is_empty());
+        assert_ne!(v, &vec![BasicPile::default()]);
+    }
+
+    #[test]
+    fn from_ref_vec_basic_pile() {
+        let piles = vec![
+            Pile::<Standard52>::basic_pile(),
+            Pile::<Standard52>::basic_pile(),
+        ];
+        let combos = Combos::from(&piles);
+        assert_eq!(combos.len(), 2);
+        assert_ne!(combos, Combos::default());
+    }
+
+    #[test]
+    fn iterator__yields_all() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let expected_len = pile.combos(2).len();
+        let mut combos = pile.combos(2);
+        let mut count = 0;
+        while combos.next().is_some() {
+            count += 1;
+        }
+        assert_eq!(count, expected_len);
+    }
+
+    #[test]
+    fn into_iterator__for_ref() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        let expected_len = combos.len();
+        let count = (&combos).into_iter().count();
+        assert_eq!(count, expected_len);
+    }
 }

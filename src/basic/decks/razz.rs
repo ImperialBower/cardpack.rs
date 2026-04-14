@@ -68,4 +68,22 @@ mod basic__decks__razz_tests {
     fn decked__validate() {
         assert!(Pile::<Razz>::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Razz::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Razz::deck_name(), "Razz");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Razz::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
+    }
 }

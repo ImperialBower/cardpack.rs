@@ -168,4 +168,13 @@ mod basic__types__pips_tests {
         assert_eq!(pip.symbol, Pip::BLANK_INDEX);
         assert_eq!(pip.value, 0);
     }
+
+    #[test]
+    fn display() {
+        use crate::basic::decks::cards::french::FrenchSuit;
+        let pip = FrenchSuit::SPADES;
+        let s = format!("{pip}");
+        assert!(!s.is_empty());
+        assert_eq!(s, pip.symbol.to_string());
+    }
 }

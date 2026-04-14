@@ -388,4 +388,95 @@ mod fluent_tests {
         assert_eq!("S", FluentName::new("spades").index_default());
         assert_eq!("P", FluentName::new("pentacles").index_default());
     }
+
+    /// Test helper to exercise `Named::weighted_vector` — uses a minimal concrete implementation
+    /// of `Named` since `FluentName::new_with_weight` is unimplemented (todo!).
+    #[allow(dead_code)]
+    struct WeightedName {
+        name: FluentName,
+        weight: u32,
+    }
+
+    impl Named<'_> for WeightedName {
+        fn new_with_weight(name_str: &str, weight: u32) -> Self {
+            WeightedName {
+                name: FluentName::new(name_str),
+                weight,
+            }
+        }
+
+        fn fluent_name(&self) -> &FluentName {
+            &self.name
+        }
+
+        fn fluent_name_string(&self) -> &String {
+            self.name.fluent_name_string()
+        }
+
+        fn is_blank(&self) -> bool {
+            self.name.is_blank()
+        }
+    }
+
+    #[test]
+    fn named__weighted_vector__not_empty() {
+        let names = &["ace", "king", "queen", "jack"];
+        let result = WeightedName::weighted_vector(names);
+        assert!(!result.is_empty());
+        assert_eq!(result.len(), names.len());
+    }
+
+    #[test]
+    fn named__weighted_vector__weights_decrease() {
+        // Weights should go from high to low as we iterate through names
+        // This catches -= -> += and -= -> /= mutations
+        let names = &["ace", "king", "queen", "jack", "ten"];
+        let result = WeightedName::weighted_vector(names);
+        for i in 0..(result.len() - 1) {
+            assert!(
+                result[i].weight > result[i + 1].weight,
+                "Expected weight[{i}] ({}) > weight[{}] ({})",
+                result[i].weight,
+                i + 1,
+                result[i + 1].weight
+            );
+        }
+    }
+
+    #[test]
+    fn fluent_name__fmt__not_empty() {
+        let name = FluentName::new("spades");
+        let s = format!("{name}");
+        assert!(!s.is_empty());
+        assert_eq!(s, "spades");
+    }
+
+    #[test]
+    fn fluent_name__accessor__returns_self() {
+        let name = FluentName::new("hearts");
+        // fluent_name() on a FluentName should return itself
+        assert_eq!(name.fluent_name(), &name);
+    }
+
+    #[test]
+    fn is_alphanumeric_hyphen_dash__en_dash() {
+        // en-dash (–) should be valid; catches || -> && mutation at col 66
+        assert!(FluentName::is_alphanumeric_hyphen_dash(
+            "hello\u{2013}world"
+        ));
+    }
+
+    #[test]
+    fn is_alphanumeric_hyphen_dash__em_dash() {
+        // em-dash (—) should be valid; catches || -> && mutation at col 66
+        assert!(FluentName::is_alphanumeric_hyphen_dash(
+            "hello\u{2014}world"
+        ));
+    }
+
+    #[test]
+    fn is_alphanumeric_hyphen_dash__invalid() {
+        assert!(!FluentName::is_alphanumeric_hyphen_dash("not valid!"));
+        assert!(!FluentName::is_alphanumeric_hyphen_dash(" "));
+    }
 }
