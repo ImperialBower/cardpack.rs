@@ -104,4 +104,22 @@ mod basic__card__pinochle_tests {
     fn decked__validate() {
         assert!(Pinochle::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Pinochle::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Pinochle::deck_name(), "Pinochle");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Pinochle::fluent_deck_key(),
+            cards::pinochle::FLUENT_KEY_BASE_NAME_PINOCHLE.to_string()
+        );
+    }
 }

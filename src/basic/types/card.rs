@@ -495,4 +495,150 @@ mod basic__types__card_tests {
             );
         }
     }
+
+    // Helper: force colors on for testing color_string match arms
+    fn with_colors_enabled<F: FnOnce()>(f: F) {
+        colored::control::set_override(true);
+        f();
+        colored::control::unset_override();
+    }
+
+    // Minimal deck type factories for each Color variant used in color_string tests.
+    // Each creates a deck that maps FrenchSuit::HEARTS to the target color.
+    macro_rules! color_deck {
+        ($name:ident, $color:expr) => {
+            #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+            struct $name;
+            impl DeckedBase for $name {
+                fn base_vec() -> Vec<BasicCard> {
+                    vec![FrenchBasicCard::ACE_HEARTS]
+                }
+                fn colors() -> HashMap<Pip, colored::Color> {
+                    use crate::basic::decks::cards::french::FrenchSuit;
+                    let mut m = HashMap::new();
+                    m.insert(FrenchSuit::HEARTS, $color);
+                    m
+                }
+                fn deck_name() -> String {
+                    stringify!($name).to_string()
+                }
+                fn fluent_deck_key() -> String {
+                    "french".to_string()
+                }
+            }
+        };
+    }
+
+    color_deck!(RedDeck, colored::Color::Red);
+    color_deck!(BlueDeck, colored::Color::Blue);
+    color_deck!(GreenDeck, colored::Color::Green);
+    color_deck!(YellowDeck, colored::Color::Yellow);
+    color_deck!(MagentaDeck, colored::Color::Magenta);
+    color_deck!(CyanDeck, colored::Color::Cyan);
+    color_deck!(BrightBlackDeck, colored::Color::BrightBlack);
+    color_deck!(BrightRedDeck, colored::Color::BrightRed);
+    color_deck!(BrightGreenDeck, colored::Color::BrightGreen);
+    color_deck!(BrightYellowDeck, colored::Color::BrightYellow);
+    color_deck!(BrightBlueDeck, colored::Color::BrightBlue);
+    color_deck!(BrightMagentaDeck, colored::Color::BrightMagenta);
+    color_deck!(BrightCyanDeck, colored::Color::BrightCyan);
+
+    /// Verifies that color_string applies the expected ANSI color to the output.
+    /// Each sub-assertion catches the "delete match arm Color::X" mutation.
+    #[test]
+    fn color_string__all_variants() {
+        use colored::Colorize as _;
+        let ace_hearts = FrenchBasicCard::ACE_HEARTS;
+        let index = ace_hearts.index();
+
+        with_colors_enabled(|| {
+            assert_eq!(
+                Card::<RedDeck>::new(ace_hearts).color_index_string(),
+                index.red().to_string()
+            );
+            assert_eq!(
+                Card::<BlueDeck>::new(ace_hearts).color_index_string(),
+                index.blue().to_string()
+            );
+            assert_eq!(
+                Card::<GreenDeck>::new(ace_hearts).color_index_string(),
+                index.green().to_string()
+            );
+            assert_eq!(
+                Card::<YellowDeck>::new(ace_hearts).color_index_string(),
+                index.yellow().to_string()
+            );
+            assert_eq!(
+                Card::<MagentaDeck>::new(ace_hearts).color_index_string(),
+                index.magenta().to_string()
+            );
+            assert_eq!(
+                Card::<CyanDeck>::new(ace_hearts).color_index_string(),
+                index.cyan().to_string()
+            );
+            assert_eq!(
+                Card::<BrightBlackDeck>::new(ace_hearts).color_index_string(),
+                index.bright_black().to_string()
+            );
+            assert_eq!(
+                Card::<BrightRedDeck>::new(ace_hearts).color_index_string(),
+                index.bright_red().to_string()
+            );
+            assert_eq!(
+                Card::<BrightGreenDeck>::new(ace_hearts).color_index_string(),
+                index.bright_green().to_string()
+            );
+            assert_eq!(
+                Card::<BrightYellowDeck>::new(ace_hearts).color_index_string(),
+                index.bright_yellow().to_string()
+            );
+            assert_eq!(
+                Card::<BrightBlueDeck>::new(ace_hearts).color_index_string(),
+                index.bright_blue().to_string()
+            );
+            assert_eq!(
+                Card::<BrightMagentaDeck>::new(ace_hearts).color_index_string(),
+                index.bright_magenta().to_string()
+            );
+            assert_eq!(
+                Card::<BrightCyanDeck>::new(ace_hearts).color_index_string(),
+                index.bright_cyan().to_string()
+            );
+        });
+    }
+
+    #[test]
+    fn fluent_name__joker() {
+        let joker_card = Card::<French>::new(FrenchBasicCard::BIG_JOKER);
+        let name = joker_card.fluent_name(&FluentName::US_ENGLISH);
+        // Joker match arm produces "Joker <rank_name>"
+        assert!(
+            name.starts_with("Joker"),
+            "Expected Joker prefix, got: {name}"
+        );
+        assert!(!name.is_empty());
+    }
+
+    #[test]
+    fn decked_base__colors__passthrough() {
+        // Catches colors() -> HashMap::new() mutation on Card<DeckType>
+        assert!(!Card::<crate::prelude::Standard52>::colors().is_empty());
+    }
+
+    #[test]
+    fn decked_base__deck_name__passthrough() {
+        // Catches deck_name() -> String::new() and -> "xyzzy" mutations
+        let name = Card::<crate::prelude::Standard52>::deck_name();
+        assert!(!name.is_empty());
+        assert_ne!(name, "xyzzy");
+        assert_eq!(name, "Standard 52");
+    }
+
+    #[test]
+    fn decked_base__fluent_deck_key__passthrough() {
+        // Catches fluent_deck_key() mutations on Card<DeckType>
+        let key = Card::<crate::prelude::Standard52>::fluent_deck_key();
+        assert!(!key.is_empty());
+        assert_ne!(key, "xyzzy");
+    }
 }

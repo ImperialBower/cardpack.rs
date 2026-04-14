@@ -145,4 +145,22 @@ mod basic__card__tarot_tests {
     fn decked__validate() {
         assert!(Tarot::validate());
     }
+
+    #[test]
+    fn decked__colors() {
+        assert!(!Tarot::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Tarot::deck_name(), "Tarot");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Tarot::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_TAROT.to_string()
+        );
+    }
 }

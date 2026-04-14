@@ -188,6 +188,28 @@ mod basic__types__basic_card_tests {
         assert!(base_card.is_blank());
     }
 
+    #[test]
+    fn is_blank__half_blank_suit() {
+        use crate::basic::decks::cards::french::FrenchBasicCard;
+        // A card where only the suit pip is blank should still be blank (catches || -> && mutation)
+        let blank_suit_card = BasicCard {
+            suit: Pip::default(),
+            rank: FrenchBasicCard::ACE_SPADES.rank,
+        };
+        assert!(blank_suit_card.is_blank());
+    }
+
+    #[test]
+    fn is_blank__half_blank_rank() {
+        use crate::basic::decks::cards::french::FrenchBasicCard;
+        // A card where only the rank pip is blank should still be blank (catches || -> && mutation)
+        let blank_rank_card = BasicCard {
+            suit: FrenchBasicCard::ACE_SPADES.suit,
+            rank: Pip::default(),
+        };
+        assert!(blank_rank_card.is_blank());
+    }
+
     #[rstest]
     #[case("A♠", CardNumber::ACE_SPADES as usize)]
     #[case("ks", CardNumber::KING_SPADES as usize)]

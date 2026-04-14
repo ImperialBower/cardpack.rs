@@ -1369,4 +1369,95 @@ mod basic__types__deck_tests {
     }
 
     // endregion GTOed
+
+    #[test]
+    fn draw_random__is_from_deck() {
+        // Catches mutation: return Some(Card::new(Default::default()))
+        let deck = Standard52::deck();
+        let mut deck_copy = deck.clone();
+        let drawn = deck_copy.draw_random().unwrap();
+        // The drawn card must have been in the original deck, not a blank default
+        assert!(deck.contains(&drawn));
+        assert_ne!(drawn.base(), BasicCard::default());
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn piles_to_string__not_empty() {
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("AH KH");
+        let piles = vec![pile1, pile2];
+        let result = Pile::<Standard52>::piles_to_string(&piles);
+        assert!(!result.is_empty());
+        assert_ne!(result, "xyzzy");
+    }
+
+    #[test]
+    fn same__true_for_same_cards_different_order() {
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("KS AS");
+        assert!(pile1.same(&pile2));
+    }
+
+    #[test]
+    fn same__false_for_different_cards() {
+        // Catches same() -> true mutation
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("AH KH");
+        assert!(!pile1.same(&pile2));
+    }
+
+    #[test]
+    fn decked_base__colors__not_empty() {
+        // Catches colors() -> HashMap::new() mutation on Pile<DeckType>
+        assert!(!Pile::<Standard52>::colors().is_empty());
+    }
+
+    #[test]
+    fn decked_base__fluent_deck_key__not_empty() {
+        // Catches fluent_deck_key() -> String::new() and -> "xyzzy" mutations on Pile<DeckType>
+        let key = Pile::<Standard52>::fluent_deck_key();
+        assert!(!key.is_empty());
+        assert_ne!(key, "xyzzy");
+    }
+
+    #[test]
+    fn from_vec_basic_card() {
+        // Catches From<Vec<BasicCard>> -> Default::default() mutation
+        let cards: Vec<BasicCard> = vec![FrenchBasicCard::ACE_SPADES, FrenchBasicCard::KING_SPADES];
+        let pile = Pile::<Standard52>::from(cards);
+        assert_eq!(pile.len(), 2);
+        assert_ne!(pile, Pile::<Standard52>::default());
+    }
+
+    #[test]
+    fn from_basic_pile() {
+        // Catches From<BasicPile> -> Default::default() mutation
+        let basic = Standard52::basic_pile();
+        let pile = Pile::<Standard52>::from(basic);
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+        assert_ne!(pile, Pile::<Standard52>::default());
+    }
+
+    #[test]
+    fn from_iterator() {
+        // Catches FromIterator -> Default::default() mutation
+        let deck = Standard52::deck();
+        let pile: Pile<Standard52> = deck.into_iter().collect();
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn into_iterator_ref() {
+        // Catches IntoIterator for &Pile -> Default::default() mutation
+        let deck = Standard52::deck();
+        let count = deck.into_iter().count();
+        assert_eq!(count, Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn demo_cards__does_not_panic() {
+        let deck = Standard52::deck();
+        deck.demo_cards(false);
+    }
 }
