@@ -781,8 +781,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(Pile::<Standard52>::from(v).to_string(), "8♠ 4♠ 2♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0
-            .sort_by_key(|b| std::cmp::Reverse(b.base_card.rank));
+        self.0.sort_by_key(|b| std::cmp::Reverse(b.base_card.rank));
     }
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].

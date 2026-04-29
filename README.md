@@ -76,8 +76,8 @@ decks of various sizes and suits. Out of the box, the library supports:
 The project takes advantage of [Project Fluent](https://www.projectfluent.org/)'s
 [Rust](https://github.com/projectfluent/fluent-rs) support to offer
 internationalization. Current languages supported are
-[English](src/fluent/locales/en-US/french-deck.ftl) and
-[German](src/fluent/locales/de/french-deck.ftl).
+[English](src/localization/locales/en-US/french.ftl) and
+[German](src/localization/locales/de/french.ftl).
 
 ## Responsibilities
 
@@ -85,7 +85,6 @@ internationalization. Current languages supported are
 * Validate that a collection of cards is valid for that type of deck.
 * Create a textual representation of a deck that can be serialized and deserialized.
 * Shuffle a deck
-* Verify that a specific card is playable given a set of discards.
 
 ## Examples
 
@@ -201,7 +200,7 @@ Other examples are:
 * [log](https://github.com/rust-lang/log)
 * [rand](https://github.com/rust-random/rand)
 * [serde](https://github.com/serde-rs/serde)
-  * [serde_yml](https://github.com/sebastienrousseau/serde_yml)
+  * [serde_norway](https://crates.io/crates/serde_norway)
 * [thiserror](https://github.com/dtolnay/thiserror)
 
 ## Dev Dependencies
