@@ -491,6 +491,27 @@ mod fluent_tests {
         assert_eq!("As", LOCALES.lookup(&fr, "name-rank-french-a"));
     }
 
+    /// Confirms the `la` (Latin) locale is wired into the static loader.
+    /// Both assertions hit high-confidence classical Latin entries — Regina
+    /// (queen) and Rex (king) — that are unlikely to shift on review.
+    #[test]
+    fn latin_locale_is_wired() {
+        let la = langid!("la");
+        assert_eq!("Regina", LOCALES.lookup(&la, "name-rank-french-q"));
+        assert_eq!("Rex", LOCALES.lookup(&la, "name-rank-french-k"));
+    }
+
+    /// Confirms the `tlh` (Klingon) locale is wired into the static loader.
+    /// Both assertions hit attested Okrand-canon entries (TKD): tIq "heart"
+    /// and ta' "emperor". Coinages are deliberately not asserted here — they
+    /// may be revised on KLI review without breaking this wired-test.
+    #[test]
+    fn klingon_locale_is_wired() {
+        let tlh = langid!("tlh");
+        assert_eq!("tIq", LOCALES.lookup(&tlh, "name-suit-french-h"));
+        assert_eq!("ta'", LOCALES.lookup(&tlh, "name-rank-french-k"));
+    }
+
     /// Guards the de/tarot.ftl schema fix (2026-04-29). Major Arcana keys were
     /// renamed to use the `name-rank-tarot-special-` prefix and Minor Arcana
     /// entries were added; previously both silently fell back to English.
