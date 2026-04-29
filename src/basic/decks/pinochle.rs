@@ -86,7 +86,7 @@ impl DeckedBase for Pinochle {
     }
 
     fn fluent_deck_key() -> String {
-        cards::pinochle::FLUENT_KEY_BASE_NAME_PINOCHLE.to_string()
+        cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
     }
 }
 
@@ -119,7 +119,7 @@ mod basic__card__pinochle_tests {
     fn decked__fluent_deck_key() {
         assert_eq!(
             Pinochle::fluent_deck_key(),
-            cards::pinochle::FLUENT_KEY_BASE_NAME_PINOCHLE.to_string()
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
         );
     }
 }

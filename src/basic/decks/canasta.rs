@@ -1,5 +1,5 @@
-use crate::basic::decks::cards::canasta::{CanastaBasicCard, FLUENT_KEY_BASE_NAME_CANASTA};
-use crate::basic::decks::cards::french::FrenchBasicCard;
+use crate::basic::decks::cards::canasta::CanastaBasicCard;
+use crate::basic::decks::cards::french::{FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
@@ -146,7 +146,7 @@ impl DeckedBase for Canasta {
     }
 
     fn fluent_deck_key() -> String {
-        FLUENT_KEY_BASE_NAME_CANASTA.to_string()
+        FLUENT_KEY_BASE_NAME_FRENCH.to_string()
     }
 }
 
@@ -210,7 +210,7 @@ mod basic__decks__canasta_tests {
     fn decked__fluent_deck_key() {
         assert_eq!(
             Canasta::fluent_deck_key(),
-            FLUENT_KEY_BASE_NAME_CANASTA.to_string()
+            FLUENT_KEY_BASE_NAME_FRENCH.to_string()
         );
     }
 }

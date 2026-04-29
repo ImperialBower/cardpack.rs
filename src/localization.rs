@@ -479,4 +479,29 @@ mod fluent_tests {
         assert!(!FluentName::is_alphanumeric_hyphen_dash("not valid!"));
         assert!(!FluentName::is_alphanumeric_hyphen_dash(" "));
     }
+
+    /// Confirms the `fr` locale (added 2026-04-29) is wired into the static loader.
+    /// A regression in `src/localization/locales/fr/` discovery would fail this test.
+    /// The `french.ftl` Queen entry is high-confidence terminology and unlikely to
+    /// shift if the file is later reviewed.
+    #[test]
+    fn french_locale_is_wired() {
+        let fr = langid!("fr");
+        assert_eq!("Dame", LOCALES.lookup(&fr, "name-rank-french-q"));
+        assert_eq!("As", LOCALES.lookup(&fr, "name-rank-french-a"));
+    }
+
+    /// Guards the de/tarot.ftl schema fix (2026-04-29). Major Arcana keys were
+    /// renamed to use the `name-rank-tarot-special-` prefix and Minor Arcana
+    /// entries were added; previously both silently fell back to English.
+    #[test]
+    fn german_tarot_resolves_correctly() {
+        let de = &FluentName::DEUTSCH;
+        // Major Arcana — uses the corrected `-special-` prefix
+        assert_eq!("Der Narr", LOCALES.lookup(de, "name-rank-tarot-special-0"));
+        assert_eq!("Die Welt", LOCALES.lookup(de, "name-rank-tarot-special-l"));
+        // Minor Arcana — newly added entries
+        assert_eq!("Ass", LOCALES.lookup(de, "name-rank-tarot-a"));
+        assert_eq!("Königin", LOCALES.lookup(de, "name-rank-tarot-q"));
+    }
 }
