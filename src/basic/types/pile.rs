@@ -782,7 +782,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// ```
     pub fn sort_by_rank(&mut self) {
         self.0
-            .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
+            .sort_by_key(|b| std::cmp::Reverse(b.base_card.rank));
     }
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].

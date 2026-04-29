@@ -138,7 +138,7 @@ impl BasicPile {
     /// assert_eq!(hand.to_string(), "A♦ K♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
+        self.0.sort_by_key(|b| std::cmp::Reverse(b.rank));
     }
 
     /// Returns a new `BasicPile` sorted.
