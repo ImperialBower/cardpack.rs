@@ -133,8 +133,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             const SEP: &str = "------------------------";
             println!();
             println!(
-                "  {:<24} | {:<24} | {:<24} | {:<24} | {}",
-                "English", "German", "French", "Latin", "Klingon"
+                "  {:<24} | {:<24} | {:<24} | {:<24} | Klingon",
+                "English", "German", "French", "Latin"
             );
             println!("  {SEP} | {SEP} | {SEP} | {SEP} | {SEP}");
 

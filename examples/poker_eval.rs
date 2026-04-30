@@ -44,8 +44,8 @@ fn main() {
     let turn = deck.draw(1).unwrap();
     let river = deck.draw(1).unwrap();
 
-    println!("Alice hole: {alice_hole}");
-    println!("Bob hole:   {bob_hole}");
+    println!("Alice's cards: {alice_hole}");
+    println!("Bob's cards:   {bob_hole}");
     println!();
     println!("Flop:  {flop}");
     println!("Turn:  {turn}");
