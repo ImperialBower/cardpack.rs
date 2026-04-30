@@ -3,12 +3,14 @@ use crate::prelude::{BasicCard, DeckedBase, Pile};
 use rand::prelude::SliceRandom;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng, rng};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Display;
 use std::hash::Hash;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicPile(Vec<BasicCard>);
 
 impl BasicPile {

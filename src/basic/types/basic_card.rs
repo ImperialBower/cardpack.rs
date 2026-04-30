@@ -2,12 +2,16 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+#[cfg(feature = "yaml")]
 use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
+#[cfg(feature = "yaml")]
 use std::fs::File;
+#[cfg(feature = "yaml")]
 use std::io::Read;
 
 /// Intermediary struct to help mix and match cards for related decks.
@@ -26,7 +30,8 @@ use std::io::Read;
 /// the bottom of the vector.
 ///
 /// [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicCard {
     pub suit: Pip,
     pub rank: Pip,
@@ -48,6 +53,7 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
+    #[cfg(feature = "yaml")]
     pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
@@ -62,6 +68,7 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
+    #[cfg(feature = "yaml")]
     pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let cards: Vec<Self> = serde_norway::from_str(yaml_str)?;
 
@@ -174,6 +181,7 @@ mod basic__types__basic_card_tests {
     use rstest::rstest;
     use std::str::FromStr;
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn cards_from_yaml_file() {
         let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();

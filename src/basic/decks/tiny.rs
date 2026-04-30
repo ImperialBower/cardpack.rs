@@ -1,7 +1,9 @@
-use crate::prelude::{
-    BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pip, Standard52,
-};
+use crate::prelude::{BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
+#[cfg(feature = "colored-display")]
+use crate::prelude::{Pip, Standard52};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -23,6 +25,7 @@ impl DeckedBase for Tiny {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -103,6 +106,7 @@ mod basic__card__tiny__tests {
         assert!(Tiny::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Tiny::colors().is_empty());

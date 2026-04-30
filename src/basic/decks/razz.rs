@@ -1,7 +1,11 @@
 use crate::basic::decks::cards;
-use crate::prelude::{BasicCard, Decked, DeckedBase, Pip, Standard52};
+use crate::prelude::{BasicCard, Decked, DeckedBase};
+#[cfg(feature = "colored-display")]
+use crate::prelude::{Pip, Standard52};
+#[cfg(feature = "colored-display")]
 use colored::Color;
 use log::error;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// [`Razz`](https://en.wikipedia.org/wiki/Razz_(poker)) deck where the cards are ordered from low
@@ -27,6 +31,7 @@ impl DeckedBase for Razz {
         })
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -69,6 +74,7 @@ mod basic__decks__razz_tests {
         assert!(Pile::<Razz>::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Razz::colors().is_empty());

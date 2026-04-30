@@ -1,12 +1,16 @@
 use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -81,6 +85,7 @@ impl DeckedBase for Spades {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         French::colors()
     }
@@ -130,6 +135,7 @@ mod basic__card__spades_tests {
         assert!(Spades::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Spades::colors().is_empty());

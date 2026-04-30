@@ -79,6 +79,26 @@ internationalization. Current languages supported are
 [English](src/localization/locales/en-US/french.ftl) and
 [German](src/localization/locales/de/french.ftl).
 
+## Cargo features
+
+Every dependency-bearing capability is gated behind a Cargo feature so
+consumers can trim what they don't need:
+
+| Feature           | Default | Pulls in           | What turns off without it                                     |
+|-------------------|---------|--------------------|---------------------------------------------------------------|
+| `i18n`            | yes     | `fluent-templates` | `FluentName`, `Named`, `Card::fluent_name*`, `localization`   |
+| `colored-display` | yes     | `colored`          | `Color`, `Colorize`, `Card::color*`, `Pile::to_color_*`       |
+| `yaml`            | yes     | `serde_norway`     | `BasicCard::cards_from_yaml_*`, the `Razz` deck (YAML-loaded) |
+| `serde`           | yes     | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
+
+Default-features builds behave exactly like prior versions. To trim:
+
+```toml
+cardpack = { version = "0.6", default-features = false, features = ["serde"] }
+```
+
+`yaml` implies `serde` (it deserializes into the serde-derived structs).
+
 ## Responsibilities
 
 * Represent a specific type of card deck.

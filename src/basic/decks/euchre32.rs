@@ -1,11 +1,15 @@
 use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::decks::standard52::Standard52;
 use crate::basic::types::basic_card::BasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Pile};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -64,6 +68,7 @@ impl DeckedBase for Euchre32 {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -100,6 +105,7 @@ mod basic__decks__euchre32_tests {
         assert!(Euchre32::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Euchre32::colors().is_empty());

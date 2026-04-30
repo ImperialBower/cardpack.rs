@@ -18,14 +18,21 @@ path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["i18n", "colored-display", "yaml", "serde"]
+i18n = ["dep:fluent-templates"]
+colored-display = ["dep:colored"]
+yaml = ["dep:serde_norway", "serde"]
+serde = ["dep:serde"]
+
 [dependencies]
-colored = "3.1"
-fluent-templates = "0.13"
+colored = { version = "3.1", optional = true }
+fluent-templates = { version = "0.13", optional = true }
 itertools = "0.14.0"
 log = "0.4.29"
 rand = "0.9"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_norway = "0.9.42"
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+serde_norway = { version = "0.9.42", optional = true }
 thiserror = "2.0.18"
 
 [dev-dependencies]
@@ -34,3 +41,20 @@ clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
 rstest = "0.25"
 term-table = "1.4.0"
+
+[[example]]
+name = "demo"
+required-features = ["i18n", "colored-display"]
+
+[[example]]
+name = "headandfoot"
+required-features = ["i18n", "colored-display"]
+
+[[example]]
+name = "bridge"
+
+[[example]]
+name = "poker"
+
+[[example]]
+name = "range"

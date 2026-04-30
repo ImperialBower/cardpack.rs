@@ -4,6 +4,7 @@ pub mod euchre24;
 pub mod euchre32;
 pub mod french;
 pub mod pinochle;
+#[cfg(feature = "yaml")]
 pub mod razz;
 pub mod short;
 pub mod skat;

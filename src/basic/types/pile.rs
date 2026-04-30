@@ -4,10 +4,12 @@ use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
+#[cfg(feature = "colored-display")]
 use colored::Color;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng, rng};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
@@ -49,7 +51,8 @@ use std::vec::IntoIter;
 /// assert_eq!(deck.draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 /// assert_eq!(deck.len(), 47);
 /// ```
-#[derive(Serialize, Deserialize, Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Pile<DeckType: DeckedBase>(Vec<Card<DeckType>>)
 where
     DeckType: Default + Ord + Copy + Hash;
@@ -110,6 +113,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     /// Prints out a demonstration of the deck. Used in the `cli` example program.
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
     pub fn demo_cards(&self, verbose: bool) {
         let deck = self.sorted();
         let shuffled = deck.shuffled();
@@ -512,7 +516,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Returns the position of the passed in [`Card`] in the `Pile`. If the [`Card`] isn't there,
     /// it returns `None`.
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (Razz needs the `yaml` feature)
     /// use cardpack::prelude::*;
     ///
     /// let deck = Razz::deck();
@@ -653,7 +658,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     /// Returns true of the two `Piles` are the same, regardless of the order of the cards.
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (Razz needs the `yaml` feature)
     /// use cardpack::prelude::*;
     ///
     /// let pile1 = Razz::deck();
@@ -841,7 +847,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (color_index_string needs `colored-display`)
     /// use cardpack::prelude::*;
     ///
     /// let pile = cards!("A♠ K♠ Q♠ J♠ T♠");
@@ -863,6 +870,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(pile.to_color_index_string(), "AS KS QS JS TS");
     /// ```
+    #[cfg(feature = "colored-display")]
     pub fn to_color_index_string(&self) -> String {
         self.stringify(" ", Card::color_index_string)
     }
@@ -876,6 +884,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(pile.to_color_symbol_string(), "A♠ K♠ Q♠ J♠ T♠");
     /// ```
+    #[cfg(feature = "colored-display")]
     pub fn to_color_symbol_string(&self) -> String {
         self.stringify(" ", Card::color_symbol_string)
     }
@@ -890,6 +899,7 @@ impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<Dec
     }
 
     /// Pass through call to the `Pile's` underlying type parameter.
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         DeckType::colors()
     }
@@ -1233,6 +1243,7 @@ mod basic__types__deck_tests {
         assert_eq!(actual, Pile::<Standard52>::from_str("AS QS").unwrap());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn to_color_symbol_string() {
         let pile = Pile::<French>::from_str("2c 3c 4c").unwrap();
@@ -1341,6 +1352,7 @@ mod basic__types__deck_tests {
                 Tiny::DECK.to_vec()
             }
 
+            #[cfg(feature = "colored-display")]
             fn colors() -> HashMap<Pip, Color> {
                 Standard52::colors()
             }
@@ -1461,6 +1473,7 @@ mod basic__types__deck_tests {
         assert!(!pile1.same(&pile2));
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked_base__colors__not_empty() {
         // Catches colors() -> HashMap::new() mutation on Pile<DeckType>
@@ -1470,6 +1483,7 @@ mod basic__types__deck_tests {
     #[test]
     fn decked_base__fluent_deck_key__not_empty() {
         // Catches fluent_deck_key() -> String::new() and -> "xyzzy" mutations on Pile<DeckType>
+        // (fluent_deck_key is part of DeckedBase, no feature gating needed)
         let key = Pile::<Standard52>::fluent_deck_key();
         assert!(!key.is_empty());
         assert_ne!(key, "xyzzy");
@@ -1509,6 +1523,7 @@ mod basic__types__deck_tests {
         assert_eq!(count, Standard52::DECK_SIZE);
     }
 
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
     #[test]
     fn demo_cards__does_not_panic() {
         let deck = Standard52::deck();

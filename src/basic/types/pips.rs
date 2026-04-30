@@ -1,3 +1,4 @@
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -20,9 +21,8 @@ use std::fmt::Display;
 ///     hand
 /// }
 /// ```
-#[derive(
-    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PipType {
     #[default]
     Blank,
@@ -74,7 +74,8 @@ pub enum PipType {
 ///
 /// assert_eq!(trey_of_hearts, FrenchBasicCard::TREY_HEARTS);
 /// ```
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Pip {
     pub weight: usize,
     pub pip_type: PipType,

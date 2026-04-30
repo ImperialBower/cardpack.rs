@@ -1,12 +1,16 @@
 use crate::basic::decks::cards::canasta::CanastaBasicCard;
 use crate::basic::decks::cards::french::{FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
+#[cfg(feature = "colored-display")]
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// [Canasta](https://en.wikipedia.org/wiki/Canasta) deck
@@ -137,6 +141,7 @@ impl DeckedBase for Canasta {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         French::colors()
     }
@@ -196,6 +201,7 @@ mod basic__decks__canasta_tests {
         assert!(Canasta::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Canasta::colors().is_empty());
