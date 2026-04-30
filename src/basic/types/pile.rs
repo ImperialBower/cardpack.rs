@@ -5,8 +5,9 @@ use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
 use colored::Color;
+use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, rng};
+use rand::{Rng, SeedableRng, rng};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
@@ -670,6 +671,9 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     /// `shuffled` feels so much better. Nice and succinct.
+    ///
+    /// For deterministic shuffling, use
+    /// [`shuffled_with_seed`](Self::shuffled_with_seed).
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -677,8 +681,59 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// Shuffles the `Pile` in place using the process default RNG
+    /// (`rand::rng()`). For deterministic shuffling, use
+    /// [`shuffle_with_seed`](Self::shuffle_with_seed).
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
+    }
+
+    /// Shuffles the `Pile` in place deterministically from a `u64` seed.
+    ///
+    /// Uses [`rand::rngs::StdRng`] internally. Same seed produces the same
+    /// permutation **within one `rand` major version**; a `rand` upgrade may
+    /// change the result. For cross-version reproducibility, pass a portable
+    /// RNG (e.g., `ChaCha8Rng` from `rand_chacha`) to
+    /// [`shuffle_with_rng`](Self::shuffle_with_rng).
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Pile::<Standard52>::deck();
+    /// let a = deck.shuffled_with_seed(42);
+    /// let b = deck.shuffled_with_seed(42);
+    /// assert_eq!(a, b);
+    /// ```
+    pub fn shuffle_with_seed(&mut self, seed: u64) {
+        self.shuffle_with_rng(&mut StdRng::seed_from_u64(seed));
+    }
+
+    /// Returns a new `Pile` shuffled deterministically from a `u64` seed.
+    ///
+    /// See [`shuffle_with_seed`](Self::shuffle_with_seed) for the
+    /// portability caveat.
+    #[must_use]
+    pub fn shuffled_with_seed(&self, seed: u64) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_seed(seed);
+        pile
+    }
+
+    /// Shuffles the `Pile` in place using the caller's RNG.
+    ///
+    /// Generic over any `R: Rng + ?Sized`. The seed-based methods are sugar
+    /// over this primitive — pass your own RNG (e.g., `ChaCha8Rng`) for
+    /// algorithm-stable reproducibility across `rand` major-version bumps.
+    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.0.shuffle(rng);
+    }
+
+    /// Returns a new `Pile` shuffled using the caller's RNG.
+    #[must_use]
+    pub fn shuffled_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_rng(rng);
+        pile
     }
 
     /// Returns a sorted clone of the `Pile`.
@@ -1458,5 +1513,35 @@ mod basic__types__deck_tests {
     fn demo_cards__does_not_panic() {
         let deck = Standard52::deck();
         deck.demo_cards(false);
+    }
+
+    #[test]
+    fn shuffled_with_seed__deterministic() {
+        let deck = Pile::<Standard52>::deck();
+        let a = deck.shuffled_with_seed(42);
+        let b = deck.shuffled_with_seed(42);
+        assert_eq!(a, b, "same seed must produce identical permutation");
+    }
+
+    #[test]
+    fn shuffled_with_seed__different_seeds_differ() {
+        let deck = Pile::<Standard52>::deck();
+        assert_ne!(
+            deck.shuffled_with_seed(1),
+            deck.shuffled_with_seed(2),
+            "different seeds should almost always produce different orderings"
+        );
+    }
+
+    #[test]
+    fn shuffled_with_seed__same_cards() {
+        let deck = Pile::<Standard52>::deck();
+        let shuffled = deck.shuffled_with_seed(0xC0FFEE);
+        assert_eq!(deck.len(), shuffled.len());
+        let mut o = deck.cards().clone();
+        let mut s = shuffled.cards().clone();
+        o.sort();
+        s.sort();
+        assert_eq!(o, s, "shuffle must permute, not transform");
     }
 }
