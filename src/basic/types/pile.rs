@@ -115,6 +115,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Prints out a demonstration of the deck. Used in the `cli` example program.
     #[cfg(all(feature = "i18n", feature = "colored-display"))]
     pub fn demo_cards(&self, verbose: bool) {
+        use crate::localization::{FluentName, Named};
+
         let deck = self.sorted();
         let shuffled = deck.shuffled();
         let name = Self::deck_name();
@@ -129,11 +131,17 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
         if verbose {
             println!();
-            println!("Long in English and German:");
+            println!("Long names per locale (en-US, de, fr, la, tlh):");
 
             for card in deck {
-                let name = card.fluent_name_default();
-                println!("  {name} ");
+                println!(
+                    "  {:<24} | {:<24} | {:<24} | {:<24} | {}",
+                    card.fluent_name(&FluentName::US_ENGLISH),
+                    card.fluent_name(&FluentName::DEUTSCH),
+                    card.fluent_name(&FluentName::FRANCAIS),
+                    card.fluent_name(&FluentName::LATINA),
+                    card.fluent_name(&FluentName::TLHINGAN),
+                );
             }
         }
     }

@@ -57,4 +57,7 @@ name = "bridge"
 name = "poker"
 
 [[example]]
+name = "poker_eval"
+
+[[example]]
 name = "range"

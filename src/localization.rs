@@ -38,6 +38,12 @@ static_loader! {
 pub trait Named<'a> {
     const US_ENGLISH: LanguageIdentifier = langid!("en-US");
     const DEUTSCH: LanguageIdentifier = langid!("de");
+    /// `fr` — French. Locale draft (high confidence on standard playing-card terminology).
+    const FRANCAIS: LanguageIdentifier = langid!("fr");
+    /// `la` — Latin. Locale draft (HIGH on french.ftl, MEDIUM-HIGH on tarot.ftl, LOW-MEDIUM on skat.ftl).
+    const LATINA: LanguageIdentifier = langid!("la");
+    /// `tlh` — Klingon. Locale draft (LOW confidence overall; canon-plus-coinages).
+    const TLHINGAN: LanguageIdentifier = langid!("tlh");
 
     const FLUENT_INDEX_SECTION: &'a str = "index";
     const FLUENT_LONG_SECTION: &'a str = "long";
