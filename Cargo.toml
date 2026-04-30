@@ -12,6 +12,9 @@ keywords = ["poker", "cards", "library"]
 categories = ["game-development"] # https://crates.io/category_slugs
 include = ["src/**", "Cargo.toml", "LICENSE", "README.md", "src/basic/decks/yaml/*.yaml"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [lib]
 name = "cardpack"
 path = "src/lib.rs"

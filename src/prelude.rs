@@ -13,6 +13,7 @@ pub use crate::basic::decks::french::*;
 pub use crate::basic::decks::pinochle::*;
 #[cfg(feature = "yaml")]
 pub use crate::basic::decks::razz::*;
+pub use crate::basic::decks::registry::DeckKind;
 pub use crate::basic::decks::short::*;
 pub use crate::basic::decks::skat::*;
 pub use crate::basic::decks::spades::*;

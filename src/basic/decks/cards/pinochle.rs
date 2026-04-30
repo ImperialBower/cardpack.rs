@@ -105,12 +105,11 @@ impl PinochleRank {
     };
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "yaml"))]
 #[allow(non_snake_case)]
 mod basic__decks__cards__french__tests {
     use super::*;
 
-    #[cfg(feature = "yaml")]
     #[test]
     fn serde() {
         let pips = vec![PinochleRank::KING];

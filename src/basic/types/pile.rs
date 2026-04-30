@@ -130,8 +130,13 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         );
 
         if verbose {
+            const SEP: &str = "------------------------";
             println!();
-            println!("Long names per locale (en-US, de, fr, la, tlh):");
+            println!(
+                "  {:<24} | {:<24} | {:<24} | {:<24} | {}",
+                "English", "German", "French", "Latin", "Klingon"
+            );
+            println!("  {SEP} | {SEP} | {SEP} | {SEP} | {SEP}");
 
             for card in deck {
                 println!(

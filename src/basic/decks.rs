@@ -6,6 +6,7 @@ pub mod french;
 pub mod pinochle;
 #[cfg(feature = "yaml")]
 pub mod razz;
+pub mod registry;
 pub mod short;
 pub mod skat;
 pub mod spades;

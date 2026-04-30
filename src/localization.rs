@@ -297,8 +297,12 @@ impl FromStr for FluentName {
 }
 
 impl Named<'_> for FluentName {
-    fn new_with_weight(_name_str: &str, _weight: u32) -> Self {
-        todo!()
+    /// `FluentName` is a thin wrapper around a name string and has no place to
+    /// store a weight, so `weight` is intentionally ignored. Use a separate
+    /// weight-bearing type (see the `WeightedName` test helper for the
+    /// pattern) when you need both fields.
+    fn new_with_weight(name_str: &str, _weight: u32) -> Self {
+        Self::new(name_str)
     }
 
     fn fluent_name(&self) -> &FluentName {
@@ -395,8 +399,18 @@ mod fluent_tests {
         assert_eq!("P", FluentName::new("pentacles").index_default());
     }
 
+    /// Guards the no-panic behavior of `FluentName::new_with_weight`. Previously the
+    /// impl was `todo!()` and panicked on call; now it discards the weight and
+    /// delegates to `FluentName::new`, since `FluentName` has no weight field.
+    #[test]
+    fn fluent_name__new_with_weight__does_not_panic() {
+        let name = FluentName::new_with_weight("spades", 13);
+        assert_eq!(name, FluentName::new("spades"));
+    }
+
     /// Test helper to exercise `Named::weighted_vector` — uses a minimal concrete implementation
-    /// of `Named` since `FluentName::new_with_weight` is unimplemented (todo!).
+    /// of `Named` because `FluentName::new_with_weight` discards the weight (`FluentName`
+    /// has nowhere to store it).
     #[allow(dead_code)]
     struct WeightedName {
         name: FluentName,

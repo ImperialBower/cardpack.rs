@@ -1,7 +1,11 @@
 use cardpack::prelude::*;
 use clap::Parser;
 
-/// Run all of the decks with 1 for each:
+/// Run all of the decks with one of each:
+///
+/// `cargo run --example demo -- --all -v`
+///
+/// Or pick specific ones:
 ///
 /// `cargo run --example demo -- -temfkpsac -v`
 #[derive(Parser, Debug)]
@@ -9,6 +13,10 @@ use clap::Parser;
 struct Args {
     #[clap(short = 'v', long)]
     verbose: bool,
+
+    /// Iterate every deck the crate ships (via `DeckKind::all()`).
+    #[clap(long)]
+    all: bool,
 
     #[clap(short = 'c', long)]
     canasta: bool,
@@ -41,40 +49,47 @@ struct Args {
 fn main() -> Result<(), CardError> {
     let args = Args::parse();
 
+    if args.all {
+        for kind in DeckKind::all() {
+            kind.demo(args.verbose);
+        }
+        return Ok(());
+    }
+
     if args.tarot {
-        TarotDeck::demo(args.verbose);
+        DeckKind::Tarot.demo(args.verbose);
     }
 
     if args.canasta {
-        CanastaDeck::demo(args.verbose);
+        DeckKind::Canasta.demo(args.verbose);
     }
 
     if args.euchre {
-        Euchre24Deck::demo(args.verbose);
+        DeckKind::Euchre24.demo(args.verbose);
     }
 
     if args.short {
-        ShortDeck::demo(args.verbose);
+        DeckKind::Short.demo(args.verbose);
     }
 
     if args.french {
-        FrenchDeck::demo(args.verbose);
+        DeckKind::French.demo(args.verbose);
     }
 
     if args.spades {
-        SpadesDeck::demo(args.verbose);
+        DeckKind::Spades.demo(args.verbose);
     }
 
     if args.pinochle {
-        PinochleDeck::demo(args.verbose);
+        DeckKind::Pinochle.demo(args.verbose);
     }
 
     if args.skat {
-        SkatDeck::demo(args.verbose);
+        DeckKind::Skat.demo(args.verbose);
     }
 
     if args.standard {
-        Standard52Deck::demo(args.verbose);
+        DeckKind::Standard52.demo(args.verbose);
     }
 
     Ok(())
