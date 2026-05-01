@@ -1,6 +1,7 @@
 # cardpack.rs
 
 [![Build and Test](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml)
+[![codecov](https://codecov.io/gh/ImperialBower/cardpack.rs/branch/main/graph/badge.svg)](https://codecov.io/gh/ImperialBower/cardpack.rs)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
 

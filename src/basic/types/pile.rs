@@ -112,6 +112,31 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.contains(card)
     }
 
+    /// Construct a `Pile<DeckType>` from a slice of [`BasicCard`]s.
+    ///
+    /// More ergonomic than `Pile::from(slice.to_vec())`. Note that this
+    /// allocates — `Pile` wraps a `Vec` and is not const-constructible.
+    /// To define `BasicCard` collections at compile time, use a
+    /// `const ARRAY: [BasicCard; N] = [...]` and pass the slice in here.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// const TINY: [BasicCard; 4] = [
+    ///     FrenchBasicCard::ACE_SPADES,
+    ///     FrenchBasicCard::KING_SPADES,
+    ///     FrenchBasicCard::ACE_HEARTS,
+    ///     FrenchBasicCard::KING_HEARTS,
+    /// ];
+    ///
+    /// let pile = Pile::<Standard52>::from_slice(&TINY);
+    /// assert_eq!(pile.len(), 4);
+    /// ```
+    #[must_use]
+    pub fn from_slice(cards: &[BasicCard]) -> Self {
+        Self::from(cards.to_vec())
+    }
+
     /// Prints out a demonstration of the deck. Used in the `cli` example program.
     #[cfg(all(feature = "i18n", feature = "colored-display"))]
     pub fn demo_cards(&self, verbose: bool) {
@@ -1534,6 +1559,19 @@ mod basic__types__deck_tests {
         let deck = Standard52::deck();
         let count = deck.into_iter().count();
         assert_eq!(count, Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn from_slice__roundtrips_a_const_array() {
+        const TINY: [BasicCard; 4] = [
+            FrenchBasicCard::ACE_SPADES,
+            FrenchBasicCard::KING_SPADES,
+            FrenchBasicCard::ACE_HEARTS,
+            FrenchBasicCard::KING_HEARTS,
+        ];
+        let pile = Pile::<Standard52>::from_slice(&TINY);
+        assert_eq!(pile.len(), 4);
+        assert!(pile.contains(&Card::<Standard52>::new(FrenchBasicCard::ACE_SPADES)));
     }
 
     #[cfg(all(feature = "i18n", feature = "colored-display"))]

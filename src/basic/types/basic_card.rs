@@ -38,6 +38,24 @@ pub struct BasicCard {
 }
 
 impl BasicCard {
+    /// Construct a `BasicCard` from a suit and rank `Pip`.
+    ///
+    /// `const` so callers can build `BasicCard` constants at compile time
+    /// (which the per-deck files already do via struct literals; this is a
+    /// more ergonomic alternative):
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// pub const ACE_OF_SPADES: BasicCard =
+    ///     BasicCard::new(FrenchSuit::SPADES, FrenchRank::ACE);
+    /// assert_eq!(ACE_OF_SPADES, FrenchBasicCard::ACE_SPADES);
+    /// ```
+    #[must_use]
+    pub const fn new(suit: Pip, rank: Pip) -> Self {
+        Self { suit, rank }
+    }
+
     /// Reads in a YAML file version of `BasicCard` data at the passed in location and returns a vector of `BasicCards`. See the
     /// [`Razz`](crate::basic::decks::razz::Razz) deck for an example of how to use this method.
     ///
@@ -194,6 +212,18 @@ mod basic__types__basic_card_tests {
     fn is_blank() {
         let base_card = BasicCard::default();
         assert!(base_card.is_blank());
+    }
+
+    /// Guards `BasicCard::new`'s `const fn` status. If `new` ever loses
+    /// `const`, this `pub const` fails to compile.
+    const _CONST_CARD: BasicCard = BasicCard::new(
+        crate::basic::decks::cards::french::FrenchSuit::SPADES,
+        crate::basic::decks::cards::french::FrenchRank::ACE,
+    );
+
+    #[test]
+    fn basic_card__new__is_const() {
+        assert_eq!(_CONST_CARD, crate::prelude::FrenchBasicCard::ACE_SPADES);
     }
 
     #[test]

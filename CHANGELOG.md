@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Pip::new` is now a `const fn`, enabling compile-time `Pip` literals
+  via the constructor (callers previously had to use struct literals).
+  (audit row #14)
+- `BasicCard::new(suit: Pip, rank: Pip) -> Self` — `const fn`
+  constructor that's more ergonomic than the existing struct-literal
+  pattern at deck-card definition sites. (audit row #14)
+- `Pile<T>::from_slice(&[BasicCard]) -> Self` — ergonomic non-const
+  helper for building piles from `const` arrays. `Pile` wraps `Vec`
+  and is intentionally not const-constructible. (audit row #14)
+
+### Internal
+
+- Criterion benchmarks under `benches/draw.rs` covering shuffle, draw,
+  `pile_on`, and `combos` against the 108-card Canasta deck. New
+  `make bench` target. (audit row #8)
+
 ## [0.6.12] - 2026-04-30
 
 This release closes most of the gap analysis tracked in

@@ -55,7 +55,9 @@ rstest = "0.25"
 term-table = "1.4.0"
 
 # proptest's transitive `wait-timeout` is unix-only, so gate it off wasm.
+# criterion uses std::time / std::process and won't build for wasm either.
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = "0.5"
 proptest = "1"
 
 # Used by tests/wasm.rs only when targeting wasm32.
@@ -84,3 +86,7 @@ name = "range"
 
 [[example]]
 name = "wasm"
+
+[[bench]]
+name = "draw"
+harness = false
