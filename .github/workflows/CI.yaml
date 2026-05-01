@@ -76,3 +76,32 @@ jobs:
           toolchain: stable
           components: rust-src
       - run: cargo doc --no-deps --all-features
+
+  wasm-build:
+    name: WASM Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown --all-features
+      - run: cargo build --target wasm32-unknown-unknown --no-default-features
+      - run: cargo build --target wasm32-unknown-unknown --example wasm
+
+  wasm-test:
+    name: WASM Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen-cli
+      - run: cargo test --target wasm32-unknown-unknown --test wasm

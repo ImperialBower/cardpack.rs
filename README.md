@@ -99,6 +99,14 @@ cardpack = { version = "0.6", default-features = false, features = ["serde"] }
 
 `yaml` implies `serde` (it deserializes into the serde-derived structs).
 
+## WebAssembly
+
+cardpack compiles cleanly to `wasm32-unknown-unknown` (browser WASM)
+with every feature combination. See [`docs/wasm.md`](docs/wasm.md) for
+the consumer-side `getrandom` backend setup, recommended feature
+combos, and runtime gotchas. A working example lives at
+[`examples/wasm.rs`](examples/wasm.rs).
+
 ## Responsibilities
 
 * Represent a specific type of card deck.

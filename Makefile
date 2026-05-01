@@ -1,4 +1,4 @@
-.PHONY: clean build test test-unit test-doc build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants watch install-watch
+.PHONY: clean build test test-unit test-doc test-wasm build-wasm build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli watch install-watch
 
 # Default target
 default: ayce
@@ -12,6 +12,8 @@ help:
 	@echo "  make test            - Run all tests (nextest for unit, cargo test for doc)"
 	@echo "  make test-unit       - Run unit tests via cargo-nextest"
 	@echo "  make test-doc        - Run doc tests via cargo test --doc"
+	@echo "  make build-wasm      - Build the lib + example for wasm32-unknown-unknown"
+	@echo "  make test-wasm       - Run wasm runtime tests (requires wasm-bindgen-cli + node)"
 	@echo "  make build_test      - Clean once, then build and test"
 	@echo "  make fmt             - Format code"
 	@echo "  make clippy          - Run clippy linter"
@@ -38,6 +40,7 @@ help:
 	@echo "  make install-tools   - Install cargo-deny, cargo-udeps, cargo-nextest, and cargo-mutants"
 	@echo "  make install-nextest - Install cargo-nextest"
 	@echo "  make install-mutants - Install cargo-mutants"
+	@echo "  make install-wasm-bindgen-cli - Install wasm-bindgen-cli (for test-wasm)"
 	@echo "  make watch           - Run cargo-watch for check/test loop"
 	@echo "  make install-watch   - Install cargo-watch"
 	@echo ""
@@ -76,6 +79,46 @@ test-doc:
 
 # Run all tests: unit tests via nextest, doc tests via cargo test
 test: test-unit test-doc
+
+# Build cardpack for wasm32-unknown-unknown across feature combos.
+# The repo's .cargo/config.toml supplies the required getrandom backend cfg.
+build-wasm:
+	@if ! rustup target list --installed | grep -q '^wasm32-unknown-unknown$$'; then \
+		echo "Installing wasm32-unknown-unknown target..."; \
+		rustup target add wasm32-unknown-unknown; \
+	fi
+	cargo build --target wasm32-unknown-unknown --all-features
+	cargo build --target wasm32-unknown-unknown --no-default-features
+	cargo build --target wasm32-unknown-unknown --example wasm
+
+# Check for wasm-bindgen-test-runner, prompt to install if missing.
+# wasm-bindgen-test-runner is bundled with wasm-bindgen-cli.
+define check_wasm_bindgen_cli
+	@if ! command -v wasm-bindgen-test-runner >/dev/null 2>&1; then \
+		echo "wasm-bindgen-cli is not installed (provides wasm-bindgen-test-runner)."; \
+		printf "Install it now? [y/N] "; \
+		read answer; \
+		if [ "$$answer" = "y" ] || [ "$$answer" = "Y" ]; then \
+			cargo install wasm-bindgen-cli; \
+		else \
+			echo "Aborting: wasm-bindgen-cli is required for wasm runtime tests."; \
+			exit 1; \
+		fi; \
+	fi
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "Aborting: node is required for wasm runtime tests."; \
+		exit 1; \
+	fi
+endef
+
+# Run wasm runtime tests under node-headless via wasm-bindgen-test.
+test-wasm:
+	@if ! rustup target list --installed | grep -q '^wasm32-unknown-unknown$$'; then \
+		echo "Installing wasm32-unknown-unknown target..."; \
+		rustup target add wasm32-unknown-unknown; \
+	fi
+	$(check_wasm_bindgen_cli)
+	cargo test --target wasm32-unknown-unknown --test wasm
 
 # Check for cargo-mutants, prompt to install if missing
 define check_mutants
@@ -172,6 +215,10 @@ install-nextest:
 # Install cargo-mutants
 install-mutants:
 	cargo install cargo-mutants
+
+# Install wasm-bindgen-cli (provides wasm-bindgen-test-runner used by `make test-wasm`)
+install-wasm-bindgen-cli:
+	cargo install wasm-bindgen-cli
 
 # Install required tools
 install-tools:

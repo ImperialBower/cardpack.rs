@@ -8,7 +8,12 @@
 //!
 //! All tests run against `Pile<Standard52>` because Standard52 is the
 //! simplest non-trivial deck (52 cards, no jokers, no duplicates).
+//!
+//! Skipped on `wasm32-unknown-unknown` because proptest's transitive
+//! `wait-timeout` crate is unix-only. The wasm runtime tests live in
+//! `tests/wasm.rs`.
 
+#![cfg(not(target_arch = "wasm32"))]
 #![allow(non_snake_case)]
 
 use cardpack::prelude::*;
