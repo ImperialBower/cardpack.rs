@@ -26,6 +26,7 @@ pub trait DeckedBase {
 
     fn base_vec() -> Vec<BasicCard>;
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, colored::Color>;
 
     fn deck_name() -> String;
@@ -99,6 +100,7 @@ where
     }
 
     /// Used in the `examples/cli.rs` application for showing off the various decks.
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
     fn demo(verbose: bool) {
         Self::deck().demo_cards(verbose);
     }
@@ -484,6 +486,7 @@ mod basic__types__traits_tests {
         assert_ne!(cards[0].base(), FrenchBasicCard::DEUCE_CLUBS);
     }
 
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
     #[test]
     fn demo__does_not_panic() {
         Standard52::demo(false);

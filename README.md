@@ -1,6 +1,7 @@
 # cardpack.rs
 
 [![Build and Test](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml/badge.svg)](https://github.com/ImperialBower/cardpack.rs/actions/workflows/CI.yaml)
+[![codecov](https://codecov.io/gh/ImperialBower/cardpack.rs/branch/main/graph/badge.svg)](https://codecov.io/gh/ImperialBower/cardpack.rs)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
 
@@ -76,8 +77,36 @@ decks of various sizes and suits. Out of the box, the library supports:
 The project takes advantage of [Project Fluent](https://www.projectfluent.org/)'s
 [Rust](https://github.com/projectfluent/fluent-rs) support to offer
 internationalization. Current languages supported are
-[English](src/fluent/locales/en-US/french-deck.ftl) and
-[German](src/fluent/locales/de/french-deck.ftl).
+[English](src/localization/locales/en-US/french.ftl) and
+[German](src/localization/locales/de/french.ftl).
+
+## Cargo features
+
+Every dependency-bearing capability is gated behind a Cargo feature so
+consumers can trim what they don't need:
+
+| Feature           | Default | Pulls in           | What turns off without it                                     |
+|-------------------|---------|--------------------|---------------------------------------------------------------|
+| `i18n`            | yes     | `fluent-templates` | `FluentName`, `Named`, `Card::fluent_name*`, `localization`   |
+| `colored-display` | yes     | `colored`          | `Color`, `Colorize`, `Card::color*`, `Pile::to_color_*`       |
+| `yaml`            | yes     | `serde_norway`     | `BasicCard::cards_from_yaml_*`, the `Razz` deck (YAML-loaded) |
+| `serde`           | yes     | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
+
+Default-features builds behave exactly like prior versions. To trim:
+
+```toml
+cardpack = { version = "0.6", default-features = false, features = ["serde"] }
+```
+
+`yaml` implies `serde` (it deserializes into the serde-derived structs).
+
+## WebAssembly
+
+cardpack compiles cleanly to `wasm32-unknown-unknown` (browser WASM)
+with every feature combination. See [`docs/wasm.md`](docs/wasm.md) for
+the consumer-side `getrandom` backend setup, recommended feature
+combos, and runtime gotchas. A working example lives at
+[`examples/wasm.rs`](examples/wasm.rs).
 
 ## Responsibilities
 
@@ -85,7 +114,6 @@ internationalization. Current languages supported are
 * Validate that a collection of cards is valid for that type of deck.
 * Create a textual representation of a deck that can be serialized and deserialized.
 * Shuffle a deck
-* Verify that a specific card is playable given a set of discards.
 
 ## Examples
 
@@ -201,7 +229,7 @@ Other examples are:
 * [log](https://github.com/rust-lang/log)
 * [rand](https://github.com/rust-random/rand)
 * [serde](https://github.com/serde-rs/serde)
-  * [serde_yml](https://github.com/sebastienrousseau/serde_yml)
+  * [serde_norway](https://crates.io/crates/serde_norway)
 * [thiserror](https://github.com/dtolnay/thiserror)
 
 ## Dev Dependencies

@@ -1,5 +1,7 @@
 use crate::prelude::*;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -100,6 +102,7 @@ impl DeckedBase for Tarot {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         let mut mappie = HashMap::new();
 
@@ -133,6 +136,7 @@ mod basic__card__tarot_tests {
     use crate::basic::types::traits::Decked;
     use std::str::FromStr;
 
+    #[cfg(feature = "i18n")]
     #[test]
     fn fluent__fluent_name_default() {
         let magician = TarotCard::from_str("1m").unwrap();
@@ -146,6 +150,7 @@ mod basic__card__tarot_tests {
         assert!(Tarot::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Tarot::colors().is_empty());

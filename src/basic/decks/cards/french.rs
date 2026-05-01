@@ -373,12 +373,13 @@ impl FrenchRank {
     };
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "yaml"))]
 #[allow(non_snake_case)]
 mod basic__decks__cards__french__tests {
     use super::*;
     use crate::prelude::{Decked, French};
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn serde() {
         let pips = vec![FrenchRank::ACE];
@@ -388,6 +389,7 @@ mod basic__decks__cards__french__tests {
         assert_eq!(pips, pip2);
     }
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn serde__deck() {
         let pile = French::deck().into_basic_cards();

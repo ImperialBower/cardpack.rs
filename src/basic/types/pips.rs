@@ -1,3 +1,4 @@
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -20,9 +21,8 @@ use std::fmt::Display;
 ///     hand
 /// }
 /// ```
-#[derive(
-    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PipType {
     #[default]
     Blank,
@@ -74,7 +74,8 @@ pub enum PipType {
 ///
 /// assert_eq!(trey_of_hearts, FrenchBasicCard::TREY_HEARTS);
 /// ```
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Pip {
     pub weight: usize,
     pub pip_type: PipType,
@@ -101,14 +102,26 @@ impl Pip {
         191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
     ];
 
+    /// Construct a `Pip`. `value` defaults to 0; use a struct literal directly
+    /// (or [`Pip::update_value`]) when you need a non-zero `value`.
+    ///
+    /// `const` so callers can build `Pip` constants at compile time:
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// pub const ACE: Pip = Pip::new(PipType::Rank, 12, 'A', 'A');
+    /// assert_eq!(ACE.weight, 12);
+    /// assert_eq!(ACE.value, 0);
+    /// ```
     #[must_use]
-    pub fn new(pip_type: PipType, weight: usize, index: char, symbol: char) -> Self {
+    pub const fn new(pip_type: PipType, weight: usize, index: char, symbol: char) -> Self {
         Self {
             weight,
             pip_type,
             index,
             symbol,
-            ..Default::default()
+            value: 0,
         }
     }
 
@@ -167,6 +180,19 @@ mod basic__types__pips_tests {
         assert_eq!(pip.index, Pip::BLANK_INDEX);
         assert_eq!(pip.symbol, Pip::BLANK_INDEX);
         assert_eq!(pip.value, 0);
+    }
+
+    /// Guards `Pip::new`'s `const fn` status. If `new` ever loses `const`,
+    /// this `pub const` declaration fails to compile.
+    const _CONST_PIP: Pip = Pip::new(PipType::Rank, 12, 'A', 'A');
+
+    #[test]
+    fn pip__new__is_const() {
+        assert_eq!(_CONST_PIP.weight, 12);
+        assert_eq!(_CONST_PIP.pip_type, PipType::Rank);
+        assert_eq!(_CONST_PIP.index, 'A');
+        assert_eq!(_CONST_PIP.symbol, 'A');
+        assert_eq!(_CONST_PIP.value, 0);
     }
 
     #[test]

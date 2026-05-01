@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.6.11"
+version = "0.6.12"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -12,21 +12,40 @@ keywords = ["poker", "cards", "library"]
 categories = ["game-development"] # https://crates.io/category_slugs
 include = ["src/**", "Cargo.toml", "LICENSE", "README.md", "src/basic/decks/yaml/*.yaml"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [lib]
 name = "cardpack"
 path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["i18n", "colored-display", "yaml", "serde"]
+i18n = ["dep:fluent-templates"]
+colored-display = ["dep:colored"]
+yaml = ["dep:serde_norway", "serde"]
+serde = ["dep:serde"]
+
 [dependencies]
-colored = "3.1"
-fluent-templates = "0.13"
+colored = { version = "3.1", optional = true }
+fluent-templates = { version = "0.13", optional = true }
 itertools = "0.14.0"
 log = "0.4.29"
 rand = "0.9"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_norway = "0.9.42"
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+serde_norway = { version = "0.9.42", optional = true }
 thiserror = "2.0.18"
+
+# rand 0.9 → rand_core 0.9 → getrandom 0.3 forces wasm32 consumers to pick
+# a getrandom backend; without it, `cargo build --target wasm32-unknown-unknown`
+# errors with "no backend selected." We turn on the `wasm_js` feature here
+# (browser-targeting backend) so consumers don't have to add it themselves.
+# Consumers still need to set `--cfg getrandom_backend="wasm_js"` via
+# .cargo/config.toml (see docs/wasm.md).
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 [dev-dependencies]
 ckc-rs = "0.1.15"
@@ -34,3 +53,40 @@ clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
 rstest = "0.25"
 term-table = "1.4.0"
+
+# proptest's transitive `wait-timeout` is unix-only, so gate it off wasm.
+# criterion uses std::time / std::process and won't build for wasm either.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = "0.5"
+proptest = "1"
+
+# Used by tests/wasm.rs only when targeting wasm32.
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[[example]]
+name = "demo"
+required-features = ["i18n", "colored-display"]
+
+[[example]]
+name = "headandfoot"
+required-features = ["i18n", "colored-display"]
+
+[[example]]
+name = "bridge"
+
+[[example]]
+name = "poker"
+
+[[example]]
+name = "poker_eval"
+
+[[example]]
+name = "range"
+
+[[example]]
+name = "wasm"
+
+[[bench]]
+name = "draw"
+harness = false

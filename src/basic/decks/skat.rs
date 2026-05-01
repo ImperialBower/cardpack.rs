@@ -1,10 +1,15 @@
-use crate::basic::decks::cards::skat::{FLUENT_KEY_BASE_NAME_SKAT, SkatBasicCard, SkatSuit};
+#[cfg(feature = "colored-display")]
+use crate::basic::decks::cards::skat::SkatSuit;
+use crate::basic::decks::cards::skat::{FLUENT_KEY_BASE_NAME_SKAT, SkatBasicCard};
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -58,6 +63,7 @@ impl DeckedBase for Skat {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         let mut mappie = HashMap::new();
 
@@ -89,6 +95,7 @@ mod basic__card__skat_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
     use crate::basic::types::traits::Decked;
+    #[cfg(feature = "i18n")]
     use crate::localization::{FluentName, Named};
 
     #[test]
@@ -109,6 +116,7 @@ mod basic__card__skat_tests {
         assert!(Skat::validate());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn decked__colors() {
         assert!(!Skat::colors().is_empty());
@@ -127,6 +135,7 @@ mod basic__card__skat_tests {
         );
     }
 
+    #[cfg(feature = "i18n")]
     #[test]
     fn fluent__name() {
         let mut deck = Skat::deck();

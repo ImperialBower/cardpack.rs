@@ -1,0 +1,13 @@
+# Set the getrandom backend for wasm32-unknown-unknown so that the
+# wasm example (`examples/wasm.rs`) and any other wasm32 build of this
+# repo compiles without the `getrandom` "no backend" error.
+#
+# Consumers of cardpack who build for wasm32-unknown-unknown need to
+# do the same in their own .cargo/config.toml. See docs/wasm.md.
+#
+# `runner` makes `cargo test --target wasm32-unknown-unknown` dispatch
+# to wasm-bindgen-test-runner (provided by the wasm-bindgen-cli crate)
+# so tests in `tests/wasm.rs` execute under a real wasm runtime.
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+runner = "wasm-bindgen-test-runner"

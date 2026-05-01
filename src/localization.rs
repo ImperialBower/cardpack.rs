@@ -38,6 +38,12 @@ static_loader! {
 pub trait Named<'a> {
     const US_ENGLISH: LanguageIdentifier = langid!("en-US");
     const DEUTSCH: LanguageIdentifier = langid!("de");
+    /// `fr` — French. Locale draft (high confidence on standard playing-card terminology).
+    const FRANCAIS: LanguageIdentifier = langid!("fr");
+    /// `la` — Latin. Locale draft (HIGH on french.ftl, MEDIUM-HIGH on tarot.ftl, LOW-MEDIUM on skat.ftl).
+    const LATINA: LanguageIdentifier = langid!("la");
+    /// `tlh` — Klingon. Locale draft (LOW confidence overall; canon-plus-coinages).
+    const TLHINGAN: LanguageIdentifier = langid!("tlh");
 
     const FLUENT_INDEX_SECTION: &'a str = "index";
     const FLUENT_LONG_SECTION: &'a str = "long";
@@ -291,8 +297,12 @@ impl FromStr for FluentName {
 }
 
 impl Named<'_> for FluentName {
-    fn new_with_weight(_name_str: &str, _weight: u32) -> Self {
-        todo!()
+    /// `FluentName` is a thin wrapper around a name string and has no place to
+    /// store a weight, so `weight` is intentionally ignored. Use a separate
+    /// weight-bearing type (see the `WeightedName` test helper for the
+    /// pattern) when you need both fields.
+    fn new_with_weight(name_str: &str, _weight: u32) -> Self {
+        Self::new(name_str)
     }
 
     fn fluent_name(&self) -> &FluentName {
@@ -389,8 +399,18 @@ mod fluent_tests {
         assert_eq!("P", FluentName::new("pentacles").index_default());
     }
 
+    /// Guards the no-panic behavior of `FluentName::new_with_weight`. Previously the
+    /// impl was `todo!()` and panicked on call; now it discards the weight and
+    /// delegates to `FluentName::new`, since `FluentName` has no weight field.
+    #[test]
+    fn fluent_name__new_with_weight__does_not_panic() {
+        let name = FluentName::new_with_weight("spades", 13);
+        assert_eq!(name, FluentName::new("spades"));
+    }
+
     /// Test helper to exercise `Named::weighted_vector` — uses a minimal concrete implementation
-    /// of `Named` since `FluentName::new_with_weight` is unimplemented (todo!).
+    /// of `Named` because `FluentName::new_with_weight` discards the weight (`FluentName`
+    /// has nowhere to store it).
     #[allow(dead_code)]
     struct WeightedName {
         name: FluentName,
@@ -478,5 +498,51 @@ mod fluent_tests {
     fn is_alphanumeric_hyphen_dash__invalid() {
         assert!(!FluentName::is_alphanumeric_hyphen_dash("not valid!"));
         assert!(!FluentName::is_alphanumeric_hyphen_dash(" "));
+    }
+
+    /// Confirms the `fr` locale (added 2026-04-29) is wired into the static loader.
+    /// A regression in `src/localization/locales/fr/` discovery would fail this test.
+    /// The `french.ftl` Queen entry is high-confidence terminology and unlikely to
+    /// shift if the file is later reviewed.
+    #[test]
+    fn french_locale_is_wired() {
+        let fr = langid!("fr");
+        assert_eq!("Dame", LOCALES.lookup(&fr, "name-rank-french-q"));
+        assert_eq!("As", LOCALES.lookup(&fr, "name-rank-french-a"));
+    }
+
+    /// Confirms the `la` (Latin) locale is wired into the static loader.
+    /// Both assertions hit high-confidence classical Latin entries — Regina
+    /// (queen) and Rex (king) — that are unlikely to shift on review.
+    #[test]
+    fn latin_locale_is_wired() {
+        let la = langid!("la");
+        assert_eq!("Regina", LOCALES.lookup(&la, "name-rank-french-q"));
+        assert_eq!("Rex", LOCALES.lookup(&la, "name-rank-french-k"));
+    }
+
+    /// Confirms the `tlh` (Klingon) locale is wired into the static loader.
+    /// Both assertions hit attested Okrand-canon entries (TKD): tIq "heart"
+    /// and ta' "emperor". Coinages are deliberately not asserted here — they
+    /// may be revised on KLI review without breaking this wired-test.
+    #[test]
+    fn klingon_locale_is_wired() {
+        let tlh = langid!("tlh");
+        assert_eq!("tIq", LOCALES.lookup(&tlh, "name-suit-french-h"));
+        assert_eq!("ta'", LOCALES.lookup(&tlh, "name-rank-french-k"));
+    }
+
+    /// Guards the de/tarot.ftl schema fix (2026-04-29). Major Arcana keys were
+    /// renamed to use the `name-rank-tarot-special-` prefix and Minor Arcana
+    /// entries were added; previously both silently fell back to English.
+    #[test]
+    fn german_tarot_resolves_correctly() {
+        let de = &FluentName::DEUTSCH;
+        // Major Arcana — uses the corrected `-special-` prefix
+        assert_eq!("Der Narr", LOCALES.lookup(de, "name-rank-tarot-special-0"));
+        assert_eq!("Die Welt", LOCALES.lookup(de, "name-rank-tarot-special-l"));
+        // Minor Arcana — newly added entries
+        assert_eq!("Ass", LOCALES.lookup(de, "name-rank-tarot-a"));
+        assert_eq!("Königin", LOCALES.lookup(de, "name-rank-tarot-q"));
     }
 }
