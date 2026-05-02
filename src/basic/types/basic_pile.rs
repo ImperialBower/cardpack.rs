@@ -5,10 +5,10 @@ use core::fmt;
 use core::fmt::Display;
 use core::hash::Hash;
 use rand::prelude::SliceRandom;
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
 #[cfg(feature = "std")]
 use rand::rng;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

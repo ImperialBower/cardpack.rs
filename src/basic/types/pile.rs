@@ -12,11 +12,11 @@ use colored::Color;
 use core::fmt::Display;
 use core::hash::Hash;
 use core::str::FromStr;
+#[cfg(feature = "std")]
+use rand::rng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
-#[cfg(feature = "std")]
-use rand::rng;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 // HashMap is gated on `colored-display` rather than `std` because it is only

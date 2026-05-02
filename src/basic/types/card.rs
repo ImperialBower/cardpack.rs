@@ -1,14 +1,14 @@
 use crate::basic::types::basic_card::BasicCard;
 #[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
 #[cfg(feature = "i18n")]
 use crate::basic::types::pips::PipType;
 use crate::basic::types::traits::DeckedBase;
 use crate::common::errors::CardError;
 #[cfg(feature = "i18n")]
 use crate::localization::{FluentName, Named};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::{Color, Colorize};
 use core::fmt::{Display, Formatter};

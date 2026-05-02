@@ -54,7 +54,11 @@ thiserror = { version = "2.0.18", default-features = false }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
 
-[dev-dependencies]
+# All ordinary dev-deps require std and cannot build for bare-metal targets
+# (target_os = "none", e.g. thumbv7em-none-eabihf). Gate them off those targets
+# so that `cargo build --no-default-features --target thumbv7em-none-eabihf`
+# doesn't try to compile std-only crates as transitive dev-dep dependencies.
+[target.'cfg(not(target_os = "none"))'.dev-dependencies]
 ckc-rs = "0.1.15"
 clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
@@ -63,7 +67,8 @@ term-table = "1.4.0"
 
 # proptest's transitive `wait-timeout` is unix-only, so gate it off wasm.
 # criterion uses std::time / std::process and won't build for wasm either.
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+# Both also require std, so gate off bare-metal targets as well.
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
 criterion = "0.5"
 proptest = "1"
 
@@ -93,6 +98,10 @@ name = "range"
 
 [[example]]
 name = "wasm"
+
+[[example]]
+name = "no_std_smoke"
+required-features = []
 
 [[bench]]
 name = "draw"

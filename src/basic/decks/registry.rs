@@ -31,9 +31,9 @@ use crate::basic::decks::tiny::Tiny;
 use crate::basic::types::basic_card::BasicCard;
 #[cfg(all(feature = "i18n", feature = "colored-display"))]
 use crate::basic::types::traits::Decked;
+use crate::basic::types::traits::DeckedBase;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::basic::types::traits::DeckedBase;
 
 /// Every deck that cardpack ships, exposed as a non-generic enum.
 ///

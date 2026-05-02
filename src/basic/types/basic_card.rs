@@ -199,8 +199,8 @@ mod basic__types__basic_card_tests {
     use crate::basic::types::basic_card::BasicCard;
     use crate::prelude::{Decked, French, Pile};
     use ckc_rs::CardNumber;
-    use rstest::rstest;
     use core::str::FromStr;
+    use rstest::rstest;
 
     #[cfg(feature = "yaml")]
     #[test]
