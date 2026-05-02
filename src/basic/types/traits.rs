@@ -10,7 +10,7 @@ use itertools::Itertools;
 use core::cell::Cell;
 use core::hash::Hash;
 use core::str::FromStr;
-use alloc::collections::BTreeMap;
+use alloc::collections::{BTreeMap, BTreeSet};
 use std::collections::{HashMap, HashSet};
 
 pub trait DeckedBase {
@@ -343,15 +343,14 @@ pub trait Ranged {
         self.filter_cards(rank_types_filter)
     }
 
+    #[must_use]
     fn extract_pips<F>(&self, f: F) -> Vec<Pip>
     where
         F: Fn(&BasicCard) -> Pip,
     {
-        let set: HashSet<Pip> = self.my_basic_pile().iter().map(f).collect();
-        let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
-        vec.sort();
-        vec.reverse();
-        vec
+        // BTreeSet iterates in ascending Ord order; .rev() replaces the explicit sort+reverse.
+        let set: BTreeSet<Pip> = self.my_basic_pile().iter().map(f).collect();
+        set.into_iter().rev().collect()
     }
 
     fn map_by_rank(&self) -> BTreeMap<Pip, BasicPile> {
