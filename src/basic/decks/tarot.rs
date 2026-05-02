@@ -136,7 +136,7 @@ mod basic__card__tarot_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
     use crate::basic::types::traits::Decked;
-    use std::str::FromStr;
+    use core::str::FromStr;
 
     #[cfg(feature = "i18n")]
     #[test]

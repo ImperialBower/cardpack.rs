@@ -193,6 +193,7 @@ impl DeckKind {
 #[allow(non_snake_case)]
 mod basic__decks__registry_tests {
     use super::*;
+    use alloc::string::ToString;
 
     #[test]
     fn all__non_empty() {

@@ -65,6 +65,7 @@ impl BasicPileCell {
         }
     }
 
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         let mut inner_pile = self.0.take();
         inner_pile.shuffle();
@@ -77,6 +78,7 @@ impl BasicPileCell {
     /// let pile = Pile::<Standard52>::basic_pile_cell();
     /// // println!("{}", pile.shuffled());
     /// ```
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let inner_pile = self.0.take();
@@ -290,6 +292,7 @@ mod basic__types__basic_tests {
     use super::*;
     use crate::basic_cell;
     use crate::prelude::{DeckedBase, Pile, Standard52};
+    use alloc::string::ToString;
 
     #[test]
     fn debug() {
@@ -309,6 +312,7 @@ mod basic__types__basic_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn eq() {
         let basic = Pile::<Standard52>::basic_pile_cell();
@@ -370,6 +374,7 @@ mod basic__types__basic_tests {
         assert_eq!(cell.len(), Standard52::DECK_SIZE - 1);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn shuffle__preserves_length() {
         let mut cell = Pile::<Standard52>::basic_pile_cell();
@@ -377,6 +382,7 @@ mod basic__types__basic_tests {
         assert_eq!(cell.len(), Standard52::DECK_SIZE);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn shuffled__same_length() {
         let cell = Pile::<Standard52>::basic_pile_cell();

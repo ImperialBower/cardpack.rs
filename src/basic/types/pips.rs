@@ -171,6 +171,7 @@ impl Display for Pip {
 mod basic__types__pips_tests {
     use super::*;
     use crate::basic::types::basic_card::BasicCard;
+    use alloc::string::ToString;
 
     #[test]
     fn pip__default() {

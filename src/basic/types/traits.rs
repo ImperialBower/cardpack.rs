@@ -135,7 +135,7 @@ where
     fn validate() -> bool {
         let deck = Self::deck();
         Pile::<DeckType>::from_str(&deck.to_string()).is_ok_and(|deckfromstr| {
-            deck == deck.clone().shuffled().sorted() && deck == deckfromstr
+            deck == deck.clone().shuffled_with_seed(42).sorted() && deck == deckfromstr
         })
     }
 }

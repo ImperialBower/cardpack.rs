@@ -227,6 +227,7 @@ macro_rules! card {
 #[allow(non_snake_case)]
 mod basic__macros_tests {
     use crate::prelude::*;
+    use alloc::string::ToString;
 
     #[test]
     fn cards() {

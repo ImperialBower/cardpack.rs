@@ -200,7 +200,7 @@ mod basic__types__basic_card_tests {
     use crate::prelude::{Decked, French, Pile};
     use ckc_rs::CardNumber;
     use rstest::rstest;
-    use std::str::FromStr;
+    use core::str::FromStr;
 
     #[cfg(feature = "yaml")]
     #[test]

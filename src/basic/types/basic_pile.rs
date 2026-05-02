@@ -6,7 +6,9 @@ use core::fmt::Display;
 use core::hash::Hash;
 use rand::prelude::SliceRandom;
 use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng, rng};
+use rand::{Rng, SeedableRng};
+#[cfg(feature = "std")]
+use rand::rng;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -65,6 +67,7 @@ impl BasicPile {
     /// Shuffles the `BasicPile` in place using the process default RNG
     /// (`rand::rng()`). For deterministic shuffling, use
     /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -73,6 +76,7 @@ impl BasicPile {
     ///
     /// For deterministic shuffling, use
     /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -438,7 +442,8 @@ mod basic__types__pile_tests {
     use super::*;
     use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Ranged
@@ -564,6 +569,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn ranks() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -590,6 +596,7 @@ mod basic__types__pile_tests {
         assert_eq!(ranks, expected);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn ranks_index() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -635,6 +642,7 @@ mod basic__types__pile_tests {
         assert_eq!(pile.ranks_index_by_suit(FrenchSuit::DIAMONDS, "-"), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits() {
         let pile = French::deck().shuffled();
@@ -657,6 +665,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits_index() {
         let pile = French::deck().shuffled();
@@ -673,6 +682,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suit_symbol_index() {
         let pile = French::deck().shuffled();

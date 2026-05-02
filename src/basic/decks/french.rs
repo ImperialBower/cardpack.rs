@@ -120,7 +120,8 @@ mod basic__card__french__tests {
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
     use crate::basic::types::traits::Decked;
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn from_str__card() {

@@ -14,7 +14,9 @@ use core::hash::Hash;
 use core::str::FromStr;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, SeedableRng, rng};
+use rand::{Rng, SeedableRng};
+#[cfg(feature = "std")]
+use rand::rng;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 // HashMap is gated on `colored-display` rather than `std` because it is only
@@ -292,6 +294,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert!(!pile.contains(&random_card));
     /// ```
+    #[cfg(feature = "std")]
     pub fn draw_random(&mut self) -> Option<Card<DeckType>> {
         let mut rng = rng();
         let position = rng.random_range(0..self.len());
@@ -728,6 +731,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// For deterministic shuffling, use
     /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -738,6 +742,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Shuffles the `Pile` in place using the process default RNG
     /// (`rand::rng()`). For deterministic shuffling, use
     /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -1069,6 +1074,8 @@ mod basic__types__deck_tests {
     use crate::basic::types::traits::DeckedBase;
     use crate::cards;
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn basic_cards() {
@@ -1137,6 +1144,7 @@ mod basic__types__deck_tests {
         }
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn draw_random() {
         let mut deck = Standard52::deck();
@@ -1373,6 +1381,7 @@ mod basic__types__deck_tests {
         assert_eq!(*pile.cards(), cards);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn to_string__from_str() {
         let deck = French::deck();
@@ -1493,6 +1502,7 @@ mod basic__types__deck_tests {
 
     // endregion GTOed
 
+    #[cfg(feature = "std")]
     #[test]
     fn draw_random__is_from_deck() {
         // Catches mutation: return Some(Card::new(Default::default()))

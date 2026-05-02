@@ -283,6 +283,7 @@ impl<'a> IntoIterator for &'a Combos {
 mod basic__types__combos_tests {
     use super::*;
     use crate::prelude::{Decked, DeckedBase, French, FrenchRank, Pile, Standard52};
+    use alloc::string::ToString;
 
     #[test]
     fn connectors() {
