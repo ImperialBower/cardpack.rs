@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use core::fmt::Display;
 use core::hash::Hash;
 use core::str::FromStr;
+use alloc::collections::BTreeMap;
 use alloc::vec::IntoIter;
 use std::collections::{HashMap, HashSet};
 
@@ -477,8 +478,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// );
     /// ```
     #[must_use]
-    pub fn map_by_suit(&self) -> HashMap<Pip, Self> {
-        let mut map: HashMap<Pip, Self> = HashMap::new();
+    pub fn map_by_suit(&self) -> BTreeMap<Pip, Self> {
+        let mut map: BTreeMap<Pip, Self> = BTreeMap::new();
 
         for card in &self.0 {
             let suit = card.base_card.suit;

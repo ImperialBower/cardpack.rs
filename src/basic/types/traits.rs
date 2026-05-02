@@ -10,6 +10,7 @@ use itertools::Itertools;
 use core::cell::Cell;
 use core::hash::Hash;
 use core::str::FromStr;
+use alloc::collections::BTreeMap;
 use std::collections::{HashMap, HashSet};
 
 pub trait DeckedBase {
@@ -353,18 +354,11 @@ pub trait Ranged {
         vec
     }
 
-    fn map_by_rank(&self) -> HashMap<Pip, BasicPile> {
-        let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
+    fn map_by_rank(&self) -> BTreeMap<Pip, BasicPile> {
+        let mut mappy: BTreeMap<Pip, BasicPile> = BTreeMap::new();
 
         for card in &self.my_basic_pile() {
-            let rank = card.rank;
-
-            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(rank) {
-                let pile = BasicPile::from(vec![*card]);
-                e.insert(pile);
-            } else if let Some(pile) = mappy.get_mut(&rank) {
-                pile.push(*card);
-            }
+            mappy.entry(card.rank).or_default().push(*card);
         }
 
         mappy
