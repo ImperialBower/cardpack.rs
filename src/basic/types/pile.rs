@@ -11,11 +11,11 @@ use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng, rng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use core::fmt::Display;
+use core::hash::Hash;
+use core::str::FromStr;
+use alloc::vec::IntoIter;
 use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
-use std::hash::Hash;
-use std::str::FromStr;
-use std::vec::IntoIter;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
 /// collection of [`Cards`](Card) that are bound by a

@@ -12,7 +12,7 @@ use crate::prelude::{Card, Pile};
 use colored::Color;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
+use core::hash::Hash;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Pinochle {}

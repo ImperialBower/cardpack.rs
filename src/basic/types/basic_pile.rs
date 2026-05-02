@@ -5,9 +5,9 @@ use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng, rng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::fmt::Display;
-use std::hash::Hash;
+use core::fmt;
+use core::fmt::Display;
+use core::hash::Hash;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -422,7 +422,7 @@ impl<'a> IntoIterator for &'a BasicPile {
 
 impl IntoIterator for BasicPile {
     type Item = BasicCard;
-    type IntoIter = std::vec::IntoIter<BasicCard>;
+    type IntoIter = alloc::vec::IntoIter<BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()

@@ -7,10 +7,10 @@ pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 use crate::prelude::PipType;
 use itertools::Itertools;
-use std::cell::Cell;
+use core::cell::Cell;
+use core::hash::Hash;
+use core::str::FromStr;
 use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
-use std::str::FromStr;
 
 pub trait DeckedBase {
     /// And just like that we have a `Pile`.

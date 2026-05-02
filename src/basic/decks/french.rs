@@ -12,7 +12,7 @@ use crate::basic::types::traits::{Decked, DeckedBase};
 use colored::Color;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
+use core::hash::Hash;
 
 /// `French` is the type parameter for the `French Deck` version of the generic
 /// [`Card`] and [`Pile`] structs.

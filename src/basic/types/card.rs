@@ -15,10 +15,10 @@ use fluent_templates::LanguageIdentifier;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
-use std::hash::Hash;
-use std::marker::PhantomData;
-use std::str::FromStr;
+use core::fmt::{Display, Formatter};
+use core::hash::Hash;
+use core::marker::PhantomData;
+use core::str::FromStr;
 
 /// A `Card` is a struct that's a generic wrapper around a [`BasicCard`] providing it with additional
 /// deck specific superpowers, many of which are at the pile level. The ones at the `Card` level

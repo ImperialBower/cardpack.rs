@@ -1,6 +1,6 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use core::fmt::Display;
 
 /// `PipType` is used to handle control flows for special, conditional processing of pips.
 ///

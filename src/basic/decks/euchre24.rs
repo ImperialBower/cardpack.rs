@@ -11,7 +11,7 @@ use crate::prelude::{Card, Pile};
 use colored::Color;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
+use core::hash::Hash;
 
 /// This deck represents the most common 24 card form of
 /// [Euchre](https://en.wikipedia.org/wiki/Euchre) with

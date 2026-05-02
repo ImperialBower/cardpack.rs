@@ -1,8 +1,8 @@
 use crate::prelude::{BasicCard, BasicPile, Ranged};
-use std::cell::Cell;
-use std::cmp::Ordering;
-use std::fmt::{Debug, Display, Formatter};
-use std::hash::Hash;
+use core::cell::Cell;
+use core::cmp::Ordering;
+use core::fmt::{Debug, Display, Formatter};
+use core::hash::Hash;
 
 /// A [`BasicPile`] wrapped in a [`Cell`] to allow interior mutability through shared references.
 ///
@@ -259,7 +259,7 @@ impl PartialEq for BasicPileCell {
 }
 
 impl Hash for BasicPileCell {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         let inner_pile = self.0.take();
         inner_pile.hash(state);
         self.0.set(inner_pile);
