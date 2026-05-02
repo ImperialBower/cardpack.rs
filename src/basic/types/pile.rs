@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use core::fmt::Display;
 use core::hash::Hash;
 use core::str::FromStr;
-use alloc::collections::BTreeMap;
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::IntoIter;
 use std::collections::{HashMap, HashSet};
 
@@ -404,23 +404,26 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         crate::basic::types::basic::BasicPileCell::new(Self::basic_pile())
     }
 
-    /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
+    /// Returns the `Pile` as a `BTreeSet`, an ordered collection of each unique [`Card`].
+    /// Duplicate cards in the source pile collapse to a single entry.
     ///
     /// ```
-    /// use std::collections::HashSet;
+    /// use std::collections::BTreeSet;
     /// use cardpack::prelude::*;
     ///
-    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
-    /// let mut hs: HashSet<Card<Standard52>> = HashSet::new();
+    /// // The 2♠ appears twice, but the BTreeSet only keeps one entry.
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 2♠ 4♠").unwrap();
+    /// let mut set: BTreeSet<Card<Standard52>> = BTreeSet::new();
     ///
-    /// hs.insert(card!(2S));
-    /// hs.insert(card!(8S));
-    /// hs.insert(card!(4S));
+    /// set.insert(card!(2S));
+    /// set.insert(card!(8S));
+    /// set.insert(card!(4S));
     ///
-    /// assert_eq!(pile.into_hashset(), hs);
+    /// assert_eq!(pile.unique_cards(), set);
+    /// assert_eq!(pile.unique_cards().len(), 3);
     /// ```
     #[must_use]
-    pub fn into_hashset(&self) -> HashSet<Card<DeckType>> {
+    pub fn unique_cards(&self) -> BTreeSet<Card<DeckType>> {
         self.0.iter().copied().collect()
     }
 
@@ -1167,13 +1170,18 @@ mod basic__types__deck_tests {
     }
 
     #[test]
-    fn into_hashset() {
+    fn unique_cards() {
         let five_deck = French::decks(5);
 
-        let hashset: HashSet<Card<French>> = five_deck.into_hashset();
-        let deck = Pile::<French>::from(hashset);
+        let btreeset: alloc::collections::BTreeSet<Card<French>> = five_deck.unique_cards();
 
         assert_eq!(five_deck.len(), 270);
+        assert_eq!(btreeset.len(), 54);
+
+        // Bridge via Vec because From<BTreeSet> doesn't exist; Task 7 will
+        // replace this with `let deck: Pile<French> = btreeset.into_iter().collect();`
+        // once FromIterator is in place.
+        let deck = Pile::<French>::from(btreeset.into_iter().collect::<Vec<_>>());
         assert_eq!(deck, French::deck());
     }
 

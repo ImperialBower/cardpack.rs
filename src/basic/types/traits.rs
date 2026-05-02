@@ -74,8 +74,8 @@ where
     ///
     /// assert_eq!(twodecks.len(), 104);
     ///
-    /// // Converting it into a `HashSet` will verify that there are only 52 unique cards.
-    /// assert_eq!(twodecks.into_hashset().len(), 52);
+    /// // Converting it to a `BTreeSet` will verify that there are only 52 unique cards.
+    /// assert_eq!(twodecks.unique_cards().len(), 52);
     /// ```
     ///
     /// This way of doing it from `CoPilot` is an interesting alternative to
