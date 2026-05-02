@@ -1,5 +1,6 @@
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
+use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::Display;
 use core::hash::Hash;
@@ -148,7 +149,7 @@ impl BasicPile {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, BasicCard> {
+    pub fn iter(&self) -> core::slice::Iter<'_, BasicCard> {
         self.0.iter()
     }
 
@@ -192,7 +193,7 @@ impl BasicPile {
     /// assert_eq!(hand.to_string(), "A♦ K♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by_key(|b| std::cmp::Reverse(b.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.rank));
     }
 
     /// Returns a new `BasicPile` sorted.
@@ -244,7 +245,7 @@ impl Display for BasicPile {
             f,
             "{}",
             self.iter()
-                .map(std::string::ToString::to_string)
+                .map(alloc::string::ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(" ")
         )
@@ -413,7 +414,7 @@ impl FromIterator<BasicCard> for BasicPile {
 /// Here is the corrected implementation:
 impl<'a> IntoIterator for &'a BasicPile {
     type Item = &'a BasicCard;
-    type IntoIter = std::slice::Iter<'a, BasicCard>;
+    type IntoIter = core::slice::Iter<'a, BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()

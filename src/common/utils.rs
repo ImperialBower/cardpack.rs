@@ -1,3 +1,5 @@
+use alloc::string::String;
+
 pub struct Bit;
 
 impl Bit {

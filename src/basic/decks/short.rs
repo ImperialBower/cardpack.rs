@@ -7,6 +7,8 @@ use crate::basic::types::traits::{Decked, DeckedBase};
 #[cfg(feature = "colored-display")]
 use crate::prelude::Standard52;
 use crate::prelude::{Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 use core::hash::Hash;

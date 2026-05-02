@@ -1,6 +1,8 @@
 use crate::prelude::{BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
 #[cfg(feature = "colored-display")]
 use crate::prelude::{Pip, Standard52};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 #[cfg(feature = "colored-display")]

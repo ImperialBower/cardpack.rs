@@ -7,11 +7,17 @@ pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 use crate::prelude::PipType;
 use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::cell::Cell;
 use core::hash::Hash;
 use core::str::FromStr;
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+// HashMap is gated on `colored-display` rather than `std` because it is only
+// used by the `colors() -> HashMap<Pip, Color>` trait method. `colored-display`
+// transitively requires `std`, so this gate is strictly tighter.
+#[cfg(feature = "colored-display")]
+use std::collections::HashMap;
 
 pub trait DeckedBase {
     /// And just like that we have a `Pile`.
@@ -179,16 +185,16 @@ pub trait Ranged {
     fn my_basic_pile(&self) -> BasicPile;
 
     fn combos(&self, k: usize) -> Combos {
-        let mut hs: HashSet<BasicPile> = HashSet::new();
+        let mut hs: BTreeSet<BasicPile> = BTreeSet::new();
 
         for combo in self.my_basic_pile().into_iter().combinations(k) {
             let pile = BasicPile::from(combo).sorted_by_rank();
             hs.insert(pile);
         }
 
-        let mut combos = hs.into_iter().collect::<Vec<_>>();
-
-        combos.sort();
+        // BTreeSet iterates in BasicPile's Ord order, so the resulting Vec is
+        // already sorted — no explicit .sort() needed (was a HashSet-era leftover).
+        let combos = hs.into_iter().collect::<Vec<_>>();
         Combos::from(combos)
     }
 

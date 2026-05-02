@@ -8,6 +8,8 @@ use crate::basic::types::pile::Pile;
 #[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 #[cfg(feature = "colored-display")]

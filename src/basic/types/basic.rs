@@ -1,4 +1,5 @@
 use crate::prelude::{BasicCard, BasicPile, Ranged};
+use alloc::vec::Vec;
 use core::cell::Cell;
 use core::cmp::Ordering;
 use core::fmt::{Debug, Display, Formatter};
@@ -209,7 +210,7 @@ impl Clone for BasicPileCell {
 }
 
 impl Debug for BasicPileCell {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         // We need to temporarily take the value to access it for formatting
         // Since BasicPile doesn't implement Copy, we use take() and set() it back
         let inner_pile = self.0.take();
@@ -220,7 +221,7 @@ impl Debug for BasicPileCell {
 }
 
 impl Display for BasicPileCell {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         // We need to temporarily take the value to access it for formatting
         // Since BasicPile doesn't implement Copy, we use take() and set() it back
         let inner_pile = self.0.take();
@@ -326,6 +327,7 @@ mod basic__types__basic_tests {
         assert_ne!(taken, Pile::<Standard52>::basic_pile_cell());
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn hash() {
         use std::collections::hash_map::DefaultHasher;

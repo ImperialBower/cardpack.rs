@@ -7,6 +7,8 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
 use crate::prelude::{BasicPileCell, Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 use core::hash::Hash;

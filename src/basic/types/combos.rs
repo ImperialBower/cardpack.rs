@@ -1,6 +1,8 @@
 use crate::basic::types::basic_pile::BasicPile;
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, Pip};
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
@@ -179,7 +181,7 @@ impl Combos {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, BasicPile> {
+    pub fn iter(&self) -> core::slice::Iter<'_, BasicPile> {
         self.0.iter()
     }
 
@@ -204,7 +206,7 @@ impl Combos {
         self.0.sort();
     }
 
-    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> std::cmp::Ordering) {
+    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> core::cmp::Ordering) {
         self.0.sort_by(f);
     }
 
@@ -230,12 +232,12 @@ impl Combos {
 }
 
 impl Display for Combos {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}",
             self.iter()
-                .map(std::string::ToString::to_string)
+                .map(alloc::string::ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(", ")
         )
@@ -270,7 +272,7 @@ impl Iterator for Combos {
 
 impl<'a> IntoIterator for &'a Combos {
     type Item = &'a BasicPile;
-    type IntoIter = std::slice::Iter<'a, BasicPile>;
+    type IntoIter = core::slice::Iter<'a, BasicPile>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

@@ -1,6 +1,8 @@
 use crate::basic::types::basic_card::BasicCard;
 #[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "i18n")]
 use crate::basic::types::pips::PipType;
 use crate::basic::types::traits::DeckedBase;
@@ -336,7 +338,7 @@ impl<DeckType: Default + Copy + Ord + DeckedBase> Display for Card<DeckType> {
     ///
     /// assert_eq!(card.to_string(), card.base_card.to_string());
     /// ```
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         write!(f, "{}", self.base_card)
     }
 }

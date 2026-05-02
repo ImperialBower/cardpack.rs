@@ -5,7 +5,8 @@ use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
 use alloc::collections::{BTreeMap, BTreeSet};
-use alloc::vec::IntoIter;
+use alloc::string::{String, ToString};
+use alloc::vec::{IntoIter, Vec};
 #[cfg(feature = "colored-display")]
 use colored::Color;
 use core::fmt::Display;
@@ -16,6 +17,11 @@ use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng, rng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+// HashMap is gated on `colored-display` rather than `std` because it is only
+// used by the `colors() -> HashMap<Pip, Color>` impl. `colored-display`
+// transitively requires `std` (per Cargo.toml `[features]`), so this gate is
+// strictly tighter than gating on `std` directly.
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
@@ -451,7 +457,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(iter.next(), Some(&card!(4S)));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> std::slice::Iter<'_, Card<DeckType>> {
+    pub fn iter(&self) -> core::slice::Iter<'_, Card<DeckType>> {
         self.0.iter()
     }
 
@@ -550,7 +556,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     pub fn piles_to_string(piles: &[Self]) -> String {
         piles
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(alloc::string::ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ")
     }
@@ -884,7 +890,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(Pile::<Standard52>::from(v).to_string(), "8♠ 4♠ 2♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by_key(|b| std::cmp::Reverse(b.base_card.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.base_card.rank));
     }
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].
@@ -960,7 +966,7 @@ impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<Dec
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> Decked<DeckType> for Pile<DeckType> {}
 
 impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckType> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let s = self
             .0
             .iter()

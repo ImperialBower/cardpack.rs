@@ -2,6 +2,9 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
+use alloc::string::String;
+#[cfg(feature = "yaml")]
+use alloc::vec::Vec;
 use core::cmp::Ordering;
 #[cfg(feature = "yaml")]
 use core::error::Error;

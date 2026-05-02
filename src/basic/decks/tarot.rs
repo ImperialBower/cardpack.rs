@@ -1,4 +1,6 @@
 use crate::prelude::*;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 #[cfg(feature = "colored-display")]

@@ -290,6 +290,7 @@
 // top of the file, because items must follow ALL inner attributes (`#![...]`)
 // and the `//!` inner doc comment block. Moving it up is a Rust syntax error
 // (E0753: expected outer doc comment).
+#[macro_use]
 extern crate alloc;
 
 pub mod basic;
