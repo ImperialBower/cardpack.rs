@@ -17,6 +17,8 @@
     clippy::struct_field_names
 )]
 #![allow(dead_code)]
+
+#![cfg_attr(not(feature = "std"), no_std)]
 // clippy::as_conversions
 // clippy::float_arithmetic
 // clippy::integer_arithmetic
@@ -284,6 +286,12 @@
 
 #![allow(clippy::needless_doctest_main)]
 #![cfg_attr(doc, doc = include_str!("../README.md"))]
+
+// `extern crate alloc;` lives here, not next to the `no_std` cfg_attr at the
+// top of the file, because items must follow ALL inner attributes (`#![...]`)
+// and the `//!` inner doc comment block. Moving it up is a Rust syntax error
+// (E0753: expected outer doc comment).
+extern crate alloc;
 
 pub mod basic;
 pub mod common;
