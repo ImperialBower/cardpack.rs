@@ -1,9 +1,9 @@
 use crate::common::errors::CardError;
 use crate::prelude::Pip;
-use fluent_templates::{LanguageIdentifier, Loader, langid, static_loader};
+use alloc::string::ToString;
 use core::fmt::Display;
 use core::str::FromStr;
-use alloc::string::ToString;
+use fluent_templates::{LanguageIdentifier, Loader, langid, static_loader};
 
 static_loader! {
     pub static LOCALES = {

@@ -9,9 +9,9 @@ use crate::basic::types::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Pile};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use core::hash::Hash;
 
 /// This deck represents the most 32 card form of
 /// [Euchre](https://en.wikipedia.org/wiki/Euchre) with

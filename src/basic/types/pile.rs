@@ -4,19 +4,19 @@ use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::vec::IntoIter;
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::fmt::Display;
+use core::hash::Hash;
+use core::str::FromStr;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng, rng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use core::fmt::Display;
-use core::hash::Hash;
-use core::str::FromStr;
-use alloc::collections::{BTreeMap, BTreeSet};
-use alloc::vec::IntoIter;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
 /// collection of [`Cards`](Card) that are bound by a
@@ -972,14 +972,6 @@ impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckTy
     }
 }
 
-impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<HashSet<Card<DeckType>>>
-    for Pile<DeckType>
-{
-    fn from(cards: HashSet<Card<DeckType>>) -> Self {
-        Self(cards.into_iter().collect()).sorted()
-    }
-}
-
 impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<Vec<Card<DeckType>>>
     for Pile<DeckType>
 {
@@ -1178,11 +1170,23 @@ mod basic__types__deck_tests {
         assert_eq!(five_deck.len(), 270);
         assert_eq!(btreeset.len(), 54);
 
-        // Bridge via Vec because From<BTreeSet> doesn't exist; Task 7 will
-        // replace this with `let deck: Pile<French> = btreeset.into_iter().collect();`
-        // once FromIterator is in place.
-        let deck = Pile::<French>::from(btreeset.into_iter().collect::<Vec<_>>());
+        // BTreeSet iterates high-to-low via BasicCard's reversed Ord (see basic_card.rs:24),
+        // which matches French::deck()'s deck-order. If the Ord impl is ever flipped, this
+        // assertion breaks and the test needs an explicit .sorted() on the deck.
+        let deck: Pile<French> = btreeset.into_iter().collect();
         assert_eq!(deck, French::deck());
+    }
+
+    #[test]
+    fn from_iterator_collects_pile_from_card_iter() {
+        use crate::prelude::*;
+
+        let cards = vec![card!(AS), card!(KH), card!(QC)];
+        let pile: Pile<Standard52> = cards.into_iter().collect();
+
+        assert_eq!(pile.len(), 3);
+        // FromIterator preserves insertion order (no internal sort/dedupe).
+        assert_eq!(pile.to_string(), "A♠ K♥ Q♣");
     }
 
     #[test]

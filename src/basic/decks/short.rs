@@ -9,9 +9,9 @@ use crate::prelude::Standard52;
 use crate::prelude::{Card, Pile};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use core::hash::Hash;
 
 /// [Manila, aka Six Plus aka Short-deck](https://en.wikipedia.org/wiki/Six-plus_hold_%27em)
 /// is a version of Texas Hold'em where the card Ranks of 2 through 5

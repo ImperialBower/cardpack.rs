@@ -9,9 +9,9 @@ use crate::basic::types::traits::{Decked, DeckedBase};
 use crate::prelude::{BasicPileCell, Card, Pile};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use core::hash::Hash;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Standard52 {}

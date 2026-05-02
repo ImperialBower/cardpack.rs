@@ -6,11 +6,11 @@ use crate::basic::types::combos::Combos;
 pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 use crate::prelude::PipType;
-use itertools::Itertools;
+use alloc::collections::{BTreeMap, BTreeSet};
 use core::cell::Cell;
 use core::hash::Hash;
 use core::str::FromStr;
-use alloc::collections::{BTreeMap, BTreeSet};
+use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 pub trait DeckedBase {

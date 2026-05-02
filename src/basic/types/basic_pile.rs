@@ -1,13 +1,13 @@
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
+use core::fmt;
+use core::fmt::Display;
+use core::hash::Hash;
 use rand::prelude::SliceRandom;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng, rng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use core::fmt;
-use core::fmt::Display;
-use core::hash::Hash;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

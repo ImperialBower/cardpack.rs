@@ -10,9 +10,9 @@ use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use core::hash::Hash;
 
 /// `French` is the type parameter for the `French Deck` version of the generic
 /// [`Card`] and [`Pile`] structs.

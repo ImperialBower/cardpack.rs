@@ -238,7 +238,7 @@ impl BridgeBoard {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.as_pile().into_hashset().len() == 52
+        self.as_pile().unique_cards().len() == 52
     }
 
     fn splice_suit_in(s: &str, suit: char) -> Vec<String> {

@@ -2,13 +2,13 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 use core::cmp::Ordering;
 #[cfg(feature = "yaml")]
 use core::error::Error;
 use core::fmt;
 use core::fmt::Display;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "yaml")]
 use std::fs::File;
 #[cfg(feature = "yaml")]
