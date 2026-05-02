@@ -124,3 +124,30 @@ jobs:
         with:
           files: lcov.info
           fail_ci_if_error: false
+
+  no-std-build:
+    name: no_std host build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - run: cargo build --no-default-features
+      - run: cargo build --no-default-features --features serde
+      - run: cargo test --no-default-features --lib
+
+  no-std-thumbv7em:
+    name: no_std bare-metal target
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: thumbv7em-none-eabihf
+      - run: cargo build --no-default-features --target thumbv7em-none-eabihf
+      - run: cargo build --no-default-features --features serde --target thumbv7em-none-eabihf
+      - run: cargo build --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke
