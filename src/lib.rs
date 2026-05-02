@@ -17,7 +17,6 @@
     clippy::struct_field_names
 )]
 #![allow(dead_code)]
-
 #![cfg_attr(not(feature = "std"), no_std)]
 // clippy::as_conversions
 // clippy::float_arithmetic
