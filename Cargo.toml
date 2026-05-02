@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.6.12"
+version = "0.7.0"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -22,21 +22,28 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["i18n", "colored-display", "yaml", "serde"]
-i18n = ["dep:fluent-templates"]
-colored-display = ["dep:colored"]
-yaml = ["dep:serde_norway", "serde"]
+default = ["std", "i18n", "colored-display", "yaml", "serde"]
+std = ["alloc", "rand/std", "rand/thread_rng", "serde?/std", "log/std"]
+alloc = ["serde?/alloc"]
+i18n = ["std", "dep:fluent-templates"]
+colored-display = ["std", "dep:colored"]
+yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
 fluent-templates = { version = "0.13", optional = true }
-itertools = "0.14.0"
-log = "0.4.29"
-rand = "0.9"
-serde = { version = "1.0.219", features = ["derive"], optional = true }
+itertools = { version = "0.14.0", default-features = false, features = ["use_alloc"] }
+log = { version = "0.4.29", default-features = false }
+# rand's `std_rng` feature is unconditional (not gated on cardpack's `std`)
+# because shuffle_with_seed/shuffled_with_seed use StdRng and must work
+# under no_std. rand 0.9's `std_rng` only pulls in `rand_chacha` (no
+# transitive `std`), so this is sound. Do NOT move `std_rng` into the
+# `std` feature — that re-breaks seeded shuffle in no_std consumers.
+rand = { version = "0.9", default-features = false, features = ["std_rng"] }
+serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
 serde_norway = { version = "0.9.42", optional = true }
-thiserror = "2.0.18"
+thiserror = { version = "2.0.18", default-features = false }
 
 # rand 0.9 → rand_core 0.9 → getrandom 0.3 forces wasm32 consumers to pick
 # a getrandom backend; without it, `cargo build --target wasm32-unknown-unknown`
