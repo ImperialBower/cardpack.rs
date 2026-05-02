@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `From<HashSet<Card<DeckType>>> for Pile<DeckType>` removed; replaced
   with `impl FromIterator<Card<DeckType>> for Pile<DeckType>`,
   enabling `.collect::<Pile<_>>()` from any iterator.
+  Migration: `Pile::from(my_hashset)` becomes
+  `my_hashset.into_iter().collect::<Pile<_>>()`. Note that `HashSet`
+  iteration order is non-deterministic; if the previous code relied on
+  the `From<HashSet>` impl's internal `.sorted()` call for stable output,
+  add an explicit `.sorted()` after the `.collect()`, or iterate over a
+  `BTreeSet` instead.
 - `Pile::map_by_suit()` and `Ranged::map_by_rank()` return `BTreeMap`
   instead of `HashMap` (deterministic iteration order; identical
   lookup semantics).

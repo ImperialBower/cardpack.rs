@@ -86,12 +86,15 @@ required-features = ["i18n", "colored-display"]
 
 [[example]]
 name = "bridge"
+required-features = ["std"]
 
 [[example]]
 name = "poker"
+required-features = ["std"]
 
 [[example]]
 name = "poker_eval"
+required-features = ["std"]
 
 [[example]]
 name = "range"

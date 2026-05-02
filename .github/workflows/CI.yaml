@@ -137,6 +137,12 @@ jobs:
       - run: cargo build --no-default-features
       - run: cargo build --no-default-features --features serde
       - run: cargo test --no-default-features --lib
+      # Build all examples under default features to catch any missing
+      # required-features = ["std"] declarations on examples that use
+      # std-gated APIs (rand::random, no-arg shuffle, draw_random, etc.).
+      # Examples with required-features matching off are silently skipped
+      # by Cargo, so this is what enforces the gating discipline.
+      - run: cargo build --no-default-features --examples
 
   no-std-thumbv7em:
     name: no_std bare-metal target
