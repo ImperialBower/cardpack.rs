@@ -172,11 +172,122 @@ by default, so existing downstream code keeps compiling.
 - `[package.metadata.docs.rs] all-features = true` so docs.rs matches
   the new CI doc gate.
 
-## [0.6.11]
+## [0.6.11] - 2026-04-13
 
-The starting point for the work tracked above. See git history for
-prior changes.
+A focused mutation-testing pass driven by `cargo-mutants`. Roughly 70
+new unit tests close every catchable mutation gap. No behavioral or
+public-API changes.
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...HEAD
+### Internal
+
+- `src/common/utils.rs` — 4 tests for `ckc_bits`, `ckc_prime`,
+  `ckc_shift8`, `strip_suit_flags`.
+- `src/basic/types/pips.rs` — 1 `Display` test.
+- `src/basic/types/basic_card.rs` — 2 `is_blank` half-blank tests.
+- `src/basic/decks/{standard52,french,canasta,euchre24,euchre32,
+  pinochle,razz,short,skat,spades,tarot,tiny}.rs` — `colors`,
+  `deck_name`, `fluent_deck_key` tests per deck.
+- `src/basic/types/basic_pile.rs` — 7 tests for `draw`, `draw_first`,
+  `extend`, `get`, `is_empty`, `pop`.
+- `src/basic/types/basic.rs` — 13 tests covering every
+  `BasicPileCell` operation.
+- `src/basic/types/combos.rs` — 10 tests for accessor and iterator
+  methods.
+- `src/localization.rs` — 8 tests, including a `WeightedName` helper
+  struct for parameterized assertions.
+- `src/basic/types/traits.rs` — new test module, 5 tests.
+- `src/basic/types/pile.rs` — 10 tests for previously-untested methods
+  and trait impls.
+- `src/basic/types/card.rs` — 4 tests, including all 13 `Color`
+  variants exercised through macro-generated deck types.
+
+### Documented (irreducible mutants)
+
+The following `cargo-mutants` survivors are not catchable by tests and
+are documented as expected:
+
+- `ckc_rank_number` — `|` → `^` (equivalent mutant: bits don't
+  overlap).
+- `validate` — `→ true` and `&& → ||` (would require a deck the
+  validator already rejects).
+- `demo` body — `→ ()` (no output verification — `demo` only prints).
+
+## [0.6.10] - 2026-04-09
+
+Implementation pass against
+[`docs/audit-2026-04-09.md`](docs/audit-2026-04-09.md).
+Default-features behavior is unchanged.
+
+### Added
+
+- `Makefile` — repository-wide build/test/lint targets, modeled on the
+  sibling `pkcore` repo's Makefile.
+- `docs/audit-2026-04-09.md` — full audit report capturing the state
+  of the codebase prior to the cleanup pass.
+
+### Changed
+
+- `combos.rs` — `connectors()` rewritten from a double-collect
+  (filter → collect → map → collect) into a single chained iterator
+  pass.
+- `pile.rs` — two broken `txt`-fenced doc blocks (referencing removed
+  APIs) replaced with one compiled, working example exercising
+  `ranks_index`, `suit_symbol_index`, `suits_index`, `draw`, and
+  `len`.
+- `basic.rs` — added a struct-level doc comment to `BasicPileCell`
+  explaining why `Cell<T>` is used and the take → mutate → set
+  pattern.
+- `razz.rs` — added `log::error!` to the YAML load failure path so
+  load failures are no longer silent. Cleaned up a dangling
+  `"This is an"` doc fragment.
+- `canasta.rs` — removed `.shuffled()` from `ranks_index` and
+  `suits_index` tests (the shuffle had no observable effect, since
+  `extract_pips` deduplicates and sorts). Replaced
+  `// WTF??!!`-style comments with an explanation of the 11-suit
+  output.
+- `localization.rs` — replaced the
+  `// should we remove fluent-templates?` TODO with an inline note
+  explaining that `fluent-templates` is intentionally retained for
+  i18n extensibility.
+
+### Deprecated
+
+- `Pile::piles_to_string()` marked `#[deprecated]`. Still callable in
+  this release; replacement guidance lands with the function's
+  removal.
+
+### Removed
+
+- `bin/ayce` and `bin/README.md` — replaced by `Makefile` targets.
+- Stale TODO on `BasicCard::ckc_suit_number()` (the function was
+  already in the right place inside `impl CKCRevised for BasicCard`).
+
+### Fixed
+
+- Non-deterministic Canasta test in `canasta.rs` — the test compared a
+  shuffled pile against an unsorted expected value and failed
+  intermittently.
+
+## [0.6.9] - 2026-02-27
+
+Single-focus release: serde support for piles.
+
+### Added
+
+- `Serialize` and `Deserialize` derives on `BasicPile` and
+  `Pile<DeckType>`. Decks and hands now round-trip through any serde
+  format (JSON, bincode, postcard, etc.) without bespoke conversion
+  code.
+
+### Note
+
+`serde` was a hard dependency in this release. In v0.6.12 it was moved
+behind an opt-out `serde` feature flag (still on by default).
+
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...v0.7.0
 [0.6.12]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.11...v0.6.12
-[0.6.11]: https://github.com/ImperialBower/cardpack.rs/releases/tag/v0.6.11
+[0.6.11]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.10...v0.6.11
+[0.6.10]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.9...v0.6.10
+[0.6.9]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.8...v0.6.9
+[0.6.8]: https://github.com/ImperialBower/cardpack.rs/releases/tag/v0.6.8
