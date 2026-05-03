@@ -193,6 +193,7 @@ impl DeckKind {
 #[allow(non_snake_case)]
 mod basic__decks__registry_tests {
     use super::*;
+    #[cfg(not(feature = "yaml"))]
     use alloc::string::ToString;
 
     #[test]
