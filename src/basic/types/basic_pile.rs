@@ -1,12 +1,19 @@
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
+use alloc::vec::Vec;
+use core::fmt;
+use core::fmt::Display;
+use core::hash::Hash;
 use rand::prelude::SliceRandom;
+#[cfg(feature = "std")]
 use rand::rng;
-use std::fmt;
-use std::fmt::Display;
-use std::hash::Hash;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicPile(Vec<BasicCard>);
 
 impl BasicPile {
@@ -16,7 +23,7 @@ impl BasicPile {
         &self.0
     }
 
-    /// Returns n number of [`BasicCards`](crate::basic::types::basic_card::BasicCard) from the
+    /// Returns n number of [`BasicCards`](BasicCard) from the
     /// beginning of the `BasicPile`. If there are not enough cards in the `BasicPile` to satisfy
     /// the request, `None` is returned.
     ///
@@ -29,22 +36,22 @@ impl BasicPile {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let mut pile = Pinochle::deck();
+    /// let mut pile = Pinochle::deck().into_basic_pile();
     /// let hand = pile.draw(5).unwrap();
     ///
     /// assert_eq!(hand.to_string(), "A♠ A♠ T♠ T♠ K♠");
     /// ```
     #[must_use]
     pub fn draw(&mut self, n: usize) -> Option<Self> {
-        let mut pile = Self::default();
-        for _ in 0..n {
-            if let Some(card) = self.pop() {
-                pile.push(card);
-            } else {
-                return None;
-            }
+        if n > self.len() {
+            return None;
         }
-        Some(pile)
+
+        let mut cards = Self::default();
+        for _ in 0..n {
+            cards.push(self.draw_first()?);
+        }
+        Some(cards)
     }
 
     /// This is very much suboptimal, but I don't have an easy way to
@@ -57,18 +64,71 @@ impl BasicPile {
         }
     }
 
-    /// Suffles the `BasicPile` in place.
-    ///
-    /// TODO: I would like to be able to pass in a seed to the shuffle function.
+    /// Shuffles the `BasicPile` in place using the process default RNG
+    /// (`rand::rng()`). For deterministic shuffling, use
+    /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
 
     /// Returns a new shuffled version of the `BasicPile`.
+    ///
+    /// For deterministic shuffling, use
+    /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
         pile.shuffle();
+        pile
+    }
+
+    /// Shuffles the `BasicPile` in place deterministically from a `u64` seed.
+    ///
+    /// Uses [`rand::rngs::StdRng`] internally. Same seed produces the same
+    /// permutation **within one `rand` major version**; a `rand` upgrade may
+    /// change the result. For long-lived replay logs or cross-version
+    /// reproducibility, pass a portable RNG (e.g., `ChaCha8Rng` from
+    /// `rand_chacha`) to [`shuffle_with_rng`](Self::shuffle_with_rng) instead.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let pile = Pile::<Standard52>::basic_pile();
+    /// let a = pile.shuffled_with_seed(42);
+    /// let b = pile.shuffled_with_seed(42);
+    /// assert_eq!(a, b);
+    /// ```
+    pub fn shuffle_with_seed(&mut self, seed: u64) {
+        self.shuffle_with_rng(&mut StdRng::seed_from_u64(seed));
+    }
+
+    /// Returns a new `BasicPile` shuffled deterministically from a `u64` seed.
+    ///
+    /// See [`shuffle_with_seed`](Self::shuffle_with_seed) for the
+    /// portability caveat.
+    #[must_use]
+    pub fn shuffled_with_seed(&self, seed: u64) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_seed(seed);
+        pile
+    }
+
+    /// Shuffles the `BasicPile` in place using the caller's RNG.
+    ///
+    /// Generic over any `R: Rng + ?Sized`. The seed-based methods are sugar
+    /// over this primitive — pass your own RNG (e.g., `ChaCha8Rng`) for
+    /// algorithm-stable reproducibility across `rand` major-version bumps.
+    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.0.shuffle(rng);
+    }
+
+    /// Returns a new `BasicPile` shuffled using the caller's RNG.
+    #[must_use]
+    pub fn shuffled_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_rng(rng);
         pile
     }
 
@@ -98,7 +158,7 @@ impl BasicPile {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, BasicCard> {
+    pub fn iter(&self) -> core::slice::Iter<'_, BasicCard> {
         self.0.iter()
     }
 
@@ -142,7 +202,7 @@ impl BasicPile {
     /// assert_eq!(hand.to_string(), "A♦ K♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.rank));
     }
 
     /// Returns a new `BasicPile` sorted.
@@ -194,7 +254,7 @@ impl Display for BasicPile {
             f,
             "{}",
             self.iter()
-                .map(std::string::ToString::to_string)
+                .map(alloc::string::ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(" ")
         )
@@ -363,7 +423,7 @@ impl FromIterator<BasicCard> for BasicPile {
 /// Here is the corrected implementation:
 impl<'a> IntoIterator for &'a BasicPile {
     type Item = &'a BasicCard;
-    type IntoIter = std::slice::Iter<'a, BasicCard>;
+    type IntoIter = core::slice::Iter<'a, BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()
@@ -372,7 +432,7 @@ impl<'a> IntoIterator for &'a BasicPile {
 
 impl IntoIterator for BasicPile {
     type Item = BasicCard;
-    type IntoIter = std::vec::IntoIter<BasicCard>;
+    type IntoIter = alloc::vec::IntoIter<BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -385,9 +445,10 @@ impl IntoIterator for BasicPile {
 #[allow(non_snake_case, unused_imports)]
 mod basic__types__pile_tests {
     use super::*;
+    use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
-    use crate::{basic, bcards};
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Ranged
@@ -527,6 +588,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn ranks() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -553,6 +615,7 @@ mod basic__types__pile_tests {
         assert_eq!(ranks, expected);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn ranks_index() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -598,6 +661,7 @@ mod basic__types__pile_tests {
         assert_eq!(pile.ranks_index_by_suit(FrenchSuit::DIAMONDS, "-"), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits() {
         let pile = French::deck().shuffled();
@@ -620,6 +684,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits_index() {
         let pile = French::deck().shuffled();
@@ -636,6 +701,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suit_symbol_index() {
         let pile = French::deck().shuffled();
@@ -681,5 +747,99 @@ mod basic__types__pile_tests {
             pile.to_string(),
             "A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5♠ 4♠ 3♠ 2♠ A♥ K♥ Q♥ J♥ T♥ 9♥ 8♥ 7♥ 6♥ 5♥ 4♥ 3♥ 2♥ A♦ K♦ Q♦ J♦ T♦ 9♦ 8♦ 7♦ 6♦ 5♦ 4♦ 3♦ 2♦ A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
         );
+    }
+
+    #[test]
+    fn draw__boundary_conditions() {
+        let mut pile = basic!("AS KS QS JS");
+
+        // Drawing more than available returns None (catches > -> == and > -> >= mutations)
+        assert!(pile.draw(5).is_none());
+        // Drawing exactly the pile length returns all cards
+        let drawn = pile.draw(4);
+        assert!(drawn.is_some());
+        assert_eq!(drawn.unwrap().len(), 4);
+        // Drawing from empty pile returns None
+        assert!(pile.draw(1).is_none());
+    }
+
+    #[test]
+    fn draw__zero_returns_empty() {
+        let mut pile = basic!("AS KS");
+        let drawn = pile.draw(0);
+        assert!(drawn.is_some());
+        assert_eq!(drawn.unwrap().len(), 0);
+        assert_eq!(pile.len(), 2); // pile unchanged
+    }
+
+    #[test]
+    fn draw_first__empty() {
+        let mut pile = BasicPile::default();
+        assert!(pile.draw_first().is_none());
+    }
+
+    #[test]
+    fn extend__adds_cards() {
+        let mut pile = basic!("AS KS");
+        let other = basic!("QS JS");
+        pile.extend(&other);
+        assert_eq!(pile.len(), 4);
+        assert_eq!(pile.to_string(), "A♠ K♠ Q♠ J♠");
+    }
+
+    #[test]
+    fn get__returns_correct() {
+        let pile = basic!("AS KS QS");
+        // get(0) returns the first card
+        assert!(pile.get(0).is_some());
+        // get out of bounds returns None
+        assert!(pile.get(100).is_none());
+    }
+
+    #[test]
+    fn is_empty__false_when_populated() {
+        let pile = basic!("AS KS");
+        assert!(!pile.is_empty());
+    }
+
+    #[test]
+    fn pop__removes_last() {
+        let mut pile = basic!("AS KS");
+        let popped = pile.pop();
+        assert!(popped.is_some());
+        assert_eq!(pile.len(), 1);
+        // pop from empty returns None
+        let mut empty = BasicPile::default();
+        assert!(empty.pop().is_none());
+    }
+
+    #[test]
+    fn shuffled_with_seed__deterministic() {
+        let pile = Pile::<French>::basic_pile();
+        let a = pile.shuffled_with_seed(42);
+        let b = pile.shuffled_with_seed(42);
+        assert_eq!(a, b, "same seed must produce identical permutation");
+    }
+
+    #[test]
+    fn shuffled_with_seed__different_seeds_differ() {
+        let pile = Pile::<French>::basic_pile();
+        assert_ne!(
+            pile.shuffled_with_seed(1),
+            pile.shuffled_with_seed(2),
+            "different seeds should almost always produce different orderings"
+        );
+    }
+
+    #[test]
+    fn shuffled_with_seed__same_cards() {
+        let pile = Pile::<French>::basic_pile();
+        let shuffled = pile.shuffled_with_seed(0xC0FFEE);
+        assert_eq!(pile.len(), shuffled.len());
+        let mut o_vec = pile.v().clone();
+        let mut s_vec = shuffled.v().clone();
+        o_vec.sort();
+        s_vec.sort();
+        assert_eq!(o_vec, s_vec, "shuffle must permute, not transform");
     }
 }

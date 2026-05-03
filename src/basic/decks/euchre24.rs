@@ -1,13 +1,19 @@
 use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::decks::standard52::Standard52;
 use crate::basic::types::basic_card::BasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
 use crate::prelude::{Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 /// This deck represents the most common 24 card form of
 /// [Euchre](https://en.wikipedia.org/wiki/Euchre) with
@@ -56,6 +62,7 @@ impl DeckedBase for Euchre24 {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -89,5 +96,24 @@ mod basic__decks__euchre24_tests {
     #[test]
     fn decked__validate() {
         assert!(Euchre24::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Euchre24::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Euchre24::deck_name(), "Euchre 24");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Euchre24::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

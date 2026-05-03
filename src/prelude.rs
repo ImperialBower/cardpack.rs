@@ -11,12 +11,15 @@ pub use crate::basic::decks::french::*;
 // pub use crate::rev6::decks::hand_and_foot::*;
 // guess this is a form of hallucination.
 pub use crate::basic::decks::pinochle::*;
+#[cfg(feature = "yaml")]
 pub use crate::basic::decks::razz::*;
+pub use crate::basic::decks::registry::DeckKind;
 pub use crate::basic::decks::short::*;
 pub use crate::basic::decks::skat::*;
 pub use crate::basic::decks::spades::*;
 pub use crate::basic::decks::standard52::*;
 pub use crate::basic::decks::tarot::*;
+pub use crate::basic::types::basic::BasicPileCell;
 pub use crate::basic::types::basic_card::BasicCard;
 pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
@@ -24,13 +27,16 @@ pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
 pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase, Ranged};
 pub use crate::common::errors::CardError;
+#[cfg(feature = "i18n")]
 pub use crate::localization::{FluentName, Named};
 
 // Macros
 pub use crate::basic;
+pub use crate::basic_cell;
 pub use crate::card;
 pub use crate::cards;
 pub use crate::french_cards;
 
+#[cfg(feature = "colored-display")]
 pub use colored::{Color, Colorize};
-pub use std::str::FromStr;
+pub use core::str::FromStr;

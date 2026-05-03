@@ -2,12 +2,19 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
+use alloc::string::String;
+#[cfg(feature = "yaml")]
+use alloc::vec::Vec;
+use core::cmp::Ordering;
+#[cfg(feature = "yaml")]
+use core::error::Error;
+use core::fmt;
+use core::fmt::Display;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
-use std::error::Error;
-use std::fmt;
-use std::fmt::Display;
+#[cfg(feature = "yaml")]
 use std::fs::File;
+#[cfg(feature = "yaml")]
 use std::io::Read;
 
 /// Intermediary struct to help mix and match cards for related decks.
@@ -26,13 +33,32 @@ use std::io::Read;
 /// the bottom of the vector.
 ///
 /// [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicCard {
     pub suit: Pip,
     pub rank: Pip,
 }
 
 impl BasicCard {
+    /// Construct a `BasicCard` from a suit and rank `Pip`.
+    ///
+    /// `const` so callers can build `BasicCard` constants at compile time
+    /// (which the per-deck files already do via struct literals; this is a
+    /// more ergonomic alternative):
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// pub const ACE_OF_SPADES: BasicCard =
+    ///     BasicCard::new(FrenchSuit::SPADES, FrenchRank::ACE);
+    /// assert_eq!(ACE_OF_SPADES, FrenchBasicCard::ACE_SPADES);
+    /// ```
+    #[must_use]
+    pub const fn new(suit: Pip, rank: Pip) -> Self {
+        Self { suit, rank }
+    }
+
     /// Reads in a YAML file version of `BasicCard` data at the passed in location and returns a vector of `BasicCards`. See the
     /// [`Razz`](crate::basic::decks::razz::Razz) deck for an example of how to use this method.
     ///
@@ -48,6 +74,7 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
+    #[cfg(feature = "yaml")]
     pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
@@ -62,8 +89,9 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
+    #[cfg(feature = "yaml")]
     pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
-        let cards: Vec<Self> = serde_yml::from_str(yaml_str)?;
+        let cards: Vec<Self> = serde_norway::from_str(yaml_str)?;
 
         Ok(cards)
     }
@@ -105,7 +133,6 @@ impl CKCRevised for BasicCard {
         self.ckc_rank_bits() | self.ckc_rank_shift8() | self.ckc_get_prime()
     }
 
-    // TODO: This needs to be moved out of Basic. Maybe a trait? Maybe just move it out altogether?
     fn ckc_suit_number(&self) -> usize {
         if self.suit.pip_type == PipType::Joker {
             return 0;
@@ -172,9 +199,10 @@ mod basic__types__basic_card_tests {
     use crate::basic::types::basic_card::BasicCard;
     use crate::prelude::{Decked, French, Pile};
     use ckc_rs::CardNumber;
+    use core::str::FromStr;
     use rstest::rstest;
-    use std::str::FromStr;
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn cards_from_yaml_file() {
         let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
@@ -187,6 +215,40 @@ mod basic__types__basic_card_tests {
     fn is_blank() {
         let base_card = BasicCard::default();
         assert!(base_card.is_blank());
+    }
+
+    /// Guards `BasicCard::new`'s `const fn` status. If `new` ever loses
+    /// `const`, this `pub const` fails to compile.
+    const _CONST_CARD: BasicCard = BasicCard::new(
+        crate::basic::decks::cards::french::FrenchSuit::SPADES,
+        crate::basic::decks::cards::french::FrenchRank::ACE,
+    );
+
+    #[test]
+    fn basic_card__new__is_const() {
+        assert_eq!(_CONST_CARD, crate::prelude::FrenchBasicCard::ACE_SPADES);
+    }
+
+    #[test]
+    fn is_blank__half_blank_suit() {
+        use crate::basic::decks::cards::french::FrenchBasicCard;
+        // A card where only the suit pip is blank should still be blank (catches || -> && mutation)
+        let blank_suit_card = BasicCard {
+            suit: Pip::default(),
+            rank: FrenchBasicCard::ACE_SPADES.rank,
+        };
+        assert!(blank_suit_card.is_blank());
+    }
+
+    #[test]
+    fn is_blank__half_blank_rank() {
+        use crate::basic::decks::cards::french::FrenchBasicCard;
+        // A card where only the rank pip is blank should still be blank (catches || -> && mutation)
+        let blank_rank_card = BasicCard {
+            suit: FrenchBasicCard::ACE_SPADES.suit,
+            rank: Pip::default(),
+        };
+        assert!(blank_rank_card.is_blank());
     }
 
     #[rstest]

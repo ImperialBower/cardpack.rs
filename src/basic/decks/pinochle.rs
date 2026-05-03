@@ -2,12 +2,19 @@ use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::decks::cards::pinochle::PinochleBasicCard;
 use crate::basic::types::basic_card::BasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Pile, Standard52};
+#[cfg(feature = "colored-display")]
+use crate::prelude::Standard52;
+use crate::prelude::{Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Pinochle {}
@@ -77,6 +84,7 @@ impl DeckedBase for Pinochle {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -86,7 +94,7 @@ impl DeckedBase for Pinochle {
     }
 
     fn fluent_deck_key() -> String {
-        cards::pinochle::FLUENT_KEY_BASE_NAME_PINOCHLE.to_string()
+        cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
     }
 }
 
@@ -103,5 +111,24 @@ mod basic__card__pinochle_tests {
     #[test]
     fn decked__validate() {
         assert!(Pinochle::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Pinochle::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Pinochle::deck_name(), "Pinochle");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Pinochle::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

@@ -4,14 +4,27 @@ use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::string::{String, ToString};
+use alloc::vec::{IntoIter, Vec};
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use core::fmt::Display;
+use core::hash::Hash;
+use core::str::FromStr;
+#[cfg(feature = "std")]
+use rand::rng;
+use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, rng};
-use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
-use std::hash::Hash;
-use std::str::FromStr;
-use std::vec::IntoIter;
+use rand::{Rng, SeedableRng};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+// HashMap is gated on `colored-display` rather than `std` because it is only
+// used by the `colors() -> HashMap<Pip, Color>` impl. `colored-display`
+// transitively requires `std` (per Cargo.toml `[features]`), so this gate is
+// strictly tighter than gating on `std` directly.
+#[cfg(feature = "colored-display")]
+use std::collections::HashMap;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
 /// collection of [`Cards`](Card) that are bound by a
@@ -36,27 +49,19 @@ use std::vec::IntoIter;
 /// assert_eq!(hand.to_string(), "A♦ K♦ Q♦ J♦ T♦");
 /// ```
 ///
-/// TODO: fixme
-/// ```txt
+/// ```
 /// use cardpack::prelude::*;
-/// let mut deck: Pile<Standard52> = Standard52::deck();
 ///
-/// assert_eq!(deck(" "), "A K Q J T 9 8 7 6 5 4 3 2");
-/// assert_eq!(deck.suit_symbol_index(), "♠ ♥ ♦ ♣");
-/// assert_eq!(deck.suit_index(), "S H D C");
-/// assert_eq!(deck.draw(5).to_string(), "A♠ K♠ Q♠ J♠ T♠");
+/// let mut deck = Standard52::deck();
+///
+/// assert_eq!(deck.ranks_index(" "), "A K Q J T 9 8 7 6 5 4 3 2");
+/// assert_eq!(deck.suit_symbol_index(" "), "♠ ♥ ♦ ♣");
+/// assert_eq!(deck.suits_index(" "), "S H D C");
+/// assert_eq!(deck.draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 /// assert_eq!(deck.len(), 47);
 /// ```
-///
-/// ```txt
-/// use cardpack::rev1_prelude::{Decked, Modern, Pile};
-/// let modern_deck: Pile<Modern, Modern> = Modern::deck();
-///
-/// assert_eq!(modern_deck.rank_index(""), "BLAKQJT98765432");
-/// assert_eq!(modern_deck.suit_symbol_index(), "🃟 ♠ ♥ ♦ ♣");
-/// assert_eq!(modern_deck.suit_index(), "J S H D C");
-/// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Pile<DeckType: DeckedBase>(Vec<Card<DeckType>>)
 where
     DeckType: Default + Ord + Copy + Hash;
@@ -116,8 +121,36 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         self.0.contains(card)
     }
 
+    /// Construct a `Pile<DeckType>` from a slice of [`BasicCard`]s.
+    ///
+    /// More ergonomic than `Pile::from(slice.to_vec())`. Note that this
+    /// allocates — `Pile` wraps a `Vec` and is not const-constructible.
+    /// To define `BasicCard` collections at compile time, use a
+    /// `const ARRAY: [BasicCard; N] = [...]` and pass the slice in here.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// const TINY: [BasicCard; 4] = [
+    ///     FrenchBasicCard::ACE_SPADES,
+    ///     FrenchBasicCard::KING_SPADES,
+    ///     FrenchBasicCard::ACE_HEARTS,
+    ///     FrenchBasicCard::KING_HEARTS,
+    /// ];
+    ///
+    /// let pile = Pile::<Standard52>::from_slice(&TINY);
+    /// assert_eq!(pile.len(), 4);
+    /// ```
+    #[must_use]
+    pub fn from_slice(cards: &[BasicCard]) -> Self {
+        Self::from(cards.to_vec())
+    }
+
     /// Prints out a demonstration of the deck. Used in the `cli` example program.
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
     pub fn demo_cards(&self, verbose: bool) {
+        use crate::localization::{FluentName, Named};
+
         let deck = self.sorted();
         let shuffled = deck.shuffled();
         let name = Self::deck_name();
@@ -131,12 +164,23 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         );
 
         if verbose {
+            const SEP: &str = "------------------------";
             println!();
-            println!("Long in English and German:");
+            println!(
+                "  {:<24} | {:<24} | {:<24} | {:<24} | Klingon",
+                "English", "German", "French", "Latin"
+            );
+            println!("  {SEP} | {SEP} | {SEP} | {SEP} | {SEP}");
 
             for card in deck {
-                let name = card.fluent_name_default();
-                println!("  {name} ");
+                println!(
+                    "  {:<24} | {:<24} | {:<24} | {:<24} | {}",
+                    card.fluent_name(&FluentName::US_ENGLISH),
+                    card.fluent_name(&FluentName::DEUTSCH),
+                    card.fluent_name(&FluentName::FRANCAIS),
+                    card.fluent_name(&FluentName::LATINA),
+                    card.fluent_name(&FluentName::TLHINGAN),
+                );
             }
         }
     }
@@ -250,6 +294,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert!(!pile.contains(&random_card));
     /// ```
+    #[cfg(feature = "std")]
     pub fn draw_random(&mut self) -> Option<Card<DeckType>> {
         let mut rng = rng();
         let position = rng.random_range(0..self.len());
@@ -362,23 +407,32 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         BasicPile::from(self)
     }
 
-    /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
+    /// Returns the `Pile` as a `BasicPileCell`.
+    #[must_use]
+    pub fn basic_pile_cell() -> crate::basic::types::basic::BasicPileCell {
+        crate::basic::types::basic::BasicPileCell::new(Self::basic_pile())
+    }
+
+    /// Returns the `Pile` as a `BTreeSet`, an ordered collection of each unique [`Card`].
+    /// Duplicate cards in the source pile collapse to a single entry.
     ///
     /// ```
-    /// use std::collections::HashSet;
+    /// use std::collections::BTreeSet;
     /// use cardpack::prelude::*;
     ///
-    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
-    /// let mut hs: HashSet<Card<Standard52>> = HashSet::new();
+    /// // The 2♠ appears twice, but the BTreeSet only keeps one entry.
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 2♠ 4♠").unwrap();
+    /// let mut set: BTreeSet<Card<Standard52>> = BTreeSet::new();
     ///
-    /// hs.insert(card!(2S));
-    /// hs.insert(card!(8S));
-    /// hs.insert(card!(4S));
+    /// set.insert(card!(2S));
+    /// set.insert(card!(8S));
+    /// set.insert(card!(4S));
     ///
-    /// assert_eq!(pile.into_hashset(), hs);
+    /// assert_eq!(pile.unique_cards(), set);
+    /// assert_eq!(pile.unique_cards().len(), 3);
     /// ```
     #[must_use]
-    pub fn into_hashset(&self) -> HashSet<Card<DeckType>> {
+    pub fn unique_cards(&self) -> BTreeSet<Card<DeckType>> {
         self.0.iter().copied().collect()
     }
 
@@ -406,7 +460,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(iter.next(), Some(&card!(4S)));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> std::slice::Iter<'_, Card<DeckType>> {
+    pub fn iter(&self) -> core::slice::Iter<'_, Card<DeckType>> {
         self.0.iter()
     }
 
@@ -436,8 +490,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// );
     /// ```
     #[must_use]
-    pub fn map_by_suit(&self) -> HashMap<Pip, Self> {
-        let mut map: HashMap<Pip, Self> = HashMap::new();
+    pub fn map_by_suit(&self) -> BTreeMap<Pip, Self> {
+        let mut map: BTreeMap<Pip, Self> = BTreeMap::new();
 
         for card in &self.0 {
             let suit = card.base_card.suit;
@@ -498,12 +552,14 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     /// I am not seeing a need for this function.
     ///
-    /// TODO: delete me
+    #[deprecated(
+        note = "use `piles.iter().map(ToString::to_string).collect::<Vec<_>>().join(\", \")` directly"
+    )]
     #[must_use]
     pub fn piles_to_string(piles: &[Self]) -> String {
         piles
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(alloc::string::ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ")
     }
@@ -511,7 +567,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Returns the position of the passed in [`Card`] in the `Pile`. If the [`Card`] isn't there,
     /// it returns `None`.
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (Razz needs the `yaml` feature)
     /// use cardpack::prelude::*;
     ///
     /// let deck = Razz::deck();
@@ -652,7 +709,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
 
     /// Returns true of the two `Piles` are the same, regardless of the order of the cards.
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (Razz needs the `yaml` feature)
     /// use cardpack::prelude::*;
     ///
     /// let pile1 = Razz::deck();
@@ -670,6 +728,10 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     }
 
     /// `shuffled` feels so much better. Nice and succinct.
+    ///
+    /// For deterministic shuffling, use
+    /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -677,8 +739,60 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// Shuffles the `Pile` in place using the process default RNG
+    /// (`rand::rng()`). For deterministic shuffling, use
+    /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
+    }
+
+    /// Shuffles the `Pile` in place deterministically from a `u64` seed.
+    ///
+    /// Uses [`rand::rngs::StdRng`] internally. Same seed produces the same
+    /// permutation **within one `rand` major version**; a `rand` upgrade may
+    /// change the result. For cross-version reproducibility, pass a portable
+    /// RNG (e.g., `ChaCha8Rng` from `rand_chacha`) to
+    /// [`shuffle_with_rng`](Self::shuffle_with_rng).
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Pile::<Standard52>::deck();
+    /// let a = deck.shuffled_with_seed(42);
+    /// let b = deck.shuffled_with_seed(42);
+    /// assert_eq!(a, b);
+    /// ```
+    pub fn shuffle_with_seed(&mut self, seed: u64) {
+        self.shuffle_with_rng(&mut StdRng::seed_from_u64(seed));
+    }
+
+    /// Returns a new `Pile` shuffled deterministically from a `u64` seed.
+    ///
+    /// See [`shuffle_with_seed`](Self::shuffle_with_seed) for the
+    /// portability caveat.
+    #[must_use]
+    pub fn shuffled_with_seed(&self, seed: u64) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_seed(seed);
+        pile
+    }
+
+    /// Shuffles the `Pile` in place using the caller's RNG.
+    ///
+    /// Generic over any `R: Rng + ?Sized`. The seed-based methods are sugar
+    /// over this primitive — pass your own RNG (e.g., `ChaCha8Rng`) for
+    /// algorithm-stable reproducibility across `rand` major-version bumps.
+    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.0.shuffle(rng);
+    }
+
+    /// Returns a new `Pile` shuffled using the caller's RNG.
+    #[must_use]
+    pub fn shuffled_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_rng(rng);
+        pile
     }
 
     /// Returns a sorted clone of the `Pile`.
@@ -781,13 +895,13 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(Pile::<Standard52>::from(v).to_string(), "8♠ 4♠ 2♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0
-            .sort_by(|a, b| b.base_card.rank.cmp(&a.base_card.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.base_card.rank));
     }
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].
     ///
-    /// ```
+    /// ```ignore
+    /// // ignored under cargo test --no-default-features (color_index_string needs `colored-display`)
     /// use cardpack::prelude::*;
     ///
     /// let pile = cards!("A♠ K♠ Q♠ J♠ T♠");
@@ -809,6 +923,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(pile.to_color_index_string(), "AS KS QS JS TS");
     /// ```
+    #[cfg(feature = "colored-display")]
     pub fn to_color_index_string(&self) -> String {
         self.stringify(" ", Card::color_index_string)
     }
@@ -822,6 +937,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert_eq!(pile.to_color_symbol_string(), "A♠ K♠ Q♠ J♠ T♠");
     /// ```
+    #[cfg(feature = "colored-display")]
     pub fn to_color_symbol_string(&self) -> String {
         self.stringify(" ", Card::color_symbol_string)
     }
@@ -836,6 +952,7 @@ impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<Dec
     }
 
     /// Pass through call to the `Pile's` underlying type parameter.
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         DeckType::colors()
     }
@@ -854,7 +971,7 @@ impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<Dec
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> Decked<DeckType> for Pile<DeckType> {}
 
 impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckType> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let s = self
             .0
             .iter()
@@ -863,14 +980,6 @@ impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckTy
             .join(" ");
 
         write!(f, "{s}")
-    }
-}
-
-impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<HashSet<Card<DeckType>>>
-    for Pile<DeckType>
-{
-    fn from(cards: HashSet<Card<DeckType>>) -> Self {
-        Self(cards.into_iter().collect()).sorted()
     }
 }
 
@@ -965,6 +1074,8 @@ mod basic__types__deck_tests {
     use crate::basic::types::traits::DeckedBase;
     use crate::cards;
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn basic_cards() {
@@ -1033,6 +1144,7 @@ mod basic__types__deck_tests {
         }
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn draw_random() {
         let mut deck = Standard52::deck();
@@ -1064,14 +1176,31 @@ mod basic__types__deck_tests {
     }
 
     #[test]
-    fn into_hashset() {
+    fn unique_cards() {
         let five_deck = French::decks(5);
 
-        let hashset: HashSet<Card<French>> = five_deck.into_hashset();
-        let deck = Pile::<French>::from(hashset);
+        let btreeset: alloc::collections::BTreeSet<Card<French>> = five_deck.unique_cards();
 
         assert_eq!(five_deck.len(), 270);
+        assert_eq!(btreeset.len(), 54);
+
+        // BTreeSet iterates high-to-low via BasicCard's reversed Ord (see basic_card.rs:24),
+        // which matches French::deck()'s deck-order. If the Ord impl is ever flipped, this
+        // assertion breaks and the test needs an explicit .sorted() on the deck.
+        let deck: Pile<French> = btreeset.into_iter().collect();
         assert_eq!(deck, French::deck());
+    }
+
+    #[test]
+    fn from_iterator_collects_pile_from_card_iter() {
+        use crate::prelude::*;
+
+        let cards = vec![card!(AS), card!(KH), card!(QC)];
+        let pile: Pile<Standard52> = cards.into_iter().collect();
+
+        assert_eq!(pile.len(), 3);
+        // FromIterator preserves insertion order (no internal sort/dedupe).
+        assert_eq!(pile.to_string(), "A♠ K♥ Q♣");
     }
 
     #[test]
@@ -1179,6 +1308,7 @@ mod basic__types__deck_tests {
         assert_eq!(actual, Pile::<Standard52>::from_str("AS QS").unwrap());
     }
 
+    #[cfg(feature = "colored-display")]
     #[test]
     fn to_color_symbol_string() {
         let pile = Pile::<French>::from_str("2c 3c 4c").unwrap();
@@ -1251,6 +1381,7 @@ mod basic__types__deck_tests {
         assert_eq!(*pile.cards(), cards);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn to_string__from_str() {
         let deck = French::deck();
@@ -1287,6 +1418,7 @@ mod basic__types__deck_tests {
                 Tiny::DECK.to_vec()
             }
 
+            #[cfg(feature = "colored-display")]
             fn colors() -> HashMap<Pip, Color> {
                 Standard52::colors()
             }
@@ -1369,4 +1501,142 @@ mod basic__types__deck_tests {
     }
 
     // endregion GTOed
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn draw_random__is_from_deck() {
+        // Catches mutation: return Some(Card::new(Default::default()))
+        let deck = Standard52::deck();
+        let mut deck_copy = deck.clone();
+        let drawn = deck_copy.draw_random().unwrap();
+        // The drawn card must have been in the original deck, not a blank default
+        assert!(deck.contains(&drawn));
+        assert_ne!(drawn.base(), BasicCard::default());
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn piles_to_string__not_empty() {
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("AH KH");
+        let piles = vec![pile1, pile2];
+        let result = Pile::<Standard52>::piles_to_string(&piles);
+        assert!(!result.is_empty());
+        assert_ne!(result, "xyzzy");
+    }
+
+    #[test]
+    fn same__true_for_same_cards_different_order() {
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("KS AS");
+        assert!(pile1.same(&pile2));
+    }
+
+    #[test]
+    fn same__false_for_different_cards() {
+        // Catches same() -> true mutation
+        let pile1 = cards!("AS KS");
+        let pile2 = cards!("AH KH");
+        assert!(!pile1.same(&pile2));
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked_base__colors__not_empty() {
+        // Catches colors() -> HashMap::new() mutation on Pile<DeckType>
+        assert!(!Pile::<Standard52>::colors().is_empty());
+    }
+
+    #[test]
+    fn decked_base__fluent_deck_key__not_empty() {
+        // Catches fluent_deck_key() -> String::new() and -> "xyzzy" mutations on Pile<DeckType>
+        // (fluent_deck_key is part of DeckedBase, no feature gating needed)
+        let key = Pile::<Standard52>::fluent_deck_key();
+        assert!(!key.is_empty());
+        assert_ne!(key, "xyzzy");
+    }
+
+    #[test]
+    fn from_vec_basic_card() {
+        // Catches From<Vec<BasicCard>> -> Default::default() mutation
+        let cards: Vec<BasicCard> = vec![FrenchBasicCard::ACE_SPADES, FrenchBasicCard::KING_SPADES];
+        let pile = Pile::<Standard52>::from(cards);
+        assert_eq!(pile.len(), 2);
+        assert_ne!(pile, Pile::<Standard52>::default());
+    }
+
+    #[test]
+    fn from_basic_pile() {
+        // Catches From<BasicPile> -> Default::default() mutation
+        let basic = Standard52::basic_pile();
+        let pile = Pile::<Standard52>::from(basic);
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+        assert_ne!(pile, Pile::<Standard52>::default());
+    }
+
+    #[test]
+    fn from_iterator() {
+        // Catches FromIterator -> Default::default() mutation
+        let deck = Standard52::deck();
+        let pile: Pile<Standard52> = deck.into_iter().collect();
+        assert_eq!(pile.len(), Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn into_iterator_ref() {
+        // Catches IntoIterator for &Pile -> Default::default() mutation
+        let deck = Standard52::deck();
+        let count = deck.into_iter().count();
+        assert_eq!(count, Standard52::DECK_SIZE);
+    }
+
+    #[test]
+    fn from_slice__roundtrips_a_const_array() {
+        const TINY: [BasicCard; 4] = [
+            FrenchBasicCard::ACE_SPADES,
+            FrenchBasicCard::KING_SPADES,
+            FrenchBasicCard::ACE_HEARTS,
+            FrenchBasicCard::KING_HEARTS,
+        ];
+        let pile = Pile::<Standard52>::from_slice(&TINY);
+        assert_eq!(pile.len(), 4);
+        assert!(pile.contains(&Card::<Standard52>::new(FrenchBasicCard::ACE_SPADES)));
+    }
+
+    #[cfg(all(feature = "i18n", feature = "colored-display"))]
+    #[test]
+    fn demo_cards__does_not_panic() {
+        let deck = Standard52::deck();
+        deck.demo_cards(false);
+    }
+
+    #[test]
+    fn shuffled_with_seed__deterministic() {
+        let deck = Pile::<Standard52>::deck();
+        let a = deck.shuffled_with_seed(42);
+        let b = deck.shuffled_with_seed(42);
+        assert_eq!(a, b, "same seed must produce identical permutation");
+    }
+
+    #[test]
+    fn shuffled_with_seed__different_seeds_differ() {
+        let deck = Pile::<Standard52>::deck();
+        assert_ne!(
+            deck.shuffled_with_seed(1),
+            deck.shuffled_with_seed(2),
+            "different seeds should almost always produce different orderings"
+        );
+    }
+
+    #[test]
+    fn shuffled_with_seed__same_cards() {
+        let deck = Pile::<Standard52>::deck();
+        let shuffled = deck.shuffled_with_seed(0xC0FFEE);
+        assert_eq!(deck.len(), shuffled.len());
+        let mut o = deck.cards().clone();
+        let mut s = shuffled.cards().clone();
+        o.sort();
+        s.sort();
+        assert_eq!(o, s, "shuffle must permute, not transform");
+    }
 }

@@ -373,25 +373,27 @@ impl FrenchRank {
     };
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "yaml"))]
 #[allow(non_snake_case)]
 mod basic__decks__cards__french__tests {
     use super::*;
     use crate::prelude::{Decked, French};
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn serde() {
         let pips = vec![FrenchRank::ACE];
-        let yml = serde_yml::to_string(&pips).unwrap();
+        let yml = serde_norway::to_string(&pips).unwrap();
 
-        let pip2: Vec<Pip> = serde_yml::from_str(&yml).unwrap();
+        let pip2: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
         assert_eq!(pips, pip2);
     }
 
+    #[cfg(feature = "yaml")]
     #[test]
     fn serde__deck() {
         let pile = French::deck().into_basic_cards();
-        let yml = serde_yml::to_string(&pile).unwrap();
+        let yml = serde_norway::to_string(&pile).unwrap();
 
         let from_yml: Vec<BasicCard> = BasicCard::cards_from_yaml_str(&yml).unwrap();
 

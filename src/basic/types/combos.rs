@@ -1,7 +1,9 @@
 use crate::basic::types::basic_pile::BasicPile;
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, Pip};
-use std::fmt::{Display, Formatter};
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct Combos(Vec<BasicPile>);
@@ -68,16 +70,12 @@ impl Combos {
     /// The main lesson I've gotten from all that is to strive to learn the basic idiomatic ways
     /// to work within a language.
     ///
-    /// TODO: RF - This code is ugly AF.
     #[must_use]
     pub fn connectors(&self) -> Self {
         self.iter()
             .filter(|pile| pile.is_connector())
-            .cloned()
-            .collect::<Self>()
-            .iter()
             .map(|pile| pile.clone().sorted_by_rank())
-            .collect::<Self>()
+            .collect()
     }
 
     /// I love how the `CoPilot` version recommends functions that don't exist instead of
@@ -183,7 +181,7 @@ impl Combos {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, BasicPile> {
+    pub fn iter(&self) -> core::slice::Iter<'_, BasicPile> {
         self.0.iter()
     }
 
@@ -208,7 +206,7 @@ impl Combos {
         self.0.sort();
     }
 
-    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> std::cmp::Ordering) {
+    pub fn sort_by(&mut self, f: impl FnMut(&BasicPile, &BasicPile) -> core::cmp::Ordering) {
         self.0.sort_by(f);
     }
 
@@ -234,12 +232,12 @@ impl Combos {
 }
 
 impl Display for Combos {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}",
             self.iter()
-                .map(std::string::ToString::to_string)
+                .map(alloc::string::ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(", ")
         )
@@ -274,7 +272,7 @@ impl Iterator for Combos {
 
 impl<'a> IntoIterator for &'a Combos {
     type Item = &'a BasicPile;
-    type IntoIter = std::slice::Iter<'a, BasicPile>;
+    type IntoIter = core::slice::Iter<'a, BasicPile>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -285,6 +283,7 @@ impl<'a> IntoIterator for &'a Combos {
 mod basic__types__combos_tests {
     use super::*;
     use crate::prelude::{Decked, DeckedBase, French, FrenchRank, Pile, Standard52};
+    use alloc::string::ToString;
 
     #[test]
     fn connectors() {
@@ -368,5 +367,102 @@ mod basic__types__combos_tests {
         for p in piles {
             assert_eq!(pile, p);
         }
+    }
+
+    #[test]
+    fn get__returns_correct_element() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        // get(0) returns Some with a real pile, not None or an empty default
+        let first = combos.get(0);
+        assert!(first.is_some());
+        assert!(!first.unwrap().is_empty());
+        // out-of-bounds returns None
+        assert!(combos.get(usize::MAX).is_none());
+    }
+
+    #[test]
+    fn is_empty__false_when_populated() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        assert!(!combos.is_empty());
+    }
+
+    #[test]
+    fn is_empty__true_when_empty() {
+        let combos = Combos::default();
+        assert!(combos.is_empty());
+    }
+
+    #[test]
+    fn pop__returns_some() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let popped = combos.pop();
+        assert!(popped.is_some());
+        assert_ne!(popped, Some(BasicPile::default()));
+    }
+
+    #[test]
+    fn sort__reorders() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let len_before = combos.len();
+        combos.sort();
+        assert_eq!(combos.len(), len_before);
+        // verify it's actually sorted — first element should compare <= last
+        let first = combos.get(0).unwrap().clone();
+        let last = combos.get(combos.len() - 1).unwrap().clone();
+        assert!(first <= last);
+    }
+
+    #[test]
+    fn sort_by__works() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let mut combos = pile.combos(2);
+        let len_before = combos.len();
+        combos.sort_by(|a, b| a.len().cmp(&b.len()));
+        assert_eq!(combos.len(), len_before);
+    }
+
+    #[test]
+    fn v__not_empty() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        let v = combos.v();
+        assert!(!v.is_empty());
+        assert_ne!(v, &vec![BasicPile::default()]);
+    }
+
+    #[test]
+    fn from_ref_vec_basic_pile() {
+        let piles = vec![
+            Pile::<Standard52>::basic_pile(),
+            Pile::<Standard52>::basic_pile(),
+        ];
+        let combos = Combos::from(&piles);
+        assert_eq!(combos.len(), 2);
+        assert_ne!(combos, Combos::default());
+    }
+
+    #[test]
+    fn iterator__yields_all() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let expected_len = pile.combos(2).len();
+        let mut combos = pile.combos(2);
+        let mut count = 0;
+        while combos.next().is_some() {
+            count += 1;
+        }
+        assert_eq!(count, expected_len);
+    }
+
+    #[test]
+    fn into_iterator__for_ref() {
+        let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
+        let combos = pile.combos(2);
+        let expected_len = combos.len();
+        let count = (&combos).into_iter().count();
+        assert_eq!(count, expected_len);
     }
 }

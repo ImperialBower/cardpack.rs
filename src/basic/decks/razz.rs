@@ -1,6 +1,13 @@
 use crate::basic::decks::cards;
-use crate::prelude::{BasicCard, Decked, DeckedBase, Pip, Standard52};
+use crate::prelude::{BasicCard, Decked, DeckedBase};
+#[cfg(feature = "colored-display")]
+use crate::prelude::{Pip, Standard52};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use log::error;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// [`Razz`](https://en.wikipedia.org/wiki/Razz_(poker)) deck where the cards are ordered from low
@@ -13,20 +20,20 @@ use std::collections::HashMap;
 /// actually work. You can see it in [`razz_bad.yaml`](yaml/razz_bad.yaml). This is why we test.
 /// While the front line `Deck::<Razz>::validate()` didn't catch anything, this time,
 /// the basic `from_str()` test did, after we had to debug. This is why it is always dangerous
-/// to bury errors with just returning default. In a production system, I would add at least
-/// logging in order to have some record of what's going on. In fact, let's add that to
-/// `BasicCard::cards_from_file()` now.
-///
-/// This is an
+/// to bury errors with just returning default. A `log::error!` call captures the failure so it
+/// shows up in any configured logger rather than silently producing an empty deck.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Razz {}
 
 impl DeckedBase for Razz {
     fn base_vec() -> Vec<BasicCard> {
-        BasicCard::cards_from_yaml_file("src/basic/decks/yaml/razz.yaml")
-            .unwrap_or_else(|_| Vec::default())
+        BasicCard::cards_from_yaml_file("src/basic/decks/yaml/razz.yaml").unwrap_or_else(|e| {
+            error!("Failed to load Razz deck from YAML: {e}");
+            Vec::default()
+        })
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -67,5 +74,24 @@ mod basic__decks__razz_tests {
     #[test]
     fn decked__validate() {
         assert!(Pile::<Razz>::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Razz::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Razz::deck_name(), "Razz");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Razz::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

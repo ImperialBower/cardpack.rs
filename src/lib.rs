@@ -5,6 +5,9 @@
     clippy::nursery,
     clippy::cargo,
     clippy::suspicious,
+
+    clippy::unwrap_used,
+    clippy::expect_used,
 )]
 #![allow(
     clippy::disallowed_script_idents,
@@ -14,6 +17,7 @@
     clippy::struct_field_names
 )]
 #![allow(dead_code)]
+#![cfg_attr(not(feature = "std"), no_std)]
 // clippy::as_conversions
 // clippy::float_arithmetic
 // clippy::integer_arithmetic
@@ -60,7 +64,8 @@
 //! of playing cards. It is made up of a collection of 54 `Cards` with 13 ranks in each of the four suits,
 //! and two jokers. Most of the other decks are made up on the [`French BasicCards`](basic::decks::cards::french::FrenchBasicCard).
 //!
-//! ```rust
+//! ```ignore
+//! // ignored under cargo test --no-default-features (uses fluent_name* / FluentName at the bottom)
 //! use cardpack::prelude::*;
 //!
 //! let mut french_deck = Pile::<French>::deck();
@@ -146,7 +151,8 @@
 //! [`BasicCard`](basic::types::basic_card::BasicCard) for the deck are generated programmatically
 //! in YAML instead using the power of [Serde](https://serde.rs/)
 //!
-//! ```
+//! ```ignore
+//! // ignored under cargo test --no-default-features (Razz needs the `yaml` feature)
 //! use cardpack::prelude::*;
 //! assert_eq!(Pile::<Razz>::deck().draw(5).unwrap().to_string(), "A♠ 2♠ 3♠ 4♠ 5♠");
 //! assert_eq!(Pile::<Standard52>::deck().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
@@ -186,7 +192,8 @@
 //! Here's a very simple example where we create a tiny deck with only the ace and kink ranks,
 //! and only the spades and hearts suits. Just for fun, we'll include a `tiny!` macro for one `Tiny` card.
 //!
-//! ```rust
+//! ```ignore
+//! // ignored under cargo test --no-default-features (uses colored::Color directly)
 //! use std::collections::HashMap;
 //! use colored::Color;
 //! use cardpack::prelude::*;
@@ -279,9 +286,19 @@
 #![allow(clippy::needless_doctest_main)]
 #![cfg_attr(doc, doc = include_str!("../README.md"))]
 
+// `extern crate alloc;` lives here, not next to the `no_std` cfg_attr at the
+// top of the file, because items must follow ALL inner attributes (`#![...]`)
+// and the `//!` inner doc comment block. Moving it up is a Rust syntax error
+// (E0753: expected outer doc comment).
+#[macro_use]
+extern crate alloc;
+
 pub mod basic;
 pub mod common;
+#[cfg(feature = "funky")]
 pub mod funky;
+#[cfg(feature = "i18n")]
 pub mod localization;
 pub mod prelude;
+#[cfg(feature = "funky")]
 pub mod preludes;

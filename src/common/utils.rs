@@ -1,3 +1,5 @@
+use alloc::string::String;
+
 pub struct Bit;
 
 impl Bit {
@@ -81,5 +83,59 @@ mod types__rank__tests {
         let ckc = 0b1111_1111_1111_1111_1111_1111_1111_1111;
         let exp = 0b0000_0000_0000_0000_1111_0000_0000_0000;
         assert_eq!(Bit::only_suit_flags(ckc), exp);
+    }
+
+    #[test]
+    fn ckc_bits() {
+        // RANK_FLAG_FILTER = 0x1FFF_0000 (bits 16-28)
+        let ckc = 0x0001_0000_usize; // one bit in filter range
+        assert_eq!(Bit::ckc_bits(ckc), 0x0001_0000);
+        assert_ne!(Bit::ckc_bits(ckc), 0);
+        assert_ne!(Bit::ckc_bits(ckc), 1);
+        // bits outside filter range are masked out
+        assert_eq!(Bit::ckc_bits(0x0000_FFFF), 0);
+        // all-ones: only filter bits survive
+        assert_eq!(Bit::ckc_bits(usize::MAX), Bit::RANK_FLAG_FILTER);
+    }
+
+    #[test]
+    fn ckc_prime() {
+        // RANK_PRIME_FILTER = 0b0011_1111 = 0x3F (bits 0-5)
+        let ckc = 0xFF_usize;
+        assert_eq!(Bit::ckc_prime(ckc), 0x3F);
+        assert_ne!(Bit::ckc_prime(ckc), 0);
+        assert_ne!(Bit::ckc_prime(ckc), 1);
+        // bits outside the prime filter are masked out
+        assert_eq!(Bit::ckc_prime(0xFF00), 0);
+        // all-ones: only filter bits survive
+        assert_eq!(Bit::ckc_prime(usize::MAX), Bit::RANK_PRIME_FILTER);
+    }
+
+    #[test]
+    fn ckc_shift8() {
+        // RANK_NUMBER_FILTER = 0b1111_0000_0000 = 0x0F00 (bits 8-11)
+        let ckc = 0xFFFF_usize;
+        assert_eq!(Bit::ckc_shift8(ckc), 0x0F00);
+        assert_ne!(Bit::ckc_shift8(ckc), 0);
+        assert_ne!(Bit::ckc_shift8(ckc), 1);
+        // bits outside the filter are masked out
+        assert_eq!(Bit::ckc_shift8(0x00FF), 0);
+        // all-ones: only filter bits survive
+        assert_eq!(Bit::ckc_shift8(usize::MAX), Bit::RANK_NUMBER_FILTER);
+    }
+
+    #[test]
+    fn strip_suit_flags() {
+        // SUIT_FLAG_FILTER = 0xF000 (bits 12-15)
+        // strip_suit_flags removes those bits using &!filter
+        let ckc = 0xFFFF_usize;
+        let expected = 0x0FFF_usize;
+        assert_eq!(Bit::strip_suit_flags(ckc), expected);
+        assert_ne!(Bit::strip_suit_flags(ckc), 0);
+        assert_ne!(Bit::strip_suit_flags(ckc), 1);
+        // pure suit bits: stripped to zero
+        assert_eq!(Bit::strip_suit_flags(Bit::SUIT_FLAG_FILTER), 0);
+        // complement to only_suit_flags: together they reconstruct the original
+        assert_eq!(Bit::only_suit_flags(ckc) | Bit::strip_suit_flags(ckc), ckc);
     }
 }

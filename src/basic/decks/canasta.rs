@@ -1,12 +1,18 @@
-use crate::basic::decks::cards::canasta::{CanastaBasicCard, FLUENT_KEY_BASE_NAME_CANASTA};
-use crate::basic::decks::cards::french::FrenchBasicCard;
+use crate::basic::decks::cards::canasta::CanastaBasicCard;
+use crate::basic::decks::cards::french::{FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
+#[cfg(feature = "colored-display")]
 use crate::basic::decks::french::French;
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 use crate::basic::types::pile::Pile;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// [Canasta](https://en.wikipedia.org/wiki/Canasta) deck
@@ -137,6 +143,7 @@ impl DeckedBase for Canasta {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         French::colors()
     }
@@ -146,7 +153,7 @@ impl DeckedBase for Canasta {
     }
 
     fn fluent_deck_key() -> String {
-        FLUENT_KEY_BASE_NAME_CANASTA.to_string()
+        FLUENT_KEY_BASE_NAME_FRENCH.to_string()
     }
 }
 
@@ -169,7 +176,7 @@ mod basic__decks__canasta_tests {
 
     #[test]
     pub fn ranks_index() {
-        let pile = Canasta::deck().shuffled();
+        let pile = Canasta::deck();
         let expected = "3~B~L~2~A~K~Q~J~T~9~8~7~6~5~4~3";
 
         let ranks_index = pile.ranks_index("~");
@@ -177,20 +184,41 @@ mod basic__decks__canasta_tests {
         assert_eq!(ranks_index, expected);
     }
 
-    /// TODO: WTF??!!
-    /// TODO: WTF do I mean by WTF??? Don't do this.
+    /// `suits_index` deduplicates and sorts by `Pip` weight, so the result is deterministic
+    /// regardless of card order. Canasta has 11 distinct suit `Pip` objects (7 canasta-specific
+    /// + 4 French), some sharing an index character (e.g. two different 'H' pips with different
+    /// weights), which is why the output contains apparent duplicates.
     #[test]
     pub fn suits_index() {
-        let pile = Canasta::deck().shuffled();
+        let pile = Canasta::deck();
         let expected = "H~D~J~S~H~D~C~S~H~D~C";
 
-        let ranks_index = pile.suits_index("~");
+        let suits_index = pile.suits_index("~");
 
-        assert_eq!(ranks_index, expected);
+        assert_eq!(suits_index, expected);
     }
 
     #[test]
     fn decked__validate() {
         assert!(Canasta::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Canasta::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Canasta::deck_name(), "Canasta");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Canasta::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

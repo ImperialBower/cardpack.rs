@@ -1,12 +1,19 @@
 use crate::basic::decks::cards;
-use crate::basic::decks::cards::french::{FrenchBasicCard, FrenchSuit};
+use crate::basic::decks::cards::french::FrenchBasicCard;
+#[cfg(feature = "colored-display")]
+use crate::basic::decks::cards::french::FrenchSuit;
 use crate::basic::types::basic_card::BasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Pile};
+use crate::prelude::{BasicPileCell, Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Standard52 {}
@@ -72,6 +79,11 @@ impl Standard52 {
         FrenchBasicCard::TREY_CLUBS,
         FrenchBasicCard::DEUCE_CLUBS,
     ];
+
+    #[must_use]
+    pub fn deck_cell() -> BasicPileCell {
+        Pile::<Self>::basic_pile_cell()
+    }
 }
 
 impl DeckedBase for Standard52 {
@@ -79,6 +91,7 @@ impl DeckedBase for Standard52 {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         let mut mappie = HashMap::new();
 
@@ -108,5 +121,24 @@ mod basic__card__standard52_tests {
     #[test]
     fn decked__validate() {
         assert!(Standard52::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Standard52::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Standard52::deck_name(), "Standard 52");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Standard52::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

@@ -1,12 +1,19 @@
 use crate::basic::decks::cards;
 use crate::basic::decks::cards::french::FrenchBasicCard;
 use crate::basic::types::basic_card::BasicCard;
+#[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
-use crate::prelude::{Card, Pile, Standard52};
+#[cfg(feature = "colored-display")]
+use crate::prelude::Standard52;
+use crate::prelude::{Card, Pile};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 /// [Manila, aka Six Plus aka Short-deck](https://en.wikipedia.org/wiki/Six-plus_hold_%27em)
 /// is a version of Texas Hold'em where the card Ranks of 2 through 5
@@ -67,6 +74,7 @@ impl DeckedBase for Short {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -102,5 +110,24 @@ mod basic__card__short_tests {
     #[test]
     fn decked__validate() {
         assert!(Short::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Short::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Short::deck_name(), "Short");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Short::fluent_deck_key(),
+            cards::french::FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }

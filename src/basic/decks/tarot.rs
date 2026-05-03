@@ -1,5 +1,9 @@
 use crate::prelude::*;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 /// **NOTE** Tarot Major Arcana Ranks are now Base22.
@@ -101,6 +105,7 @@ impl DeckedBase for Tarot {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         let mut mappie = HashMap::new();
 
@@ -132,8 +137,9 @@ mod basic__card__tarot_tests {
     use super::*;
     use crate::basic::types::pile::Pile;
     use crate::basic::types::traits::Decked;
-    use std::str::FromStr;
+    use core::str::FromStr;
 
+    #[cfg(feature = "i18n")]
     #[test]
     fn fluent__fluent_name_default() {
         let magician = TarotCard::from_str("1m").unwrap();
@@ -145,5 +151,24 @@ mod basic__card__tarot_tests {
     #[test]
     fn decked__validate() {
         assert!(Tarot::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Tarot::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Tarot::deck_name(), "Tarot");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Tarot::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_TAROT.to_string()
+        );
     }
 }

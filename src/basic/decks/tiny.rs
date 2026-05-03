@@ -1,7 +1,11 @@
-use crate::prelude::{
-    BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard, Pip, Standard52,
-};
+use crate::prelude::{BasicCard, Decked, DeckedBase, FLUENT_KEY_BASE_NAME_FRENCH, FrenchBasicCard};
+#[cfg(feature = "colored-display")]
+use crate::prelude::{Pip, Standard52};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+#[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "colored-display")]
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -23,6 +27,7 @@ impl DeckedBase for Tiny {
         Self::DECK.to_vec()
     }
 
+    #[cfg(feature = "colored-display")]
     fn colors() -> HashMap<Pip, Color> {
         Standard52::colors()
     }
@@ -101,5 +106,24 @@ mod basic__card__tiny__tests {
     #[test]
     fn validate() {
         assert!(Tiny::validate());
+    }
+
+    #[cfg(feature = "colored-display")]
+    #[test]
+    fn decked__colors() {
+        assert!(!Tiny::colors().is_empty());
+    }
+
+    #[test]
+    fn decked__deck_name() {
+        assert_eq!(Tiny::deck_name(), "Tiny");
+    }
+
+    #[test]
+    fn decked__fluent_deck_key() {
+        assert_eq!(
+            Tiny::fluent_deck_key(),
+            FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+        );
     }
 }
