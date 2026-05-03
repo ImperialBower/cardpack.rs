@@ -240,7 +240,10 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     #[cfg(feature = "i18n")]
     fn fluent_connector(lid: &LanguageIdentifier) -> String {
         match lid {
-            &FluentName::DEUTSCH | &FluentName::LATINA | &FluentName::TLHINGAN => " ".to_string(),
+            &FluentName::DEUTSCH
+            | &FluentName::LATINA
+            | &FluentName::TLHINGAN
+            | &FluentName::BELTA => " ".to_string(),
             &FluentName::FRANCAIS => " de ".to_string(),
             _ => " of ".to_string(),
         }

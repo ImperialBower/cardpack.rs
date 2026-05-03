@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Pile<T>::from_slice(&[BasicCard]) -> Self` — ergonomic non-const
   helper for building piles from `const` arrays. `Pile` wraps `Vec`
   and is intentionally not const-constructible. (audit row #14)
+- **New locale draft** — `qbe` (Belter Creole / Lang Belta, the
+  constructed creole from *The Expanse*). Translations for French,
+  Skat, and Tarot decks with per-file confidence notes in
+  `src/localization/locales/qbe/README.md`. LOW confidence overall;
+  loanword-first / coinage-fallback approach following the `tlh/`
+  Klingon precedent. The `qbe` ISO 639 private-use code is used
+  because `unic-langid` rejects the more semantically accurate
+  `art-x-belta` form.
+- **`FluentName::BELTA` locale constant** — compile-time
+  `LanguageIdentifier` constant enabling
+  `card.fluent_name(&FluentName::BELTA)`. Joins the existing
+  `US_ENGLISH` / `DEUTSCH` / `FRANCAIS` / `LATINA` / `TLHINGAN`
+  family on the `Named` trait.
+- **Belter column in `Pile::demo_cards(true)`** — sixth column in
+  the verbose locale comparison table.
 
 ### Internal
 

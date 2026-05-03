@@ -44,6 +44,12 @@ pub trait Named<'a> {
     const LATINA: LanguageIdentifier = langid!("la");
     /// `tlh` — Klingon. Locale draft (LOW confidence overall; canon-plus-coinages).
     const TLHINGAN: LanguageIdentifier = langid!("tlh");
+    /// `qbe` — Belter Creole (Lang Belta, from *The Expanse*). Uses the
+    /// `qaa`–`qtz` ISO 639 private-use range because Lang Belta has no
+    /// registered code and `unic-langid` rejects BCP-47 private-use
+    /// extensions like `art-x-belta`. Locale draft (LOW confidence overall;
+    /// loanwords-plus-coinages).
+    const BELTA: LanguageIdentifier = langid!("qbe");
 
     const FLUENT_INDEX_SECTION: &'a str = "index";
     const FLUENT_LONG_SECTION: &'a str = "long";
@@ -530,6 +536,18 @@ mod fluent_tests {
         let tlh = langid!("tlh");
         assert_eq!("tIq", LOCALES.lookup(&tlh, "name-suit-french-h"));
         assert_eq!("ta'", LOCALES.lookup(&tlh, "name-rank-french-k"));
+    }
+
+    /// Confirms the `qbe` (Belter Creole / Lang Belta) locale is wired into
+    /// the static loader. Both assertions hit Spanish-loanword entries that
+    /// are unlikely to shift on review (`spada` for Spades, `dama` for Queen);
+    /// coinages and numerals are deliberately not asserted here so they may
+    /// be revised on review without breaking this wired-test.
+    #[test]
+    fn belter_locale_is_wired() {
+        let qbe = langid!("qbe");
+        assert_eq!("spada", LOCALES.lookup(&qbe, "name-suit-french-s"));
+        assert_eq!("dama", LOCALES.lookup(&qbe, "name-rank-french-q"));
     }
 
     /// Guards the de/tarot.ftl schema fix (2026-04-29). Major Arcana keys were

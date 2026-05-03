@@ -167,19 +167,20 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
             const SEP: &str = "------------------------";
             println!();
             println!(
-                "  {:<24} | {:<24} | {:<24} | {:<24} | Klingon",
-                "English", "German", "French", "Latin"
+                "  {:<24} | {:<24} | {:<24} | {:<24} | {:<24} | Belter",
+                "English", "German", "French", "Latin", "Klingon"
             );
-            println!("  {SEP} | {SEP} | {SEP} | {SEP} | {SEP}");
+            println!("  {SEP} | {SEP} | {SEP} | {SEP} | {SEP} | {SEP}");
 
             for card in deck {
                 println!(
-                    "  {:<24} | {:<24} | {:<24} | {:<24} | {}",
+                    "  {:<24} | {:<24} | {:<24} | {:<24} | {:<24} | {}",
                     card.fluent_name(&FluentName::US_ENGLISH),
                     card.fluent_name(&FluentName::DEUTSCH),
                     card.fluent_name(&FluentName::FRANCAIS),
                     card.fluent_name(&FluentName::LATINA),
                     card.fluent_name(&FluentName::TLHINGAN),
+                    card.fluent_name(&FluentName::BELTA),
                 );
             }
         }

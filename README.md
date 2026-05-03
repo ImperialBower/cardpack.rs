@@ -80,8 +80,10 @@ internationalization. Current languages supported are
 [English](src/localization/locales/en-US/french.ftl),
 [German](src/localization/locales/de/french.ftl),
 [French](src/localization/locales/fr/french.ftl),
-[Latin](src/localization/locales/la/french.ftl), and
-[Klingon](src/localization/locales/tlh/french.ftl).
+[Latin](src/localization/locales/la/french.ftl),
+[Klingon](src/localization/locales/tlh/french.ftl), and
+[Belter Creole](src/localization/locales/qbe/french.ftl) (Lang Belta,
+from *The Expanse*).
 
 ## Cargo features
 
@@ -134,15 +136,15 @@ French Deck:          B🃟 L🃟 A♠ K♠ Q♠ J♠ T♠ 9♠ 8♠ 7♠ 6♠ 5
 French Deck Index:    BJ LJ AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C
 French Deck Shuffled: K♣ 7♦ 8♣ Q♥ 6♠ J♦ 4♦ J♥ K♠ 9♥ 6♥ T♥ 2♦ 3♦ 3♣ J♣ 3♥ Q♣ 5♥ Q♦ 3♠ T♣ 7♥ 4♥ K♦ 5♦ 2♠ 6♦ T♠ 8♥ T♦ 7♠ 8♠ 2♣ Q♠ 7♣ A♣ 5♠ A♥ 9♣ 2♥ 9♦ 9♠ 4♠ K♥ 8♦ 5♣ A♦ L🃟 B🃟 A♠ 6♣ 4♣ J♠
 
-  English                  | German                   | French                   | Latin                    | Klingon
-  ------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------
-  Joker Full-Color         | Joker Großer             | Joker Grand              | Joker Magnus             | Joker qoH'a'
-  Joker One-Color          | Joker Kleiner            | Joker Petit              | Joker Parvus             | Joker qoHHom
-  Ace of Spades            | Ass Spaten               | As de Pique              | As Spathae               | wa'DIch yan
-  King of Spades           | König Spaten             | Roi de Pique             | Rex Spathae              | ta' yan
-  Queen of Spades          | Dame Spaten              | Dame de Pique            | Regina Spathae           | ta'be' yan
-  Jack of Spades           | Bube Spaten              | Valet de Pique           | Famulus Spathae          | toy'wI' yan
-  Ten of Spades            | Zhen Spaten              | Dix de Pique             | Decem Spathae            | wa'maH yan
+  English                  | German                   | French                   | Latin                    | Klingon                  | Belter
+  ------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------
+  Joker Full-Color         | Joker Großer             | Joker Grand              | Joker Magnus             | Joker qoH'a'             | Joker joka beratna
+  Joker One-Color          | Joker Kleiner            | Joker Petit              | Joker Parvus             | Joker qoHHom             | Joker joka tikitik
+  Ace of Spades            | Ass Spaten               | As de Pique              | As Spathae               | wa'DIch yan              | wa spada
+  King of Spades           | König Spaten             | Roi de Pique             | Rex Spathae              | ta' yan                  | kapten spada
+  Queen of Spades          | Dame Spaten              | Dame de Pique            | Regina Spathae           | ta'be' yan               | dama spada
+  Jack of Spades           | Bube Spaten              | Valet de Pique           | Famulus Spathae          | toy'wI' yan              | valet spada
+  Ten of Spades            | Zhen Spaten              | Dix de Pique             | Decem Spathae            | wa'maH yan               | das spada
   ...
 ```
 
