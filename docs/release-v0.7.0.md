@@ -17,20 +17,20 @@ localized one:
 - **`no_std` support** (v0.7.0) — alloc-only builds work on bare-metal
   targets such as `thumbv7em-none-eabihf`, gated behind a default-on
   `std` feature.
-- **Cargo features** (v0.6.12) — `i18n`, `colored-display`, `yaml`,
-  `serde`, `std`, `alloc` let consumers trim transitive deps.
-- **WebAssembly** (v0.6.12) — clean `wasm32-unknown-unknown` builds
-  across all feature combinations.
-- **Deterministic shuffle** (v0.6.12) — `shuffle_with_seed(u64)` and
-  `shuffle_with_rng<R>` for reproducible game state.
-- **Three new locale drafts** (v0.6.12) — `fr` (French), `la` (Latin),
-  `tlh` (Klingon), plus a German Tarot schema fix.
-- **Serde for piles** (v0.6.9) — `Serialize`/`Deserialize` derives on
-  `BasicPile` and `Pile<DeckType>`.
-- **Test-coverage hardening** (v0.6.11) — ~70 new unit tests closed the
-  gaps surfaced by `cargo-mutants`.
-- **Tooling** (v0.6.10) — repo-wide `Makefile`, audit-driven cleanup,
-  flaky-test fix.
+  - **Cargo features** (v0.6.12) — `i18n`, `colored-display`, `yaml`,
+    `serde`, `std`, `alloc` let consumers trim transitive deps.
+  - **WebAssembly** (v0.6.12) — clean `wasm32-unknown-unknown` builds
+    across all feature combinations.
+  - **Deterministic shuffle** (v0.6.12) — `shuffle_with_seed(u64)` and
+    `shuffle_with_rng<R>` for reproducible game state.
+  - **Three new locale drafts** (v0.6.12) — `fr` (French), `la` (Latin),
+    `tlh` (Klingon), plus a German Tarot schema fix.
+  - **Serde for piles** (v0.6.9) — `Serialize`/`Deserialize` derives on
+    `BasicPile` and `Pile<DeckType>`.
+  - **Test-coverage hardening** (v0.6.11) — ~70 new unit tests closed the
+    gaps surfaced by `cargo-mutants`.
+  - **Tooling** (v0.6.10) — repo-wide `Makefile`, audit-driven cleanup,
+    flaky-test fix.
 
 A small number of public-API breakages ship in v0.7.0 (collection types
 and shuffle gating). See **[Migration guide](#migration-guide-v06x--v070)**
@@ -139,29 +139,29 @@ behavior is unchanged.
 - **`Makefile`** — repository-wide build/test/lint targets, modeled on
   the sibling `pkcore` repo's Makefile. Replaces ad-hoc shell scripts
   in `bin/`.
-- **`docs/audit-2026-04-09.md`** — full audit report capturing the
-  state of the codebase prior to the cleanup pass.
+  - **`docs/audit-2026-04-09.md`** — full audit report capturing the
+    state of the codebase prior to the cleanup pass.
 
 ### Changed
 - **`combos.rs`** — `connectors()` rewritten from a double-collect
   (filter → collect → map → collect) into a single chained iterator
   pass.
-- **`pile.rs`** — two broken `txt`-fenced doc blocks (referencing
-  removed APIs) replaced with one compiled, working example exercising
-  `ranks_index`, `suit_symbol_index`, `suits_index`, `draw`, and `len`.
-- **`basic.rs`** — added a struct-level doc comment to `BasicPileCell`
-  explaining why `Cell<T>` is used and the take → mutate → set pattern.
-- **`razz.rs`** — added `log::error!` to the YAML load failure path so
-  load failures aren't silent. Cleaned up a dangling
-  `"This is an"` doc fragment.
-- **`canasta.rs`** — removed `.shuffled()` from `ranks_index` and
-  `suits_index` tests (the shuffle had no observable effect, since
-  `extract_pips` deduplicates and sorts). Replaced
-  `// WTF??!!`–style comments with an explanation of the 11-suit output.
-- **`localization.rs`** — replaced the
-  `// should we remove fluent-templates?` TODO with an inline note
-  explaining that fluent-templates is intentionally retained for
-  i18n extensibility.
+  - **`pile.rs`** — two broken `txt`-fenced doc blocks (referencing
+    removed APIs) replaced with one compiled, working example exercising
+    `ranks_index`, `suit_symbol_index`, `suits_index`, `draw`, and `len`.
+  - **`basic.rs`** — added a struct-level doc comment to `BasicPileCell`
+    explaining why `Cell<T>` is used and the take → mutate → set pattern.
+  - **`razz.rs`** — added `log::error!` to the YAML load failure path so
+    load failures aren't silent. Cleaned up a dangling
+    `"This is an"` doc fragment.
+  - **`canasta.rs`** — removed `.shuffled()` from `ranks_index` and
+    `suits_index` tests (the shuffle had no observable effect, since
+    `extract_pips` deduplicates and sorts). Replaced
+    `// WTF??!!`–style comments with an explanation of the 11-suit output.
+  - **`localization.rs`** — replaced the
+    `// should we remove fluent-templates?` TODO with an inline note
+    explaining that fluent-templates is intentionally retained for
+    i18n extensibility.
 
 ### Deprecated
 - **`Pile::piles_to_string()`** marked `#[deprecated]`. (Still callable
@@ -196,32 +196,32 @@ changes.
 ### Internal — new tests by file
 - **`src/common/utils.rs`** — 4 tests for `ckc_bits`, `ckc_prime`,
   `ckc_shift8`, `strip_suit_flags`.
-- **`src/basic/types/pips.rs`** — 1 `Display` test.
-- **`src/basic/types/basic_card.rs`** — 2 `is_blank` half-blank tests.
-- **`src/basic/decks/{standard52,french,canasta,euchre24,euchre32,
-  pinochle,razz,short,skat,spades,tarot,tiny}.rs`** — `colors`,
-  `deck_name`, `fluent_deck_key` tests per deck.
-- **`src/basic/types/basic_pile.rs`** — 7 tests for `draw`,
-  `draw_first`, `extend`, `get`, `is_empty`, `pop`.
-- **`src/basic/types/basic.rs`** — 13 tests for every
-  `BasicPileCell` operation.
-- **`src/basic/types/combos.rs`** — 10 tests for accessor / iterator
-  methods.
-- **`src/localization.rs`** — 8 tests, including a new
-  `WeightedName` helper struct for parameterized assertions.
-- **`src/basic/types/traits.rs`** — new test module, 5 tests.
-- **`src/basic/types/pile.rs`** — 10 tests for previously-untested
-  methods and trait impls.
-- **`src/basic/types/card.rs`** — 4 tests, including all 13 `Color`
-  variants exercised through macro-generated deck types.
+  - **`src/basic/types/pips.rs`** — 1 `Display` test.
+  - **`src/basic/types/basic_card.rs`** — 2 `is_blank` half-blank tests.
+  - **`src/basic/decks/{standard52,french,canasta,euchre24,euchre32,
+    pinochle,razz,short,skat,spades,tarot,tiny}.rs`** — `colors`,
+    `deck_name`, `fluent_deck_key` tests per deck.
+  - **`src/basic/types/basic_pile.rs`** — 7 tests for `draw`,
+    `draw_first`, `extend`, `get`, `is_empty`, `pop`.
+  - **`src/basic/types/basic.rs`** — 13 tests for every
+    `BasicPileCell` operation.
+  - **`src/basic/types/combos.rs`** — 10 tests for accessor / iterator
+    methods.
+  - **`src/localization.rs`** — 8 tests, including a new
+    `WeightedName` helper struct for parameterized assertions.
+  - **`src/basic/types/traits.rs`** — new test module, 5 tests.
+  - **`src/basic/types/pile.rs`** — 10 tests for previously-untested
+    methods and trait impls.
+  - **`src/basic/types/card.rs`** — 4 tests, including all 13 `Color`
+    variants exercised through macro-generated deck types.
 
 ### Documented as irreducible / expected mutants
 The remaining `cargo-mutants` survivors are not catchable by tests:
 
 - `ckc_rank_number` — `|` → `^` (equivalent mutant: bits don't overlap).
-- `validate` — `→ true` and `&& → ||` (would require a deck the
-  validator already rejects).
-- `demo` body — `→ ()` (no output verification — `demo` only prints).
+  - `validate` — `→ true` and `&& → ||` (would require a deck the
+    validator already rejects).
+  - `demo` body — `→ ()` (no output verification — `demo` only prints).
 
 ---
 
@@ -245,59 +245,59 @@ unchanged from v0.6.11 — every new opt-out flag is on by default.
   `yaml` implies `serde`. See `Cargo.toml` and the README's
   "Cargo features" section.
 
-- **Deterministic shuffle** — `Pile::shuffle_with_seed(u64)`,
-  `Pile::shuffled_with_seed(u64)`, and generic-RNG variants
-  `shuffle_with_rng<R>` / `shuffled_with_rng<R>`, on both `BasicPile`
-  and `Pile<T>`. Use the seeded variants for reproducible game state.
+  - **Deterministic shuffle** — `Pile::shuffle_with_seed(u64)`,
+    `Pile::shuffled_with_seed(u64)`, and generic-RNG variants
+    `shuffle_with_rng<R>` / `shuffled_with_rng<R>`, on both `BasicPile`
+    and `Pile<T>`. Use the seeded variants for reproducible game state.
 
-- **`DeckKind` enum** — non-generic registry of every shipped deck.
-  Re-exported from `prelude`. `DeckKind::all()` returns
-  `&'static [DeckKind]`; `DeckKind::base_vec()`, `deck_name()`,
-  `fluent_deck_key()`, and `demo()` dispatch to the underlying typed
-  deck. The `Razz` variant is gated on the `yaml` feature.
+  - **`DeckKind` enum** — non-generic registry of every shipped deck.
+    Re-exported from `prelude`. `DeckKind::all()` returns
+    `&'static [DeckKind]`; `DeckKind::base_vec()`, `deck_name()`,
+    `fluent_deck_key()`, and `demo()` dispatch to the underlying typed
+    deck. The `Razz` variant is gated on the `yaml` feature.
 
-- **WebAssembly support** — cardpack compiles cleanly to
-  `wasm32-unknown-unknown` across all feature combinations.
-  `getrandom = { features = ["wasm_js"] }` is wired in as a
-  target-gated dep so consumers don't need to add it themselves. See
-  [`docs/wasm.md`](wasm.md) and [`examples/wasm.rs`](../examples/wasm.rs).
+  - **WebAssembly support** — cardpack compiles cleanly to
+    `wasm32-unknown-unknown` across all feature combinations.
+    `getrandom = { features = ["wasm_js"] }` is wired in as a
+    target-gated dep so consumers don't need to add it themselves. See
+    [`docs/wasm.md`](wasm.md) and [`examples/wasm.rs`](../examples/wasm.rs).
 
-- **New locale drafts** — `fr` (French), `la` (Latin),
-  `tlh` (Klingon). All marked DRAFT pending native-speaker / KLI
-  review; per-file confidence notes live in each locale's `README.md`.
+  - **New locale drafts** — `fr` (French), `la` (Latin),
+    `tlh` (Klingon). All marked DRAFT pending native-speaker / KLI
+    review; per-file confidence notes live in each locale's `README.md`.
 
-- **`FluentName` locale constants** — `FRANCAIS`, `LATINA`, `TLHINGAN`,
-  matching the existing `US_ENGLISH` / `DEUTSCH` pattern.
+  - **`FluentName` locale constants** — `FRANCAIS`, `LATINA`, `TLHINGAN`,
+    matching the existing `US_ENGLISH` / `DEUTSCH` pattern.
 
-- **`examples/poker_eval.rs`** — wires `ckc-rs` to `Pile<Standard52>`,
-  enumerating each player's 21 5-card combos and selecting the best
-  hand via `ckc_rs::evaluate::five_cards`.
+  - **`examples/poker_eval.rs`** — wires `ckc-rs` to `Pile<Standard52>`,
+    enumerating each player's 21 5-card combos and selecting the best
+    hand via `ckc_rs::evaluate::five_cards`.
 
-- **`examples/demo.rs --all` flag** — iterates `DeckKind::all()` to
-  show every shipped deck.
+  - **`examples/demo.rs --all` flag** — iterates `DeckKind::all()` to
+    show every shipped deck.
 
-- **Verbose demo output** — five-locale side-by-side table with column
-  headers (English / German / French / Latin / Klingon).
+  - **Verbose demo output** — five-locale side-by-side table with column
+    headers (English / German / French / Latin / Klingon).
 
 ### Changed
 - **`fluent_connector` is locale-aware** — French uses `" de "`, Latin
   and Klingon use `" "` (space), German remains `" "`. Previously every
   non-DEUTSCH locale silently fell back to the English `" of "`.
 
-- **`Pinochle::fluent_deck_key`** and **`Canasta::fluent_deck_key`**
-  now return the French key. Removes the silent FTL fallback for those
-  decks. The public constants `FLUENT_KEY_BASE_NAME_PINOCHLE` and
-  `FLUENT_KEY_BASE_NAME_CANASTA` are retained but no longer referenced
-  internally.
+  - **`Pinochle::fluent_deck_key`** and **`Canasta::fluent_deck_key`**
+    now return the French key. Removes the silent FTL fallback for those
+    decks. The public constants `FLUENT_KEY_BASE_NAME_PINOCHLE` and
+    `FLUENT_KEY_BASE_NAME_CANASTA` are retained but no longer referenced
+    internally.
 
-- **`FluentName::new_with_weight`** no longer panics. It now discards
-  the weight (since `FluentName` has no weight field) and delegates to
-  `FluentName::new`. Behavior is documented on the impl.
+  - **`FluentName::new_with_weight`** no longer panics. It now discards
+    the weight (since `FluentName` has no weight field) and delegates to
+    `FluentName::new`. Behavior is documented on the impl.
 
-- **README** — feature-flag table, WebAssembly section, fixed broken
-  links to locale files, updated `serde_yml` references to
-  `serde_norway`, removed the unimplemented "playability verification"
-  bullet.
+  - **README** — feature-flag table, WebAssembly section, fixed broken
+    links to locale files, updated `serde_yml` references to
+    `serde_norway`, removed the unimplemented "playability verification"
+    bullet.
 
 ### Fixed
 - **`de/tarot.ftl` schema** — Major Arcana keys renamed from
@@ -311,27 +311,27 @@ unchanged from v0.6.11 — every new opt-out flag is on by default.
 ### Documentation
 - [`docs/audit-2026-04-29.md`](audit-2026-04-29.md) — full gap analysis
   with per-item status icons.
-- [`docs/wasm.md`](wasm.md) — consumer setup guide, recommended feature
-  combos, runtime gotchas.
-- [`docs/2026-04-29-seeded-shuffle-design.md`](2026-04-29-seeded-shuffle-design.md)
-  and [`docs/2026-04-29-seeded-shuffle-plan.md`](2026-04-29-seeded-shuffle-plan.md) —
-  design and plan for the deterministic shuffle work.
-- [`docs/2026-04-29-la-tlh-locales-design.md`](2026-04-29-la-tlh-locales-design.md) —
-  Latin and Klingon locale design notes.
-- Locale READMEs (`fr/`, `la/`, `tlh/`) — confidence levels and
-  reviewer profiles needed before promotion.
+  - [`docs/wasm.md`](wasm.md) — consumer setup guide, recommended feature
+    combos, runtime gotchas.
+  - [`docs/2026-04-29-seeded-shuffle-design.md`](2026-04-29-seeded-shuffle-design.md)
+    and [`docs/2026-04-29-seeded-shuffle-plan.md`](2026-04-29-seeded-shuffle-plan.md) —
+    design and plan for the deterministic shuffle work.
+  - [`docs/2026-04-29-la-tlh-locales-design.md`](2026-04-29-la-tlh-locales-design.md) —
+    Latin and Klingon locale design notes.
+  - Locale READMEs (`fr/`, `la/`, `tlh/`) — confidence levels and
+    reviewer profiles needed before promotion.
 
 ### Internal
 - 10 property tests in `tests/properties.rs` (proptest) covering
   shuffle / sort / draw / `pile_on` invariants.
-- 5 wasm runtime tests in `tests/wasm.rs` (wasm-bindgen-test,
-  node-headless).
-- New CI jobs: `doc` (rustdoc with `-D warnings`), `wasm-build`,
-  `wasm-test`.
-- Makefile gained `make build-wasm`, `make test-wasm`,
-  `make install-wasm-bindgen-cli`.
-- `[package.metadata.docs.rs] all-features = true` so docs.rs matches
-  the new CI doc gate.
+  - 5 wasm runtime tests in `tests/wasm.rs` (wasm-bindgen-test,
+    node-headless).
+  - New CI jobs: `doc` (rustdoc with `-D warnings`), `wasm-build`,
+    `wasm-test`.
+  - Makefile gained `make build-wasm`, `make test-wasm`,
+    `make install-wasm-bindgen-cli`.
+  - `[package.metadata.docs.rs] all-features = true` so docs.rs matches
+    the new CI doc gate.
 
 ---
 
@@ -348,60 +348,60 @@ unchanged.
 - **`Pile::into_hashset()` renamed to `Pile::unique_cards()`**;
   return type changed from `HashSet<Card<DeckType>>` to
   `BTreeSet<Card<DeckType>>`.
-- **`From<HashSet<Card<DeckType>>> for Pile<DeckType>` removed**;
-  replaced with `impl FromIterator<Card<DeckType>> for Pile<DeckType>`,
-  enabling `.collect::<Pile<_>>()` from any iterator. See
-  [Migration guide §2](#2-fromhashsetcarddecktype-for-piledecktype-removed).
-- **`Pile::map_by_suit()` and `Ranged::map_by_rank()`** return
-  `BTreeMap` instead of `HashMap` (deterministic iteration; identical
-  lookup semantics).
-- **No-arg `Pile::shuffle()` / `shuffled()`,
-  `BasicPile::shuffle()` / `shuffled()`,
-  `BasicPileCell::shuffle()` / `shuffled()`,
-  and `Pile::draw_random()`** now require the `std` feature
-  (still default-on). Under `--no-default-features`, use
-  `shuffle_with_seed(u64)` or `shuffle_with_rng(&mut R)`.
+  - **`From<HashSet<Card<DeckType>>> for Pile<DeckType>` removed**;
+    replaced with `impl FromIterator<Card<DeckType>> for Pile<DeckType>`,
+    enabling `.collect::<Pile<_>>()` from any iterator. See
+    [Migration guide §2](#2-fromhashsetcarddecktype-for-piledecktype-removed).
+  - **`Pile::map_by_suit()` and `Ranged::map_by_rank()`** return
+    `BTreeMap` instead of `HashMap` (deterministic iteration; identical
+    lookup semantics).
+  - **No-arg `Pile::shuffle()` / `shuffled()`,
+    `BasicPile::shuffle()` / `shuffled()`,
+    `BasicPileCell::shuffle()` / `shuffled()`,
+    and `Pile::draw_random()`** now require the `std` feature
+    (still default-on). Under `--no-default-features`, use
+    `shuffle_with_seed(u64)` or `shuffle_with_rng(&mut R)`.
 
 ### Added
 - **`no_std` support** via `extern crate alloc`. Build with
   `--no-default-features` for an alloc-only build that targets embedded
   Rust (`thumbv7em-none-eabihf` and similar).
-- **New `std` feature** (default-on). Existing features (`i18n`,
-  `colored-display`, `yaml`) implicitly require `std`; `serde` implies
-  `alloc`.
-- **New `alloc` feature** (mostly internal plumbing for
-  `serde?/alloc`).
-- **CI** gates on
-  `cargo build --no-default-features --target thumbv7em-none-eabihf`.
-- **`examples/no_std_smoke.rs`** — bare-metal compile + link smoke
-  binary with a minimal static bump allocator.
-- **New Make targets** — `make no-std`, `make no-std-thumbv7`.
+  - **New `std` feature** (default-on). Existing features (`i18n`,
+    `colored-display`, `yaml`) implicitly require `std`; `serde` implies
+    `alloc`.
+  - **New `alloc` feature** (mostly internal plumbing for
+    `serde?/alloc`).
+  - **CI** gates on
+    `cargo build --no-default-features --target thumbv7em-none-eabihf`.
+  - **`examples/no_std_smoke.rs`** — bare-metal compile + link smoke
+    binary with a minimal static bump allocator.
+  - **New Make targets** — `make no-std`, `make no-std-thumbv7`.
 
 ### Internal
 - `Ranged::extract_pips` switched from `HashSet` → `BTreeSet`,
   removing a redundant sort step.
-- `Ranged::combos` switched from `HashSet<BasicPile>` →
-  `BTreeSet<BasicPile>`; the post-collect `.sort()` is now redundant
-  and removed.
-- `HashMap` imports in `pile.rs` and `traits.rs` are gated on
-  `colored-display` (the only feature that uses `HashMap` return
-  types).
-- Library source migrated from `std::*` to `core::*` / `alloc::*` for
-  re-exported types (`fmt`, `str::FromStr`, `cmp::Ordering`, `hash`,
-  `cell::Cell`, `marker::PhantomData`, `error::Error`,
-  `vec::IntoIter`).
-- `#[macro_use] extern crate alloc;` brings `format!` / `vec!` macros
-  into scope crate-wide for `no_std` builds.
-- Dev-deps that require `std` (`clap`, `ckc-rs`, `env_logger`,
-  `rstest`, `term-table`, `criterion`, `proptest`) are gated off
-  `cfg(target_os = "none")` so cargo doesn't try to compile them when
-  building examples for bare-metal targets.
+  - `Ranged::combos` switched from `HashSet<BasicPile>` →
+    `BTreeSet<BasicPile>`; the post-collect `.sort()` is now redundant
+    and removed.
+  - `HashMap` imports in `pile.rs` and `traits.rs` are gated on
+    `colored-display` (the only feature that uses `HashMap` return
+    types).
+  - Library source migrated from `std::*` to `core::*` / `alloc::*` for
+    re-exported types (`fmt`, `str::FromStr`, `cmp::Ordering`, `hash`,
+    `cell::Cell`, `marker::PhantomData`, `error::Error`,
+    `vec::IntoIter`).
+  - `#[macro_use] extern crate alloc;` brings `format!` / `vec!` macros
+    into scope crate-wide for `no_std` builds.
+  - Dev-deps that require `std` (`clap`, `ckc-rs`, `env_logger`,
+    `rstest`, `term-table`, `criterion`, `proptest`) are gated off
+    `cfg(target_os = "none")` so cargo doesn't try to compile them when
+    building examples for bare-metal targets.
 
 ### Documentation
 - [`docs/superpowers/specs/2026-05-01-no-std-alloc-design.md`](superpowers/specs/2026-05-01-no-std-alloc-design.md) —
   design.
-- [`docs/superpowers/plans/2026-05-01-no-std-alloc.md`](superpowers/plans/2026-05-01-no-std-alloc.md) —
-  implementation plan.
+  - [`docs/superpowers/plans/2026-05-01-no-std-alloc.md`](superpowers/plans/2026-05-01-no-std-alloc.md) —
+    implementation plan.
 
 ---
 
@@ -423,7 +423,7 @@ unchanged.
 ## Links
 
 - Source: <https://github.com/ImperialBower/cardpack.rs>
-- Compare view: <https://github.com/ImperialBower/cardpack.rs/compare/v0.6.8...v0.7.0>
-- crates.io: <https://crates.io/crates/cardpack>
-- docs.rs: <https://docs.rs/cardpack>
-- Changelog: [`CHANGELOG.md`](../CHANGELOG.md)
+  - Compare view: <https://github.com/ImperialBower/cardpack.rs/compare/v0.6.8...v0.7.0>
+  - crates.io: <https://crates.io/crates/cardpack>
+  - docs.rs: <https://docs.rs/cardpack>
+  - Changelog: [`CHANGELOG.md`](../CHANGELOG.md)
