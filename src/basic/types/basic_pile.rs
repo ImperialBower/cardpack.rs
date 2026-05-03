@@ -1,13 +1,16 @@
 use crate::basic::types::traits::Ranged;
 use crate::prelude::{BasicCard, DeckedBase, Pile};
+use alloc::vec::Vec;
+use core::fmt;
+use core::fmt::Display;
+use core::hash::Hash;
 use rand::prelude::SliceRandom;
+#[cfg(feature = "std")]
+use rand::rng;
 use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng, rng};
+use rand::{Rng, SeedableRng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::fmt::Display;
-use std::hash::Hash;
 
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -64,6 +67,7 @@ impl BasicPile {
     /// Shuffles the `BasicPile` in place using the process default RNG
     /// (`rand::rng()`). For deterministic shuffling, use
     /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -72,6 +76,7 @@ impl BasicPile {
     ///
     /// For deterministic shuffling, use
     /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -148,7 +153,7 @@ impl BasicPile {
         self.0.is_empty()
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, BasicCard> {
+    pub fn iter(&self) -> core::slice::Iter<'_, BasicCard> {
         self.0.iter()
     }
 
@@ -192,7 +197,7 @@ impl BasicPile {
     /// assert_eq!(hand.to_string(), "A♦ K♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by_key(|b| std::cmp::Reverse(b.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.rank));
     }
 
     /// Returns a new `BasicPile` sorted.
@@ -244,7 +249,7 @@ impl Display for BasicPile {
             f,
             "{}",
             self.iter()
-                .map(std::string::ToString::to_string)
+                .map(alloc::string::ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(" ")
         )
@@ -413,7 +418,7 @@ impl FromIterator<BasicCard> for BasicPile {
 /// Here is the corrected implementation:
 impl<'a> IntoIterator for &'a BasicPile {
     type Item = &'a BasicCard;
-    type IntoIter = std::slice::Iter<'a, BasicCard>;
+    type IntoIter = core::slice::Iter<'a, BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()
@@ -422,7 +427,7 @@ impl<'a> IntoIterator for &'a BasicPile {
 
 impl IntoIterator for BasicPile {
     type Item = BasicCard;
-    type IntoIter = std::vec::IntoIter<BasicCard>;
+    type IntoIter = alloc::vec::IntoIter<BasicCard>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -437,7 +442,8 @@ mod basic__types__pile_tests {
     use super::*;
     use crate::basic;
     use crate::prelude::{Decked, French, FrenchRank, FrenchSuit, PipType, Standard52, Tarot};
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
     // region Ranged
@@ -563,6 +569,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn ranks() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -589,6 +596,7 @@ mod basic__types__pile_tests {
         assert_eq!(ranks, expected);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn ranks_index() {
         let pile = Pile::<French>::basic_pile().shuffled();
@@ -634,6 +642,7 @@ mod basic__types__pile_tests {
         assert_eq!(pile.ranks_index_by_suit(FrenchSuit::DIAMONDS, "-"), None);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits() {
         let pile = French::deck().shuffled();
@@ -656,6 +665,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suits_index() {
         let pile = French::deck().shuffled();
@@ -672,6 +682,7 @@ mod basic__types__pile_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn suit_symbol_index() {
         let pile = French::deck().shuffled();

@@ -25,6 +25,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `pile_on`, and `combos` against the 108-card Canasta deck. New
   `make bench` target. (audit row #8)
 
+## [0.7.0] — 2026-05-01
+
+### Breaking
+- `Pile::into_hashset()` renamed to `Pile::unique_cards()`; return type
+  changed from `HashSet<Card<DeckType>>` to `BTreeSet<Card<DeckType>>`.
+- `From<HashSet<Card<DeckType>>> for Pile<DeckType>` removed; replaced
+  with `impl FromIterator<Card<DeckType>> for Pile<DeckType>`,
+  enabling `.collect::<Pile<_>>()` from any iterator.
+  Migration: `Pile::from(my_hashset)` becomes
+  `my_hashset.into_iter().collect::<Pile<_>>()`. Note that `HashSet`
+  iteration order is non-deterministic; if the previous code relied on
+  the `From<HashSet>` impl's internal `.sorted()` call for stable output,
+  add an explicit `.sorted()` after the `.collect()`, or iterate over a
+  `BTreeSet` instead.
+- `Pile::map_by_suit()` and `Ranged::map_by_rank()` return `BTreeMap`
+  instead of `HashMap` (deterministic iteration order; identical
+  lookup semantics).
+- `Pile::shuffle()` / `Pile::shuffled()` (no-arg) and
+  `BasicPile::shuffle()` / `BasicPile::shuffled()` (no-arg) now require
+  the `std` feature (still default-on). Under `--no-default-features`,
+  use `shuffle_with_seed(u64)` or `shuffle_with_rng(&mut R)`. Same gate
+  applies to `Pile::draw_random()` and `BasicPileCell::shuffle/shuffled`.
+
+### Added
+- `no_std` support via `extern crate alloc`. Build with
+  `--no-default-features` for an alloc-only build that targets embedded
+  Rust (`thumbv7em-none-eabihf` and similar).
+- New `std` feature (default-on). Existing features (`i18n`,
+  `colored-display`, `yaml`) implicitly require `std`; `serde` implies
+  `alloc`.
+- New `alloc` feature (mostly internal plumbing for `serde?/alloc`).
+- CI gates on `cargo build --no-default-features --target
+  thumbv7em-none-eabihf`.
+- `examples/no_std_smoke.rs` — bare-metal compile + link smoke binary
+  with a minimal static bump allocator.
+- New Make targets: `make no-std`, `make no-std-thumbv7`.
+
+### Internal
+- `Ranged::extract_pips` switched from `HashSet` → `BTreeSet`,
+  removing a redundant sort step.
+- `Ranged::combos` switched from `HashSet<BasicPile>` → `BTreeSet<BasicPile>`;
+  the post-collect `.sort()` is now redundant and removed.
+- `HashMap` imports in `pile.rs` and `traits.rs` are gated on
+  `colored-display` (the only feature that uses HashMap return types).
+- Library source migrated from `std::*` to `core::*`/`alloc::*` for
+  re-exported types (`fmt`, `str::FromStr`, `cmp::Ordering`, `hash`,
+  `cell::Cell`, `marker::PhantomData`, `error::Error`, `vec::IntoIter`).
+- `#[macro_use] extern crate alloc;` brings `format!`/`vec!` macros
+  into scope crate-wide for no_std builds.
+- Dev-deps that require `std` (clap, ckc-rs, env_logger, rstest,
+  term-table, criterion, proptest) are gated off
+  `cfg(target_os = "none")` so cargo doesn't try to compile them when
+  building examples for bare-metal targets.
+
 ## [0.6.12] - 2026-04-30
 
 This release closes most of the gap analysis tracked in

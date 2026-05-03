@@ -1,4 +1,4 @@
-.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch
+.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
 
 # Default target
 default: ayce
@@ -23,6 +23,8 @@ help:
 	@echo "  make docs            - Build docs and open in browser"
 	@echo "  make ayce            - Run fmt, build_test, clippy, and docs"
 	@echo "  make help            - Display this help message"
+	@echo "  make no-std          - Build the lib with --no-default-features"
+	@echo "  make no-std-thumbv7  - Build for thumbv7em-none-eabihf (bare-metal)"
 	@echo ""
 	@echo "Nightly:"
 	@echo "  make test-nightly    - Run all tests with nightly"
@@ -273,3 +275,14 @@ watch:
 # Install cargo-watch
 install-watch:
 	cargo install cargo-watch
+
+# Build with no default features (alloc-only, no_std compatible)
+no-std:
+	cargo build --no-default-features
+	cargo build --no-default-features --features serde
+
+# Build for bare-metal thumbv7em target
+no-std-thumbv7:
+	rustup target add thumbv7em-none-eabihf
+	cargo build --no-default-features --target thumbv7em-none-eabihf
+	cargo build --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke

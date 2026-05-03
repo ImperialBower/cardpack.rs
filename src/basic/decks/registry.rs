@@ -32,6 +32,8 @@ use crate::basic::types::basic_card::BasicCard;
 #[cfg(all(feature = "i18n", feature = "colored-display"))]
 use crate::basic::types::traits::Decked;
 use crate::basic::types::traits::DeckedBase;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 /// Every deck that cardpack ships, exposed as a non-generic enum.
 ///
@@ -191,6 +193,8 @@ impl DeckKind {
 #[allow(non_snake_case)]
 mod basic__decks__registry_tests {
     use super::*;
+    #[cfg(not(feature = "yaml"))]
+    use alloc::string::ToString;
 
     #[test]
     fn all__non_empty() {

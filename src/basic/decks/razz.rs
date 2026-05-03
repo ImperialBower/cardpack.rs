@@ -2,6 +2,8 @@ use crate::basic::decks::cards;
 use crate::prelude::{BasicCard, Decked, DeckedBase};
 #[cfg(feature = "colored-display")]
 use crate::prelude::{Pip, Standard52};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
 use log::error;

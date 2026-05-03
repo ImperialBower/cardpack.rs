@@ -1,6 +1,6 @@
+use core::fmt::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 
 /// `PipType` is used to handle control flows for special, conditional processing of pips.
 ///
@@ -161,7 +161,7 @@ impl Default for Pip {
 }
 
 impl Display for Pip {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(f, "{}", self.symbol)
     }
 }
@@ -171,6 +171,7 @@ impl Display for Pip {
 mod basic__types__pips_tests {
     use super::*;
     use crate::basic::types::basic_card::BasicCard;
+    use alloc::string::ToString;
 
     #[test]
     fn pip__default() {

@@ -1,9 +1,9 @@
 use crate::common::errors::CardError;
 use crate::prelude::Pip;
+use alloc::string::ToString;
+use core::fmt::Display;
+use core::str::FromStr;
 use fluent_templates::{LanguageIdentifier, Loader, langid, static_loader};
-use std::fmt::Display;
-use std::str::FromStr;
-use std::string::ToString;
 
 static_loader! {
     pub static LOCALES = {
@@ -253,7 +253,7 @@ impl Default for FluentName {
 }
 
 impl Display for FluentName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0.clone())
     }
 }

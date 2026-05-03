@@ -1,8 +1,9 @@
 use crate::prelude::{BasicCard, BasicPile, Ranged};
-use std::cell::Cell;
-use std::cmp::Ordering;
-use std::fmt::{Debug, Display, Formatter};
-use std::hash::Hash;
+use alloc::vec::Vec;
+use core::cell::Cell;
+use core::cmp::Ordering;
+use core::fmt::{Debug, Display, Formatter};
+use core::hash::Hash;
 
 /// A [`BasicPile`] wrapped in a [`Cell`] to allow interior mutability through shared references.
 ///
@@ -64,6 +65,7 @@ impl BasicPileCell {
         }
     }
 
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         let mut inner_pile = self.0.take();
         inner_pile.shuffle();
@@ -76,6 +78,7 @@ impl BasicPileCell {
     /// let pile = Pile::<Standard52>::basic_pile_cell();
     /// // println!("{}", pile.shuffled());
     /// ```
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let inner_pile = self.0.take();
@@ -209,7 +212,7 @@ impl Clone for BasicPileCell {
 }
 
 impl Debug for BasicPileCell {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         // We need to temporarily take the value to access it for formatting
         // Since BasicPile doesn't implement Copy, we use take() and set() it back
         let inner_pile = self.0.take();
@@ -220,7 +223,7 @@ impl Debug for BasicPileCell {
 }
 
 impl Display for BasicPileCell {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         // We need to temporarily take the value to access it for formatting
         // Since BasicPile doesn't implement Copy, we use take() and set() it back
         let inner_pile = self.0.take();
@@ -259,7 +262,7 @@ impl PartialEq for BasicPileCell {
 }
 
 impl Hash for BasicPileCell {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         let inner_pile = self.0.take();
         inner_pile.hash(state);
         self.0.set(inner_pile);
@@ -289,6 +292,7 @@ mod basic__types__basic_tests {
     use super::*;
     use crate::basic_cell;
     use crate::prelude::{DeckedBase, Pile, Standard52};
+    use alloc::string::ToString;
 
     #[test]
     fn debug() {
@@ -308,6 +312,7 @@ mod basic__types__basic_tests {
         );
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn eq() {
         let basic = Pile::<Standard52>::basic_pile_cell();
@@ -326,6 +331,7 @@ mod basic__types__basic_tests {
         assert_ne!(taken, Pile::<Standard52>::basic_pile_cell());
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn hash() {
         use std::collections::hash_map::DefaultHasher;
@@ -368,6 +374,7 @@ mod basic__types__basic_tests {
         assert_eq!(cell.len(), Standard52::DECK_SIZE - 1);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn shuffle__preserves_length() {
         let mut cell = Pile::<Standard52>::basic_pile_cell();
@@ -375,6 +382,7 @@ mod basic__types__basic_tests {
         assert_eq!(cell.len(), Standard52::DECK_SIZE);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn shuffled__same_length() {
         let cell = Pile::<Standard52>::basic_pile_cell();

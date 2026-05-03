@@ -8,11 +8,13 @@ use crate::basic::types::pile::Pile;
 #[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 /// `French` is the type parameter for the `French Deck` version of the generic
 /// [`Card`] and [`Pile`] structs.
@@ -118,7 +120,8 @@ mod basic__card__french__tests {
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
     use crate::basic::types::traits::Decked;
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn from_str__card() {

@@ -8,11 +8,13 @@ use crate::basic::types::pile::Pile;
 #[cfg(feature = "colored-display")]
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{Decked, DeckedBase};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::hash::Hash;
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::hash::Hash;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Spades {}
@@ -108,7 +110,8 @@ mod basic__card__spades_tests {
     use crate::basic::decks::french::French;
     use crate::basic::types::card::Card;
     use crate::basic::types::traits::Decked;
-    use std::str::FromStr;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn from_str() {

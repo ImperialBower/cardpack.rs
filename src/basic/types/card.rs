@@ -7,18 +7,20 @@ use crate::basic::types::traits::DeckedBase;
 use crate::common::errors::CardError;
 #[cfg(feature = "i18n")]
 use crate::localization::{FluentName, Named};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 #[cfg(feature = "colored-display")]
 use colored::{Color, Colorize};
+use core::fmt::{Display, Formatter};
+use core::hash::Hash;
+use core::marker::PhantomData;
+use core::str::FromStr;
 #[cfg(feature = "i18n")]
 use fluent_templates::LanguageIdentifier;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "colored-display")]
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
-use std::hash::Hash;
-use std::marker::PhantomData;
-use std::str::FromStr;
 
 /// A `Card` is a struct that's a generic wrapper around a [`BasicCard`] providing it with additional
 /// deck specific superpowers, many of which are at the pile level. The ones at the `Card` level
@@ -336,7 +338,7 @@ impl<DeckType: Default + Copy + Ord + DeckedBase> Display for Card<DeckType> {
     ///
     /// assert_eq!(card.to_string(), card.base_card.to_string());
     /// ```
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         write!(f, "{}", self.base_card)
     }
 }

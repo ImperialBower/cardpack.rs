@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.6.12"
+version = "0.7.0"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -22,21 +22,28 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["i18n", "colored-display", "yaml", "serde"]
-i18n = ["dep:fluent-templates"]
-colored-display = ["dep:colored"]
-yaml = ["dep:serde_norway", "serde"]
-serde = ["dep:serde"]
+default = ["std", "i18n", "colored-display", "yaml", "serde"]
+std = ["alloc", "rand/std", "rand/thread_rng", "serde?/std", "log/std"]
+alloc = ["serde?/alloc"]
+i18n = ["std", "dep:fluent-templates"]
+colored-display = ["std", "dep:colored"]
+yaml = ["std", "dep:serde_norway", "serde"]
+serde = ["dep:serde", "alloc"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
 fluent-templates = { version = "0.13", optional = true }
-itertools = "0.14.0"
-log = "0.4.29"
-rand = "0.9"
-serde = { version = "1.0.219", features = ["derive"], optional = true }
+itertools = { version = "0.14.0", default-features = false, features = ["use_alloc"] }
+log = { version = "0.4.29", default-features = false }
+# rand's `std_rng` feature is unconditional (not gated on cardpack's `std`)
+# because shuffle_with_seed/shuffled_with_seed use StdRng and must work
+# under no_std. rand 0.9's `std_rng` only pulls in `rand_chacha` (no
+# transitive `std`), so this is sound. Do NOT move `std_rng` into the
+# `std` feature — that re-breaks seeded shuffle in no_std consumers.
+rand = { version = "0.9", default-features = false, features = ["std_rng"] }
+serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
 serde_norway = { version = "0.9.42", optional = true }
-thiserror = "2.0.18"
+thiserror = { version = "2.0.18", default-features = false }
 
 # rand 0.9 → rand_core 0.9 → getrandom 0.3 forces wasm32 consumers to pick
 # a getrandom backend; without it, `cargo build --target wasm32-unknown-unknown`
@@ -47,7 +54,11 @@ thiserror = "2.0.18"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
 
-[dev-dependencies]
+# All ordinary dev-deps require std and cannot build for bare-metal targets
+# (target_os = "none", e.g. thumbv7em-none-eabihf). Gate them off those targets
+# so that `cargo build --no-default-features --target thumbv7em-none-eabihf`
+# doesn't try to compile std-only crates as transitive dev-dep dependencies.
+[target.'cfg(not(target_os = "none"))'.dev-dependencies]
 ckc-rs = "0.1.15"
 clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
@@ -56,7 +67,8 @@ term-table = "1.4.0"
 
 # proptest's transitive `wait-timeout` is unix-only, so gate it off wasm.
 # criterion uses std::time / std::process and won't build for wasm either.
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+# Both also require std, so gate off bare-metal targets as well.
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
 criterion = "0.5"
 proptest = "1"
 
@@ -74,18 +86,25 @@ required-features = ["i18n", "colored-display"]
 
 [[example]]
 name = "bridge"
+required-features = ["std"]
 
 [[example]]
 name = "poker"
+required-features = ["std"]
 
 [[example]]
 name = "poker_eval"
+required-features = ["std"]
 
 [[example]]
 name = "range"
 
 [[example]]
 name = "wasm"
+
+[[example]]
+name = "no_std_smoke"
+required-features = []
 
 [[bench]]
 name = "draw"

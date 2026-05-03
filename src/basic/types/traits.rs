@@ -6,11 +6,18 @@ use crate::basic::types::combos::Combos;
 pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 use crate::prelude::PipType;
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::cell::Cell;
+use core::hash::Hash;
+use core::str::FromStr;
 use itertools::Itertools;
-use std::cell::Cell;
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
-use std::str::FromStr;
+// HashMap is gated on `colored-display` rather than `std` because it is only
+// used by the `colors() -> HashMap<Pip, Color>` trait method. `colored-display`
+// transitively requires `std`, so this gate is strictly tighter.
+#[cfg(feature = "colored-display")]
+use std::collections::HashMap;
 
 pub trait DeckedBase {
     /// And just like that we have a `Pile`.
@@ -73,8 +80,8 @@ where
     ///
     /// assert_eq!(twodecks.len(), 104);
     ///
-    /// // Converting it into a `HashSet` will verify that there are only 52 unique cards.
-    /// assert_eq!(twodecks.into_hashset().len(), 52);
+    /// // Converting it to a `BTreeSet` will verify that there are only 52 unique cards.
+    /// assert_eq!(twodecks.unique_cards().len(), 52);
     /// ```
     ///
     /// This way of doing it from `CoPilot` is an interesting alternative to
@@ -128,7 +135,7 @@ where
     fn validate() -> bool {
         let deck = Self::deck();
         Pile::<DeckType>::from_str(&deck.to_string()).is_ok_and(|deckfromstr| {
-            deck == deck.clone().shuffled().sorted() && deck == deckfromstr
+            deck == deck.clone().shuffled_with_seed(42).sorted() && deck == deckfromstr
         })
     }
 }
@@ -178,16 +185,16 @@ pub trait Ranged {
     fn my_basic_pile(&self) -> BasicPile;
 
     fn combos(&self, k: usize) -> Combos {
-        let mut hs: HashSet<BasicPile> = HashSet::new();
+        let mut hs: BTreeSet<BasicPile> = BTreeSet::new();
 
         for combo in self.my_basic_pile().into_iter().combinations(k) {
             let pile = BasicPile::from(combo).sorted_by_rank();
             hs.insert(pile);
         }
 
-        let mut combos = hs.into_iter().collect::<Vec<_>>();
-
-        combos.sort();
+        // BTreeSet iterates in BasicPile's Ord order, so the resulting Vec is
+        // already sorted — no explicit .sort() needed (was a HashSet-era leftover).
+        let combos = hs.into_iter().collect::<Vec<_>>();
         Combos::from(combos)
     }
 
@@ -342,29 +349,21 @@ pub trait Ranged {
         self.filter_cards(rank_types_filter)
     }
 
+    #[must_use]
     fn extract_pips<F>(&self, f: F) -> Vec<Pip>
     where
         F: Fn(&BasicCard) -> Pip,
     {
-        let set: HashSet<Pip> = self.my_basic_pile().iter().map(f).collect();
-        let mut vec: Vec<Pip> = set.into_iter().collect::<Vec<_>>();
-        vec.sort();
-        vec.reverse();
-        vec
+        // BTreeSet iterates in ascending Ord order; .rev() replaces the explicit sort+reverse.
+        let set: BTreeSet<Pip> = self.my_basic_pile().iter().map(f).collect();
+        set.into_iter().rev().collect()
     }
 
-    fn map_by_rank(&self) -> HashMap<Pip, BasicPile> {
-        let mut mappy: HashMap<Pip, BasicPile> = HashMap::new();
+    fn map_by_rank(&self) -> BTreeMap<Pip, BasicPile> {
+        let mut mappy: BTreeMap<Pip, BasicPile> = BTreeMap::new();
 
         for card in &self.my_basic_pile() {
-            let rank = card.rank;
-
-            if let std::collections::hash_map::Entry::Vacant(e) = mappy.entry(rank) {
-                let pile = BasicPile::from(vec![*card]);
-                e.insert(pile);
-            } else if let Some(pile) = mappy.get_mut(&rank) {
-                pile.push(*card);
-            }
+            mappy.entry(card.rank).or_default().push(*card);
         }
 
         mappy

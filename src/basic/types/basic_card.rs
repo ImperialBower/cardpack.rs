@@ -2,13 +2,16 @@ use crate::basic::types::card::Card;
 use crate::basic::types::pips::{Pip, PipType};
 use crate::basic::types::traits::{CKCRevised, DeckedBase};
 use crate::common::utils::Bit;
+use alloc::string::String;
+#[cfg(feature = "yaml")]
+use alloc::vec::Vec;
+use core::cmp::Ordering;
+#[cfg(feature = "yaml")]
+use core::error::Error;
+use core::fmt;
+use core::fmt::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
-#[cfg(feature = "yaml")]
-use std::error::Error;
-use std::fmt;
-use std::fmt::Display;
 #[cfg(feature = "yaml")]
 use std::fs::File;
 #[cfg(feature = "yaml")]
@@ -196,8 +199,8 @@ mod basic__types__basic_card_tests {
     use crate::basic::types::basic_card::BasicCard;
     use crate::prelude::{Decked, French, Pile};
     use ckc_rs::CardNumber;
+    use core::str::FromStr;
     use rstest::rstest;
-    use std::str::FromStr;
 
     #[cfg(feature = "yaml")]
     #[test]

@@ -39,4 +39,4 @@ pub use crate::french_cards;
 
 #[cfg(feature = "colored-display")]
 pub use colored::{Color, Colorize};
-pub use std::str::FromStr;
+pub use core::str::FromStr;

@@ -4,18 +4,27 @@ use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::string::{String, ToString};
+use alloc::vec::{IntoIter, Vec};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+use core::fmt::Display;
+use core::hash::Hash;
+use core::str::FromStr;
+#[cfg(feature = "std")]
+use rand::rng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, SeedableRng, rng};
+use rand::{Rng, SeedableRng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
-use std::hash::Hash;
-use std::str::FromStr;
-use std::vec::IntoIter;
+// HashMap is gated on `colored-display` rather than `std` because it is only
+// used by the `colors() -> HashMap<Pip, Color>` impl. `colored-display`
+// transitively requires `std` (per Cargo.toml `[features]`), so this gate is
+// strictly tighter than gating on `std` directly.
+#[cfg(feature = "colored-display")]
+use std::collections::HashMap;
 
 /// A `Pile` is a [generic data type](https://doc.rust-lang.org/book/ch10-01-syntax.html)
 /// collection of [`Cards`](Card) that are bound by a
@@ -285,6 +294,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// assert!(!pile.contains(&random_card));
     /// ```
+    #[cfg(feature = "std")]
     pub fn draw_random(&mut self) -> Option<Card<DeckType>> {
         let mut rng = rng();
         let position = rng.random_range(0..self.len());
@@ -403,23 +413,26 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         crate::basic::types::basic::BasicPileCell::new(Self::basic_pile())
     }
 
-    /// Returns the `Pile` as a `HashSet`, an unordered collection of each unique [`Card`].
+    /// Returns the `Pile` as a `BTreeSet`, an ordered collection of each unique [`Card`].
+    /// Duplicate cards in the source pile collapse to a single entry.
     ///
     /// ```
-    /// use std::collections::HashSet;
+    /// use std::collections::BTreeSet;
     /// use cardpack::prelude::*;
     ///
-    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 4♠").unwrap();
-    /// let mut hs: HashSet<Card<Standard52>> = HashSet::new();
+    /// // The 2♠ appears twice, but the BTreeSet only keeps one entry.
+    /// let pile = Pile::<Standard52>::from_str("2♠ 8♠ 2♠ 4♠").unwrap();
+    /// let mut set: BTreeSet<Card<Standard52>> = BTreeSet::new();
     ///
-    /// hs.insert(card!(2S));
-    /// hs.insert(card!(8S));
-    /// hs.insert(card!(4S));
+    /// set.insert(card!(2S));
+    /// set.insert(card!(8S));
+    /// set.insert(card!(4S));
     ///
-    /// assert_eq!(pile.into_hashset(), hs);
+    /// assert_eq!(pile.unique_cards(), set);
+    /// assert_eq!(pile.unique_cards().len(), 3);
     /// ```
     #[must_use]
-    pub fn into_hashset(&self) -> HashSet<Card<DeckType>> {
+    pub fn unique_cards(&self) -> BTreeSet<Card<DeckType>> {
         self.0.iter().copied().collect()
     }
 
@@ -447,7 +460,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(iter.next(), Some(&card!(4S)));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> std::slice::Iter<'_, Card<DeckType>> {
+    pub fn iter(&self) -> core::slice::Iter<'_, Card<DeckType>> {
         self.0.iter()
     }
 
@@ -477,8 +490,8 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// );
     /// ```
     #[must_use]
-    pub fn map_by_suit(&self) -> HashMap<Pip, Self> {
-        let mut map: HashMap<Pip, Self> = HashMap::new();
+    pub fn map_by_suit(&self) -> BTreeMap<Pip, Self> {
+        let mut map: BTreeMap<Pip, Self> = BTreeMap::new();
 
         for card in &self.0 {
             let suit = card.base_card.suit;
@@ -546,7 +559,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     pub fn piles_to_string(piles: &[Self]) -> String {
         piles
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(alloc::string::ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ")
     }
@@ -718,6 +731,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     ///
     /// For deterministic shuffling, use
     /// [`shuffled_with_seed`](Self::shuffled_with_seed).
+    #[cfg(feature = "std")]
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
@@ -728,6 +742,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// Shuffles the `Pile` in place using the process default RNG
     /// (`rand::rng()`). For deterministic shuffling, use
     /// [`shuffle_with_seed`](Self::shuffle_with_seed).
+    #[cfg(feature = "std")]
     pub fn shuffle(&mut self) {
         self.0.shuffle(&mut rng());
     }
@@ -880,7 +895,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// assert_eq!(Pile::<Standard52>::from(v).to_string(), "8♠ 4♠ 2♠");
     /// ```
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by_key(|b| std::cmp::Reverse(b.base_card.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.base_card.rank));
     }
 
     /// Returns a String of the `Pile` with the passed in function applied to each [`Card`].
@@ -956,7 +971,7 @@ impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> DeckedBase for Pile<Dec
 impl<DeckType: DeckedBase + Ord + Default + Copy + Hash> Decked<DeckType> for Pile<DeckType> {}
 
 impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckType> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let s = self
             .0
             .iter()
@@ -965,14 +980,6 @@ impl<DeckType: DeckedBase + Default + Copy + Ord + Hash> Display for Pile<DeckTy
             .join(" ");
 
         write!(f, "{s}")
-    }
-}
-
-impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> From<HashSet<Card<DeckType>>>
-    for Pile<DeckType>
-{
-    fn from(cards: HashSet<Card<DeckType>>) -> Self {
-        Self(cards.into_iter().collect()).sorted()
     }
 }
 
@@ -1067,6 +1074,8 @@ mod basic__types__deck_tests {
     use crate::basic::types::traits::DeckedBase;
     use crate::cards;
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
+    use alloc::string::ToString;
+    use core::str::FromStr;
 
     #[test]
     fn basic_cards() {
@@ -1135,6 +1144,7 @@ mod basic__types__deck_tests {
         }
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn draw_random() {
         let mut deck = Standard52::deck();
@@ -1166,14 +1176,31 @@ mod basic__types__deck_tests {
     }
 
     #[test]
-    fn into_hashset() {
+    fn unique_cards() {
         let five_deck = French::decks(5);
 
-        let hashset: HashSet<Card<French>> = five_deck.into_hashset();
-        let deck = Pile::<French>::from(hashset);
+        let btreeset: alloc::collections::BTreeSet<Card<French>> = five_deck.unique_cards();
 
         assert_eq!(five_deck.len(), 270);
+        assert_eq!(btreeset.len(), 54);
+
+        // BTreeSet iterates high-to-low via BasicCard's reversed Ord (see basic_card.rs:24),
+        // which matches French::deck()'s deck-order. If the Ord impl is ever flipped, this
+        // assertion breaks and the test needs an explicit .sorted() on the deck.
+        let deck: Pile<French> = btreeset.into_iter().collect();
         assert_eq!(deck, French::deck());
+    }
+
+    #[test]
+    fn from_iterator_collects_pile_from_card_iter() {
+        use crate::prelude::*;
+
+        let cards = vec![card!(AS), card!(KH), card!(QC)];
+        let pile: Pile<Standard52> = cards.into_iter().collect();
+
+        assert_eq!(pile.len(), 3);
+        // FromIterator preserves insertion order (no internal sort/dedupe).
+        assert_eq!(pile.to_string(), "A♠ K♥ Q♣");
     }
 
     #[test]
@@ -1354,6 +1381,7 @@ mod basic__types__deck_tests {
         assert_eq!(*pile.cards(), cards);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn to_string__from_str() {
         let deck = French::deck();
@@ -1474,6 +1502,7 @@ mod basic__types__deck_tests {
 
     // endregion GTOed
 
+    #[cfg(feature = "std")]
     #[test]
     fn draw_random__is_from_deck() {
         // Catches mutation: return Some(Card::new(Default::default()))
