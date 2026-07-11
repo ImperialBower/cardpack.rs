@@ -70,8 +70,8 @@
 - [x] `COMMON_JOKERS` pile assembly (22 jokers, `joker.rs:8`)
 - [ ] Wire effects for the ~52 jokers currently carrying `MPip::Blank`
 - [~] Implement jokers 96–150 (mostly still a commented-out catalog). **Done: the first 5 Rare jokers** — The Duo/Trio/Family/Order/Tribe (#131–135), each with a wired hand-conditional ×mult effect and tests
-- [ ] Uncommon/Rare/Legendary pile assemblies (the 5 new Rare jokers are consts only, not yet in a `RARE_JOKERS` pile)
-- [x] Data-invariant tests for `decks/joker.rs` (COMMON_JOKERS size, all-jokers, all-tagged-common, distinct) — full per-card coverage still open
+- [~] Uncommon/Rare/Legendary pile assemblies — **`UNCOMMON_JOKERS` (12) and `RARE_JOKERS` (5) done**, mirroring `COMMON_JOKERS`, with `pile_uncommon()`/`pile_rare()`. Legendary jokers not declared yet
+- [x] Data-invariant tests for `decks/joker.rs` — a shared `assert_rarity_pile` helper checks size / all-jokers / correct-rarity / distinct across all three rarity piles, plus a cross-pile no-duplicate check (39 jokers). Per-card cost checks still open
 
 ## Story 5: Hand detection & hand levels
 

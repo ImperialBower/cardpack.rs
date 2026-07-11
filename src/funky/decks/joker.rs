@@ -34,6 +34,43 @@ impl Joker {
     pub fn pile_common() -> BuffoonPile {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
+
+    pub const UNCOMMON_JOKERS_SIZE: usize = 12;
+
+    pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
+        card::JOKER_STENCIL,
+        card::FOUR_FINGERS,
+        card::MIME,
+        card::CEREMONIAL_DAGGER,
+        card::MYSTIC_SUMMIT,
+        card::MARBLE_JOKER,
+        card::LOYALTY_CARD,
+        card::DUSK,
+        card::FIBONACCI,
+        card::STEEL_JOKER,
+        card::HACK,
+        card::PAREIDOLIA,
+    ];
+
+    #[must_use]
+    pub fn pile_uncommon() -> BuffoonPile {
+        BuffoonPile::from(&Self::UNCOMMON_JOKERS[..])
+    }
+
+    pub const RARE_JOKERS_SIZE: usize = 5;
+
+    pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
+        card::THE_DUO,
+        card::THE_TRIO,
+        card::THE_FAMILY,
+        card::THE_ORDER,
+        card::THE_TRIBE,
+    ];
+
+    #[must_use]
+    pub fn pile_rare() -> BuffoonPile {
+        BuffoonPile::from(&Self::RARE_JOKERS[..])
+    }
 }
 
 pub mod card {
@@ -1544,37 +1581,60 @@ mod funky__decks__joker_tests {
     use crate::preludes::funky::BCardType;
     use std::collections::HashSet;
 
+    /// Shared invariants for a rarity pile: it has the declared size, every card
+    /// is a joker tagged with the expected rarity, and no card is duplicated.
+    fn assert_rarity_pile(cards: &[BuffoonCard], size: usize, rarity: BCardType) {
+        assert_eq!(cards.len(), size, "declared size does not match the array");
+        for card in cards {
+            assert!(card.is_joker(), "{card} is not a joker");
+            assert_eq!(card.card_type, rarity, "{card} is not tagged {rarity:?}");
+        }
+        let distinct: HashSet<_> = cards.iter().collect();
+        assert_eq!(distinct.len(), size, "the pile contains duplicate cards");
+    }
+
     #[test]
-    fn common_jokers__size_matches_declaration() {
-        assert_eq!(Joker::COMMON_JOKERS.len(), Joker::COMMON_JOKERS_SIZE);
+    fn common_jokers__data_invariants() {
+        assert_rarity_pile(
+            &Joker::COMMON_JOKERS,
+            Joker::COMMON_JOKERS_SIZE,
+            BCardType::CommonJoker,
+        );
         assert_eq!(Joker::pile_common().len(), Joker::COMMON_JOKERS_SIZE);
     }
 
     #[test]
-    fn common_jokers__are_all_jokers() {
-        for card in Joker::COMMON_JOKERS {
-            assert!(card.is_joker(), "{card} in COMMON_JOKERS is not a joker");
-        }
+    fn uncommon_jokers__data_invariants() {
+        assert_rarity_pile(
+            &Joker::UNCOMMON_JOKERS,
+            Joker::UNCOMMON_JOKERS_SIZE,
+            BCardType::UncommonJoker,
+        );
+        assert_eq!(Joker::pile_uncommon().len(), Joker::UNCOMMON_JOKERS_SIZE);
     }
 
     #[test]
-    fn common_jokers__are_all_tagged_common() {
-        for card in Joker::COMMON_JOKERS {
-            assert_eq!(
-                card.card_type,
-                BCardType::CommonJoker,
-                "{card} should be tagged CommonJoker"
-            );
-        }
+    fn rare_jokers__data_invariants() {
+        assert_rarity_pile(
+            &Joker::RARE_JOKERS,
+            Joker::RARE_JOKERS_SIZE,
+            BCardType::RareJoker,
+        );
+        assert_eq!(Joker::pile_rare().len(), Joker::RARE_JOKERS_SIZE);
     }
 
     #[test]
-    fn common_jokers__are_distinct() {
-        let cards: HashSet<_> = Joker::COMMON_JOKERS.iter().collect();
+    fn rarity_piles__no_card_appears_in_two_piles() {
+        let mut all: Vec<BuffoonCard> = Vec::new();
+        all.extend(Joker::COMMON_JOKERS);
+        all.extend(Joker::UNCOMMON_JOKERS);
+        all.extend(Joker::RARE_JOKERS);
+
+        let distinct: HashSet<_> = all.iter().collect();
         assert_eq!(
-            cards.len(),
-            Joker::COMMON_JOKERS_SIZE,
-            "COMMON_JOKERS contains duplicate cards"
+            distinct.len(),
+            all.len(),
+            "a joker appears in more than one rarity pile"
         );
     }
 }
