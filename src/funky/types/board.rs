@@ -1,5 +1,5 @@
 use crate::funky::types::draws::Draws;
-use crate::preludes::funky::{BuffoonPile, HandType, PokerHands, Score};
+use crate::preludes::funky::{BuffoonPile, HandType, MPip, PokerHands, Score};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -69,8 +69,28 @@ impl BuffoonBoard {
         score
     }
 
-    pub fn scoring_phase3_effects_in_hand(&self) {
-        todo!()
+    /// Phase 3 — held-card effects: applies the ×mult contributions of cards
+    /// held **in hand** (not played) to the running `score`. The canonical case
+    /// is a Steel card (`MPip::STEEL` = `MultTimes1Dot(15)` = ×1.5 mult while
+    /// held); `MultTimes(n)` gives a flat ×n.
+    ///
+    /// Unlike the additive phases, held effects multiply, so this takes the
+    /// score accumulated so far (phases 1 + 2) and returns it transformed. With
+    /// no held cards it is the identity.
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    pub fn scoring_phase3_effects_in_hand(&self, running: Score) -> Score {
+        let mut score = running;
+
+        for card in &self.in_hand {
+            match card.enhancement {
+                MPip::MultTimes1Dot(n) => score = score.multi_mult(n as f32 / 10.0),
+                MPip::MultTimes(n) => score = score.multi_mult(n as f32),
+                _ => {}
+            }
+        }
+
+        score
     }
 
     #[must_use]
@@ -84,19 +104,26 @@ impl BuffoonBoard {
         score
     }
 
-    /// Combined score for the currently played hand.
+    /// Combined score for the currently played hand — the full four-phase
+    /// pipeline, in Balatro order:
     ///
-    /// NOTE: this is a **partial** pipeline. Phase 3 (held-card effects) is not
-    /// implemented yet, so this sums the phases that are — phase 1 (base hand
-    /// chips/mult), phase 2 (played-card chips) and phase 4 (joker
-    /// contributions). It will grow to include phase 3 as it lands, without
-    /// changing this entry point. Unlike the raw phase methods, it never
-    /// panics, so a solver can call it for any board.
+    /// 1. base hand chips/mult,
+    /// 2. played-card chips,
+    /// 3. held-card ×mult (Steel, …),
+    /// 4. joker contributions.
+    ///
+    /// The final chips × mult is `score().score()`. This never panics, so a
+    /// solver can call it for any board.
+    ///
+    /// NOTE: joker scoring (phase 4) is still additive-only; multiplicative
+    /// jokers (`MultTimes`) are not applied yet, and the ~54 unhandled `MPip`
+    /// variants still fall through to zero.
     #[must_use]
     pub fn score(&self) -> Score {
-        self.scoring_phase1_pre_scoring()
-            + self.scoring_phase2_dealt_hand_scoring()
-            + self.scoring_phase4_joker_scoring()
+        let base_and_cards =
+            self.scoring_phase1_pre_scoring() + self.scoring_phase2_dealt_hand_scoring();
+
+        self.scoring_phase3_effects_in_hand(base_and_cards) + self.scoring_phase4_joker_scoring()
     }
 }
 
@@ -290,6 +317,44 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
+    fn phase_3_effects_in_hand__no_held_cards_is_identity() {
+        let board = board_playing("AS KS QS JS TS");
+        let running = Score::new(151, 8);
+        assert_eq!(board.scoring_phase3_effects_in_hand(running), running);
+    }
+
+    #[test]
+    fn phase_3_effects_in_hand__one_steel_card_times_1_5() {
+        let mut board = board_playing("AS KS QS JS TS");
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+        // 8 mult x 1.5 = 12; chips untouched.
+        assert_eq!(
+            board.scoring_phase3_effects_in_hand(Score::new(151, 8)),
+            Score {
+                chips: 151,
+                mult: 12
+            }
+        );
+    }
+
+    #[test]
+    fn phase_3_effects_in_hand__two_steel_cards_compound() {
+        let mut board = board_playing("AS KS QS JS TS");
+        board.in_hand = BuffoonPile::from(vec![
+            enhanced(basic::KING_HEARTS, MPip::STEEL),
+            enhanced(basic::QUEEN_HEARTS, MPip::STEEL),
+        ]);
+        // 8 -> 12 -> 18.
+        assert_eq!(
+            board.scoring_phase3_effects_in_hand(Score::new(151, 8)),
+            Score {
+                chips: 151,
+                mult: 18
+            }
+        );
+    }
+
+    #[test]
     fn score__combines_base_cards_and_jokers_end_to_end() {
         let mut board = board_playing("AH KH QH JH TH");
         board.jokers.push(card::CRAZY_JOKER); // +12 mult on straight
@@ -299,6 +364,7 @@ mod funky__types__board__buffoon_board_tests {
 
         // Phase 1 base (Royal -> Straight Flush): 100 chips, 8 mult.
         // Phase 2 played cards: 51 chips, 0 mult.
+        // Phase 3 held cards: none -> identity.
         // Phase 4 jokers: +180 chips, +22 mult.
         // Combined: 331 chips x 30 mult = 9930.
         let score = board.score();
@@ -310,5 +376,23 @@ mod funky__types__board__buffoon_board_tests {
             }
         );
         assert_eq!(score.score(), 9930);
+    }
+
+    #[test]
+    fn score__held_steel_multiplies_mult_end_to_end() {
+        let mut board = board_playing("AS KS QS JS TS");
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+
+        // Phase 1 + 2: 151 chips, 8 mult. Phase 3: steel x1.5 -> 12 mult.
+        // No jokers. Final: 151 x 12 = 1812.
+        let score = board.score();
+        assert_eq!(
+            score,
+            Score {
+                chips: 151,
+                mult: 12
+            }
+        );
+        assert_eq!(score.score(), 1812);
     }
 }
