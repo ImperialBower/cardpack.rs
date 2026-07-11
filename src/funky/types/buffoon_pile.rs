@@ -3,7 +3,8 @@ use crate::funky::types::hands::HandType;
 use crate::prelude::{BasicPile, CardError, FrenchRank, Pip, Ranged};
 use crate::preludes::funky::{MPip, Score};
 use rand::prelude::SliceRandom;
-use rand::rng;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng, rng};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -351,18 +352,66 @@ impl BuffoonPile {
         self.0.remove(position)
     }
 
-    /// Shuffles the `BasicPile` in place.
-    ///
-    /// TODO: I would like to be able to pass in a seed to the shuffle function.
+    /// Shuffles the pile in place using the process default RNG (`rand::rng()`).
+    /// For deterministic shuffling, use [`shuffle_with_seed`](Self::shuffle_with_seed).
     pub fn shuffle(&mut self) {
-        self.0.shuffle(&mut rng());
+        self.shuffle_with_rng(&mut rng());
     }
 
-    /// Returns a new shuffled version of the `BasicPile`.
+    /// Returns a new shuffled version of the pile.
+    ///
+    /// For deterministic shuffling, use
+    /// [`shuffled_with_seed`](Self::shuffled_with_seed).
     #[must_use]
     pub fn shuffled(&self) -> Self {
         let mut pile = self.clone();
         pile.shuffle();
+        pile
+    }
+
+    /// Shuffles the pile in place deterministically from a `u64` seed.
+    ///
+    /// Uses [`rand::rngs::StdRng`] internally. Same seed produces the same
+    /// permutation **within one `rand` major version**; a `rand` upgrade may
+    /// change the result. For cross-version reproducibility, pass a portable
+    /// RNG (e.g. `ChaCha8Rng`) to [`shuffle_with_rng`](Self::shuffle_with_rng).
+    /// This is the entry point a solver uses to make deals reproducible.
+    pub fn shuffle_with_seed(&mut self, seed: u64) {
+        self.shuffle_with_rng(&mut StdRng::seed_from_u64(seed));
+    }
+
+    /// Returns a new pile shuffled deterministically from a `u64` seed.
+    ///
+    /// See [`shuffle_with_seed`](Self::shuffle_with_seed) for the portability
+    /// caveat.
+    ///
+    /// ```
+    /// use cardpack::preludes::funky::*;
+    ///
+    /// let deck = Deck::basic_buffoon_pile();
+    /// assert_eq!(deck.shuffled_with_seed(42), deck.shuffled_with_seed(42));
+    /// ```
+    #[must_use]
+    pub fn shuffled_with_seed(&self, seed: u64) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_seed(seed);
+        pile
+    }
+
+    /// Shuffles the pile in place using the caller's RNG.
+    ///
+    /// Generic over any `R: Rng + ?Sized`. The seed-based methods are sugar
+    /// over this primitive — pass your own RNG (e.g. `ChaCha8Rng`) for
+    /// algorithm-stable reproducibility across `rand` major-version bumps.
+    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.0.shuffle(rng);
+    }
+
+    /// Returns a new pile shuffled using the caller's RNG.
+    #[must_use]
+    pub fn shuffled_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Self {
+        let mut pile = self.clone();
+        pile.shuffle_with_rng(rng);
         pile
     }
 
@@ -546,6 +595,29 @@ mod funky__types__buffoon_pile_tests {
         );
         // Even/face cards contribute nothing.
         assert_eq!(bcards!("TS 8D 6C 4H 2S").calculate_plus_chips(&ODD_TODD), 0);
+    }
+
+    #[test]
+    fn shuffled_with_seed__deterministic() {
+        let deck = Deck::basic_buffoon_pile();
+        let a = deck.shuffled_with_seed(42);
+        let b = deck.shuffled_with_seed(42);
+        assert_eq!(a, b, "same seed must produce identical permutation");
+    }
+
+    #[test]
+    fn shuffled_with_seed__different_seeds_differ() {
+        let deck = Deck::basic_buffoon_pile();
+        assert_ne!(deck.shuffled_with_seed(1), deck.shuffled_with_seed(2));
+    }
+
+    #[test]
+    fn shuffled_with_seed__preserves_all_cards() {
+        let deck = Deck::basic_buffoon_pile();
+        let shuffled = deck.shuffled_with_seed(0x00C0_FFEE);
+        assert_eq!(shuffled.len(), deck.len());
+        // Same multiset of cards, just reordered.
+        assert_eq!(shuffled.sorted(), deck.sorted());
     }
 
     /// **DIARY** The unit test code that `CoPilot` generates is baffling to me sometimes. Complete

@@ -108,8 +108,8 @@
 ## Story 8: Modding & solver enablement (the stated end-goals)
 
 - [ ] Open effect interpretation: today all `MPip` handling is hard-coded `match` arms — a custom mod cannot register a new effect without editing funky source. Needs a trait boundary or effect-registry design (the unused `phf` dependency hints at a planned static registry)
-- [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` runs all four phases (base → cards → held ×mult → jokers) without panicking; still partial until multiplicative jokers and the ~54 unhandled `MPip` variants land
-- [ ] Deterministic/seedable shuffle for solver reproducibility (TODO at `buffoon_pile.rs:355`; core `basic` already has seeded shuffle)
+- [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` runs all four phases (base → cards → held ×mult → jokers incl. multiplicative/hand-conditional) without panicking; still partial until the state-dependent and probabilistic `MPip` variants land
+- [x] Deterministic/seedable shuffle for solver reproducibility — `BuffoonPile::{shuffle_with_seed, shuffled_with_seed, shuffle_with_rng, shuffled_with_rng}` mirror the core `basic` API (`StdRng::seed_from_u64`); 3 determinism tests + a doctest. A solver deals reproducibly via `Deck::basic_buffoon_pile().shuffled_with_seed(seed)`
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)
 - [x] End-to-end example: `examples/buffoon.rs` now deals a board, plays a hand, detects the hand type, and demonstrates phase-4 joker scoring (180 chips × 22 mult) end-to-end
 
