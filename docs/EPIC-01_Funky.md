@@ -17,7 +17,7 @@
 | Balatro concept | funky construct | Status |
 |---|---|---|
 | Playing card | `BuffoonCard` + `BCardType::Basic` | ✅ done |
-| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~95/150 declared, ~43 with effects, ~18 effect kinds scored (incl. the per-card rank family: Fibonacci/Even Steven/Odd Todd) |
+| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~100/150 declared (incl. first 5 Rare jokers), ~48 with effects, ~23 effect kinds scored (per-card rank family + hand-conditional ×mult) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
 | Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
@@ -69,8 +69,8 @@
 - [x] ~95 joker consts with rarity, cost, and (for ~43) a wired `MPip` effect (`decks/joker.rs`, 1,459 lines)
 - [x] `COMMON_JOKERS` pile assembly (22 jokers, `joker.rs:8`)
 - [ ] Wire effects for the ~52 jokers currently carrying `MPip::Blank`
-- [ ] Implement jokers 96–150 (currently a commented-out catalog, `joker.rs:1393-1458`)
-- [ ] Uncommon/Rare/Legendary pile assemblies
+- [~] Implement jokers 96–150 (mostly still a commented-out catalog). **Done: the first 5 Rare jokers** — The Duo/Trio/Family/Order/Tribe (#131–135), each with a wired hand-conditional ×mult effect and tests
+- [ ] Uncommon/Rare/Legendary pile assemblies (the 5 new Rare jokers are consts only, not yet in a `RARE_JOKERS` pile)
 - [x] Data-invariant tests for `decks/joker.rs` (COMMON_JOKERS size, all-jokers, all-tagged-common, distinct) — full per-card coverage still open
 
 ## Story 5: Hand detection & hand levels
@@ -90,7 +90,7 @@
 - [x] Phase 1 pre-scoring: `BuffoonBoard::scoring_phase1_pre_scoring` — base chips/mult from the played hand's type & level (Royal Flush normalizes to Straight Flush, matching Balatro). Also fixed a `FlushFive` table-entry typo in `hands.rs`
 - [x] Phase 2 played-hand scoring: `BuffoonBoard::scoring_phase2_dealt_hand_scoring` — each played card's `get_chips()` (base rank + flat `Chips`) plus per-card `calculate_plus` effects (disjoint `MPip` variants, no double-count)
 - [x] Phase 3 held-card effects: `BuffoonBoard::scoring_phase3_effects_in_hand` — applies held ×mult (Steel = `MultTimes1Dot(15)` = ×1.5, `MultTimes(n)` = ×n) to the running score. **All four phases now implemented**; `BuffoonBoard::score()` folds them into one running score in Balatro order (base → cards → held ×mult → jokers L→R) and never panics; 23 board tests total (`board.rs`)
-- [~] Handle the `MPip` variants that fall through to `_ => 0`. **Done: the per-card rank family** — `MultPlusOn5Ranks` (Fibonacci +8, Even Steven +4) at both card and pile level, and pile-level summing of `ChipsPlusOn5Ranks` (Odd Todd +31), which was a latent silent bug: its card-level test passed but board scoring goes through the pile, which never summed it, so Odd Todd scored 0 in play. 5 unit tests + an end-to-end `score()` regression test. **Also done:** flat multiplicative jokers (`MultTimes`, `MultTimes1Dot`) via the phase-4 running-score fold. **Still open:** state-dependent variants (economy, discards/hands remaining, joker-slot counts like `MultTimesOnEmptyJokerSlots`/`MultTimesEveryXHands`), hand-conditional ×mult (The Duo/Trio/… — need new `MPip` variants), and probabilistic effects (`Odds1in`, `Lucky`, `ChanceDestroyed`, need a seedable RNG) — most of which aren't pure `(hand, jokers)` functions
+- [~] Handle the `MPip` variants that fall through to `_ => 0`. **Done: the per-card rank family** — `MultPlusOn5Ranks` (Fibonacci +8, Even Steven +4) at both card and pile level, and pile-level summing of `ChipsPlusOn5Ranks` (Odd Todd +31), which was a latent silent bug: its card-level test passed but board scoring goes through the pile, which never summed it, so Odd Todd scored 0 in play. 5 unit tests + an end-to-end `score()` regression test. **Also done:** flat multiplicative jokers (`MultTimes`, `MultTimes1Dot`) and hand-conditional ×mult jokers (5 new `MPip::MultTimesOn{Pair,Trips,4OfAKind,Straight,Flush}` variants + the 5 Rare jokers The Duo/Trio/Family/Order/Tribe), all via the phase-4 running-score fold, using the "contains" predicates. **Still open:** state-dependent variants (economy, discards/hands remaining, joker-slot counts like `MultTimesOnEmptyJokerSlots`/`MultTimesEveryXHands`) and probabilistic effects (`Odds1in`, `Lucky`, `ChanceDestroyed`, need a seedable RNG) — none of which are pure `(hand, jokers)` functions
 - [ ] Retrigger mechanics (red seal, Dusk, Hack…)
 - [ ] Edition/enhancement/seal contributions to scoring
 

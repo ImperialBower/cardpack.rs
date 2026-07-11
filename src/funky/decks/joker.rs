@@ -1383,6 +1383,85 @@ pub mod card {
         resell_value: 0,
         debuffed: false,
     };
+
+    // The "family" of Rare jokers that give ×Mult when the played hand contains
+    // a given category (Balatro #131–135). "Contains" matches Balatro: e.g. The
+    // Duo fires on any hand with at least a pair (two pair, trips, full house,
+    // quads all count).
+    pub const THE_DUO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 665,
+            pip_type: PipType::Joker,
+            index: '👯',
+            symbol: '👯',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnPair(2),
+        resell_value: 4,
+        debuffed: false,
+    };
+
+    pub const THE_TRIO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 660,
+            pip_type: PipType::Joker,
+            index: '🔱',
+            symbol: '🔱',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnTrips(3),
+        resell_value: 4,
+        debuffed: false,
+    };
+
+    pub const THE_FAMILY: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 655,
+            pip_type: PipType::Joker,
+            index: '👪',
+            symbol: '👪',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOn4OfAKind(4),
+        resell_value: 4,
+        debuffed: false,
+    };
+
+    pub const THE_ORDER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 650,
+            pip_type: PipType::Joker,
+            index: '📏',
+            symbol: '📏',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnStraight(3),
+        resell_value: 4,
+        debuffed: false,
+    };
+
+    pub const THE_TRIBE: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 645,
+            pip_type: PipType::Joker,
+            index: '🪶',
+            symbol: '🪶',
+            value: 8,
+        },
+        card_type: BCardType::RareJoker,
+        enhancement: MPip::MultTimesOnFlush(2),
+        resell_value: 4,
+        debuffed: false,
+    };
 }
 
 // 101 Walkie Talkie 	Each played 10 or 4 gives +10 Chips and +4 Mult when scored 	$4 	Common 	Available from start. 	++ 	On Scored

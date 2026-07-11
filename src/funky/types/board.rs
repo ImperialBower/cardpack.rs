@@ -1,5 +1,5 @@
 use crate::funky::types::draws::Draws;
-use crate::preludes::funky::{BuffoonPile, HandType, MPip, PokerHands, Score};
+use crate::preludes::funky::{BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -99,8 +99,10 @@ impl BuffoonBoard {
     /// running score rather than summed independently.
     ///
     /// Additive jokers contribute via [`BuffoonPile::calculate_plus`] (chips /
-    /// +mult); multiplicative jokers (`MultTimes(n)` = ×n, `MultTimes1Dot(n)` =
-    /// ×n/10) scale the running mult.
+    /// +mult); multiplicative jokers scale the running mult — unconditional
+    /// (`MultTimes(n)` = ×n, `MultTimes1Dot(n)` = ×n/10) or hand-conditional
+    /// (`MultTimesOn{Pair,Trips,4OfAKind,Straight,Flush}` — The Duo/Trio/Family/
+    /// Order/Tribe — which fire when the played hand *contains* that category).
     ///
     /// Note: state-dependent ×mult jokers (`MultTimesOnEmptyJokerSlots`,
     /// `MultTimesEveryXHands`) are not applied yet — they need board/round
@@ -108,19 +110,39 @@ impl BuffoonBoard {
     ///
     /// [`BuffoonPile::calculate_plus`]: crate::funky::types::buffoon_pile::BuffoonPile::calculate_plus
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn scoring_phase4_joker_scoring(&self, running: Score) -> Score {
         let mut score = running;
 
         for joker in &self.jokers {
-            match joker.enhancement {
-                MPip::MultTimes(n) => score = score.multi_mult(n as f32),
-                MPip::MultTimes1Dot(n) => score = score.multi_mult(n as f32 / 10.0),
-                _ => score += self.played.calculate_plus(joker),
+            if let Some(factor) = self.joker_x_mult(joker) {
+                score = score.multi_mult(factor);
+            } else {
+                score += self.played.calculate_plus(joker);
             }
         }
 
         score
+    }
+
+    /// The ×mult factor a joker applies to the running score given the played
+    /// hand, or `None` if it is not a (satisfied) multiplicative joker — in
+    /// which case it is handled additively. Hand-conditional jokers use the
+    /// "contains" predicates (e.g. `has_pair` is true for two pair / trips /
+    /// full house / quads), matching Balatro.
+    #[allow(clippy::cast_precision_loss)]
+    fn joker_x_mult(&self, joker: &BuffoonCard) -> Option<f32> {
+        let played = &self.played;
+        let factor = match joker.enhancement {
+            MPip::MultTimes(n) => n as f32,
+            MPip::MultTimes1Dot(n) => n as f32 / 10.0,
+            MPip::MultTimesOnPair(n) if played.has_pair() => n as f32,
+            MPip::MultTimesOnTrips(n) if played.has_trips() => n as f32,
+            MPip::MultTimesOn4OfAKind(n) if played.has_4_of_a_kind() => n as f32,
+            MPip::MultTimesOnStraight(n) if played.has_straight() => n as f32,
+            MPip::MultTimesOnFlush(n) if played.has_flush() => n as f32,
+            _ => return None,
+        };
+        Some(factor)
     }
 
     /// Combined score for the currently played hand — the full four-phase
@@ -136,9 +158,9 @@ impl BuffoonBoard {
     /// jokers, and jokers left-to-right) is preserved. This never panics, so a
     /// solver can call it for any board.
     ///
-    /// NOTE: many `MPip` variants still fall through to zero (state-dependent,
-    /// probabilistic, and hand-conditional ×mult effects), so a "wired" joker
-    /// can still contribute nothing.
+    /// NOTE: some `MPip` variants still fall through to zero (state-dependent
+    /// and probabilistic effects), so a "wired" joker can still contribute
+    /// nothing.
     #[must_use]
     pub fn score(&self) -> Score {
         let base_and_cards =
@@ -285,6 +307,62 @@ mod funky__types__board__buffoon_board_tests {
             board.scoring_phase4_joker_scoring(Score::new(0, 10)),
             Score { chips: 0, mult: 24 }
         );
+    }
+
+    /// Helper: phase-4 mult after applying one joker to a running mult of 10.
+    fn joker_mult_10(index: &str, joker: BuffoonCard) -> usize {
+        let mut board = board_playing(index);
+        board.jokers.push(joker);
+        board.scoring_phase4_joker_scoring(Score::new(0, 10)).mult
+    }
+
+    #[test]
+    fn phase_4_joker__the_duo_x2_on_pair() {
+        assert_eq!(joker_mult_10("AS AD QC JS TH", card::THE_DUO), 20);
+        // "contains a pair" also fires on trips / full house.
+        assert_eq!(joker_mult_10("AS AD AC JS TH", card::THE_DUO), 20);
+        // No pair -> no effect (running mult unchanged).
+        assert_eq!(joker_mult_10("2S 5D 8C TS KH", card::THE_DUO), 10);
+    }
+
+    #[test]
+    fn phase_4_joker__the_trio_x3_on_trips() {
+        assert_eq!(joker_mult_10("AS AD AC JS TH", card::THE_TRIO), 30);
+        // A mere pair does not satisfy "three of a kind".
+        assert_eq!(joker_mult_10("AS AD QC JS TH", card::THE_TRIO), 10);
+    }
+
+    #[test]
+    fn phase_4_joker__the_family_x4_on_quads() {
+        assert_eq!(joker_mult_10("AS AD AC AH TH", card::THE_FAMILY), 40);
+        assert_eq!(joker_mult_10("AS AD AC JS TH", card::THE_FAMILY), 10);
+    }
+
+    #[test]
+    fn phase_4_joker__the_order_x3_on_straight() {
+        assert_eq!(joker_mult_10("AS KD QC JH TS", card::THE_ORDER), 30);
+        assert_eq!(joker_mult_10("AS AD QC JS TH", card::THE_ORDER), 10);
+    }
+
+    #[test]
+    fn phase_4_joker__the_tribe_x2_on_flush() {
+        // Flush but not a straight.
+        assert_eq!(joker_mult_10("AS KS QS JS 9S", card::THE_TRIBE), 20);
+        assert_eq!(joker_mult_10("AS KD QC JS TH", card::THE_TRIBE), 10);
+    }
+
+    #[test]
+    fn score__the_tribe_flush_end_to_end() {
+        let mut board = board_playing("AS KS QS JS 9S"); // flush, not a straight
+        board.jokers.push(card::THE_TRIBE); // x2 mult on flush
+
+        // Phase 1 (Flush): 35 chips, 4 mult.
+        // Phase 2 (cards): 11+10+10+10+9 = 50 chips.
+        // Running: 85 chips, 4 mult. Phase 4: x2 -> 8 mult.
+        // Final: 85 x 8 = 680.
+        let score = board.score();
+        assert_eq!(score, Score { chips: 85, mult: 8 });
+        assert_eq!(score.score(), 680);
     }
 
     fn board_playing(index: &str) -> BuffoonBoard {

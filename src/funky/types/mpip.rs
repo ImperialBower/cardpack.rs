@@ -67,6 +67,11 @@ pub enum MPip {
     MultTimesEveryXHands(usize, usize),
     MultTimesOnEmptyJokerSlots(usize),
     MultTimes1Dot(usize),
+    MultTimesOnPair(usize),
+    MultTimesOnTrips(usize),
+    MultTimesOn4OfAKind(usize),
+    MultTimesOnStraight(usize),
+    MultTimesOnFlush(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -111,6 +116,8 @@ impl MPip {
 }
 
 impl Display for MPip {
+    // One arm per variant — a long but flat exhaustive match.
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Blank => write!(f, "Blank"),
@@ -193,6 +200,11 @@ impl Display for MPip {
                 write!(f, "MultTimesOnEmptyJokerSlots({value})")
             }
             Self::MultTimes1Dot(value) => write!(f, "MultTimes1Dot({value})"),
+            Self::MultTimesOnPair(value) => write!(f, "MultTimesOnPair({value})"),
+            Self::MultTimesOnTrips(value) => write!(f, "MultTimesOnTrips({value})"),
+            Self::MultTimesOn4OfAKind(value) => write!(f, "MultTimesOn4OfAKind({value})"),
+            Self::MultTimesOnStraight(value) => write!(f, "MultTimesOnStraight({value})"),
+            Self::MultTimesOnFlush(value) => write!(f, "MultTimesOnFlush({value})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
