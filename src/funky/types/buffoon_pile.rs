@@ -44,6 +44,11 @@ impl BuffoonPile {
             MPip::ChipsOn2Pair(m) => self.funky_num(m, Self::has_2pair),
             MPip::ChipsOnStraight(m) => self.funky_num(m, Self::has_straight),
             MPip::ChipsOnTrips(m) => self.funky_num(m, Self::has_trips),
+            // Per-card, rank-conditional (e.g. Odd Todd): sum each played
+            // card's own contribution.
+            MPip::ChipsPlusOn5Ranks(_, _) => {
+                self.iter().map(|c| c.calculate_plus_chips(enhancer)).sum()
+            }
             _ => 0,
         }
     }
@@ -60,7 +65,9 @@ impl BuffoonPile {
             MPip::MultPlusOn2Pair(m) => self.funky_num(m, Self::has_2pair),
             MPip::MultPlusOnStraight(m) => self.funky_num(m, Self::has_straight),
             MPip::MultPlusOnTrips(m) => self.funky_num(m, Self::has_trips),
-            MPip::MultPlusOnSuit(_, _) => {
+            // Per-card, rank/suit-conditional (e.g. Fibonacci, Even Steven,
+            // the suit jokers): sum each played card's own contribution.
+            MPip::MultPlusOnSuit(_, _) | MPip::MultPlusOn5Ranks(_, _) => {
                 self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
             MPip::MultPlusOnUpToXCards(m, x) if self.has_x_or_fewer_cards(x) => m,
@@ -498,6 +505,47 @@ mod funky__types__buffoon_pile_tests {
             bcards!("AS KD QH JS TS").calculate_plus_chips(&bcard!(WILY)),
             0
         );
+    }
+
+    #[test]
+    fn calculate_plus_mult__fibonacci_sums_across_played_cards() {
+        // Fibonacci: +8 mult per played A/2/3/5/8. All five match -> 40.
+        assert_eq!(
+            bcards!("AS 2D 3C 5H 8S").calculate_plus_mult(&FIBONACCI),
+            40
+        );
+        // Only A and 3 match (K/Q/J do not) -> 16.
+        assert_eq!(
+            bcards!("AS 3D KC QH JS").calculate_plus_mult(&FIBONACCI),
+            16
+        );
+        assert_eq!(bcards!("KS QD JC TH 9S").calculate_plus_mult(&FIBONACCI), 0);
+    }
+
+    #[test]
+    fn calculate_plus_mult__even_steven_sums_across_played_cards() {
+        // Even Steven: +4 mult per even card (T/8/6/4/2). All five even -> 20.
+        assert_eq!(
+            bcards!("TS 8D 6C 4H 2S").calculate_plus_mult(&EVEN_STEVEN),
+            20
+        );
+        // Only the T is even -> 4.
+        assert_eq!(
+            bcards!("TS 9D 7C 5H 3S").calculate_plus_mult(&EVEN_STEVEN),
+            4
+        );
+    }
+
+    #[test]
+    fn calculate_plus_chips__odd_todd_sums_across_played_cards() {
+        // Regression: Odd Todd (+31 chips per odd card) must score through the
+        // pile, not just per card. Five odd (A/9/7/5/3) -> 155.
+        assert_eq!(
+            bcards!("AS 9D 7C 5H 3S").calculate_plus_chips(&ODD_TODD),
+            155
+        );
+        // Even/face cards contribute nothing.
+        assert_eq!(bcards!("TS 8D 6C 4H 2S").calculate_plus_chips(&ODD_TODD), 0);
     }
 
     /// **DIARY** The unit test code that `CoPilot` generates is baffling to me sometimes. Complete

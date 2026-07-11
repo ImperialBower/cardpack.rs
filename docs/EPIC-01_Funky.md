@@ -17,7 +17,7 @@
 | Balatro concept | funky construct | Status |
 |---|---|---|
 | Playing card | `BuffoonCard` + `BCardType::Basic` | ✅ done |
-| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~95/150 declared, ~43 with effects, ~15 effect kinds scored |
+| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~95/150 declared, ~43 with effects, ~18 effect kinds scored (incl. the per-card rank family: Fibonacci/Even Steven/Odd Todd) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
 | Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
@@ -90,7 +90,7 @@
 - [x] Phase 1 pre-scoring: `BuffoonBoard::scoring_phase1_pre_scoring` — base chips/mult from the played hand's type & level (Royal Flush normalizes to Straight Flush, matching Balatro). Also fixed a `FlushFive` table-entry typo in `hands.rs`
 - [x] Phase 2 played-hand scoring: `BuffoonBoard::scoring_phase2_dealt_hand_scoring` — each played card's `get_chips()` (base rank + flat `Chips`) plus per-card `calculate_plus` effects (disjoint `MPip` variants, no double-count)
 - [x] Phase 3 held-card effects: `BuffoonBoard::scoring_phase3_effects_in_hand` — applies held ×mult (Steel = `MultTimes1Dot(15)` = ×1.5, `MultTimes(n)` = ×n) to the running score. **All four phases now implemented**; `BuffoonBoard::score()` runs the full Balatro-ordered pipeline (base → cards → held ×mult → jokers) and never panics; 17 board tests total (`board.rs`)
-- [ ] Handle the remaining ~54 `MPip` variants that currently fall through to `_ => 0` (e.g. `MultPlusOn5Ranks` is used by jokers but scores 0)
+- [~] Handle the `MPip` variants that fall through to `_ => 0`. **Done: the per-card rank family** — `MultPlusOn5Ranks` (Fibonacci +8, Even Steven +4) at both card and pile level, and pile-level summing of `ChipsPlusOn5Ranks` (Odd Todd +31), which was a latent silent bug: its card-level test passed but board scoring goes through the pile, which never summed it, so Odd Todd scored 0 in play. 5 unit tests + an end-to-end `score()` regression test. **Still open:** state-dependent variants (economy, discards/hands remaining, joker-slot counts), multiplicative jokers (`MultTimes*`), and probabilistic effects (`Odds1in`, `Lucky`, `ChanceDestroyed`) — most of which aren't pure `(hand, jokers)` functions
 - [ ] Retrigger mechanics (red seal, Dusk, Hack…)
 - [ ] Edition/enhancement/seal contributions to scoring
 
@@ -136,7 +136,7 @@
 
 ## Gotchas
 
-- **All four scoring phases are implemented; `BuffoonBoard::score()` never panics.** But jokers (phase 4) are still **additive-only** — multiplicative jokers (`MultTimes`) are not applied, and ~54 `MPip` variants still fall through to `_ => 0`, so a "wired" joker can silently score nothing. When implementing a variant, add a test proving it scores.
+- **All four scoring phases are implemented; `BuffoonBoard::score()` never panics.** But jokers (phase 4) are still **additive-only** — multiplicative jokers (`MultTimes*`) are not applied, and many `MPip` variants still fall through to `_ => 0`, so a "wired" joker can silently score nothing (e.g. `MultPlusOnHandPlays`, `ChipsPerRemainingDiscard`). **Effects are scored through the *pile* (`BuffoonPile::calculate_plus`), not just the card — a per-card variant handled only in `BuffoonCard` still scores 0 in play until the pile sums it** (this bit Odd Todd). When implementing a variant, add a test at the pile/board level proving it scores.
 - **Silent zero-scoring:** unhandled `MPip` variants fall through to `_ => 0`, so a joker can be "wired" yet contribute nothing (e.g. `MultPlusOn5Ranks`). When implementing a variant, add a test proving it scores.
 - **`RefCell` in `ToggleCard`** makes it non-`Sync` — fine for a single-threaded solver loop, a constraint for parallel search.
 - **funky is std-only by design** — never import funky types into `basic` modules or the no_std discipline breaks.

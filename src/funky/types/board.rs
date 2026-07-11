@@ -395,4 +395,26 @@ mod funky__types__board__buffoon_board_tests {
         );
         assert_eq!(score.score(), 1812);
     }
+
+    #[test]
+    fn score__even_steven_joker_scores_end_to_end() {
+        // Regression: `MultPlusOn5Ranks` jokers used to silently score 0.
+        // Play five even cards (high card) with Even Steven.
+        let mut board = board_playing("TS 8D 6C 4H 2S");
+        board.jokers.push(card::EVEN_STEVEN); // +4 mult per even card
+
+        // Phase 1 (High Card): 5 chips, 1 mult.
+        // Phase 2 (cards): 10+8+6+4+2 = 30 chips.
+        // Phase 4 (Even Steven): +4 mult x 5 even cards = +20 mult.
+        // Combined: 35 chips x 21 mult = 735.
+        let score = board.score();
+        assert_eq!(
+            score,
+            Score {
+                chips: 35,
+                mult: 21
+            }
+        );
+        assert_eq!(score.score(), 735);
+    }
 }

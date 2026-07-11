@@ -152,6 +152,7 @@ impl BuffoonCard {
         match enhancer.enhancement {
             MPip::MultPlus(value) => value,
             MPip::MultPlusOnSuit(value, suit) if self.suit.index == suit => value,
+            MPip::MultPlusOn5Ranks(value, ranks) if ranks.contains(&self.rank.index) => value,
             _ => 0,
         }
     }
@@ -377,6 +378,19 @@ mod funky__types__buffoon_card_tests {
         assert_eq!(bcard!(5C).calculate_plus_chips(&joker::card::ODD_TODD), 31);
         assert_eq!(bcard!(3H).calculate_plus_chips(&joker::card::ODD_TODD), 31);
         assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(ODD_TODD)), 0);
+    }
+
+    #[test]
+    fn calculate_plus_mult__fibonacci() {
+        // Fibonacci: +8 mult for each played A, 2, 3, 5, or 8.
+        assert_eq!(bcard!(AD).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        assert_eq!(bcard!(2C).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        assert_eq!(bcard!(8S).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        // Non-matching ranks contribute nothing.
+        assert_eq!(bcard!(4H).calculate_plus_mult(&joker::card::FIBONACCI), 0);
+        assert_eq!(bcard!(KD).calculate_plus_mult(&joker::card::FIBONACCI), 0);
+        // Fibonacci adds no chips.
+        assert_eq!(bcard!(AD).calculate_plus_chips(&joker::card::FIBONACCI), 0);
     }
 
     #[test]
