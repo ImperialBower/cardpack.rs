@@ -1,6 +1,11 @@
 use crate::funky::types::draws::Draws;
 use crate::preludes::funky::{BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score};
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
+
+/// Balatro's Lucky card grants a flat +20 mult on a successful (1-in-N) roll.
+const LUCKY_MULT: usize = 20;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BuffoonBoard {
@@ -158,9 +163,10 @@ impl BuffoonBoard {
     /// jokers, and jokers left-to-right) is preserved. This never panics, so a
     /// solver can call it for any board.
     ///
-    /// NOTE: some `MPip` variants still fall through to zero (state-dependent
-    /// and probabilistic effects), so a "wired" joker can still contribute
-    /// nothing.
+    /// NOTE: this is deterministic — probabilistic effects (Lucky, Misprint)
+    /// contribute their floor of zero here; use
+    /// [`score_with_seed`](Self::score_with_seed) to roll them. State-dependent
+    /// effects (economy, discards/hands remaining) still fall through to zero.
     #[must_use]
     pub fn score(&self) -> Score {
         let base_and_cards =
@@ -168,6 +174,80 @@ impl BuffoonBoard {
         let held = self.scoring_phase3_effects_in_hand(base_and_cards);
 
         self.scoring_phase4_joker_scoring(held)
+    }
+
+    /// Like [`score`](Self::score), but realizes the crate's **probabilistic**
+    /// effects with a `u64` seed — deterministic per seed, so a solver can
+    /// reproduce a roll or sample the outcome distribution over many seeds.
+    ///
+    /// Currently rolled: Lucky cards (1-in-N → +20 mult, phase 2) and the
+    /// Misprint joker (`MultPlusRandomTo(n)` → +random(0..n) mult, phase 4).
+    /// Everything else scores identically to [`score`](Self::score); in
+    /// particular the pure `score()` is the guaranteed floor (no procs).
+    #[must_use]
+    pub fn score_with_seed(&self, seed: u64) -> Score {
+        self.score_with_rng(&mut StdRng::seed_from_u64(seed))
+    }
+
+    /// Like [`score_with_seed`](Self::score_with_seed), but drives the
+    /// probabilistic effects from the caller's RNG.
+    #[must_use]
+    pub fn score_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Score {
+        let base_and_cards = self.scoring_phase1_pre_scoring()
+            + self.scoring_phase2_dealt_hand_scoring_with_rng(rng);
+        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
+
+        self.scoring_phase4_joker_scoring_with_rng(held, rng)
+    }
+
+    /// Phase 2 with probabilistic played-card effects rolled. This is the pure
+    /// [`scoring_phase2_dealt_hand_scoring`](Self::scoring_phase2_dealt_hand_scoring)
+    /// plus each Lucky card's roll — all additive, so order within the phase
+    /// does not matter and the deterministic part is reused as-is.
+    #[must_use]
+    pub fn scoring_phase2_dealt_hand_scoring_with_rng<R: Rng + ?Sized>(
+        &self,
+        rng: &mut R,
+    ) -> Score {
+        let mut score = self.scoring_phase2_dealt_hand_scoring();
+
+        for card in &self.played {
+            if let MPip::Lucky(mult_odds, _) = card.enhancement {
+                if mult_odds > 0 && rng.random_range(0..mult_odds) == 0 {
+                    score += Score::new(0, LUCKY_MULT);
+                }
+            }
+        }
+
+        score
+    }
+
+    /// Phase 4 with probabilistic joker effects rolled, threaded through the
+    /// same left-to-right fold as
+    /// [`scoring_phase4_joker_scoring`](Self::scoring_phase4_joker_scoring) so
+    /// a random `+mult` (Misprint) still lands in joker order and interacts
+    /// correctly with later ×mult jokers.
+    #[must_use]
+    pub fn scoring_phase4_joker_scoring_with_rng<R: Rng + ?Sized>(
+        &self,
+        running: Score,
+        rng: &mut R,
+    ) -> Score {
+        let mut score = running;
+
+        for joker in &self.jokers {
+            if let Some(factor) = self.joker_x_mult(joker) {
+                score = score.multi_mult(factor);
+            } else if let MPip::MultPlusRandomTo(n) = joker.enhancement {
+                if n > 0 {
+                    score += Score::new(0, rng.random_range(0..n));
+                }
+            } else {
+                score += self.played.calculate_plus(joker);
+            }
+        }
+
+        score
     }
 }
 
@@ -594,5 +674,75 @@ mod funky__types__board__buffoon_board_tests {
             }
         );
         assert_eq!(score.score(), 1116);
+    }
+
+    fn lucky_ace_board() -> BuffoonBoard {
+        let mut board = board_playing("2S");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Lucky(5, 15))]);
+        board
+    }
+
+    #[test]
+    fn score_with_seed__is_deterministic() {
+        let mut board = board_playing("2S");
+        board.jokers.push(card::MISPRINT); // MultPlusRandomTo(24)
+        assert_eq!(board.score_with_seed(7), board.score_with_seed(7));
+        assert_eq!(board.score_with_seed(123), board.score_with_seed(123));
+    }
+
+    #[test]
+    fn score__is_the_probabilistic_floor() {
+        // Pure score() rolls nothing: Lucky and Misprint contribute 0.
+        // Lucky ace: High Card (5,1) + ace chips 11 = 16 chips, 1 mult.
+        assert_eq!(lucky_ace_board().score(), Score::new(16, 1));
+
+        let mut misprint = board_playing("2S"); // High Card (5,1) + 2 chips
+        misprint.jokers.push(card::MISPRINT);
+        assert_eq!(misprint.score(), Score::new(7, 1));
+    }
+
+    #[test]
+    fn score_with_seed__lucky_procs_or_floors() {
+        let board = lucky_ace_board();
+        // Each roll is either the floor (16 x 1) or a proc (+20 mult -> 16 x 21).
+        let mut saw_proc = false;
+        let mut saw_floor = false;
+        for seed in 0..64 {
+            let score = board.score_with_seed(seed);
+            assert_eq!(score.chips, 16);
+            match score.mult {
+                1 => saw_floor = true,
+                21 => saw_proc = true,
+                other => panic!("unexpected Lucky mult {other}"),
+            }
+        }
+        assert!(saw_proc, "a 1-in-5 Lucky roll should hit over 64 seeds");
+        assert!(saw_floor, "a 1-in-5 Lucky roll should miss over 64 seeds");
+    }
+
+    #[test]
+    fn score_with_seed__misprint_varies_within_bounds() {
+        let mut board = board_playing("2S"); // High Card floor: 7 chips, 1 mult
+        board.jokers.push(card::MISPRINT); // +random(0..24) mult
+
+        let first = board.score_with_seed(0).mult;
+        let mut varied = false;
+        for seed in 0..32 {
+            let score = board.score_with_seed(seed);
+            assert_eq!(score.chips, 7);
+            // Floor mult 1 + a random 0..=23 bonus.
+            assert!(
+                (1..=24).contains(&score.mult),
+                "mult {} out of range",
+                score.mult
+            );
+            if score.mult != first {
+                varied = true;
+            }
+        }
+        assert!(
+            varied,
+            "Misprint should produce different mults across seeds"
+        );
     }
 }
