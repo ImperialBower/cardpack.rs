@@ -5,11 +5,12 @@ use cardpack::preludes::funky::*;
 /// It builds a board, plays a hand, detects the poker-hand type, then runs the
 /// implemented scoring phases and prints the resulting chips × mult:
 ///   * **phase 1** — base chips/mult from the hand type at its current level;
+///   * **phase 2** — played-card chips (base rank + enhancements);
 ///   * **phase 4** — joker contributions;
 ///   * `board.score()` — the combined (partial) pipeline a solver would call.
 ///
-/// Note: phases 2 (played-card chips) and 3 (held-card effects) are not
-/// implemented yet, so `board.score()` currently sums phases 1 and 4 only.
+/// Note: phase 3 (held-card effects) is not implemented yet, so `board.score()`
+/// currently sums phases 1, 2 and 4.
 fn main() {
     env_logger::init();
 
@@ -34,6 +35,7 @@ fn main() {
 
     let hand_type = board.played.determine_hand_type();
     let base = board.scoring_phase1_pre_scoring();
+    let cards = board.scoring_phase2_dealt_hand_scoring();
     let jokers = board.scoring_phase4_joker_scoring();
     let total = board.score();
 
@@ -41,6 +43,7 @@ fn main() {
     println!("Hand type   : {hand_type:?}");
     println!("Jokers      : {}", board.jokers);
     println!("Phase 1 (base)   {base}");
+    println!("Phase 2 (cards)  {cards}");
     println!("Phase 4 (jokers) {jokers}");
     println!("Combined         {total}");
     println!("Final score = {}", total.score());

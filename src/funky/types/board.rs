@@ -48,8 +48,25 @@ impl BuffoonBoard {
             .map_or_else(Score::default, |hand| Score::new(hand.chips, hand.mult))
     }
 
-    pub fn scoring_phase2_dealt_hand_scoring(&self) {
-        todo!()
+    /// Phase 2 — played-hand scoring: each played card contributes its chip
+    /// value (base rank + flat `Chips` enhancement, via
+    /// [`BuffoonCard::get_chips`]) plus any per-card plus-effects driven by its
+    /// own enhancement (conditional chips / mult, via
+    /// [`BuffoonCard::calculate_plus`]). Those two paths handle disjoint `MPip`
+    /// variants, so nothing is counted twice.
+    ///
+    /// [`BuffoonCard::get_chips`]: crate::funky::types::buffoon_card::BuffoonCard::get_chips
+    /// [`BuffoonCard::calculate_plus`]: crate::funky::types::buffoon_card::BuffoonCard::calculate_plus
+    #[must_use]
+    pub fn scoring_phase2_dealt_hand_scoring(&self) -> Score {
+        let mut score = Score::default();
+
+        for card in &self.played {
+            score.chips += card.get_chips();
+            score += card.calculate_plus(card);
+        }
+
+        score
     }
 
     pub fn scoring_phase3_effects_in_hand(&self) {
@@ -69,15 +86,17 @@ impl BuffoonBoard {
 
     /// Combined score for the currently played hand.
     ///
-    /// NOTE: this is a **partial** pipeline. Phase 2 (played-card chips) and
-    /// phase 3 (held-card effects) are not implemented yet, so this sums only
-    /// the phases that are — phase 1 (base hand chips/mult) and phase 4
-    /// (joker contributions). It will grow to include phases 2 and 3 as they
-    /// land, without changing this entry point. Unlike the raw phase methods,
-    /// it never panics, so a solver can call it for any board.
+    /// NOTE: this is a **partial** pipeline. Phase 3 (held-card effects) is not
+    /// implemented yet, so this sums the phases that are — phase 1 (base hand
+    /// chips/mult), phase 2 (played-card chips) and phase 4 (joker
+    /// contributions). It will grow to include phase 3 as it lands, without
+    /// changing this entry point. Unlike the raw phase methods, it never
+    /// panics, so a solver can call it for any board.
     #[must_use]
     pub fn score(&self) -> Score {
-        self.scoring_phase1_pre_scoring() + self.scoring_phase4_joker_scoring()
+        self.scoring_phase1_pre_scoring()
+            + self.scoring_phase2_dealt_hand_scoring()
+            + self.scoring_phase4_joker_scoring()
     }
 }
 
@@ -86,9 +105,11 @@ impl BuffoonBoard {
 mod funky__types__board__buffoon_board_tests {
     use super::*;
     use crate::bcards;
+    use crate::funky::decks::basic::card as basic;
     use crate::funky::decks::joker::card;
     use crate::funky::decks::planet;
-    use crate::preludes::funky::Deck;
+    use crate::funky::types::mpip::MPip;
+    use crate::preludes::funky::{BuffoonCard, Deck};
 
     #[test]
     fn phase_4_joker_scoring_basic1_5() {
@@ -220,23 +241,74 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
-    fn score__combines_base_and_jokers_end_to_end() {
+    fn phase_2_dealt_hand__plain_cards_sum_rank_chips() {
+        // A=11, K/Q/J/T=10 -> 51 chips, no enhancements so no mult.
+        let board = board_playing("AS KS QS JS TS");
+        assert_eq!(
+            board.scoring_phase2_dealt_hand_scoring(),
+            Score { chips: 51, mult: 0 }
+        );
+    }
+
+    #[test]
+    fn phase_2_dealt_hand__pair_of_aces() {
+        // 11 + 11 + 10 + 10 + 10 = 52.
+        let board = board_playing("AS AD QC JS TH");
+        assert_eq!(
+            board.scoring_phase2_dealt_hand_scoring(),
+            Score { chips: 52, mult: 0 }
+        );
+    }
+
+    fn enhanced(card: BuffoonCard, enhancement: MPip) -> BuffoonCard {
+        BuffoonCard {
+            enhancement,
+            ..card
+        }
+    }
+
+    #[test]
+    fn phase_2_dealt_hand__chips_enhancement_adds_flat_chips() {
+        // A "Bonus"-style card: +30 flat chips on top of the ace's 11.
+        let mut board = board_playing("KS");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Chips(30))]);
+        assert_eq!(
+            board.scoring_phase2_dealt_hand_scoring(),
+            Score { chips: 41, mult: 0 }
+        );
+    }
+
+    #[test]
+    fn phase_2_dealt_hand__mult_enhancement_adds_mult() {
+        // A "Mult"-style card: +4 mult on top of the ace's 11 chips.
+        let mut board = board_playing("KS");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::MultPlus(4))]);
+        assert_eq!(
+            board.scoring_phase2_dealt_hand_scoring(),
+            Score { chips: 11, mult: 4 }
+        );
+    }
+
+    #[test]
+    fn score__combines_base_cards_and_jokers_end_to_end() {
         let mut board = board_playing("AH KH QH JH TH");
         board.jokers.push(card::CRAZY_JOKER); // +12 mult on straight
         board.jokers.push(card::DROLL_JOKER); // +10 mult on flush
         board.jokers.push(card::DEVIOUS_JOKER); // +100 chips on straight
         board.jokers.push(card::CRAFTY_JOKER); // +80 chips on flush
 
-        // Base (Royal -> Straight Flush): 100 chips, 8 mult.
-        // Jokers: +180 chips, +22 mult. Combined: 280 chips x 30 mult.
+        // Phase 1 base (Royal -> Straight Flush): 100 chips, 8 mult.
+        // Phase 2 played cards: 51 chips, 0 mult.
+        // Phase 4 jokers: +180 chips, +22 mult.
+        // Combined: 331 chips x 30 mult = 9930.
         let score = board.score();
         assert_eq!(
             score,
             Score {
-                chips: 280,
+                chips: 331,
                 mult: 30
             }
         );
-        assert_eq!(score.score(), 8400);
+        assert_eq!(score.score(), 9930);
     }
 }
