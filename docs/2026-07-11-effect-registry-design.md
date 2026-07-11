@@ -116,8 +116,9 @@ Proven by tests in `board.rs` (`score_with_registry__*`) and `effect.rs`.
 
 1. Extend registry resolution to **played-card (phase 2)** and **held-card
    (phase 3)** effects — same `ScoringContext`/`ScoreOp`, mirror the phase-4 wiring.
-2. **Unify** the phase-4 variants (`_`, `_with_rng`, `_with_registry`) — they
-   currently duplicate the joker fold; fold them into one parameterized path.
+2. ~~**Unify** the phase-4 variants (`_`, `_with_rng`, `_with_registry`).~~
+   **Done** — all three now delegate to one private `fold_jokers(running,
+   Option<&mut Rng>, Option<&EffectRegistry>)`; the joker fold lives once.
 3. Migrate **built-in** `MPip` variants to `Effect` impls behind a **`phf`**
    static map (`phf` is declared but unused today), so built-ins and mods share
    one dispatch and the big `match`es shrink.

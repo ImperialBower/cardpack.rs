@@ -117,14 +117,46 @@ impl BuffoonBoard {
     /// [`BuffoonPile::calculate_plus`]: crate::funky::types::buffoon_pile::BuffoonPile::calculate_plus
     #[must_use]
     pub fn scoring_phase4_joker_scoring(&self, running: Score) -> Score {
+        self.fold_jokers::<StdRng>(running, None, None)
+    }
+
+    /// The single joker-scoring fold that every phase-4 entry point delegates
+    /// to. Applies each joker to the running score left-to-right:
+    ///
+    /// * `MPip::Custom(id)` — resolved through `registry` (if any), else inert;
+    /// * `MPip::MultPlusRandomTo(n)` — rolled with `rng` (if any), else inert;
+    /// * multiplicative built-ins ([`joker_x_mult`](Self::joker_x_mult)) — ×mult;
+    /// * everything else — additive ([`BuffoonPile::calculate_plus`]).
+    ///
+    /// The `rng`/`registry` options are what distinguish the pure, seeded, and
+    /// registry entry points — the fold itself lives here once.
+    ///
+    /// [`BuffoonPile::calculate_plus`]: crate::funky::types::buffoon_pile::BuffoonPile::calculate_plus
+    fn fold_jokers<R: Rng + ?Sized>(
+        &self,
+        running: Score,
+        mut rng: Option<&mut R>,
+        registry: Option<&EffectRegistry>,
+    ) -> Score {
         let mut score = running;
 
         for joker in &self.jokers {
-            if let Some(factor) = self.joker_x_mult(joker) {
-                score = score.multi_mult(factor);
-            } else {
-                score += self.played.calculate_plus(joker);
-            }
+            score = match joker.enhancement {
+                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
+                    let ctx = ScoringContext {
+                        board: self,
+                        source: *joker,
+                    };
+                    effect.score(&ctx).apply(score)
+                }),
+                MPip::MultPlusRandomTo(n) if n > 0 => rng
+                    .as_deref_mut()
+                    .map_or(score, |rng| score + Score::new(0, rng.random_range(0..n))),
+                _ => self.joker_x_mult(joker).map_or_else(
+                    || score + self.played.calculate_plus(joker),
+                    |factor| score.multi_mult(factor),
+                ),
+            };
         }
 
         score
@@ -234,21 +266,7 @@ impl BuffoonBoard {
         running: Score,
         rng: &mut R,
     ) -> Score {
-        let mut score = running;
-
-        for joker in &self.jokers {
-            if let Some(factor) = self.joker_x_mult(joker) {
-                score = score.multi_mult(factor);
-            } else if let MPip::MultPlusRandomTo(n) = joker.enhancement {
-                if n > 0 {
-                    score += Score::new(0, rng.random_range(0..n));
-                }
-            } else {
-                score += self.played.calculate_plus(joker);
-            }
-        }
-
-        score
+        self.fold_jokers(running, Some(rng), None)
     }
 
     /// Like [`score`](Self::score), but resolves `MPip::Custom(id)` jokers
@@ -284,25 +302,7 @@ impl BuffoonBoard {
         running: Score,
         registry: &EffectRegistry,
     ) -> Score {
-        let mut score = running;
-
-        for joker in &self.jokers {
-            if let MPip::Custom(id) = joker.enhancement {
-                if let Some(effect) = registry.get(id) {
-                    let ctx = ScoringContext {
-                        board: self,
-                        source: *joker,
-                    };
-                    score = effect.score(&ctx).apply(score);
-                }
-            } else if let Some(factor) = self.joker_x_mult(joker) {
-                score = score.multi_mult(factor);
-            } else {
-                score += self.played.calculate_plus(joker);
-            }
-        }
-
-        score
+        self.fold_jokers::<StdRng>(running, None, Some(registry))
     }
 }
 
