@@ -44,7 +44,7 @@
 - [x] `Score { chips, mult }` with `Add`, `multi_mult(f32)`, `score()` (`score.rs`)
 - [x] Remove debug `print!`/`println!` from `get_chips`/`enhance`/`enhance_swap` (`buffoon_card.rs`)
 - [x] Fix `MPip` Display bugs ("ChipsOn2Straight" label → `ChipsOnStraight`; stray paren on `MultPlusOnHandPlays`)
-- [~] Decide fate of experimental `FIntPip` function-pointer pip (`fpips.rs`) — **decided: superseded** by the `Effect`/`EffectRegistry` seam (a fn-pointer effect can't be serde/`Eq`/`Hash`; see the [effect-registry design](./2026-07-11-effect-registry-design.md) §2, §5). Slated for removal (§6 step 5); not yet deleted
+- [x] Decide fate of experimental `FIntPip` function-pointer pip (`fpips.rs`) — **superseded and removed.** The `Effect`/`EffectRegistry` seam replaces it (a fn-pointer effect can't be serde/`Eq`/`Hash`; see the [effect-registry design](./2026-07-11-effect-registry-design.md) §2, §5); the file and its module are deleted
 
 ## Story 2: Decks
 
@@ -121,7 +121,7 @@
 - [x] Add funky to CI: the test matrix now runs `cargo test --features funky`, and the clippy job runs `cargo clippy --features funky --lib -- -Dclippy::all -Dclippy::pedantic`
 - [x] Fix 6 default-level clippy warnings in funky lib code (unwrap on Option, collapsible ifs, `sort_by_key`, let-if-seq) — funky lib is now clean at `-Dclippy::pedantic`
 - [ ] Remove or use the `phf` dependency
-- [ ] Replace journal-style doc comments ("DIARY"/"STORY TIME", profanity in `fpips.rs`) with API reference docs
+- [~] Replace journal-style doc comments with API reference docs. **Done: the profanity/"STORY TIME" is gone** (it lived only in the now-deleted `fpips.rs`). **Remaining:** `DIARY` notes in `buffoon_card.rs`, `buffoon_pile.rs`, `joker.rs`
 - [ ] CHANGELOG entries for the funky feature
 
 ---

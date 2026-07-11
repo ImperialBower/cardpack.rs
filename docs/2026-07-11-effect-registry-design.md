@@ -127,7 +127,8 @@ Proven by tests in `board.rs` (`score_with_registry__*`) and `effect.rs`.
    static map (`phf` is declared but unused today), so built-ins and mods share
    one dispatch and the big `match`es shrink.
 4. Combine registry + seeded RNG (a custom effect that needs randomness).
-5. **Retire `fpips.rs`** — `FIntPip` is the superseded prototype of this idea.
+5. ~~**Retire `fpips.rs`**~~ **Done** — the superseded `FIntPip` prototype and
+   its module are deleted.
 6. Consider stable string ids (`Custom([u8; N])` name hash) for serde stability
    across mods, versus today's caller-assigned `u32`.
 
