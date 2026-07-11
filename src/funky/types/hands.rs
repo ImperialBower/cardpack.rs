@@ -89,7 +89,7 @@ impl PokerHands {
         );
         hands.insert(
             HandType::FlushFive,
-            PokerHand::new(HandType::FlushHouse, 160, 16),
+            PokerHand::new(HandType::FlushFive, 160, 16),
         );
         Self { hands }
     }

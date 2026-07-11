@@ -2,14 +2,14 @@ use cardpack::preludes::funky::*;
 
 /// End-to-end demonstration of funky (Balatro-style) card scoring.
 ///
-/// It builds a board, plays a hand, detects the poker-hand type, and then runs
-/// the implemented **phase-4 joker-scoring** pass, printing the resulting
-/// chips × mult.
+/// It builds a board, plays a hand, detects the poker-hand type, then runs the
+/// implemented scoring phases and prints the resulting chips × mult:
+///   * **phase 1** — base chips/mult from the hand type at its current level;
+///   * **phase 4** — joker contributions;
+///   * `board.score()` — the combined (partial) pipeline a solver would call.
 ///
-/// Note: board scoring phases 1–3 (`scoring_phase1_pre_scoring` …
-/// `scoring_phase3_effects_in_hand`) are not implemented yet and will `panic!`
-/// via `todo!()`, so this example deliberately exercises only the working
-/// phase-4 joker contribution.
+/// Note: phases 2 (played-card chips) and 3 (held-card effects) are not
+/// implemented yet, so `board.score()` currently sums phases 1 and 4 only.
 fn main() {
     env_logger::init();
 
@@ -18,7 +18,7 @@ fn main() {
     let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile().shuffled());
 
     // Play a royal flush — it satisfies both the "straight" and "flush"
-    // conditions the two jokers below care about.
+    // conditions the jokers below care about.
     board.played = bcards!("AS KS QS JS TS");
 
     // Four jokers whose effects are wired and scored today. A royal flush is
@@ -33,11 +33,15 @@ fn main() {
     board.jokers.push(bcard!(CRAFTY));
 
     let hand_type = board.played.determine_hand_type();
-    let score = board.scoring_phase4_joker_scoring();
+    let base = board.scoring_phase1_pre_scoring();
+    let jokers = board.scoring_phase4_joker_scoring();
+    let total = board.score();
 
     println!("Played hand : {}", board.played);
     println!("Hand type   : {hand_type:?}");
     println!("Jokers      : {}", board.jokers);
-    println!("Phase-4 {score}");
-    println!("Total joker chips × mult = {}", score.score());
+    println!("Phase 1 (base)   {base}");
+    println!("Phase 4 (jokers) {jokers}");
+    println!("Combined         {total}");
+    println!("Final score = {}", total.score());
 }

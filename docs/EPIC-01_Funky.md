@@ -27,7 +27,7 @@
 | Seals | — | ❌ absent |
 | Decks (Red, Checkered, Abandoned…) | `basic.rs`: Basic 52, Abandoned 40, Checkered | 🟡 3 of ~16 |
 | Poker hands + levels | `HandType`/`PokerHand`/`PokerHands` (`hands.rs`) | ✅ done, incl. FiveOfAKind/FlushHouse/FlushFive |
-| Chips × mult scoring | `Score` (`score.rs`), 4-phase `BuffoonBoard` scoring | 🟡 phase 4 only; phases 1–3 `todo!()` |
+| Chips × mult scoring | `Score` (`score.rs`), 4-phase `BuffoonBoard` scoring + `score()` aggregate | 🟡 phases 1 & 4 done (base + jokers); phases 2–3 `todo!()` |
 | Blinds / antes / boss blinds | `MPip::AddCardTypeWhenBlindSelected` stub | ❌ absent |
 | Shop / economy | `resell_value` field, `MPip::SellValueIncrement` | ❌ no shop engine |
 | Hand/discard counts | `Draws` (`draws.rs`) | ✅ done (not exported) |
@@ -86,8 +86,9 @@
 
 - [x] Per-card effect scoring: `BuffoonCard::calculate_plus/_chips/_mult` (`buffoon_card.rs:125-168`)
 - [x] Per-pile hand-conditional scoring with `funky_num(n, has_flush)` (`buffoon_pile.rs:32-75`)
-- [x] Phase 4 joker scoring: `BuffoonBoard::scoring_phase4_joker_scoring` + 4 end-to-end tests (`board.rs:44,63-133`)
-- [ ] **Phases 1–3 are `todo!()`** — played-card chips, held-card effects, hand base values (`board.rs:31-41`); calling them panics
+- [x] Phase 4 joker scoring: `BuffoonBoard::scoring_phase4_joker_scoring` + 4 end-to-end tests (`board.rs`)
+- [x] Phase 1 pre-scoring: `BuffoonBoard::scoring_phase1_pre_scoring` — base chips/mult from the played hand's type & level (Royal Flush normalizes to Straight Flush, matching Balatro) + `BuffoonBoard::score()` non-panicking aggregate (phases 1 + 4) a solver can call; 5 tests (`board.rs`). Also fixed a `FlushFive` table-entry typo in `hands.rs`
+- [ ] **Phases 2–3 are `todo!()`** — played-card chips (phase 2), held-card effects (phase 3) (`board.rs`); calling them directly panics (`score()` skips them safely)
 - [ ] Handle the remaining ~54 `MPip` variants that currently fall through to `_ => 0` (e.g. `MultPlusOn5Ranks` is used by jokers but scores 0)
 - [ ] Retrigger mechanics (red seal, Dusk, Hack…)
 - [ ] Edition/enhancement/seal contributions to scoring
@@ -106,7 +107,7 @@
 ## Story 8: Modding & solver enablement (the stated end-goals)
 
 - [ ] Open effect interpretation: today all `MPip` handling is hard-coded `match` arms — a custom mod cannot register a new effect without editing funky source. Needs a trait boundary or effect-registry design (the unused `phf` dependency hints at a planned static registry)
-- [ ] Full `Score` pipeline a solver can call for any (hand, jokers, enhancements) triple without panicking
+- [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` now provides a non-panicking entry point (base + jokers); still partial until phases 2–3 (played-card chips, held-card effects) and the ~54 unhandled `MPip` variants land
 - [ ] Deterministic/seedable shuffle for solver reproducibility (TODO at `buffoon_pile.rs:355`; core `basic` already has seeded shuffle)
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)
 - [x] End-to-end example: `examples/buffoon.rs` now deals a board, plays a hand, detects the hand type, and demonstrates phase-4 joker scoring (180 chips × 22 mult) end-to-end
@@ -129,12 +130,12 @@
 - [x] `cargo test --features funky` — full battery (**395** unit tests green as of 2026-07-11, +12 new deck/joker data tests)
 - [x] `cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic` — **the entire crate is clean** (lib, all tests, all examples, benches) and gated in CI (`unwrap`/`expect` in tests allowed via a `cfg(test)` attribute in `src/lib.rs`)
 - [x] `cargo build --no-default-features` — green; `--examples` also green (buffoon correctly gated behind `required-features = ["funky"]`)
-- [x] `cargo run --example buffoon --features funky` — demonstrates phase-4 joker scoring end-to-end (full phases 1–3 still pending)
+- [x] `cargo run --example buffoon --features funky` — demonstrates end-to-end scoring: phase 1 (base 100×8) + phase 4 (jokers 180×22) → `score()` 280×30 = **8400** (phases 2–3 still pending)
 - [x] `cargo doc --no-deps --all-features` with `RUSTDOCFLAGS=-D warnings` — clean
 
 ## Gotchas
 
-- **Phases 1–3 `todo!()` panic at runtime** — any solver work must avoid `scoring_phase1/2/3` until implemented.
+- **Phases 2–3 `todo!()` panic at runtime** — calling `scoring_phase2/3` directly panics until implemented. Use `BuffoonBoard::score()` (base + jokers), which never panics; phases 1 & 4 are done.
 - **Silent zero-scoring:** unhandled `MPip` variants fall through to `_ => 0`, so a joker can be "wired" yet contribute nothing (e.g. `MultPlusOn5Ranks`). When implementing a variant, add a test proving it scores.
 - **`RefCell` in `ToggleCard`** makes it non-`Sync` — fine for a single-threaded solver loop, a constraint for parallel search.
 - **funky is std-only by design** — never import funky types into `basic` modules or the no_std discipline breaks.
