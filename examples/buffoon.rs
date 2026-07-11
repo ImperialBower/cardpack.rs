@@ -37,21 +37,20 @@ fn main() {
     board.jokers.push(bcard!(DEVIOUS));
     board.jokers.push(bcard!(CRAFTY));
 
+    // Each phase folds into the running score, in Balatro order.
     let hand_type = board.played.determine_hand_type();
     let base = board.scoring_phase1_pre_scoring();
-    let cards = board.scoring_phase2_dealt_hand_scoring();
-    let held = board.scoring_phase3_effects_in_hand(base + cards);
-    let jokers = board.scoring_phase4_joker_scoring();
-    let total = board.score();
+    let after_cards = base + board.scoring_phase2_dealt_hand_scoring();
+    let after_held = board.scoring_phase3_effects_in_hand(after_cards);
+    let total = board.scoring_phase4_joker_scoring(after_held); // == board.score()
 
     println!("Played hand : {}", board.played);
     println!("Held in hand: {}", board.in_hand);
     println!("Hand type   : {hand_type:?}");
     println!("Jokers      : {}", board.jokers);
-    println!("Phase 1 (base)         {base}");
-    println!("Phase 2 (cards)        {cards}");
-    println!("Phase 3 (base+cards+held) {held}");
-    println!("Phase 4 (jokers)       {jokers}");
-    println!("Combined               {total}");
+    println!("Phase 1 (base)             {base}");
+    println!("Phase 2 (+played cards)    {after_cards}");
+    println!("Phase 3 (+held x mult)     {after_held}");
+    println!("Phase 4 (+jokers) = final  {total}");
     println!("Final score = {}", total.score());
 }

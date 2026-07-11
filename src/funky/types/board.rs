@@ -93,12 +93,31 @@ impl BuffoonBoard {
         score
     }
 
+    /// Phase 4 — joker scoring: applies each joker to the running `score`, left
+    /// to right. Order matters: a `+mult` joker followed by a `×mult` joker
+    /// scores differently than the reverse, so jokers must be folded into one
+    /// running score rather than summed independently.
+    ///
+    /// Additive jokers contribute via [`BuffoonPile::calculate_plus`] (chips /
+    /// +mult); multiplicative jokers (`MultTimes(n)` = ×n, `MultTimes1Dot(n)` =
+    /// ×n/10) scale the running mult.
+    ///
+    /// Note: state-dependent ×mult jokers (`MultTimesOnEmptyJokerSlots`,
+    /// `MultTimesEveryXHands`) are not applied yet — they need board/round
+    /// state and their exact factors pinned down.
+    ///
+    /// [`BuffoonPile::calculate_plus`]: crate::funky::types::buffoon_pile::BuffoonPile::calculate_plus
     #[must_use]
-    pub fn scoring_phase4_joker_scoring(&self) -> Score {
-        let mut score = Score::default();
+    #[allow(clippy::cast_precision_loss)]
+    pub fn scoring_phase4_joker_scoring(&self, running: Score) -> Score {
+        let mut score = running;
 
         for joker in &self.jokers {
-            score += self.played.calculate_plus(joker);
+            match joker.enhancement {
+                MPip::MultTimes(n) => score = score.multi_mult(n as f32),
+                MPip::MultTimes1Dot(n) => score = score.multi_mult(n as f32 / 10.0),
+                _ => score += self.played.calculate_plus(joker),
+            }
         }
 
         score
@@ -112,18 +131,21 @@ impl BuffoonBoard {
     /// 3. held-card ×mult (Steel, …),
     /// 4. joker contributions.
     ///
-    /// The final chips × mult is `score().score()`. This never panics, so a
+    /// The final chips × mult is `score().score()`. Each phase folds into one
+    /// running score, so the Balatro-significant ordering (held ×mult before
+    /// jokers, and jokers left-to-right) is preserved. This never panics, so a
     /// solver can call it for any board.
     ///
-    /// NOTE: joker scoring (phase 4) is still additive-only; multiplicative
-    /// jokers (`MultTimes`) are not applied yet, and the ~54 unhandled `MPip`
-    /// variants still fall through to zero.
+    /// NOTE: many `MPip` variants still fall through to zero (state-dependent,
+    /// probabilistic, and hand-conditional ×mult effects), so a "wired" joker
+    /// can still contribute nothing.
     #[must_use]
     pub fn score(&self) -> Score {
         let base_and_cards =
             self.scoring_phase1_pre_scoring() + self.scoring_phase2_dealt_hand_scoring();
+        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
 
-        self.scoring_phase3_effects_in_hand(base_and_cards) + self.scoring_phase4_joker_scoring()
+        self.scoring_phase4_joker_scoring(held)
     }
 }
 
@@ -151,7 +173,7 @@ mod funky__types__board__buffoon_board_tests {
         board.jokers.push(card::GLUTTONOUS_JOKER);
         board.jokers.push(card::JOLLY_JOKER);
 
-        let score = board.scoring_phase4_joker_scoring();
+        let score = board.scoring_phase4_joker_scoring(Score::default());
         assert_eq!(score, Score { chips: 0, mult: 22 });
     }
 
@@ -168,7 +190,7 @@ mod funky__types__board__buffoon_board_tests {
         board.jokers.push(card::WILY_JOKER);
         board.jokers.push(card::CLEVER_JOKER);
 
-        let score = board.scoring_phase4_joker_scoring();
+        let score = board.scoring_phase4_joker_scoring(Score::default());
         assert_eq!(
             score,
             Score {
@@ -189,7 +211,7 @@ mod funky__types__board__buffoon_board_tests {
         board.jokers.push(card::DEVIOUS_JOKER);
         board.jokers.push(card::CRAFTY_JOKER);
 
-        let score = board.scoring_phase4_joker_scoring();
+        let score = board.scoring_phase4_joker_scoring(Score::default());
         assert_eq!(
             score,
             Score {
@@ -206,8 +228,63 @@ mod funky__types__board__buffoon_board_tests {
         board.played = bcards!("AH KH QH");
         board.jokers.push(card::HALF_JOKER);
 
-        let score = board.scoring_phase4_joker_scoring();
+        let score = board.scoring_phase4_joker_scoring(Score::default());
         assert_eq!(score, Score { chips: 0, mult: 20 });
+    }
+
+    #[test]
+    fn phase_4_joker__mult_times_scales_running_mult() {
+        let mut board = board_playing("2S");
+        board.jokers.push(enhanced(card::JOKER, MPip::MultTimes(3)));
+        // x3 mult; chips untouched.
+        assert_eq!(
+            board.scoring_phase4_joker_scoring(Score::new(10, 4)),
+            Score {
+                chips: 10,
+                mult: 12
+            }
+        );
+    }
+
+    #[test]
+    fn phase_4_joker__mult_times_1_dot_scales_running_mult() {
+        let mut board = board_playing("2S");
+        board
+            .jokers
+            .push(enhanced(card::JOKER, MPip::MultTimes1Dot(15))); // x1.5
+        assert_eq!(
+            board.scoring_phase4_joker_scoring(Score::new(10, 8)),
+            Score {
+                chips: 10,
+                mult: 12
+            }
+        );
+    }
+
+    #[test]
+    fn phase_4_joker__order_matters_add_then_multiply() {
+        // JOKER = +4 mult (additive), then a x2 joker.
+        let mut board = board_playing("2S");
+        board.jokers.push(card::JOKER);
+        board.jokers.push(enhanced(card::JOKER, MPip::MultTimes(2)));
+        // (0, 10) -> +4 -> 14 -> x2 -> 28.
+        assert_eq!(
+            board.scoring_phase4_joker_scoring(Score::new(0, 10)),
+            Score { chips: 0, mult: 28 }
+        );
+    }
+
+    #[test]
+    fn phase_4_joker__order_matters_multiply_then_add() {
+        // Reverse order of the previous test: x2 first, then +4.
+        let mut board = board_playing("2S");
+        board.jokers.push(enhanced(card::JOKER, MPip::MultTimes(2)));
+        board.jokers.push(card::JOKER);
+        // (0, 10) -> x2 -> 20 -> +4 -> 24 (differs from 28 above).
+        assert_eq!(
+            board.scoring_phase4_joker_scoring(Score::new(0, 10)),
+            Score { chips: 0, mult: 24 }
+        );
     }
 
     fn board_playing(index: &str) -> BuffoonBoard {
@@ -416,5 +493,28 @@ mod funky__types__board__buffoon_board_tests {
             }
         );
         assert_eq!(score.score(), 735);
+    }
+
+    #[test]
+    fn score__multiplicative_joker_end_to_end() {
+        // Pair of aces, one additive joker (+4) and one x3 joker.
+        let mut board = board_playing("AS AD QC JS TH");
+        board.jokers.push(card::JOKER); // +4 mult
+        board.jokers.push(enhanced(card::JOKER, MPip::MultTimes(3))); // x3
+
+        // Phase 1 (Pair): 10 chips, 2 mult.
+        // Phase 2 (cards): 11+11+10+10+10 = 52 chips.
+        // Running: 62 chips, 2 mult. Phase 3: no held cards.
+        // Phase 4: +4 -> 6 mult, then x3 -> 18 mult.
+        // Combined: 62 chips x 18 mult = 1116.
+        let score = board.score();
+        assert_eq!(
+            score,
+            Score {
+                chips: 62,
+                mult: 18
+            }
+        );
+        assert_eq!(score.score(), 1116);
     }
 }
