@@ -1,4 +1,5 @@
 use crate::funky::types::draws::Draws;
+use crate::funky::types::effect::{EffectRegistry, ScoringContext};
 use crate::preludes::funky::{BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -249,6 +250,60 @@ impl BuffoonBoard {
 
         score
     }
+
+    /// Like [`score`](Self::score), but resolves `MPip::Custom(id)` jokers
+    /// through a mod-supplied [`EffectRegistry`] — the extension point that lets
+    /// a mod add scoring behaviour without editing funky source.
+    ///
+    /// Built-in effects score exactly as in [`score`](Self::score); a custom
+    /// joker is scored by looking up its id in `registry` and applying the
+    /// [`ScoreOp`] its [`Effect`] returns. Unregistered ids contribute nothing.
+    ///
+    /// This currently resolves custom effects for **jokers** (phase 4), the
+    /// primary modding surface; the same [`ScoringContext`]/[`ScoreOp`] pattern
+    /// extends to played- and held-card effects.
+    ///
+    /// [`Effect`]: crate::funky::types::effect::Effect
+    /// [`ScoreOp`]: crate::funky::types::effect::ScoreOp
+    #[must_use]
+    pub fn score_with_registry(&self, registry: &EffectRegistry) -> Score {
+        let base_and_cards =
+            self.scoring_phase1_pre_scoring() + self.scoring_phase2_dealt_hand_scoring();
+        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
+
+        self.scoring_phase4_joker_scoring_with_registry(held, registry)
+    }
+
+    /// Phase 4, resolving `MPip::Custom(id)` jokers through `registry`. Built-in
+    /// jokers fold in exactly as [`scoring_phase4_joker_scoring`] does.
+    ///
+    /// [`scoring_phase4_joker_scoring`]: Self::scoring_phase4_joker_scoring
+    #[must_use]
+    pub fn scoring_phase4_joker_scoring_with_registry(
+        &self,
+        running: Score,
+        registry: &EffectRegistry,
+    ) -> Score {
+        let mut score = running;
+
+        for joker in &self.jokers {
+            if let MPip::Custom(id) = joker.enhancement {
+                if let Some(effect) = registry.get(id) {
+                    let ctx = ScoringContext {
+                        board: self,
+                        source: *joker,
+                    };
+                    score = effect.score(&ctx).apply(score);
+                }
+            } else if let Some(factor) = self.joker_x_mult(joker) {
+                score = score.multi_mult(factor);
+            } else {
+                score += self.played.calculate_plus(joker);
+            }
+        }
+
+        score
+    }
 }
 
 #[cfg(test)]
@@ -259,6 +314,7 @@ mod funky__types__board__buffoon_board_tests {
     use crate::funky::decks::basic::card as basic;
     use crate::funky::decks::joker::card;
     use crate::funky::decks::planet;
+    use crate::funky::types::effect::{Effect, ScoreOp};
     use crate::funky::types::mpip::MPip;
     use crate::preludes::funky::{BuffoonCard, Deck};
 
@@ -674,6 +730,65 @@ mod funky__types__board__buffoon_board_tests {
             }
         );
         assert_eq!(score.score(), 1116);
+    }
+
+    // A mod-defined effect that reads the board through the context: ×2 mult
+    // when the played hand is a flush. Adding it required NO change to any core
+    // `MPip` match arm — only registering it under an id.
+    struct FlushDoubler;
+    impl Effect for FlushDoubler {
+        fn score(&self, ctx: &ScoringContext<'_>) -> ScoreOp {
+            if ctx.board.played.has_flush() {
+                ScoreOp::TimesMult(2.0)
+            } else {
+                ScoreOp::Nothing
+            }
+        }
+    }
+
+    #[test]
+    fn score_with_registry__custom_joker_scores() {
+        const FLUSH_DOUBLER: u32 = 9001;
+        let mut registry = EffectRegistry::new();
+        registry.register(FLUSH_DOUBLER, FlushDoubler);
+
+        let mut board = board_playing("AS KS QS JS 9S"); // flush, not a straight
+        board
+            .jokers
+            .push(enhanced(card::JOKER, MPip::Custom(FLUSH_DOUBLER)));
+
+        // Phase 1 (Flush) 35/4 + phase 2 cards (11+10+10+10+9 = 50) = 85/4.
+        // Custom joker sees the flush -> x2 mult -> 85 x 8 = 680.
+        let score = board.score_with_registry(&registry);
+        assert_eq!(score, Score::new(85, 8));
+        assert_eq!(score.score(), 680);
+
+        // Pure score() does not resolve customs, so the joker contributes 0.
+        assert_eq!(board.score(), Score::new(85, 4));
+    }
+
+    #[test]
+    fn score_with_registry__custom_effect_is_hand_aware() {
+        const FLUSH_DOUBLER: u32 = 9001;
+        let mut registry = EffectRegistry::new();
+        registry.register(FLUSH_DOUBLER, FlushDoubler);
+
+        // Same custom joker, but a non-flush hand -> the effect returns Nothing.
+        let mut board = board_playing("AS KD QC JS 9H"); // high card
+        board
+            .jokers
+            .push(enhanced(card::JOKER, MPip::Custom(FLUSH_DOUBLER)));
+        // Phase 1 (High Card) 5/1 + cards (11+10+10+10+9=50) = 55/1, unmultiplied.
+        assert_eq!(board.score_with_registry(&registry), Score::new(55, 1));
+    }
+
+    #[test]
+    fn score_with_registry__unregistered_custom_is_inert() {
+        let registry = EffectRegistry::new(); // empty
+        let mut board = board_playing("AS KS QS JS 9S");
+        board.jokers.push(enhanced(card::JOKER, MPip::Custom(404)));
+        // Unknown id -> no contribution.
+        assert_eq!(board.score_with_registry(&registry), Score::new(85, 4));
     }
 
     fn lucky_ace_board() -> BuffoonBoard {

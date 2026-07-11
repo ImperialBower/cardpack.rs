@@ -44,7 +44,7 @@
 - [x] `Score { chips, mult }` with `Add`, `multi_mult(f32)`, `score()` (`score.rs`)
 - [x] Remove debug `print!`/`println!` from `get_chips`/`enhance`/`enhance_swap` (`buffoon_card.rs`)
 - [x] Fix `MPip` Display bugs ("ChipsOn2Straight" label → `ChipsOnStraight`; stray paren on `MultPlusOnHandPlays`)
-- [ ] Decide fate of experimental `FIntPip` function-pointer pip (`fpips.rs` — unused, journal-style docs)
+- [~] Decide fate of experimental `FIntPip` function-pointer pip (`fpips.rs`) — **decided: superseded** by the `Effect`/`EffectRegistry` seam (a fn-pointer effect can't be serde/`Eq`/`Hash`; see the [effect-registry design](./2026-07-11-effect-registry-design.md) §2, §5). Slated for removal (§6 step 5); not yet deleted
 
 ## Story 2: Decks
 
@@ -107,7 +107,7 @@
 
 ## Story 8: Modding & solver enablement (the stated end-goals)
 
-- [ ] Open effect interpretation: today all `MPip` handling is hard-coded `match` arms — a custom mod cannot register a new effect without editing funky source. Needs a trait boundary or effect-registry design (the unused `phf` dependency hints at a planned static registry)
+- [~] Open effect interpretation — **the extension seam is in.** `MPip::Custom(u32)` (stays `Copy`/const/serde) + an `Effect` trait, `ScoringContext`, `ScoreOp`, and an `EffectRegistry` (`src/funky/types/effect.rs`); `BuffoonBoard::score_with_registry` resolves custom **jokers** without editing any core match arm (6 tests + a worked `FlushDoubler` example). Design + migration path in [`2026-07-11-effect-registry-design.md`](./2026-07-11-effect-registry-design.md). **Still open:** extend to played/held cards, unify the phase-4 variants, migrate built-ins behind `phf`, retire `fpips.rs`
 - [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` (deterministic floor) and `score_with_seed(seed)` (rolls probabilistic effects) run all four phases without panicking; still partial until the state-dependent `MPip` variants land (they need round/economy state on the board)
 - [x] Deterministic/seedable shuffle for solver reproducibility — `BuffoonPile::{shuffle_with_seed, shuffled_with_seed, shuffle_with_rng, shuffled_with_rng}` mirror the core `basic` API (`StdRng::seed_from_u64`); 3 determinism tests + a doctest. A solver deals reproducibly via `Deck::basic_buffoon_pile().shuffled_with_seed(seed)`
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)

@@ -88,6 +88,10 @@ pub enum MPip {
     Clubs(usize),
     Hearts(usize),
     Spades(usize),
+    /// A mod-defined effect, resolved through an
+    /// [`EffectRegistry`](crate::funky::types::effect::EffectRegistry) by this
+    /// id. Kept a plain `u32` so cards stay `Copy`, `const` and `Serialize`.
+    Custom(u32),
 }
 
 impl MPip {
@@ -223,6 +227,7 @@ impl Display for MPip {
             Self::Clubs(value) => write!(f, "Clubs({value})"),
             Self::Hearts(value) => write!(f, "Hearts({value})"),
             Self::Spades(value) => write!(f, "Spades({value})"),
+            Self::Custom(id) => write!(f, "Custom({id})"),
         }
     }
 }
