@@ -29,14 +29,13 @@ i18n = ["std", "dep:fluent-templates"]
 colored-display = ["std", "dep:colored"]
 yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde", "alloc"]
-funky = ["std", "dep:phf"]
+funky = ["std"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
 fluent-templates = { version = "0.13", optional = true }
 itertools = { version = "0.14.0", default-features = false, features = ["use_alloc"] }
 log = { version = "0.4.29", default-features = false }
-phf = { version = "0.11", features = ["std", "macros", "phf_macros", "serde"], optional = true }
 # rand's `std_rng` feature is unconditional (not gated on cardpack's `std`)
 # because shuffle_with_seed/shuffled_with_seed use StdRng and must work
 # under no_std. rand 0.9's `std_rng` only pulls in `rand_chacha` (no

@@ -123,9 +123,16 @@ Proven by tests in `board.rs` (`score_with_registry__*`) and `effect.rs`.
 2. ~~**Unify** the phase-4 variants (`_`, `_with_rng`, `_with_registry`).~~
    **Done** — all three now delegate to one private `fold_jokers(running,
    Option<&mut Rng>, Option<&EffectRegistry>)`; the joker fold lives once.
-3. Migrate **built-in** `MPip` variants to `Effect` impls behind a **`phf`**
-   static map (`phf` is declared but unused today), so built-ins and mods share
-   one dispatch and the big `match`es shrink.
+3. ~~Migrate **built-in** `MPip` variants behind a **`phf`** static map.~~
+   **Done, without `phf`.** On analysis `phf` is the wrong tool — a compile-time
+   string/int hash vs. a runtime enum with data payloads; a `match` on the enum
+   is already a jump table (faster, exhaustiveness-checked) and mods register at
+   runtime. Instead the built-in scoring was unified onto **`ScoreOp`**: each
+   phase fold computes one op per item — `custom_op` (registry), a probabilistic
+   op (rng), or `builtin_{played,held,joker}_op` — and applies it via
+   `ScoreOp::apply`. Built-in and custom effects now share one application path;
+   the dispatch stays a `match`. The unused `phf` dependency + `dep:phf` feature
+   were removed.
 4. Combine registry + seeded RNG (a custom effect that needs randomness).
 5. ~~**Retire `fpips.rs`**~~ **Done** — the superseded `FIntPip` prototype and
    its module are deleted.

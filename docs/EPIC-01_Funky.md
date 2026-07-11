@@ -6,9 +6,9 @@
 
 **Goal:** Model [Balatro](https://www.playbalatro.com/)-style cards — jokers with scoring effects, planet cards that level up poker hands, tarot/spectral consumables, enhanced decks, and chips × mult scoring — well enough to (a) power a **Balatro solver** and (b) enable **dynamic creation of custom Balatro mods**.
 
-**Architecture:** A `std`-only, feature-gated module (`funky = ["std", "dep:phf"]`, `#[cfg(feature = "funky")] pub mod funky;` at `src/lib.rs:298`) that layers on top of the crate's core `basic` engine rather than forking it. `BuffoonCard` (`src/funky/types/buffoon_card.rs:76`) embeds core `Pip`s for suit/rank and adds Balatro state: `card_type: BCardType`, `enhancement: MPip`, `resell_value`, `debuffed`. Effects are **data, not code**: a 69-variant `MPip` enum (`src/funky/types/mpip.rs`) attached to each card const, interpreted at scoring time by `calculate_plus_*` match arms. `BuffoonPile` implements the core `Ranged` trait (`buffoon_pile.rs:460`) so combinatorics and hand detection delegate to the mature `basic` engine.
+**Architecture:** A `std`-only, feature-gated module (`funky = ["std"]`, `#[cfg(feature = "funky")] pub mod funky;` at `src/lib.rs:298`) that layers on top of the crate's core `basic` engine rather than forking it. `BuffoonCard` (`src/funky/types/buffoon_card.rs:76`) embeds core `Pip`s for suit/rank and adds Balatro state: `card_type: BCardType`, `enhancement: MPip`, `resell_value`, `debuffed`. Effects are **data, not code**: a 69-variant `MPip` enum (`src/funky/types/mpip.rs`) attached to each card const, interpreted at scoring time by `calculate_plus_*` match arms. `BuffoonPile` implements the core `Ranged` trait (`buffoon_pile.rs:460`) so combinatorics and hand detection delegate to the mature `basic` engine.
 
-**Tech Stack:** Rust 2024 edition, std-only behind the `funky` feature (deliberately outside the 0.7.0 no_std core), `phf` (declared, currently unused), rstest for case tables.
+**Tech Stack:** Rust 2024 edition, std-only behind the `funky` feature (deliberately outside the 0.7.0 no_std core), `rand` (seeded shuffle + probabilistic scoring), rstest for case tables.
 
 ---
 
@@ -107,7 +107,7 @@
 
 ## Story 8: Modding & solver enablement (the stated end-goals)
 
-- [~] Open effect interpretation — **the extension seam is in.** `MPip::Custom(u32)` (stays `Copy`/const/serde) + an `Effect` trait, `ScoringContext`, `ScoreOp`, and an `EffectRegistry` (`src/funky/types/effect.rs`); `BuffoonBoard::score_with_registry` resolves custom effects on **played cards, held cards, and jokers** — every phase they can occur — without editing any core match arm (9 tests + worked examples). The three phase folds are unified (`fold_played_cards`/`fold_held_cards`/`fold_jokers`), and phase 2 now takes a running score so a custom played ×mult composes correctly. Design + migration path in [`2026-07-11-effect-registry-design.md`](./2026-07-11-effect-registry-design.md). **Still open:** migrate built-ins behind `phf`, retire `fpips.rs`
+- [~] Open effect interpretation — **the extension seam is in.** `MPip::Custom(u32)` (stays `Copy`/const/serde) + an `Effect` trait, `ScoringContext`, `ScoreOp`, and an `EffectRegistry` (`src/funky/types/effect.rs`); `BuffoonBoard::score_with_registry` resolves custom effects on **played cards, held cards, and jokers** — every phase they can occur — without editing any core match arm (9 tests + worked examples). The three phase folds are unified (`fold_played_cards`/`fold_held_cards`/`fold_jokers`), and phase 2 now takes a running score so a custom played ×mult composes correctly. Built-in scoring is unified onto `ScoreOp` (each fold applies one op per item via `builtin_*_op`/`custom_op`), so built-in and custom effects share one application path. Design + migration path in [`2026-07-11-effect-registry-design.md`](./2026-07-11-effect-registry-design.md). **Remaining migration items are all closed** except optional serde-stable string ids for mods.
 - [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` (deterministic floor) and `score_with_seed(seed)` (rolls probabilistic effects) run all four phases without panicking; still partial until the state-dependent `MPip` variants land (they need round/economy state on the board)
 - [x] Deterministic/seedable shuffle for solver reproducibility — `BuffoonPile::{shuffle_with_seed, shuffled_with_seed, shuffle_with_rng, shuffled_with_rng}` mirror the core `basic` API (`StdRng::seed_from_u64`); 3 determinism tests + a doctest. A solver deals reproducibly via `Deck::basic_buffoon_pile().shuffled_with_seed(seed)`
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)
@@ -120,7 +120,7 @@
 - [x] Export `Draws` and `ToggleCard`/`Toggle` — now `pub mod draws;` and re-exported from `src/preludes/funky.rs`, so `BuffoonBoard::new(draws: Draws, …)` is callable from outside the crate
 - [x] Add funky to CI: the test matrix now runs `cargo test --features funky`, and the clippy job runs `cargo clippy --features funky --lib -- -Dclippy::all -Dclippy::pedantic`
 - [x] Fix 6 default-level clippy warnings in funky lib code (unwrap on Option, collapsible ifs, `sort_by_key`, let-if-seq) — funky lib is now clean at `-Dclippy::pedantic`
-- [ ] Remove or use the `phf` dependency
+- [x] Remove or use the `phf` dependency — **removed.** It was the wrong tool for the built-in dispatch (compile-time hash vs. a runtime data-carrying enum; a `match` is already a faster, exhaustive jump table). Built-ins were unified onto `ScoreOp` instead; `phf` + the `dep:phf` feature are gone
 - [~] Replace journal-style doc comments with API reference docs. **Done: the profanity/"STORY TIME" is gone** (it lived only in the now-deleted `fpips.rs`). **Remaining:** `DIARY` notes in `buffoon_card.rs`, `buffoon_pile.rs`, `joker.rs`
 - [ ] CHANGELOG entries for the funky feature
 

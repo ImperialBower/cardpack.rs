@@ -29,6 +29,8 @@ pub enum ScoreOp {
     AddChips(usize),
     /// Add flat mult.
     AddMult(usize),
+    /// Add both chips and mult (a whole [`Score`] contribution).
+    Add(Score),
     /// Multiply the running mult by a factor (e.g. `2.0` for ×2).
     TimesMult(f32),
     /// Apply several operations in order.
@@ -43,6 +45,7 @@ impl ScoreOp {
             Self::Nothing => score,
             Self::AddChips(chips) => score + Score::new(*chips, 0),
             Self::AddMult(mult) => score + Score::new(0, *mult),
+            Self::Add(delta) => score + *delta,
             Self::TimesMult(factor) => score.multi_mult(*factor),
             Self::Seq(ops) => ops.iter().fold(score, |acc, op| op.apply(acc)),
         }
@@ -113,6 +116,10 @@ mod funky__types__effect_tests {
         assert_eq!(ScoreOp::Nothing.apply(base), Score::new(10, 4));
         assert_eq!(ScoreOp::AddChips(5).apply(base), Score::new(15, 4));
         assert_eq!(ScoreOp::AddMult(3).apply(base), Score::new(10, 7));
+        assert_eq!(
+            ScoreOp::Add(Score::new(5, 3)).apply(base),
+            Score::new(15, 7)
+        );
         assert_eq!(ScoreOp::TimesMult(2.0).apply(base), Score::new(10, 8));
     }
 

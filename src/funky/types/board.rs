@@ -1,5 +1,5 @@
 use crate::funky::types::draws::Draws;
-use crate::funky::types::effect::{EffectRegistry, ScoringContext};
+use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::preludes::funky::{BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -85,31 +85,54 @@ impl BuffoonBoard {
         let mut score = running;
 
         for card in &self.played {
-            score.chips += card.get_chips();
-            score += card.calculate_plus(card);
+            // Every played card contributes its built-in chips/mult first, then
+            // its special (probabilistic / custom) effect resolves in card order.
+            score = Self::builtin_played_op(card).apply(score);
 
-            score = match card.enhancement {
+            let special = match card.enhancement {
                 MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
-                    rng.as_deref_mut().map_or(score, |rng| {
+                    rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
                         if rng.random_range(0..mult_odds) == 0 {
-                            score + Score::new(0, LUCKY_MULT)
+                            ScoreOp::AddMult(LUCKY_MULT)
                         } else {
-                            score
+                            ScoreOp::Nothing
                         }
                     })
                 }
-                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
-                    let ctx = ScoringContext {
-                        board: self,
-                        source: *card,
-                    };
-                    effect.score(&ctx).apply(score)
-                }),
-                _ => score,
+                MPip::Custom(id) => self.custom_op(*card, id, registry),
+                _ => ScoreOp::Nothing,
             };
+            score = special.apply(score);
         }
 
         score
+    }
+
+    /// Built-in played-card contribution: base rank chips (+ flat `Chips`) plus
+    /// the card's own additive plus-effects, as one additive [`ScoreOp`].
+    fn builtin_played_op(card: &BuffoonCard) -> ScoreOp {
+        ScoreOp::Add(Score::new(card.get_chips(), 0) + card.calculate_plus(card))
+    }
+
+    /// Resolves a `MPip::Custom(id)` card/joker to the [`ScoreOp`] its registered
+    /// [`Effect`](crate::funky::types::effect::Effect) returns, or
+    /// [`ScoreOp::Nothing`] if there is no registry entry. Shared by all three
+    /// phase folds.
+    fn custom_op(
+        &self,
+        source: BuffoonCard,
+        id: u32,
+        registry: Option<&EffectRegistry>,
+    ) -> ScoreOp {
+        registry
+            .and_then(|r| r.get(id))
+            .map_or(ScoreOp::Nothing, |effect| {
+                let ctx = ScoringContext {
+                    board: self,
+                    source,
+                };
+                effect.score(&ctx)
+            })
     }
 
     /// Phase 3 — held-card effects: applies the ×mult contributions of cards
@@ -128,26 +151,29 @@ impl BuffoonBoard {
     /// The single held-card fold behind phase 3. Built-in Steel/`MultTimes`
     /// cards apply their ×mult; a `MPip::Custom` held card is resolved through
     /// `registry` (if any).
-    #[allow(clippy::cast_precision_loss)]
     fn fold_held_cards(&self, running: Score, registry: Option<&EffectRegistry>) -> Score {
         let mut score = running;
 
         for card in &self.in_hand {
-            score = match card.enhancement {
-                MPip::MultTimes1Dot(n) => score.multi_mult(n as f32 / 10.0),
-                MPip::MultTimes(n) => score.multi_mult(n as f32),
-                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
-                    let ctx = ScoringContext {
-                        board: self,
-                        source: *card,
-                    };
-                    effect.score(&ctx).apply(score)
-                }),
-                _ => score,
+            let op = match card.enhancement {
+                MPip::Custom(id) => self.custom_op(*card, id, registry),
+                _ => Self::builtin_held_op(card),
             };
+            score = op.apply(score);
         }
 
         score
+    }
+
+    /// Built-in held-card contribution: Steel / `MultTimes` give a ×mult, as a
+    /// [`ScoreOp`]; anything else is inert while held.
+    #[allow(clippy::cast_precision_loss)]
+    fn builtin_held_op(card: &BuffoonCard) -> ScoreOp {
+        match card.enhancement {
+            MPip::MultTimes1Dot(n) => ScoreOp::TimesMult(n as f32 / 10.0),
+            MPip::MultTimes(n) => ScoreOp::TimesMult(n as f32),
+            _ => ScoreOp::Nothing,
+        }
     }
 
     /// Phase 4 — joker scoring: applies each joker to the running `score`, left
@@ -192,25 +218,28 @@ impl BuffoonBoard {
         let mut score = running;
 
         for joker in &self.jokers {
-            score = match joker.enhancement {
-                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
-                    let ctx = ScoringContext {
-                        board: self,
-                        source: *joker,
-                    };
-                    effect.score(&ctx).apply(score)
-                }),
-                MPip::MultPlusRandomTo(n) if n > 0 => rng
-                    .as_deref_mut()
-                    .map_or(score, |rng| score + Score::new(0, rng.random_range(0..n))),
-                _ => self.joker_x_mult(joker).map_or_else(
-                    || score + self.played.calculate_plus(joker),
-                    |factor| score.multi_mult(factor),
-                ),
+            let op = match joker.enhancement {
+                MPip::Custom(id) => self.custom_op(*joker, id, registry),
+                MPip::MultPlusRandomTo(n) if n > 0 => {
+                    rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
+                        ScoreOp::AddMult(rng.random_range(0..n))
+                    })
+                }
+                _ => self.builtin_joker_op(joker),
             };
+            score = op.apply(score);
         }
 
         score
+    }
+
+    /// Built-in joker contribution as a [`ScoreOp`]: a ×mult for a (satisfied)
+    /// multiplicative joker, otherwise its additive chips/mult.
+    fn builtin_joker_op(&self, joker: &BuffoonCard) -> ScoreOp {
+        self.joker_x_mult(joker).map_or_else(
+            || ScoreOp::Add(self.played.calculate_plus(joker)),
+            ScoreOp::TimesMult,
+        )
     }
 
     /// The ×mult factor a joker applies to the running score given the played
