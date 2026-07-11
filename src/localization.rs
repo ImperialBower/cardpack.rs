@@ -419,7 +419,7 @@ mod fluent_tests {
 
     impl Named<'_> for WeightedName {
         fn new_with_weight(name_str: &str, weight: u32) -> Self {
-            WeightedName {
+            Self {
                 name: FluentName::new(name_str),
                 weight,
             }

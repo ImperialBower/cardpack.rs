@@ -1,6 +1,8 @@
 # EPIC-01: Funky — Balatro-Style Cards
 
 > **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Checked boxes reflect work already landed on `origin/funky` as of 2026-07-05 (tip `cc1595d`, the merge of main's 0.7.0 no_std work into funky). See the companion status document [`EPIC-01_Funky_Progress.md`](EPIC-01_Funky_Progress.md) for the quality evaluation behind these checkmarks.
+>
+> **2026-07-11 hardening pass** (uncommitted on local `funky`): funky is now gated in CI (`cargo test --features funky`; `cargo clippy --features funky --lib --tests` at `-Dpedantic`); debug `println!`s removed from scoring paths; the two `MPip` Display bugs fixed; the 6 funky-lib clippy warnings cleared; **the whole crate made clippy-pedantic-clean at `--all-targets`** (lib, all tests, all examples, benches) — `unwrap`/`expect` allowed under `cfg(test)` in `src/lib.rs`, plus mechanical fixes in core `basic` test code and API-level fixes in the examples (`bridge.rs` pass-by-value/`# Panics`/`# Errors` docs/`render` rename, `range.rs`/`demo.rs`/`poker_eval.rs` cleanups); `Draws`/`Toggle`/`ToggleCard` exported; data-invariant tests added for `decks/basic.rs` and `decks/joker.rs` (+12 tests → 395 green); and `examples/buffoon.rs` rewritten to demonstrate phase-4 joker scoring end-to-end. CI now gates `cargo clippy --features funky --all-targets`. **Deferred by design:** scoring phases 1–3 (`todo!()`), the ~54 silently-zero `MPip` variants, the mod/effect-registry redesign, and the remaining Balatro subsystems.
 
 **Goal:** Model [Balatro](https://www.playbalatro.com/)-style cards — jokers with scoring effects, planet cards that level up poker hands, tarot/spectral consumables, enhanced decks, and chips × mult scoring — well enough to (a) power a **Balatro solver** and (b) enable **dynamic creation of custom Balatro mods**.
 
@@ -40,8 +42,8 @@
 - [x] `MPip` effect enum — 69 data-driven effect descriptors (`mpip.rs`)
 - [x] `bcard!` / `bcards!` literal macros (`src/funky/macros.rs`, 638 lines)
 - [x] `Score { chips, mult }` with `Add`, `multi_mult(f32)`, `score()` (`score.rs`)
-- [ ] Remove debug `print!`/`println!` from `get_chips`/`enhance`/`enhance_swap` (`buffoon_card.rs:186-220`)
-- [ ] Fix `MPip` Display bugs (`mpip.rs:134` "ChipsOn2Straight" label; `:173` stray paren)
+- [x] Remove debug `print!`/`println!` from `get_chips`/`enhance`/`enhance_swap` (`buffoon_card.rs`)
+- [x] Fix `MPip` Display bugs ("ChipsOn2Straight" label → `ChipsOnStraight`; stray paren on `MultPlusOnHandPlays`)
 - [ ] Decide fate of experimental `FIntPip` function-pointer pip (`fpips.rs` — unused, journal-style docs)
 
 ## Story 2: Decks
@@ -50,7 +52,7 @@
 - [x] Abandoned deck — 40 cards, no face cards (`basic.rs:70`)
 - [x] Checkered deck — 52 cards, two suits (`basic.rs:115`)
 - [ ] Remaining Balatro decks (Red, Blue, Yellow, Green, Black, Magic, Nebula, Ghost, Erratic, Painted, Anaglyph, Plasma, Zodiac)
-- [ ] Tests for `decks/basic.rs` (620 lines, currently 0 tests)
+- [x] Data-invariant tests for `decks/basic.rs` (deck sizes, all-basic, full-French-52, Abandoned has no face cards, Checkered is two-suits-each-twice)
 
 ## Story 3: Consumables — planets, tarot, spectral, vouchers
 
@@ -69,7 +71,7 @@
 - [ ] Wire effects for the ~52 jokers currently carrying `MPip::Blank`
 - [ ] Implement jokers 96–150 (currently a commented-out catalog, `joker.rs:1393-1458`)
 - [ ] Uncommon/Rare/Legendary pile assemblies
-- [ ] Tests for `decks/joker.rs` (1,459 lines, currently 0 tests)
+- [x] Data-invariant tests for `decks/joker.rs` (COMMON_JOKERS size, all-jokers, all-tagged-common, distinct) — full per-card coverage still open
 
 ## Story 5: Hand detection & hand levels
 
@@ -107,15 +109,15 @@
 - [ ] Full `Score` pipeline a solver can call for any (hand, jokers, enhancements) triple without panicking
 - [ ] Deterministic/seedable shuffle for solver reproducibility (TODO at `buffoon_pile.rs:355`; core `basic` already has seeded shuffle)
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)
-- [ ] End-to-end example: `examples/buffoon.rs` currently builds a hand and prints it — no scoring demonstrated
+- [x] End-to-end example: `examples/buffoon.rs` now deals a board, plays a hand, detects the hand type, and demonstrates phase-4 joker scoring (180 chips × 22 mult) end-to-end
 
 ## Story 9: API surface & integration hygiene
 
 - [x] Feature gating: `funky` off by default, requires `std` (`Cargo.toml:32`)
 - [x] Prelude: `src/preludes/funky.rs` exports decks, types, `MPip::*`, macros
-- [ ] Export `Draws` and `ToggleCard` — `BuffoonBoard::new(draws: Draws, …)` takes a type external callers cannot name (private `mod draws;`)
-- [ ] Add funky to CI: the test matrix runs `cargo test --all` (default features) and clippy runs default-features-only — **funky is only compiled/tested by the coverage, doc, and wasm `--all-features` jobs**. Add `cargo test --features funky` and clippy coverage
-- [ ] Fix 6 default-level clippy warnings in funky lib code (unwrap on Option `buffoon_card.rs:70`, collapsible ifs, `sort_by_key`)
+- [x] Export `Draws` and `ToggleCard`/`Toggle` — now `pub mod draws;` and re-exported from `src/preludes/funky.rs`, so `BuffoonBoard::new(draws: Draws, …)` is callable from outside the crate
+- [x] Add funky to CI: the test matrix now runs `cargo test --features funky`, and the clippy job runs `cargo clippy --features funky --lib -- -Dclippy::all -Dclippy::pedantic`
+- [x] Fix 6 default-level clippy warnings in funky lib code (unwrap on Option, collapsible ifs, `sort_by_key`, let-if-seq) — funky lib is now clean at `-Dclippy::pedantic`
 - [ ] Remove or use the `phf` dependency
 - [ ] Replace journal-style doc comments ("DIARY"/"STORY TIME", profanity in `fpips.rs`) with API reference docs
 - [ ] CHANGELOG entries for the funky feature
@@ -124,11 +126,11 @@
 
 ## Verification matrix
 
-- [ ] `cargo test --features funky` — full battery (383 unit tests green as of 2026-07-05)
-- [ ] `cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic` — currently fails (6 lib + 165 test warnings at default level)
-- [ ] `cargo build --no-default-features` — must stay green (funky must never leak into no_std paths)
-- [ ] `cargo run --example buffoon --features funky` — should demonstrate end-to-end scoring once phases 1–3 land
-- [ ] `cargo doc --no-deps --all-features` with `RUSTDOCFLAGS=-D warnings`
+- [x] `cargo test --features funky` — full battery (**395** unit tests green as of 2026-07-11, +12 new deck/joker data tests)
+- [x] `cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic` — **the entire crate is clean** (lib, all tests, all examples, benches) and gated in CI (`unwrap`/`expect` in tests allowed via a `cfg(test)` attribute in `src/lib.rs`)
+- [x] `cargo build --no-default-features` — green; `--examples` also green (buffoon correctly gated behind `required-features = ["funky"]`)
+- [x] `cargo run --example buffoon --features funky` — demonstrates phase-4 joker scoring end-to-end (full phases 1–3 still pending)
+- [x] `cargo doc --no-deps --all-features` with `RUSTDOCFLAGS=-D warnings` — clean
 
 ## Gotchas
 

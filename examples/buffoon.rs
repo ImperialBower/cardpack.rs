@@ -1,23 +1,43 @@
 use cardpack::preludes::funky::*;
 
-/// Interesting question on PirateSoftware's stream: [tts q](https://www.twitch.tv/videos/2442976611?t=08h31m48s)
+/// End-to-end demonstration of funky (Balatro-style) card scoring.
 ///
-/// > DexAMD
-/// > Yarr Matey.  Game mechanic thoughts.  If you were to have a debuff that doubles damage from all sources, and you were to receive a DOT, would you rather it...  A: have each tic be double damage and maintain DOT length B: double the length of the DOT but keep the tic damage the same C: have the DOT tic more during the duration
+/// It builds a board, plays a hand, detects the poker-hand type, and then runs
+/// the implemented **phase-4 joker-scoring** pass, printing the resulting
+/// chips × mult.
 ///
-/// I need to code ways to show game mechanics.
-#[allow(unused_mut, unused_variables)]
+/// Note: board scoring phases 1–3 (`scoring_phase1_pre_scoring` …
+/// `scoring_phase3_effects_in_hand`) are not implemented yet and will `panic!`
+/// via `todo!()`, so this example deliberately exercises only the working
+/// phase-4 joker contribution.
 fn main() {
     env_logger::init();
 
-    let mut deck = Deck::basic_buffoon_pile().shuffled();
+    // Deal a fresh, shuffled Buffoon deck onto a board with 4 hands / 3 discards.
+    let draws = Draws::new(4, 3);
+    let mut board = BuffoonBoard::new(draws, Deck::basic_buffoon_pile().shuffled());
 
-    let hand = bcards!("AS KS QS JS TS");
-    let mut score = Score::default();
+    // Play a royal flush — it satisfies both the "straight" and "flush"
+    // conditions the two jokers below care about.
+    board.played = bcards!("AS KS QS JS TS");
 
-    // CRAZY = MPip::MultPlusOnStraight(12),
-    // DROLL = MPip::MultPlusOnFlush(10)
-    let jokers = BuffoonPile::from(vec![bcard!(CRAZY), bcard!(DROLL)]);
+    // Four jokers whose effects are wired and scored today. A royal flush is
+    // both a straight and a flush, so all four fire:
+    //   CRAZY   = MPip::MultPlusOnStraight(12)
+    //   DROLL   = MPip::MultPlusOnFlush(10)
+    //   DEVIOUS = MPip::ChipsOnStraight(100)
+    //   CRAFTY  = MPip::ChipsOnFlush(80)
+    board.jokers.push(bcard!(CRAZY));
+    board.jokers.push(bcard!(DROLL));
+    board.jokers.push(bcard!(DEVIOUS));
+    board.jokers.push(bcard!(CRAFTY));
 
-    println!("{hand}");
+    let hand_type = board.played.determine_hand_type();
+    let score = board.scoring_phase4_joker_scoring();
+
+    println!("Played hand : {}", board.played);
+    println!("Hand type   : {hand_type:?}");
+    println!("Jokers      : {}", board.jokers);
+    println!("Phase-4 {score}");
+    println!("Total joker chips × mult = {}", score.score());
 }

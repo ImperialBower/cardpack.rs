@@ -618,3 +618,76 @@ pub mod card {
         debuffed: false,
     };
 }
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__decks__basic_tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn deck__size_matches_declaration() {
+        assert_eq!(Deck::DECK.len(), Deck::DECK_SIZE);
+        assert_eq!(Deck::basic_buffoon_pile().len(), Deck::DECK_SIZE);
+    }
+
+    #[test]
+    fn deck__all_cards_are_basic() {
+        for card in Deck::DECK {
+            assert!(card.is_basic(), "{card} in DECK is not a basic card");
+        }
+    }
+
+    #[test]
+    fn deck__is_a_full_french_52() {
+        let cards: HashSet<_> = Deck::DECK.iter().collect();
+        let suits: HashSet<_> = Deck::DECK.iter().map(|c| c.suit).collect();
+        let ranks: HashSet<_> = Deck::DECK.iter().map(|c| c.rank).collect();
+        assert_eq!(cards.len(), Deck::DECK_SIZE, "DECK has duplicate cards");
+        assert_eq!(suits.len(), 4, "DECK should span four suits");
+        assert_eq!(ranks.len(), 13, "DECK should span thirteen ranks");
+    }
+
+    #[test]
+    fn abandoned__size_matches_declaration() {
+        assert_eq!(Deck::ABANDONED_DECK.len(), Deck::ABANDONED_DECK_SIZE);
+    }
+
+    #[test]
+    fn abandoned__has_no_face_cards() {
+        for card in Deck::ABANDONED_DECK {
+            assert!(
+                !matches!(card.rank.index, 'K' | 'Q' | 'J'),
+                "Abandoned deck should not contain face card {card}"
+            );
+        }
+    }
+
+    #[test]
+    fn abandoned__all_cards_distinct() {
+        let cards: HashSet<_> = Deck::ABANDONED_DECK.iter().collect();
+        assert_eq!(cards.len(), Deck::ABANDONED_DECK_SIZE);
+    }
+
+    #[test]
+    fn checkered__size_matches_declaration() {
+        assert_eq!(Deck::CHECKERED_DECK.len(), Deck::CHECKERED_DECK_SIZE);
+    }
+
+    #[test]
+    fn checkered__is_two_suits_each_card_twice() {
+        let suits: HashSet<_> = Deck::CHECKERED_DECK.iter().map(|c| c.suit).collect();
+        assert_eq!(
+            suits.len(),
+            2,
+            "Checkered deck should use exactly two suits"
+        );
+
+        let distinct: HashSet<_> = Deck::CHECKERED_DECK.iter().collect();
+        assert_eq!(distinct.len(), Deck::CHECKERED_DECK_SIZE / 2);
+        for card in distinct {
+            let count = Deck::CHECKERED_DECK.iter().filter(|c| *c == card).count();
+            assert_eq!(count, 2, "{card} should appear exactly twice");
+        }
+    }
+}

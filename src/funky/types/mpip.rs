@@ -131,7 +131,7 @@ impl Display for MPip {
             Self::ChipsOnFlush(chips) => write!(f, "ChipsOnFlush({chips})"),
             Self::ChipsOnPair(chips) => write!(f, "ChipsOnPair({chips})"),
             Self::ChipsOn2Pair(chips) => write!(f, "ChipsOn2Pair({chips})"),
-            Self::ChipsOnStraight(chips) => write!(f, "ChipsOn2Straight({chips})"),
+            Self::ChipsOnStraight(chips) => write!(f, "ChipsOnStraight({chips})"),
             Self::ChipsOnTrips(chips) => write!(f, "ChipsOnTrips({chips})"),
             Self::ChipsPerRemainingDiscard(chips) => write!(f, "ChipsPerRemainingDiscard({chips})"),
             Self::ChipsPlusOn5Ranks(chips, ranks) => {
@@ -170,7 +170,7 @@ impl Display for MPip {
                 )
             }
             Self::MultPlusOnFlush(value) => write!(f, "MultPlusOnFlush({value})"),
-            Self::MultPlusOnHandPlays => write!(f, "MultPlusOnHandPlays)"),
+            Self::MultPlusOnHandPlays => write!(f, "MultPlusOnHandPlays"),
             Self::MultPlusOnPair(value) => write!(f, "MultPlusOnPair({value})"),
             Self::MultPlusOn2Pair(value) => write!(f, "MultPlusOn2Pair({value})"),
             Self::MultPlusOnStraight(value) => write!(f, "MultPlusOnStraight({value})"),

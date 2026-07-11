@@ -63,13 +63,7 @@ impl BuffoonPile {
             MPip::MultPlusOnSuit(_, _) => {
                 self.iter().map(|c| c.calculate_plus_mult(enhancer)).sum()
             }
-            MPip::MultPlusOnUpToXCards(m, x) => {
-                if self.has_x_or_fewer_cards(x) {
-                    m
-                } else {
-                    0
-                }
-            }
+            MPip::MultPlusOnUpToXCards(m, x) if self.has_x_or_fewer_cards(x) => m,
             _ => 0,
         }
     }
@@ -370,7 +364,7 @@ impl BuffoonPile {
     }
 
     pub fn sort_by_rank(&mut self) {
-        self.0.sort_by(|a, b| b.rank.cmp(&a.rank));
+        self.0.sort_by_key(|b| core::cmp::Reverse(b.rank));
     }
 
     #[must_use]
@@ -506,7 +500,7 @@ mod funky__types__buffoon_pile_tests {
         );
     }
 
-    /// **DIARY** The unit test code that CoPilot generates is baffling to me sometimes. Complete
+    /// **DIARY** The unit test code that `CoPilot` generates is baffling to me sometimes. Complete
     /// nonsense:
     ///
     /// ```txt

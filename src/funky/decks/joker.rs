@@ -1457,3 +1457,45 @@ pub mod card {
 // 149 Chicot 	Disables effect of every Boss Blind 	N/A 	Legendary 	Find this Joker from the Soul card. 	!! 	N/A
 // 150 Perkeo 	Creates a Negative copy of 1 random consumable card in your possession at the end of the shop 	N/A 	Legendary 	Find this Joker from the Soul card. 	!! 	N/A
 // Trivia
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__decks__joker_tests {
+    use super::*;
+    use crate::preludes::funky::BCardType;
+    use std::collections::HashSet;
+
+    #[test]
+    fn common_jokers__size_matches_declaration() {
+        assert_eq!(Joker::COMMON_JOKERS.len(), Joker::COMMON_JOKERS_SIZE);
+        assert_eq!(Joker::pile_common().len(), Joker::COMMON_JOKERS_SIZE);
+    }
+
+    #[test]
+    fn common_jokers__are_all_jokers() {
+        for card in Joker::COMMON_JOKERS {
+            assert!(card.is_joker(), "{card} in COMMON_JOKERS is not a joker");
+        }
+    }
+
+    #[test]
+    fn common_jokers__are_all_tagged_common() {
+        for card in Joker::COMMON_JOKERS {
+            assert_eq!(
+                card.card_type,
+                BCardType::CommonJoker,
+                "{card} should be tagged CommonJoker"
+            );
+        }
+    }
+
+    #[test]
+    fn common_jokers__are_distinct() {
+        let cards: HashSet<_> = Joker::COMMON_JOKERS.iter().collect();
+        assert_eq!(
+            cards.len(),
+            Joker::COMMON_JOKERS_SIZE,
+            "COMMON_JOKERS contains duplicate cards"
+        );
+    }
+}

@@ -64,10 +64,11 @@ impl FromStr for BCardType {
     type Err = CardError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != 1 {
-            return Err(CardError::InvalidIndex(s.to_string()));
+        let mut chars = s.chars();
+        match (chars.next(), chars.next()) {
+            (Some(c), None) => Ok(c.into()),
+            _ => Err(CardError::InvalidIndex(s.to_string())),
         }
-        Ok(s.chars().next().unwrap().into())
     }
 }
 
@@ -141,13 +142,7 @@ impl BuffoonCard {
     #[must_use]
     pub fn calculate_plus_chips(&self, enhancer: &Self) -> usize {
         match enhancer.enhancement {
-            MPip::ChipsPlusOn5Ranks(value, ranks) => {
-                if ranks.contains(&self.rank.index) {
-                    value
-                } else {
-                    0
-                }
-            }
+            MPip::ChipsPlusOn5Ranks(value, ranks) if ranks.contains(&self.rank.index) => value,
             _ => 0,
         }
     }
@@ -156,13 +151,7 @@ impl BuffoonCard {
     pub fn calculate_plus_mult(&self, enhancer: &Self) -> usize {
         match enhancer.enhancement {
             MPip::MultPlus(value) => value,
-            MPip::MultPlusOnSuit(value, suit) => {
-                if self.suit.index == suit {
-                    value
-                } else {
-                    0
-                }
-            }
+            MPip::MultPlusOnSuit(value, suit) if self.suit.index == suit => value,
             _ => 0,
         }
     }
@@ -173,29 +162,25 @@ impl BuffoonCard {
     }
 
     fn get_enhanced_chips(&self) -> usize {
-        let mut chips = 0;
         if let MPip::Chips(c) = self.enhancement {
-            chips = c;
+            c
+        } else {
+            0
         }
-        chips
     }
 
     #[must_use]
     pub fn get_chips(&self) -> usize {
         let mut chips = 0;
-        print!("   chips: {}", self.rank.value);
         if let MPip::Chips(c) = self.enhancement {
-            print!(" + {}", self.enhancement);
             chips += c;
         }
-        println!();
         chips + self.rank.value
     }
 
     #[must_use]
     pub fn enhance(&self, enhancer: Self) -> Self {
-        println!("Enhancing {} with: {}", self, enhancer.enhancement);
-        let bc = match enhancer.enhancement {
+        match enhancer.enhancement {
             MPip::Death(_)
             | MPip::DoubleMoney(_)
             | MPip::Hanged(_)
@@ -210,14 +195,11 @@ impl BuffoonCard {
             MPip::Hearts(_) => basic::card::set_suit(*self, FrenchSuit::HEARTS),
             MPip::Spades(_) => basic::card::set_suit(*self, FrenchSuit::SPADES),
             _ => self.enhance_swap(enhancer.enhancement),
-        };
-        println!("Enhanced {bc}");
-        bc
+        }
     }
 
     /// Function to implement mods where they are just straight up replacements.
     fn enhance_swap(&self, enhancement: MPip) -> Self {
-        println!("Enhance swap: {enhancement}");
         Self {
             enhancement,
             ..*self

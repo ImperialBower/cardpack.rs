@@ -834,7 +834,7 @@ mod basic__types__pile_tests {
     #[test]
     fn shuffled_with_seed__same_cards() {
         let pile = Pile::<French>::basic_pile();
-        let shuffled = pile.shuffled_with_seed(0xC0FFEE);
+        let shuffled = pile.shuffled_with_seed(0x00C0_FFEE);
         assert_eq!(pile.len(), shuffled.len());
         let mut o_vec = pile.v().clone();
         let mut s_vec = shuffled.v().clone();
