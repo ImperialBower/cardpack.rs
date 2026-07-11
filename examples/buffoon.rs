@@ -40,7 +40,7 @@ fn main() {
     // Each phase folds into the running score, in Balatro order.
     let hand_type = board.played.determine_hand_type();
     let base = board.scoring_phase1_pre_scoring();
-    let after_cards = base + board.scoring_phase2_dealt_hand_scoring();
+    let after_cards = board.scoring_phase2_dealt_hand_scoring(base);
     let after_held = board.scoring_phase3_effects_in_hand(after_cards);
     let total = board.scoring_phase4_joker_scoring(after_held); // == board.score()
 

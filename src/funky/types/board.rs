@@ -54,22 +54,59 @@ impl BuffoonBoard {
             .map_or_else(Score::default, |hand| Score::new(hand.chips, hand.mult))
     }
 
-    /// Phase 2 — played-hand scoring: each played card contributes its chip
-    /// value (base rank + flat `Chips` enhancement, via
-    /// [`BuffoonCard::get_chips`]) plus any per-card plus-effects driven by its
-    /// own enhancement (conditional chips / mult, via
-    /// [`BuffoonCard::calculate_plus`]). Those two paths handle disjoint `MPip`
+    /// Phase 2 — played-hand scoring: folds each played card into the running
+    /// `score`. Every card adds its chip value (base rank + flat `Chips`
+    /// enhancement, via [`BuffoonCard::get_chips`]) plus any per-card plus-effects
+    /// from its own enhancement (conditional chips / mult, via
+    /// [`BuffoonCard::calculate_plus`]); those two paths handle disjoint `MPip`
     /// variants, so nothing is counted twice.
+    ///
+    /// Takes the running score (rather than returning an independent
+    /// contribution) so a custom played card's ×mult multiplies the score
+    /// accumulated so far — including the phase-1 base — in card order.
     ///
     /// [`BuffoonCard::get_chips`]: crate::funky::types::buffoon_card::BuffoonCard::get_chips
     /// [`BuffoonCard::calculate_plus`]: crate::funky::types::buffoon_card::BuffoonCard::calculate_plus
     #[must_use]
-    pub fn scoring_phase2_dealt_hand_scoring(&self) -> Score {
-        let mut score = Score::default();
+    pub fn scoring_phase2_dealt_hand_scoring(&self, running: Score) -> Score {
+        self.fold_played_cards::<StdRng>(running, None, None)
+    }
+
+    /// The single played-card fold behind phase 2. Each card adds its chips and
+    /// built-in additive effects, then its special enhancement resolves:
+    /// a Lucky card rolls (if `rng`), a `MPip::Custom` card is looked up (if
+    /// `registry`). Built-in cards are unaffected by the options.
+    fn fold_played_cards<R: Rng + ?Sized>(
+        &self,
+        running: Score,
+        mut rng: Option<&mut R>,
+        registry: Option<&EffectRegistry>,
+    ) -> Score {
+        let mut score = running;
 
         for card in &self.played {
             score.chips += card.get_chips();
             score += card.calculate_plus(card);
+
+            score = match card.enhancement {
+                MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
+                    rng.as_deref_mut().map_or(score, |rng| {
+                        if rng.random_range(0..mult_odds) == 0 {
+                            score + Score::new(0, LUCKY_MULT)
+                        } else {
+                            score
+                        }
+                    })
+                }
+                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
+                    let ctx = ScoringContext {
+                        board: self,
+                        source: *card,
+                    };
+                    effect.score(&ctx).apply(score)
+                }),
+                _ => score,
+            };
         }
 
         score
@@ -84,16 +121,30 @@ impl BuffoonBoard {
     /// score accumulated so far (phases 1 + 2) and returns it transformed. With
     /// no held cards it is the identity.
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn scoring_phase3_effects_in_hand(&self, running: Score) -> Score {
+        self.fold_held_cards(running, None)
+    }
+
+    /// The single held-card fold behind phase 3. Built-in Steel/`MultTimes`
+    /// cards apply their ×mult; a `MPip::Custom` held card is resolved through
+    /// `registry` (if any).
+    #[allow(clippy::cast_precision_loss)]
+    fn fold_held_cards(&self, running: Score, registry: Option<&EffectRegistry>) -> Score {
         let mut score = running;
 
         for card in &self.in_hand {
-            match card.enhancement {
-                MPip::MultTimes1Dot(n) => score = score.multi_mult(n as f32 / 10.0),
-                MPip::MultTimes(n) => score = score.multi_mult(n as f32),
-                _ => {}
-            }
+            score = match card.enhancement {
+                MPip::MultTimes1Dot(n) => score.multi_mult(n as f32 / 10.0),
+                MPip::MultTimes(n) => score.multi_mult(n as f32),
+                MPip::Custom(id) => registry.and_then(|r| r.get(id)).map_or(score, |effect| {
+                    let ctx = ScoringContext {
+                        board: self,
+                        source: *card,
+                    };
+                    effect.score(&ctx).apply(score)
+                }),
+                _ => score,
+            };
         }
 
         score
@@ -202,9 +253,9 @@ impl BuffoonBoard {
     /// effects (economy, discards/hands remaining) still fall through to zero.
     #[must_use]
     pub fn score(&self) -> Score {
-        let base_and_cards =
-            self.scoring_phase1_pre_scoring() + self.scoring_phase2_dealt_hand_scoring();
-        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
+        let base = self.scoring_phase1_pre_scoring();
+        let after_cards = self.scoring_phase2_dealt_hand_scoring(base);
+        let held = self.scoring_phase3_effects_in_hand(after_cards);
 
         self.scoring_phase4_joker_scoring(held)
     }
@@ -226,33 +277,23 @@ impl BuffoonBoard {
     /// probabilistic effects from the caller's RNG.
     #[must_use]
     pub fn score_with_rng<R: Rng + ?Sized>(&self, rng: &mut R) -> Score {
-        let base_and_cards = self.scoring_phase1_pre_scoring()
-            + self.scoring_phase2_dealt_hand_scoring_with_rng(rng);
-        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
+        let base = self.scoring_phase1_pre_scoring();
+        let after_cards = self.scoring_phase2_dealt_hand_scoring_with_rng(base, rng);
+        let held = self.scoring_phase3_effects_in_hand(after_cards);
 
         self.scoring_phase4_joker_scoring_with_rng(held, rng)
     }
 
-    /// Phase 2 with probabilistic played-card effects rolled. This is the pure
-    /// [`scoring_phase2_dealt_hand_scoring`](Self::scoring_phase2_dealt_hand_scoring)
-    /// plus each Lucky card's roll — all additive, so order within the phase
-    /// does not matter and the deterministic part is reused as-is.
+    /// Phase 2 with probabilistic played-card effects (Lucky cards) rolled from
+    /// `rng`, threaded through the same played-card fold as
+    /// [`scoring_phase2_dealt_hand_scoring`](Self::scoring_phase2_dealt_hand_scoring).
     #[must_use]
     pub fn scoring_phase2_dealt_hand_scoring_with_rng<R: Rng + ?Sized>(
         &self,
+        running: Score,
         rng: &mut R,
     ) -> Score {
-        let mut score = self.scoring_phase2_dealt_hand_scoring();
-
-        for card in &self.played {
-            if let MPip::Lucky(mult_odds, _) = card.enhancement {
-                if mult_odds > 0 && rng.random_range(0..mult_odds) == 0 {
-                    score += Score::new(0, LUCKY_MULT);
-                }
-            }
-        }
-
-        score
+        self.fold_played_cards(running, Some(rng), None)
     }
 
     /// Phase 4 with probabilistic joker effects rolled, threaded through the
@@ -274,20 +315,21 @@ impl BuffoonBoard {
     /// a mod add scoring behaviour without editing funky source.
     ///
     /// Built-in effects score exactly as in [`score`](Self::score); a custom
-    /// joker is scored by looking up its id in `registry` and applying the
-    /// [`ScoreOp`] its [`Effect`] returns. Unregistered ids contribute nothing.
+    /// card or joker is scored by looking up its id in `registry` and applying
+    /// the [`ScoreOp`] its [`Effect`] returns. Unregistered ids contribute
+    /// nothing.
     ///
-    /// This currently resolves custom effects for **jokers** (phase 4), the
-    /// primary modding surface; the same [`ScoringContext`]/[`ScoreOp`] pattern
-    /// extends to played- and held-card effects.
+    /// Custom effects are resolved in every phase they can occur — **played
+    /// cards** (phase 2), **held cards** (phase 3) and **jokers** (phase 4) —
+    /// via the same [`ScoringContext`]/[`ScoreOp`] pattern.
     ///
     /// [`Effect`]: crate::funky::types::effect::Effect
     /// [`ScoreOp`]: crate::funky::types::effect::ScoreOp
     #[must_use]
     pub fn score_with_registry(&self, registry: &EffectRegistry) -> Score {
-        let base_and_cards =
-            self.scoring_phase1_pre_scoring() + self.scoring_phase2_dealt_hand_scoring();
-        let held = self.scoring_phase3_effects_in_hand(base_and_cards);
+        let base = self.scoring_phase1_pre_scoring();
+        let after_cards = self.fold_played_cards::<StdRng>(base, None, Some(registry));
+        let held = self.fold_held_cards(after_cards, Some(registry));
 
         self.scoring_phase4_joker_scoring_with_registry(held, registry)
     }
@@ -563,7 +605,7 @@ mod funky__types__board__buffoon_board_tests {
         // A=11, K/Q/J/T=10 -> 51 chips, no enhancements so no mult.
         let board = board_playing("AS KS QS JS TS");
         assert_eq!(
-            board.scoring_phase2_dealt_hand_scoring(),
+            board.scoring_phase2_dealt_hand_scoring(Score::default()),
             Score { chips: 51, mult: 0 }
         );
     }
@@ -573,7 +615,7 @@ mod funky__types__board__buffoon_board_tests {
         // 11 + 11 + 10 + 10 + 10 = 52.
         let board = board_playing("AS AD QC JS TH");
         assert_eq!(
-            board.scoring_phase2_dealt_hand_scoring(),
+            board.scoring_phase2_dealt_hand_scoring(Score::default()),
             Score { chips: 52, mult: 0 }
         );
     }
@@ -591,7 +633,7 @@ mod funky__types__board__buffoon_board_tests {
         let mut board = board_playing("KS");
         board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Chips(30))]);
         assert_eq!(
-            board.scoring_phase2_dealt_hand_scoring(),
+            board.scoring_phase2_dealt_hand_scoring(Score::default()),
             Score { chips: 41, mult: 0 }
         );
     }
@@ -602,7 +644,7 @@ mod funky__types__board__buffoon_board_tests {
         let mut board = board_playing("KS");
         board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::MultPlus(4))]);
         assert_eq!(
-            board.scoring_phase2_dealt_hand_scoring(),
+            board.scoring_phase2_dealt_hand_scoring(Score::default()),
             Score { chips: 11, mult: 4 }
         );
     }
@@ -744,6 +786,65 @@ mod funky__types__board__buffoon_board_tests {
                 ScoreOp::Nothing
             }
         }
+    }
+
+    struct AddChips(usize);
+    impl Effect for AddChips {
+        fn score(&self, _ctx: &ScoringContext<'_>) -> ScoreOp {
+            ScoreOp::AddChips(self.0)
+        }
+    }
+
+    struct DoubleMult;
+    impl Effect for DoubleMult {
+        fn score(&self, _ctx: &ScoringContext<'_>) -> ScoreOp {
+            ScoreOp::TimesMult(2.0)
+        }
+    }
+
+    #[test]
+    fn score_with_registry__custom_played_card_scores() {
+        const ID: u32 = 7001;
+        let mut registry = EffectRegistry::new();
+        registry.register(ID, AddChips(50));
+
+        let mut board = board_playing("2S");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Custom(ID))]);
+
+        // High Card (5,1) + ace chips 11 = 16 chips; custom adds +50 -> 66.
+        assert_eq!(board.score_with_registry(&registry), Score::new(66, 1));
+        // Pure score() ignores customs.
+        assert_eq!(board.score(), Score::new(16, 1));
+    }
+
+    #[test]
+    fn score_with_registry__custom_played_xmult_multiplies_running_base() {
+        // The reason phase 2 takes a running score: a played ×mult must scale
+        // the score so far (including the phase-1 base), in card order.
+        const ID: u32 = 7002;
+        let mut registry = EffectRegistry::new();
+        registry.register(ID, DoubleMult);
+
+        let mut board = board_playing("2S");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Custom(ID))]);
+
+        // Base High Card (5,1) + ace 11 chips = (16,1); custom ×2 -> (16,2),
+        // i.e. the base mult of 1 was doubled, not just a card subtotal.
+        assert_eq!(board.score_with_registry(&registry), Score::new(16, 2));
+    }
+
+    #[test]
+    fn score_with_registry__custom_held_card_scores() {
+        const ID: u32 = 7003;
+        let mut registry = EffectRegistry::new();
+        registry.register(ID, DoubleMult);
+
+        let mut board = board_playing("AS KS QS JS TS"); // royal flush
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::Custom(ID))]);
+
+        // Phase 1+2: 151 chips, 8 mult. Custom held ×2 -> 16 mult.
+        assert_eq!(board.score_with_registry(&registry), Score::new(151, 16));
+        assert_eq!(board.score(), Score::new(151, 8));
     }
 
     #[test]

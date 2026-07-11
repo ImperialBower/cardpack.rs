@@ -114,8 +114,12 @@ Proven by tests in `board.rs` (`score_with_registry__*`) and `effect.rs`.
 
 ## 6. Migration path (future, incremental)
 
-1. Extend registry resolution to **played-card (phase 2)** and **held-card
-   (phase 3)** effects — same `ScoringContext`/`ScoreOp`, mirror the phase-4 wiring.
+1. ~~Extend registry resolution to **played-card (phase 2)** and **held-card
+   (phase 3)** effects.~~ **Done** — `fold_played_cards` and `fold_held_cards`
+   mirror `fold_jokers`; `score_with_registry` resolves customs in all three
+   phases. Phase 2 was changed to take a running score (like phases 3/4) so a
+   custom played ×mult scales the base+cards-so-far in card order, not a
+   detached subtotal.
 2. ~~**Unify** the phase-4 variants (`_`, `_with_rng`, `_with_registry`).~~
    **Done** — all three now delegate to one private `fold_jokers(running,
    Option<&mut Rng>, Option<&EffectRegistry>)`; the joker fold lives once.
