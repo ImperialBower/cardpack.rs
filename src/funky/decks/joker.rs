@@ -1995,10 +1995,24 @@ mod funky__decks__joker_tests {
     }
 
     /// A joker is *reachable* if adding it to some probe board changes the score.
+    /// In-round events are fired after the joker is added so counter jokers
+    /// (Green Joker, Ramen, …) accumulate before the score is read.
     fn is_reachable(joker: BuffoonCard) -> bool {
+        // Hands that satisfy every growth condition across the slice: a 4-card
+        // straight (Square + Runner), a two-pair hand (Spare Trousers), and a
+        // generic hand (Green Joker, Ice Cream).
+        let growth_hands = [
+            bcards!("2C 3C 4C 5C"),
+            bcards!("KH KS QD QC 4S"),
+            bcards!("AH KH QH JH TH"),
+        ];
         probe_boards().into_iter().any(|mut board| {
             let baseline = board.score();
             board.jokers.push(joker);
+            for hand in &growth_hands {
+                board.on_hand_played(hand);
+            }
+            board.on_discard(&bcards!("2C 3C 4C"));
             board.score() != baseline
         })
     }

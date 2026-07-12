@@ -10,6 +10,12 @@ use serde::{Deserialize, Serialize};
 /// Balatro's Lucky card grants a flat +20 mult on a successful (1-in-N) roll.
 const LUCKY_MULT: usize = 20;
 
+/// An in-round event that can grow a joker's counter.
+enum GrowthEvent<'a> {
+    HandPlayed(&'a BuffoonPile),
+    Discard(&'a BuffoonPile),
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BuffoonBoard {
     pub draws: Draws,
@@ -230,7 +236,7 @@ impl BuffoonBoard {
     ) -> Score {
         let mut score = running;
 
-        for joker in &self.jokers {
+        for (index, joker) in self.jokers.iter().enumerate() {
             let op = match joker.enhancement {
                 MPip::Custom(id) => self.custom_op(*joker, id, registry),
                 MPip::MultPlusRandomTo(n) if n > 0 => {
@@ -238,7 +244,11 @@ impl BuffoonBoard {
                         ScoreOp::AddMult(rng.random_range(0..n))
                     })
                 }
-                _ => self.builtin_joker_op(joker),
+                _ => {
+                    let counter = self.joker_state.get(index).copied().unwrap_or(0);
+                    self.counter_joker_op(joker, counter)
+                        .unwrap_or_else(|| self.builtin_joker_op(joker))
+                }
             };
             score = op.apply(score);
         }
@@ -505,10 +515,68 @@ impl BuffoonBoard {
     /// Pad `joker_state` with zeros up to `jokers.len()`, so a board built by
     /// setting `jokers` directly still has a counter slot per joker. Only grows —
     /// never truncates.
-    #[allow(dead_code)]
     fn ensure_state_len(&mut self) {
         if self.joker_state.len() < self.jokers.len() {
             self.joker_state.resize(self.jokers.len(), 0);
+        }
+    }
+
+    /// How much a joker's counter changes for one growth event. The write-side
+    /// mirror of `counter_joker_op`; both switch on the same enhancement. Returns
+    /// 0 for every non-counter joker.
+    // Arms are kept one-per-variant (rather than merged where bodies coincide)
+    // to mirror `counter_joker_op`'s future per-joker arms one-for-one.
+    #[allow(clippy::match_same_arms)]
+    fn growth_delta(enhancement: MPip, event: &GrowthEvent) -> i32 {
+        match (enhancement, event) {
+            (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::HandPlayed(_)) => 1,
+            (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::Discard(_)) => -1,
+            (MPip::LoseMultTimesPerDiscard(_, _), GrowthEvent::Discard(d)) => {
+                i32::try_from(d.len()).unwrap_or(i32::MAX)
+            }
+            (MPip::LoseChipsPerHand(_, _), GrowthEvent::HandPlayed(_)) => 1,
+            (MPip::GainChipsPerCardCountHand(_, n), GrowthEvent::HandPlayed(p)) if p.len() == n => {
+                1
+            }
+            (MPip::GainMultPerTwoPairHand(_), GrowthEvent::HandPlayed(p)) if p.has_2pair() => 1,
+            (MPip::GainChipsPerStraightHand(_), GrowthEvent::HandPlayed(p)) if p.has_straight() => {
+                1
+            }
+            _ => 0,
+        }
+    }
+
+    /// Grow every joker's counter for a played hand.
+    pub fn on_hand_played(&mut self, played: &BuffoonPile) {
+        self.apply_growth(&GrowthEvent::HandPlayed(played));
+    }
+
+    /// Grow every joker's counter for a discard.
+    pub fn on_discard(&mut self, discarded: &BuffoonPile) {
+        self.apply_growth(&GrowthEvent::Discard(discarded));
+    }
+
+    fn apply_growth(&mut self, event: &GrowthEvent) {
+        self.ensure_state_len();
+        let deltas: Vec<i32> = self
+            .jokers
+            .iter()
+            .map(|j| Self::growth_delta(j.enhancement, event))
+            .collect();
+        for (slot, delta) in self.joker_state.iter_mut().zip(deltas) {
+            *slot += delta;
+        }
+    }
+
+    /// The scoring contribution of a counter joker given its accumulator, or
+    /// `None` if `joker` is not a counter joker (so scoring falls through to
+    /// `builtin_joker_op`). Arms are added per joker in later tasks, at which
+    /// point they will read board state through `&self`.
+    #[allow(clippy::match_single_binding, clippy::unused_self)]
+    fn counter_joker_op(&self, joker: &BuffoonCard, counter: i32) -> Option<ScoreOp> {
+        let _ = counter;
+        match joker.enhancement {
+            _ => None,
         }
     }
 }
@@ -1333,5 +1401,28 @@ mod funky__types__board__buffoon_board_tests {
         assert_eq!(board.jokers.len(), 1);
         // The survivor keeps its counter, now at index 0.
         assert_eq!(board.joker_state, vec![7]);
+    }
+
+    #[test]
+    fn on_hand_played__is_inert_without_counter_jokers() {
+        // A board with only a non-counter joker scores identically before and
+        // after events fire; the plumbing exists but does nothing yet.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::CAVENDISH); // MultTimes(3): 40/1 -> 40/3
+        let before = board.score();
+
+        board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
+        board.on_discard(&bcards!("2C 3C"));
+
+        assert_eq!(
+            board.score(),
+            before,
+            "no counter jokers -> events change nothing"
+        );
+        assert_eq!(
+            board.joker_state,
+            vec![0],
+            "Cavendish is not a counter joker"
+        );
     }
 }
