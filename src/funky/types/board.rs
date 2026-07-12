@@ -280,6 +280,27 @@ impl BuffoonBoard {
                 let dollars = usize::try_from(self.money).unwrap_or(0);
                 return ScoreOp::AddChips(n * dollars);
             }
+            // Scholar: +chips and +mult for each played card of the given rank;
+            // compounds with the count (+20 chips, +4 mult per played Ace).
+            MPip::MultPlusChipsOnRank(mult, chips, rank) => {
+                let count = self
+                    .played
+                    .iter()
+                    .filter(|card| card.rank.index == rank)
+                    .count();
+                return ScoreOp::Add(Score::new(chips * count, mult * count));
+            }
+            // Raised Fist: +n × the lowest-ranked held card's value to mult
+            // (nothing when the hand is empty).
+            MPip::MultPlusXOnLowestRankInHand(n) => {
+                let lowest = self
+                    .in_hand
+                    .iter()
+                    .map(|card| card.rank.value)
+                    .min()
+                    .unwrap_or(0);
+                return ScoreOp::AddMult(n * lowest);
+            }
             _ => {}
         }
 
@@ -1004,6 +1025,32 @@ mod funky__types__board__buffoon_board_tests {
         // Debt (negative money) never subtracts chips -> floors at 0.
         board.money = -20;
         assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__scholar_adds_chips_and_mult_per_played_ace() {
+        // Scholar: +20 chips and +4 mult for each played Ace, compounding with
+        // the number of Aces played (independent of the Ace's own chip value).
+        let mut board = board_playing("AS AD 8C TS KH"); // two Aces
+        let base = board.score();
+
+        board.jokers.push(card::SCHOLAR);
+        let scored = board.score();
+
+        assert_eq!(scored.chips, base.chips + 40, "+20 chips per Ace x2");
+        assert_eq!(scored.mult, base.mult + 8, "+4 mult per Ace x2");
+    }
+
+    #[test]
+    fn score__raised_fist_adds_double_lowest_held_rank_to_mult() {
+        // Raised Fist: +Mult equal to double the lowest-ranked held card's value.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.in_hand = bcards!("7H 3S"); // lowest held rank value = 3
+
+        board.jokers.push(card::RAISED_FIST);
+
+        // +2 x 3 = +6 mult; chips unchanged.
+        assert_eq!(board.score(), Score::new(40, 7));
     }
 
     #[test]

@@ -2003,17 +2003,14 @@ mod funky__decks__joker_tests {
     /// stays green while the debt stays visible. **Remove an entry when you wire
     /// it** — the guard fails if a listed joker starts scoring, forcing the
     /// cleanup, and fails if a *new* unlisted joker silently scores 0.
-    const KNOWN_UNWIRED: [BuffoonCard; 4] = [
-        // Chips(100): +100 chips (the −5-per-hand decay is a Phase 3 counter).
+    const KNOWN_UNWIRED: [BuffoonCard; 2] = [
+        // Chips(100): the current value is 100 − 5 × hands-played-this-run, so it
+        // needs the Phase 3 per-run hands counter; wiring a flat +100 would score
+        // wrong once a hand is played.
         card::ICE_CREAM,
-        // MultPlusChipsOnRank(4, 20, 'A'): +20 chips & +4 mult per played Ace —
-        // a per-scored-rank effect like Walkie Talkie (Phase 2).
-        card::SCHOLAR,
-        // MultPlusXOnLowestRankInHand(2): +2× the lowest held card's rank to mult
-        // — reads `in_hand`, like Baron (Phase 2/3).
-        card::RAISED_FIST,
-        // MultTimesOnEmptyJokerSlots(1): ×1 per empty joker slot — reads the
-        // board's joker count vs capacity (Phase 3).
+        // MultTimesOnEmptyJokerSlots(1): ×1 per empty joker slot needs a real
+        // joker-slot *limit* on the board (Vec capacity is not the game's 5-slot
+        // rule), so it waits on that Phase 3/8 state.
         card::JOKER_STENCIL,
     ];
 

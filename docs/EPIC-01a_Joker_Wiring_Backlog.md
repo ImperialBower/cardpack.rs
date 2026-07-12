@@ -280,10 +280,16 @@ each joker + its test. Track completion by flipping the Status table.
   - *Wrong-variant data bug, fixed here:* **Golden Joker** carried `Chips(4)` but
     is an economy joker ("earn $4 at round end") → set to `Blank` like its `+$`
     siblings, to be paid out in Phase 1c.
-  - *Genuine unwired scorers, tracked in `KNOWN_UNWIRED`* (remove each when wired):
-    **Ice Cream** `Chips(100)`, **Scholar** `MultPlusChipsOnRank`, **Raised Fist**
-    `MultPlusXOnLowestRankInHand`, **Joker Stencil** `MultTimesOnEmptyJokerSlots`.
-    All four are (near-)pure functions of board state and cheap to wire (Phase 2/3).
+  - *Pure-function scorers, wired here* (removed from `KNOWN_UNWIRED`):
+    **Scholar** `MultPlusChipsOnRank(4, 20, 'A')` → +20 chips & +4 mult per played
+    Ace (`builtin_joker_op`, like Walkie Talkie); test
+    `score__scholar_adds_chips_and_mult_per_played_ace`. **Raised Fist**
+    `MultPlusXOnLowestRankInHand(2)` → +2× the lowest held card's value to mult;
+    test `score__raised_fist_adds_double_lowest_held_rank_to_mult`.
+  - *Still unwired — genuinely need per-run state* (`KNOWN_UNWIRED`): **Ice Cream**
+    `Chips(100)` decays −5 per hand played (needs the Phase 3 hands counter; a flat
+    +100 would score wrong), and **Joker Stencil** `MultTimesOnEmptyJokerSlots`
+    needs a real joker-slot *limit* on the board (Vec capacity ≠ the 5-slot rule).
   - *Not catchable by this guard — separate data bug:* **Gros Michel** encodes
     only `ChanceDestroyed(1, 6)`; its **+15 mult is missing from the const
     entirely**. The guard classifies by the *variant*, so a joker using a
