@@ -17,7 +17,7 @@
 | Balatro concept | funky construct | Status |
 |---|---|---|
 | Playing card | `BuffoonCard` + `BCardType::Basic` | ✅ done |
-| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~100/150 declared (incl. first 5 Rare jokers), ~48 with effects, ~25 effect kinds scored (per-card rank family, hand-conditional ×mult, seeded probabilistic) |
+| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~105/150 declared (incl. 5 Rare + 5 Legendary), 4 rarity piles assembled, ~34 effect kinds scored (hand-conditional +/×mult, per-scored-rank/face, per-held-rank, board-count, held-suit, seeded probabilistic); the rest need subsystems (economy/counters/retriggers/mutation/blinds) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
 | Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
@@ -68,10 +68,10 @@
 
 - [x] ~95 joker consts with rarity, cost, and (for ~43) a wired `MPip` effect (`decks/joker.rs`, 1,459 lines)
 - [x] `COMMON_JOKERS` pile assembly (22 jokers, `joker.rs:8`)
-- [ ] Wire effects for the ~52 jokers currently carrying `MPip::Blank`
-- [~] Implement jokers 96–150 (mostly still a commented-out catalog). **Done: the first 5 Rare jokers** — The Duo/Trio/Family/Order/Tribe (#131–135), each with a wired hand-conditional ×mult effect and tests
-- [~] Uncommon/Rare/Legendary pile assemblies — **`UNCOMMON_JOKERS` (12) and `RARE_JOKERS` (5) done**, mirroring `COMMON_JOKERS`, with `pile_uncommon()`/`pile_rare()`. Legendary jokers not declared yet
-- [x] Data-invariant tests for `decks/joker.rs` — a shared `assert_rarity_pile` helper checks size / all-jokers / correct-rarity / distinct across all three rarity piles, plus a cross-pile no-duplicate check (39 jokers). Per-card cost checks still open
+- [~] Wire effects for the jokers carrying `MPip::Blank` — **all the deterministic pure-board-state ones are now wired** (8): Cavendish (`MultTimes(3)`), Abstract Joker (`MultPlusPerJoker(3)`), Blue Joker (`ChipsPerDeckCard(2)` → +104 fresh deck), Baron (`MultTimesPerHeldRank(15,'K')`, compounds), Scary Face (`ChipsPlusPerScoredFace(30)`), Walkie Talkie (`ChipsMultPlusPerScoredRanks(10,4,['T','4'])`), Blackboard (`MultTimesIfHeldAllSuits(3,['S','C'])`, vacuous-true when hand empty), Baseball Card (`MultTimesPerUncommonJoker(15)`, compounds). Each reads only current board state (`jokers`/`deck`/`in_hand`/`played`), exact wiki values, one test each. **The remaining ~43 are all genuinely blocked** on subsystems that don't exist: economy/`$` (no money state), cross-round/per-run counters (Green Joker, Vampire, Constellation, Hologram…), retriggers (Hack, Mime, Dusk…), deck mutation/create (DNA, Séance, Riff-Raff…), rule modifiers (Pareidolia, Splash, Shortcut — change hand detection), full-deck attributes (Steel/Stone Joker, Erosion), boss blinds (Madness, Luchador), and game state (Juggler hand size, Drunkard discards). **The full pickup-ready breakdown — every remaining joker grouped by the subsystem it needs, ordered by leverage — is in [`EPIC-01a_Joker_Wiring_Backlog.md`](./EPIC-01a_Joker_Wiring_Backlog.md)** (which also flags a live silent-zero bug: Banner and Mystic Summit carry draws-reading variants that no scoring path handles)
+- [~] Implement jokers 96–150 (mostly still a commented-out catalog). **Done: the 5 Rare jokers** (The Duo/Trio/Family/Order/Tribe, #131–135) and **the 5 Legendary jokers** (#146–150) are declared. **Triboulet is scored** (`MultTimesPerScoredRank(2, ['K','Q'])` = ×2 per played King/Queen, compounding); Canio/Yorick/Chicot/Perkeo stay `Blank` (need destruction/discard/blind/consumable systems)
+- [x] Uncommon/Rare/Legendary pile assemblies — **all done**: `UNCOMMON_JOKERS` (12), `RARE_JOKERS` (5), `LEGENDARY_JOKERS` (5), mirroring `COMMON_JOKERS`, with `pile_uncommon()`/`pile_rare()`/`pile_legendary()`
+- [x] Data-invariant tests for `decks/joker.rs` — a shared `assert_rarity_pile` helper checks size / all-jokers / correct-rarity / distinct across all four rarity piles, plus a cross-pile no-duplicate check (44 jokers). Per-card cost checks still open
 
 ## Story 5: Hand detection & hand levels
 

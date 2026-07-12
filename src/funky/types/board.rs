@@ -1,6 +1,8 @@
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
-use crate::preludes::funky::{BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score};
+use crate::preludes::funky::{
+    BCardType, BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score,
+};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
@@ -236,6 +238,29 @@ impl BuffoonBoard {
     /// Built-in joker contribution as a [`ScoreOp`]: a ×mult for a (satisfied)
     /// multiplicative joker, otherwise its additive chips/mult.
     fn builtin_joker_op(&self, joker: &BuffoonCard) -> ScoreOp {
+        // Board-reading additive jokers (a pure function of the current board).
+        match joker.enhancement {
+            MPip::MultPlusPerJoker(n) => return ScoreOp::AddMult(n * self.jokers.len()),
+            MPip::ChipsPerDeckCard(n) => return ScoreOp::AddChips(n * self.deck.len()),
+            MPip::ChipsPlusPerScoredFace(n) => {
+                let faces = self
+                    .played
+                    .iter()
+                    .filter(|card| matches!(card.rank.index, 'K' | 'Q' | 'J'))
+                    .count();
+                return ScoreOp::AddChips(n * faces);
+            }
+            MPip::ChipsMultPlusPerScoredRanks(chips, mult, ranks) => {
+                let count = self
+                    .played
+                    .iter()
+                    .filter(|card| ranks.contains(&card.rank.index))
+                    .count();
+                return ScoreOp::Add(Score::new(chips * count, mult * count));
+            }
+            _ => {}
+        }
+
         self.joker_x_mult(joker).map_or_else(
             || ScoreOp::Add(self.played.calculate_plus(joker)),
             ScoreOp::TimesMult,
@@ -258,6 +283,44 @@ impl BuffoonBoard {
             MPip::MultTimesOn4OfAKind(n) if played.has_4_of_a_kind() => n as f32,
             MPip::MultTimesOnStraight(n) if played.has_straight() => n as f32,
             MPip::MultTimesOnFlush(n) if played.has_flush() => n as f32,
+            MPip::MultTimesPerScoredRank(n, ranks) => {
+                // ×n for each played card of a matching rank; the factor
+                // compounds, e.g. two Kings and a Queen with Triboulet = ×2³.
+                let matches = played
+                    .iter()
+                    .filter(|card| ranks.contains(&card.rank.index))
+                    .count();
+                (0..matches).fold(1.0, |acc, _| acc * n as f32)
+            }
+            MPip::MultTimesPerHeldRank(tenths, rank) => {
+                // ×(tenths/10) for each held card of `rank`; compounds. Baron.
+                let held = self
+                    .in_hand
+                    .iter()
+                    .filter(|card| card.rank.index == rank)
+                    .count();
+                let per = tenths as f32 / 10.0;
+                (0..held).fold(1.0, |acc, _| acc * per)
+            }
+            MPip::MultTimesPerUncommonJoker(tenths) => {
+                // ×(tenths/10) per Uncommon joker on the board; compounds. Baseball Card.
+                let uncommon = self
+                    .jokers
+                    .iter()
+                    .filter(|j| j.card_type == BCardType::UncommonJoker)
+                    .count();
+                let per = tenths as f32 / 10.0;
+                (0..uncommon).fold(1.0, |acc, _| acc * per)
+            }
+            MPip::MultTimesIfHeldAllSuits(n, suits)
+                if self
+                    .in_hand
+                    .iter()
+                    .all(|card| suits.contains(&card.suit.index)) =>
+            {
+                // Blackboard: vacuously true (×n) when the hand is empty.
+                n as f32
+            }
             _ => return None,
         };
         Some(factor)
@@ -778,6 +841,122 @@ mod funky__types__board__buffoon_board_tests {
             }
         );
         assert_eq!(score.score(), 735);
+    }
+
+    #[test]
+    fn score__abstract_joker_scales_with_joker_count() {
+        // +3 mult per joker on the board (counting itself).
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card (5,1) + 35 chips = 40/1
+        board.jokers.push(card::ABSTRACT_JOKER);
+        assert_eq!(board.score(), Score::new(40, 4)); // 1 joker -> +3
+
+        board.jokers.push(card::JOKER); // now 2 jokers; Abstract +3x2=6 then Joker +4
+        assert_eq!(board.score(), Score::new(40, 11));
+    }
+
+    #[test]
+    fn score__blue_joker_scales_with_deck_size() {
+        // +2 chips per card remaining in the deck (a fresh 52-card deck -> +104).
+        let mut board = board_playing("2S 5D 8C TS KH");
+        assert_eq!(board.deck.len(), 52);
+        board.jokers.push(card::BLUE_JOKER);
+        // High Card (5,1) + 35 card chips = 40/1; +2x52 = +104 chips -> 144/1.
+        assert_eq!(board.score(), Score::new(144, 1));
+    }
+
+    #[test]
+    fn score__baron_compounds_per_held_king() {
+        let mut board = board_playing("AS KS QS JS TS"); // royal flush: 100/8 + 51 = 151/8
+        board.jokers.push(card::BARON);
+
+        // No Kings held -> x1.
+        assert_eq!(board.score(), Score::new(151, 8));
+
+        // One held King -> x1.5 -> ceil(8*1.5)=12.
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS]);
+        assert_eq!(board.score(), Score::new(151, 12));
+
+        // Two held Kings -> x1.5^2 = x2.25 -> ceil(8*2.25)=18.
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::KING_DIAMONDS]);
+        assert_eq!(board.score(), Score::new(151, 18));
+    }
+
+    #[test]
+    fn score__scary_face_adds_chips_per_face() {
+        // +30 chips per played face card (J/Q/K).
+        let mut board = board_playing("KS QD JC 2S 3H"); // 3 faces
+        board.jokers.push(card::SCARY_FACE);
+        // High Card (5,1) + cards (10+10+10+2+3 = 35) = 40/1; +30×3 = +90 -> 130/1.
+        assert_eq!(board.score(), Score::new(130, 1));
+
+        // No face cards -> no contribution.
+        let mut none = board_playing("2S 5D 8C TS 9H");
+        none.jokers.push(card::SCARY_FACE);
+        assert_eq!(none.score(), Score::new(39, 1));
+    }
+
+    #[test]
+    fn score__walkie_talkie_per_ten_or_four() {
+        // +10 chips and +4 mult per played 10 or 4.
+        let mut board = board_playing("TS TD 4C 2S 3H"); // two 10s + one 4 = 3 matches
+        board.jokers.push(card::WALKIE_TALKIE);
+        // Pair (10,2) + cards (10+10+4+2+3 = 29) = 39/2; +30 chips, +12 mult -> 69/14.
+        assert_eq!(board.score(), Score::new(69, 14));
+    }
+
+    #[test]
+    fn score__blackboard_x3_when_held_all_spades_or_clubs() {
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.jokers.push(card::BLACKBOARD);
+
+        // All held are Spades/Clubs -> ×3.
+        board.in_hand = BuffoonPile::from(vec![basic::KING_SPADES, basic::QUEEN_CLUBS]);
+        assert_eq!(board.score(), Score::new(40, 3));
+
+        // A held Heart breaks the condition -> ×1 (inert).
+        board.in_hand = BuffoonPile::from(vec![basic::KING_SPADES, basic::QUEEN_HEARTS]);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Empty hand is vacuously true -> ×3 (matches Balatro).
+        board.in_hand = BuffoonPile::default();
+        assert_eq!(board.score(), Score::new(40, 3));
+    }
+
+    #[test]
+    fn score__baseball_card_scales_with_uncommon_jokers() {
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.jokers.push(card::BASEBALL_CARD); // Common itself -> not counted
+
+        // No Uncommon jokers -> ×1.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // One Uncommon joker (Steel Joker, inert here) -> ×1.5 -> ceil(1×1.5)=2.
+        board.jokers.push(card::STEEL_JOKER);
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__cavendish_x3_end_to_end() {
+        // Cavendish = MPip::MultTimes(3), an unconditional ×3.
+        let mut board = board_playing("2S 5D 8C TS KH"); // high card
+        board.jokers.push(card::CAVENDISH);
+        // Phase 1 (High Card) 5/1 + cards (2+5+8+10+10 = 35) = 40/1; ×3 -> 40/3.
+        assert_eq!(board.score(), Score::new(40, 3));
+    }
+
+    #[test]
+    fn score__triboulet_compounds_per_king_and_queen() {
+        // Triboulet: ×2 mult per played King or Queen (compounds).
+        let mut board = board_playing("KS QS 2D 3C 4H"); // 1 King + 1 Queen
+        board.jokers.push(card::TRIBOULET);
+        // Phase 1 (High Card) 5/1 + cards (10+10+2+3+4 = 29) = 34/1.
+        // Two matches -> ×2² = ×4 -> 34/4.
+        assert_eq!(board.score(), Score::new(34, 4));
+
+        // No Kings/Queens -> ×2⁰ = ×1 (inert).
+        let mut none = board_playing("2S 5D 8C TS 9H");
+        none.jokers.push(card::TRIBOULET);
+        assert_eq!(none.score().mult, none.scoring_phase1_pre_scoring().mult);
     }
 
     #[test]

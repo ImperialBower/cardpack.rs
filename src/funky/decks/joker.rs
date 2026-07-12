@@ -71,6 +71,21 @@ impl Joker {
     pub fn pile_rare() -> BuffoonPile {
         BuffoonPile::from(&Self::RARE_JOKERS[..])
     }
+
+    pub const LEGENDARY_JOKERS_SIZE: usize = 5;
+
+    pub const LEGENDARY_JOKERS: [BuffoonCard; Self::LEGENDARY_JOKERS_SIZE] = [
+        card::CANIO,
+        card::TRIBOULET,
+        card::YORICK,
+        card::CHICOT,
+        card::PERKEO,
+    ];
+
+    #[must_use]
+    pub fn pile_legendary() -> BuffoonPile {
+        BuffoonPile::from(&Self::LEGENDARY_JOKERS[..])
+    }
 }
 
 pub mod card {
@@ -543,7 +558,8 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Scary Face: played face cards give +30 chips when scored.
+        enhancement: MPip::ChipsPlusPerScoredFace(30),
         resell_value: 2,
         debuffed: false,
     };
@@ -557,7 +573,8 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Abstract Joker: +3 mult for each joker on the board.
+        enhancement: MPip::MultPlusPerJoker(3),
         resell_value: 2,
         debuffed: false,
     };
@@ -758,7 +775,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Blackboard: ×3 mult if all cards held in hand are Spades or Clubs.
+        enhancement: MPip::MultTimesIfHeldAllSuits(3, ['S', 'C']),
         resell_value: 3,
         debuffed: false,
     };
@@ -828,7 +846,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Blue Joker: +2 chips for each card remaining in the deck.
+        enhancement: MPip::ChipsPerDeckCard(2),
         resell_value: 0,
         debuffed: false,
     };
@@ -940,7 +959,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Cavendish: X3 Mult (unconditional).
+        enhancement: MPip::MultTimes(3),
         resell_value: 0,
         debuffed: false,
     };
@@ -1094,7 +1114,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Baron: each King held in hand gives ×1.5 mult (compounds).
+        enhancement: MPip::MultTimesPerHeldRank(15, 'K'),
         resell_value: 0,
         debuffed: false,
     };
@@ -1290,7 +1311,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Baseball Card: Uncommon jokers each give ×1.5 mult (compounds).
+        enhancement: MPip::MultTimesPerUncommonJoker(15),
         resell_value: 0,
         debuffed: false,
     };
@@ -1416,7 +1438,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Walkie Talkie: each played 10 or 4 gives +10 chips and +4 mult.
+        enhancement: MPip::ChipsMultPlusPerScoredRanks(10, 4, ['T', '4']),
         resell_value: 0,
         debuffed: false,
     };
@@ -1497,6 +1520,86 @@ pub mod card {
         card_type: BCardType::RareJoker,
         enhancement: MPip::MultTimesOnFlush(2),
         resell_value: 4,
+        debuffed: false,
+    };
+
+    // Legendary jokers (Balatro #146–150), only obtainable from The Soul card,
+    // so they have no shop cost. Only Triboulet is a pure scoring effect; the
+    // rest depend on systems not modelled yet (card destruction, discard
+    // counters, boss blinds, consumables) and stay `Blank` for now.
+    pub const CANIO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 640,
+            pip_type: PipType::Joker,
+            index: '🎭',
+            symbol: '🎭',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::Blank, // gains ×1 mult when a face card is destroyed
+        resell_value: 0,
+        debuffed: false,
+    };
+
+    pub const TRIBOULET: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 635,
+            pip_type: PipType::Joker,
+            index: '👑',
+            symbol: '👑',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        // Played Kings and Queens each give ×2 mult when scored.
+        enhancement: MPip::MultTimesPerScoredRank(2, ['K', 'Q']),
+        resell_value: 0,
+        debuffed: false,
+    };
+
+    pub const YORICK: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 630,
+            pip_type: PipType::Joker,
+            index: '💀',
+            symbol: '💀',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::Blank, // gains ×1 mult every 23 cards discarded
+        resell_value: 0,
+        debuffed: false,
+    };
+
+    pub const CHICOT: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 625,
+            pip_type: PipType::Joker,
+            index: '🎪',
+            symbol: '🎪',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::Blank, // disables the effect of every Boss Blind
+        resell_value: 0,
+        debuffed: false,
+    };
+
+    pub const PERKEO: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 620,
+            pip_type: PipType::Joker,
+            index: '🧪',
+            symbol: '🧪',
+            value: 0,
+        },
+        card_type: BCardType::LegendaryJoker,
+        enhancement: MPip::Blank, // creates a Negative copy of a consumable
+        resell_value: 0,
         debuffed: false,
     };
 }
@@ -1624,11 +1727,22 @@ mod funky__decks__joker_tests {
     }
 
     #[test]
+    fn legendary_jokers__data_invariants() {
+        assert_rarity_pile(
+            &Joker::LEGENDARY_JOKERS,
+            Joker::LEGENDARY_JOKERS_SIZE,
+            BCardType::LegendaryJoker,
+        );
+        assert_eq!(Joker::pile_legendary().len(), Joker::LEGENDARY_JOKERS_SIZE);
+    }
+
+    #[test]
     fn rarity_piles__no_card_appears_in_two_piles() {
         let mut all: Vec<BuffoonCard> = Vec::new();
         all.extend(Joker::COMMON_JOKERS);
         all.extend(Joker::UNCOMMON_JOKERS);
         all.extend(Joker::RARE_JOKERS);
+        all.extend(Joker::LEGENDARY_JOKERS);
 
         let distinct: HashSet<_> = all.iter().collect();
         assert_eq!(

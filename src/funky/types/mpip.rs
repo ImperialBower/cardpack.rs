@@ -72,6 +72,30 @@ pub enum MPip {
     MultTimesOn4OfAKind(usize),
     MultTimesOnStraight(usize),
     MultTimesOnFlush(usize),
+    /// ×n mult for **each** played card whose rank is in the set — the factor
+    /// compounds (`n^count`). Used by Triboulet (×2 per played King or Queen).
+    MultTimesPerScoredRank(usize, [char; 2]),
+    /// +n mult for **each** joker on the board (counting the source). Used by
+    /// Abstract Joker (+3 per joker).
+    MultPlusPerJoker(usize),
+    /// +n chips for **each** card remaining in the deck. Used by Blue Joker
+    /// (+2 per card in deck).
+    ChipsPerDeckCard(usize),
+    /// ×(n/10) mult for **each** card of the given rank **held in hand** — the
+    /// factor compounds. Used by Baron (×1.5 per held King).
+    MultTimesPerHeldRank(usize, char),
+    /// +n chips for **each** played face card (J/Q/K). Used by Scary Face (+30).
+    ChipsPlusPerScoredFace(usize),
+    /// +chips and +mult for **each** played card whose rank is in the set. Used
+    /// by Walkie Talkie (+10 chips, +4 mult per played 10 or 4).
+    ChipsMultPlusPerScoredRanks(usize, usize, [char; 2]),
+    /// ×(n/10) mult for **each** Uncommon joker on the board — compounds. Used
+    /// by Baseball Card (×1.5 per Uncommon joker).
+    MultTimesPerUncommonJoker(usize),
+    /// ×n mult if **every** card held in hand has a suit in the set (vacuously
+    /// true when the hand is empty). Used by Blackboard (×3 if all held are
+    /// Spades or Clubs).
+    MultTimesIfHeldAllSuits(usize, [char; 2]),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -209,6 +233,24 @@ impl Display for MPip {
             Self::MultTimesOn4OfAKind(value) => write!(f, "MultTimesOn4OfAKind({value})"),
             Self::MultTimesOnStraight(value) => write!(f, "MultTimesOnStraight({value})"),
             Self::MultTimesOnFlush(value) => write!(f, "MultTimesOnFlush({value})"),
+            Self::MultTimesPerScoredRank(value, ranks) => {
+                write!(f, "MultTimesPerScoredRank({value}, {ranks:?})")
+            }
+            Self::MultPlusPerJoker(value) => write!(f, "MultPlusPerJoker({value})"),
+            Self::ChipsPerDeckCard(value) => write!(f, "ChipsPerDeckCard({value})"),
+            Self::MultTimesPerHeldRank(value, rank) => {
+                write!(f, "MultTimesPerHeldRank({value}, {rank})")
+            }
+            Self::ChipsPlusPerScoredFace(value) => write!(f, "ChipsPlusPerScoredFace({value})"),
+            Self::ChipsMultPlusPerScoredRanks(chips, mult, ranks) => {
+                write!(f, "ChipsMultPlusPerScoredRanks({chips}, {mult}, {ranks:?})")
+            }
+            Self::MultTimesPerUncommonJoker(value) => {
+                write!(f, "MultTimesPerUncommonJoker({value})")
+            }
+            Self::MultTimesIfHeldAllSuits(value, suits) => {
+                write!(f, "MultTimesIfHeldAllSuits({value}, {suits:?})")
+            }
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
