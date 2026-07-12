@@ -1918,7 +1918,13 @@ mod funky__decks__joker_tests {
             | MPip::MultTimesPerScoredRank(_, _)
             | MPip::MultTimesPerHeldRank(_, _)
             | MPip::MultTimesPerUncommonJoker(_)
-            | MPip::MultTimesIfHeldAllSuits(_, _) => true,
+            | MPip::MultTimesIfHeldAllSuits(_, _)
+            | MPip::GainMultPerHandLessDiscard(_)
+            | MPip::LoseMultTimesPerDiscard(_, _)
+            | MPip::LoseChipsPerHand(_, _)
+            | MPip::GainChipsPerCardCountHand(_, _)
+            | MPip::GainMultPerTwoPairHand(_)
+            | MPip::GainChipsPerStraightHand(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---

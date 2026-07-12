@@ -99,6 +99,22 @@ pub enum MPip {
     /// +n chips for **each** $1 of money the run holds; debt (negative money)
     /// scores nothing. Used by Bull (+2 chips per dollar).
     ChipsPerDollar(usize),
+    /// Green Joker: +n mult per hand played, −n per discard; the accumulator is
+    /// the net (hands − discards), the read floors it at 0.
+    GainMultPerHandLessDiscard(usize),
+    /// Ramen: starts at `base`/100 ×mult and loses `per`/100 per card discarded;
+    /// the accumulator counts cards discarded. Read floors at ×1.
+    LoseMultTimesPerDiscard(usize, usize),
+    /// Ice Cream: starts at `base` chips and loses `per` per hand played; the
+    /// accumulator counts hands played. Read floors at 0.
+    LoseChipsPerHand(usize, usize),
+    /// Square Joker: +`rate` chips per hand played with exactly `n` cards; the
+    /// accumulator counts qualifying hands.
+    GainChipsPerCardCountHand(usize, usize),
+    /// Spare Trousers: +`rate` mult per hand played containing a Two Pair.
+    GainMultPerTwoPairHand(usize),
+    /// Runner: +`rate` chips per hand played containing a Straight.
+    GainChipsPerStraightHand(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -255,6 +271,16 @@ impl Display for MPip {
                 write!(f, "MultTimesIfHeldAllSuits({value}, {suits:?})")
             }
             Self::ChipsPerDollar(value) => write!(f, "ChipsPerDollar({value})"),
+            Self::GainMultPerHandLessDiscard(n) => write!(f, "GainMultPerHandLessDiscard({n})"),
+            Self::LoseMultTimesPerDiscard(base, per) => {
+                write!(f, "LoseMultTimesPerDiscard({base}, {per})")
+            }
+            Self::LoseChipsPerHand(base, per) => write!(f, "LoseChipsPerHand({base}, {per})"),
+            Self::GainChipsPerCardCountHand(rate, n) => {
+                write!(f, "GainChipsPerCardCountHand({rate}, {n})")
+            }
+            Self::GainMultPerTwoPairHand(n) => write!(f, "GainMultPerTwoPairHand({n})"),
+            Self::GainChipsPerStraightHand(n) => write!(f, "GainChipsPerStraightHand({n})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
@@ -286,5 +312,33 @@ mod funky__types__mpips_tests {
     #[test]
     fn default() {
         assert_eq!(MPip::default(), MPip::Blank);
+    }
+
+    #[test]
+    fn display__counter_variants() {
+        assert_eq!(
+            MPip::GainMultPerHandLessDiscard(1).to_string(),
+            "GainMultPerHandLessDiscard(1)"
+        );
+        assert_eq!(
+            MPip::LoseMultTimesPerDiscard(200, 1).to_string(),
+            "LoseMultTimesPerDiscard(200, 1)"
+        );
+        assert_eq!(
+            MPip::LoseChipsPerHand(100, 5).to_string(),
+            "LoseChipsPerHand(100, 5)"
+        );
+        assert_eq!(
+            MPip::GainChipsPerCardCountHand(4, 4).to_string(),
+            "GainChipsPerCardCountHand(4, 4)"
+        );
+        assert_eq!(
+            MPip::GainMultPerTwoPairHand(2).to_string(),
+            "GainMultPerTwoPairHand(2)"
+        );
+        assert_eq!(
+            MPip::GainChipsPerStraightHand(15).to_string(),
+            "GainChipsPerStraightHand(15)"
+        );
     }
 }
