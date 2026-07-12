@@ -57,15 +57,15 @@ was careful to avoid), so each is gated behind building the real mechanism.
 
 | Subsystem (phase) | Unblocks (declared Blank jokers) | Status |
 |---|---|---|
-| 1 — Economy / money | Bull + all `+$` jokers | Planned |
-| 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | Planned |
+| 1 — Economy / money | Bull + all `+$` jokers | **1a/1b done** (money field + Bull); 1c planned |
+| 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | Planned |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | Planned |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | Planned |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
-| — Data fixes (no subsystem) | Baron rarity, Blackboard weight | Planned |
+| 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard | **Complete** |
 
 ---
 
@@ -259,29 +259,52 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
 Phases are ordered by leverage. Within a phase: build the state/hook, then wire
 each joker + its test. Track completion by flipping the Status table.
 
-### Phase 0 — Prerequisites
+### Phase 0 — Prerequisites  *(Complete)*
 
-- [ ] **0a.** Land the two data fixes (Baron rarity/cost, Blackboard weight);
-  update the `RARE_JOKERS` pile + `assert_rarity_pile` tests.
-- [ ] **0b.** Audit for other **assigned-but-unscored** variants like Banner /
-  Mystic Summit: for each `MPip` variant used by a joker const, assert it is
-  reachable in scoring (a data-invariant test would catch this class of
-  silent-zero bug crate-wide).
+- [x] **0a.** Data fixes landed. **Baron** → Rare / $8, added to `RARE_JOKERS`
+  (size 5→6); test `baron__is_rare_dollar_eight_and_piled`. **Weights** made
+  unique across all 105 joker consts (test `all_jokers__weights_are_unique`).
+  *Finding:* the Blackboard/Abstract `895` clash the EPIC flagged was 1 of **14**
+  collisions (all among the 61 defined-but-unpiled consts; `weight` is a
+  cosmetic sort key, never a lookup key). All 16 duplicate consts were re-weighted
+  to unique nearby values; the 44 piled jokers were already unique.
+- [x] **0b.** Silent-zero guard landed: a test-only `ALL_JOKERS` registry (all
+  105 consts, kept a superset of the four piles by
+  `all_jokers__is_superset_of_every_pile`), an exhaustive `scores_hand(MPip)`
+  intent oracle, a probe-board battery, and
+  `all_jokers__intended_hand_scorers_are_reachable`, which fails if any joker
+  that *intends* to score adds nothing. The exhaustive match makes it crate-wide:
+  a new `MPip` variant will not compile until classified.
+
+  **Audit findings** (jokers that were silently scoring 0, beyond Banner/Mystic):
+  - *Wrong-variant data bug, fixed here:* **Golden Joker** carried `Chips(4)` but
+    is an economy joker ("earn $4 at round end") → set to `Blank` like its `+$`
+    siblings, to be paid out in Phase 1c.
+  - *Genuine unwired scorers, tracked in `KNOWN_UNWIRED`* (remove each when wired):
+    **Ice Cream** `Chips(100)`, **Scholar** `MultPlusChipsOnRank`, **Raised Fist**
+    `MultPlusXOnLowestRankInHand`, **Joker Stencil** `MultTimesOnEmptyJokerSlots`.
+    All four are (near-)pure functions of board state and cheap to wire (Phase 2/3).
+  - *Not catchable by this guard — separate data bug:* **Gros Michel** encodes
+    only `ChanceDestroyed(1, 6)`; its **+15 mult is missing from the const
+    entirely**. The guard classifies by the *variant*, so a joker using a
+    non-scoring variant when it should score is invisible to it. Needs a compound
+    `chance + mult` representation.
 
 ### Phase 1 — Economy / money  *(keystone)*
 
-- [ ] **1a.** Add `BuffoonBoard.money: isize` (`board.rs:14`), default 0.
-- [ ] **1b.** `MPip::ChipsPerDollar(usize)` + `builtin_joker_op` arm; wire **Bull**;
-  test `score__bull_scales_with_money`.
+- [x] **1a.** Added `BuffoonBoard.money: isize` (`board.rs`), default 0.
+- [x] **1b.** `MPip::ChipsPerDollar(usize)` + `builtin_joker_op` arm; **Bull**
+  wired; test `score__bull_scales_with_money`.
 - [ ] **1c.** Lifecycle hooks (`on_round_end`, `on_discard`, `on_scored`) that pay
   out the `+$` jokers; one test per payout. *(Can trail — not scoring.)*
 
 ### Phase 2 — Round & hand state
 
-- [ ] **2a.** Add the `builtin_joker_op` arm for `MultPlusOnZeroDiscards` reading
-  `self.draws.discards`; **Mystic Summit** stops silently scoring 0.
-- [ ] **2b.** Add the `builtin_joker_op` arm for `ChipsPerRemainingDiscard`;
-  **Banner** stops silently scoring 0.
+- [x] **2a.** `builtin_joker_op` arm for `MultPlusOnZeroDiscards` reading
+  `self.draws.discards`; **Mystic Summit** no longer scores 0; test
+  `score__mystic_summit_adds_mult_only_when_no_discards`.
+- [x] **2b.** `builtin_joker_op` arm for `ChipsPerRemainingDiscard`; **Banner**
+  no longer scores 0; test `score__banner_adds_chips_per_remaining_discard`.
 - [ ] **2c.** `on_blind_selected()` hook + `Draws` mutators for Burglar/Juggler/
   Drunkard (game state, not scoring).
 

@@ -57,7 +57,7 @@ impl Joker {
         BuffoonPile::from(&Self::UNCOMMON_JOKERS[..])
     }
 
-    pub const RARE_JOKERS_SIZE: usize = 5;
+    pub const RARE_JOKERS_SIZE: usize = 6;
 
     pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
         card::THE_DUO,
@@ -65,6 +65,7 @@ impl Joker {
         card::THE_FAMILY,
         card::THE_ORDER,
         card::THE_TRIBE,
+        card::BARON,
     ];
 
     #[must_use]
@@ -712,7 +713,7 @@ pub mod card {
     pub const RIDE_THE_BUS: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 910,
+            weight: 916,
             pip_type: PipType::Joker,
             index: '🚌',
             symbol: '🚌',
@@ -726,7 +727,7 @@ pub mod card {
     pub const SPACE_JOKER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 910,
+            weight: 917,
             pip_type: PipType::Joker,
             index: '∝',
             symbol: '∝',
@@ -740,7 +741,7 @@ pub mod card {
     pub const EGG: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 905,
+            weight: 918,
             pip_type: PipType::Joker,
             index: '∞',
             symbol: '∞',
@@ -754,7 +755,7 @@ pub mod card {
     pub const BURGLAR: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 900,
+            weight: 919,
             pip_type: PipType::Joker,
             index: '∟',
             symbol: '∟',
@@ -768,7 +769,7 @@ pub mod card {
     pub const BLACKBOARD: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 895,
+            weight: 896,
             pip_type: PipType::Joker,
             index: '∠',
             symbol: '∠',
@@ -783,7 +784,7 @@ pub mod card {
     pub const RUNNER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 890,
+            weight: 891,
             pip_type: PipType::Joker,
             index: '∡',
             symbol: '∡',
@@ -797,7 +798,7 @@ pub mod card {
     pub const ICE_CREAM: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 885,
+            weight: 886,
             pip_type: PipType::Joker,
             index: '∢',
             symbol: '∢',
@@ -811,7 +812,7 @@ pub mod card {
     pub const DNA: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 880,
+            weight: 881,
             pip_type: PipType::Joker,
             index: '∣',
             symbol: '∣',
@@ -825,7 +826,7 @@ pub mod card {
     pub const SPLASH: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 875,
+            weight: 876,
             pip_type: PipType::Joker,
             index: '∤',
             symbol: '∤',
@@ -839,7 +840,7 @@ pub mod card {
     pub const BLUE_JOKER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 870,
+            weight: 871,
             pip_type: PipType::Joker,
             index: '∥',
             symbol: '∥',
@@ -854,7 +855,7 @@ pub mod card {
     pub const SIXTH_SENSE: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 865,
+            weight: 866,
             pip_type: PipType::Joker,
             index: '∦',
             symbol: '∦',
@@ -868,7 +869,7 @@ pub mod card {
     pub const CONSTELLATION: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 860,
+            weight: 861,
             pip_type: PipType::Joker,
             index: '∧',
             symbol: '∧',
@@ -882,7 +883,7 @@ pub mod card {
     pub const HIKER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 855,
+            weight: 856,
             pip_type: PipType::Joker,
             index: '∨',
             symbol: '∨',
@@ -896,7 +897,7 @@ pub mod card {
     pub const FACELESS_JOKER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 850,
+            weight: 851,
             pip_type: PipType::Joker,
             index: '∩',
             symbol: '∩',
@@ -1111,9 +1112,9 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∸',
             symbol: '∸',
-            value: 5,
+            value: 8,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         // Baron: each King held in hand gives ×1.5 mult (compounds).
         enhancement: MPip::MultTimesPerHeldRank(15, 'K'),
         resell_value: 0,
@@ -1283,7 +1284,11 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Chips(4),
+        // Golden Joker: earn $4 at end of round — economy, not hand score.
+        // Blank until the money-payout lifecycle lands (EPIC-01a Phase 1c),
+        // matching the other `+$` jokers (Rocket, To the Moon, …). It was
+        // mislabelled `Chips(4)`, which made it silently add 0 chips.
+        enhancement: MPip::Blank,
         resell_value: 0,
         debuffed: false,
     };
@@ -1417,7 +1422,7 @@ pub mod card {
     pub const RAMEN: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 800,
+            weight: 801,
             pip_type: PipType::Joker,
             index: '🍜',
             symbol: '🍜',
@@ -1431,7 +1436,7 @@ pub mod card {
     pub const WALKIE_TALKIE: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
-            weight: 800,
+            weight: 802,
             pip_type: PipType::Joker,
             index: '📻',
             symbol: '📻',
@@ -1681,8 +1686,375 @@ pub mod card {
 #[allow(non_snake_case)]
 mod funky__decks__joker_tests {
     use super::*;
-    use crate::preludes::funky::BCardType;
+    use crate::bcards;
+    use crate::funky::types::board::BuffoonBoard;
+    use crate::funky::types::draws::Draws;
+    use crate::funky::types::mpip::MPip;
+    use crate::preludes::funky::{BCardType, Deck};
     use std::collections::HashSet;
+
+    /// Every joker const defined in this file, in declaration order. The single
+    /// iteration point for crate-wide data invariants (weight uniqueness, the
+    /// scoring-reachability guard). A joker is only protected by those guards
+    /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
+    /// four rarity piles from drifting out of it.
+    const ALL_JOKERS: [BuffoonCard; 105] = [
+        card::JOKER,
+        card::GREEDY_JOKER,
+        card::LUSTY_JOKER,
+        card::WRATHFUL_JOKER,
+        card::GLUTTONOUS_JOKER,
+        card::JOLLY_JOKER,
+        card::ZANY_JOKER,
+        card::MAD_JOKER,
+        card::CRAZY_JOKER,
+        card::DROLL_JOKER,
+        card::SLY_JOKER,
+        card::WILY_JOKER,
+        card::CLEVER_JOKER,
+        card::DEVIOUS_JOKER,
+        card::CRAFTY_JOKER,
+        card::HALF_JOKER,
+        card::JOKER_STENCIL,
+        card::FOUR_FINGERS,
+        card::MIME,
+        card::CREDIT_CARD,
+        card::CEREMONIAL_DAGGER,
+        card::BANNER,
+        card::MYSTIC_SUMMIT,
+        card::MARBLE_JOKER,
+        card::LOYALTY_CARD,
+        card::EIGHT_BALL,
+        card::MISPRINT,
+        card::DUSK,
+        card::RAISED_FIST,
+        card::CHAOS_THE_CLOWN,
+        card::FIBONACCI,
+        card::STEEL_JOKER,
+        card::SCARY_FACE,
+        card::ABSTRACT_JOKER,
+        card::DELAYED_GRATIFICATION,
+        card::HACK,
+        card::PAREIDOLIA,
+        card::GROS_MICHEL,
+        card::EVEN_STEVEN,
+        card::ODD_TODD,
+        card::SCHOLAR,
+        card::BUSINESS_CARD,
+        card::SUPERNOVA,
+        card::RIDE_THE_BUS,
+        card::SPACE_JOKER,
+        card::EGG,
+        card::BURGLAR,
+        card::BLACKBOARD,
+        card::RUNNER,
+        card::ICE_CREAM,
+        card::DNA,
+        card::SPLASH,
+        card::BLUE_JOKER,
+        card::SIXTH_SENSE,
+        card::CONSTELLATION,
+        card::HIKER,
+        card::FACELESS_JOKER,
+        card::GREEN_JOKER,
+        card::SUPERPOSITION,
+        card::TO_DO_LIST,
+        card::CAVENDISH,
+        card::CARD_SHARP,
+        card::RED_CARD,
+        card::MADNESS,
+        card::SQUARE_JOKER,
+        card::SEANCE,
+        card::RIFF_RAFF,
+        card::VAMPIRE,
+        card::SHORTCUT,
+        card::HOLOGRAM,
+        card::VAGABOND,
+        card::BARON,
+        card::CLOUD_9,
+        card::ROCKET,
+        card::EROSION,
+        card::RESERVED_PARKING,
+        card::MAIL_IN_REBATE,
+        card::TO_THE_MOON,
+        card::HALLUCINATION,
+        card::FORTUNE_TELLER,
+        card::JUGGLER,
+        card::DRUNKARD,
+        card::STONE_JOKER,
+        card::GOLDEN_JOKER,
+        card::LUCKY_CAT,
+        card::BASEBALL_CARD,
+        card::BULL,
+        card::DIET_COLA,
+        card::TRADING_CARD,
+        card::FLASH_CARD,
+        card::POPCORN,
+        card::SPARE_TROUSERS,
+        card::ANCIENT_JOKER,
+        card::RAMEN,
+        card::WALKIE_TALKIE,
+        card::THE_DUO,
+        card::THE_TRIO,
+        card::THE_FAMILY,
+        card::THE_ORDER,
+        card::THE_TRIBE,
+        card::CANIO,
+        card::TRIBOULET,
+        card::YORICK,
+        card::CHICOT,
+        card::PERKEO,
+    ];
+
+    /// Every joker in the four rarity piles must appear in [`ALL_JOKERS`], so the
+    /// crate-wide guards can never silently skip an in-game joker.
+    #[test]
+    fn all_jokers__is_superset_of_every_pile() {
+        let registry: HashSet<_> = ALL_JOKERS.iter().collect();
+        for pile in [
+            &Joker::COMMON_JOKERS[..],
+            &Joker::UNCOMMON_JOKERS[..],
+            &Joker::RARE_JOKERS[..],
+            &Joker::LEGENDARY_JOKERS[..],
+        ] {
+            for card in pile {
+                assert!(
+                    registry.contains(card),
+                    "{card} is in a rarity pile but missing from ALL_JOKERS"
+                );
+            }
+        }
+    }
+
+    /// `weight` is a joker's sort key; distinct jokers must not share one, or
+    /// their display/sort order is ambiguous.
+    #[test]
+    fn all_jokers__weights_are_unique() {
+        let mut seen = HashSet::new();
+        let mut collisions: Vec<(usize, String)> = Vec::new();
+        for card in ALL_JOKERS {
+            let weight = card.rank.weight;
+            if !seen.insert(weight) {
+                collisions.push((weight, format!("{card}")));
+            }
+        }
+        collisions.sort();
+        assert!(
+            collisions.is_empty(),
+            "{} jokers share a weight with an earlier joker: {collisions:?}",
+            collisions.len()
+        );
+    }
+
+    /// Baron is Rare / $8 in Balatro, not a $5 Common. It must carry the right
+    /// rarity and cost and live in the Rare pile, not adrift.
+    #[test]
+    fn baron__is_rare_dollar_eight_and_piled() {
+        assert_eq!(
+            card::BARON.card_type,
+            BCardType::RareJoker,
+            "Baron is a Rare joker in Balatro"
+        );
+        assert_eq!(card::BARON.rank.value, 8, "Baron costs $8 in Balatro");
+        assert!(
+            Joker::RARE_JOKERS.contains(&card::BARON),
+            "Baron belongs in RARE_JOKERS"
+        );
+    }
+
+    /// Does this `MPip` variant *intend* to add a deterministic contribution to
+    /// the hand score — a pure function of the current played hand, held cards,
+    /// or on-board resources (money, discards, deck, jokers)? This is the
+    /// **intent** oracle, independent of whether a scoring arm exists yet, so the
+    /// reachability guard can catch a variant that is assigned to a joker but
+    /// never wired (the Banner / Mystic Summit silent-zero class).
+    ///
+    /// `false` covers everything that legitimately contributes nothing to the
+    /// *current* hand score: the `Blank` sentinel, economy, per-run counters
+    /// (their base is 0), retriggers, card create/destroy, detection-only rule
+    /// modifiers, and every probabilistic effect (those resolve through the
+    /// seeded-RNG path, not deterministic scoring). The match is exhaustive on
+    /// purpose: a new `MPip` variant will not compile until it is classified.
+    fn scores_hand(mpip: MPip) -> bool {
+        match mpip {
+            // --- deterministic hand-score contributions ---
+            MPip::AddBaseChips(_)
+            | MPip::Chips(_)
+            | MPip::ChipsMultPlus(_, _)
+            | MPip::ChipsMultPlusOnHand(_, _, _)
+            | MPip::ChipsMultPlusPerScoredRanks(_, _, _)
+            | MPip::ChipsOnFlush(_)
+            | MPip::ChipsOnPair(_)
+            | MPip::ChipsOn2Pair(_)
+            | MPip::ChipsOnStraight(_)
+            | MPip::ChipsOnTrips(_)
+            | MPip::ChipsPerDeckCard(_)
+            | MPip::ChipsPerDollar(_)
+            | MPip::ChipsPerRemainingDiscard(_)
+            | MPip::ChipsPlusOn5Ranks(_, _)
+            | MPip::ChipsPlusPerScoredFace(_)
+            | MPip::MultPlus(_)
+            | MPip::MultPlusChipsOnRank(_, _, _)
+            | MPip::MultPlusOn5Ranks(_, _)
+            | MPip::MultPlusOnFlush(_)
+            | MPip::MultPlusOnPair(_)
+            | MPip::MultPlusOn2Pair(_)
+            | MPip::MultPlusOnStraight(_)
+            | MPip::MultPlusOnTrips(_)
+            | MPip::MultPlusOnSuit(_, _)
+            | MPip::MultPlusOnUpToXCards(_, _)
+            | MPip::MultPlusOnZeroDiscards(_)
+            | MPip::MultPlusZeroDiscards(_)
+            | MPip::MultPlusPerJoker(_)
+            | MPip::MultPlusXOnLowestRankInHand(_)
+            | MPip::MultTimes(_)
+            | MPip::MultTimes1Dot(_)
+            | MPip::MultTimesOnEmptyJokerSlots(_)
+            | MPip::MultTimesOnPair(_)
+            | MPip::MultTimesOnTrips(_)
+            | MPip::MultTimesOn4OfAKind(_)
+            | MPip::MultTimesOnStraight(_)
+            | MPip::MultTimesOnFlush(_)
+            | MPip::MultTimesPerScoredRank(_, _)
+            | MPip::MultTimesPerHeldRank(_, _)
+            | MPip::MultTimesPerUncommonJoker(_)
+            | MPip::MultTimesIfHeldAllSuits(_, _) => true,
+
+            // --- sentinel / non-scoring (economy, counters, retrigger, create,
+            //     detection, probabilistic) ---
+            MPip::Blank
+            | MPip::AddCardTypeWhenBlindSelected(_)
+            | MPip::ChanceDestroyed(_, _)
+            | MPip::CreateCardOnRankPlay(_, _, _)
+            | MPip::Credit(_)
+            | MPip::Death(_)
+            | MPip::DoubleMoney(_)
+            | MPip::FourFlushAndStraight
+            | MPip::FreeReroll(_)
+            | MPip::Glass(_, _)
+            | MPip::Gold(_)
+            | MPip::Hanged(_)
+            | MPip::JokersValue(_)
+            | MPip::Lucky(_, _)
+            | MPip::MultPlusDoubleValueDestroyJokerOnRight(_)
+            | MPip::MultPlusOnConsecutiveHandsNo3Ranks(_, _, _)
+            | MPip::MultPlusOnHandPlays
+            | MPip::MultPlusRandomTo(_)
+            | MPip::MultTimesEveryXHands(_, _)
+            | MPip::Planet(_)
+            | MPip::RandomJoker(_)
+            | MPip::RandomTarot(_)
+            | MPip::RetriggerCardsInHand(_)
+            | MPip::RetriggerPlayedCardsInFinalRound
+            | MPip::SellValueIncrement(_)
+            | MPip::Stone(_)
+            | MPip::Strength
+            | MPip::Odds1in(_)
+            | MPip::Odds1inCashOn3Ranks(_, _, _)
+            | MPip::Odds1inUpgradeHand(_)
+            | MPip::Wild(_)
+            | MPip::Diamonds(_)
+            | MPip::Clubs(_)
+            | MPip::Hearts(_)
+            | MPip::Spades(_)
+            | MPip::Custom(_) => false,
+        }
+    }
+
+    /// A battery of boards crafted so that **every** wired hand-scoring variant
+    /// fires on at least one of them: a rich royal flush (flush, straight, faces,
+    /// high ranks, held Kings in Spades/Clubs, money, remaining discards, a
+    /// non-empty deck and an Uncommon joker present for Baseball Card), the same
+    /// with zero discards, plus two-pair, small-trips and four-of-a-kind hands
+    /// covering the pair/trips/quads and low-card-count conditions.
+    fn probe_boards() -> Vec<BuffoonBoard> {
+        let mk = |played: &str, held: &str, money: isize, discards: usize| {
+            let mut b = BuffoonBoard::new(Draws::new(4, discards), Deck::basic_buffoon_pile());
+            b.played = bcards!(played);
+            b.in_hand = bcards!(held);
+            b.money = money;
+            // An Uncommon joker so Baseball Card (×per-Uncommon) has something to
+            // count; its own effect is present in both baseline and probe, so it
+            // cancels out of the marginal.
+            b.jokers.push(card::MYSTIC_SUMMIT);
+            b
+        };
+        vec![
+            mk("AH KH QH JH TH", "KS KC", 100, 3),
+            mk("AH KH QH JH TH", "KS KC", 0, 0),
+            mk("KH KS QD QC 4S", "KS KC", 0, 3),
+            mk("5H 5S 5D", "KS KC", 0, 3),
+            mk("8H 8S 8D 8C", "KS KC", 0, 3),
+        ]
+    }
+
+    /// A joker is *reachable* if adding it to some probe board changes the score.
+    fn is_reachable(joker: BuffoonCard) -> bool {
+        probe_boards().into_iter().any(|mut board| {
+            let baseline = board.score();
+            board.jokers.push(joker);
+            board.score() != baseline
+        })
+    }
+
+    /// Jokers whose enhancement *intends* to score but has no wiring yet — the
+    /// audit output of EPIC-01a Phase 0b. Each is a (near-)pure function of board
+    /// state and cheap to wire; they are listed here so the reachability guard
+    /// stays green while the debt stays visible. **Remove an entry when you wire
+    /// it** — the guard fails if a listed joker starts scoring, forcing the
+    /// cleanup, and fails if a *new* unlisted joker silently scores 0.
+    const KNOWN_UNWIRED: [BuffoonCard; 4] = [
+        // Chips(100): +100 chips (the −5-per-hand decay is a Phase 3 counter).
+        card::ICE_CREAM,
+        // MultPlusChipsOnRank(4, 20, 'A'): +20 chips & +4 mult per played Ace —
+        // a per-scored-rank effect like Walkie Talkie (Phase 2).
+        card::SCHOLAR,
+        // MultPlusXOnLowestRankInHand(2): +2× the lowest held card's rank to mult
+        // — reads `in_hand`, like Baron (Phase 2/3).
+        card::RAISED_FIST,
+        // MultTimesOnEmptyJokerSlots(1): ×1 per empty joker slot — reads the
+        // board's joker count vs capacity (Phase 3).
+        card::JOKER_STENCIL,
+    ];
+
+    /// Crate-wide silent-zero guard. Every joker whose enhancement *intends* to
+    /// score (per [`scores_hand`]) must actually change the score on some probe
+    /// board — otherwise it is assigned-but-unwired, the exact failure that hid
+    /// Banner and Mystic Summit. The still-unwired scorers are tracked in
+    /// [`KNOWN_UNWIRED`]; anything outside that set is a fresh bug.
+    #[test]
+    fn all_jokers__intended_hand_scorers_are_reachable() {
+        let known: HashSet<_> = KNOWN_UNWIRED.iter().collect();
+        let mut new_silent_zero = Vec::new();
+        let mut now_wired = Vec::new();
+        let mut misclassified = Vec::new();
+        for joker in ALL_JOKERS {
+            let intends = scores_hand(joker.enhancement);
+            let reachable = is_reachable(joker);
+            let listed = known.contains(&joker);
+            if intends && !reachable && !listed {
+                new_silent_zero.push(format!("{joker}"));
+            }
+            if listed && reachable {
+                now_wired.push(format!("{joker}"));
+            }
+            if !intends && reachable {
+                misclassified.push(format!("{joker}"));
+            }
+        }
+        assert!(
+            misclassified.is_empty(),
+            "these scored but are classified non-scoring — reclassify in `scores_hand`: {misclassified:?}"
+        );
+        assert!(
+            now_wired.is_empty(),
+            "these are wired now — remove them from KNOWN_UNWIRED: {now_wired:?}"
+        );
+        assert!(
+            new_silent_zero.is_empty(),
+            "these jokers intend to score but silently add nothing (wire them or, if intentional, adjust the data): {new_silent_zero:?}"
+        );
+    }
 
     /// Shared invariants for a rarity pile: it has the declared size, every card
     /// is a joker tagged with the expected rarity, and no card is duplicated.
