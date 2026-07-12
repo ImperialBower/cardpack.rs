@@ -918,7 +918,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Green Joker: +1 Mult per hand played, −1 per discard (net, floored ≥0).
+        enhancement: MPip::GainMultPerHandLessDiscard(1),
         resell_value: 0,
         debuffed: false,
     };

@@ -572,10 +572,14 @@ impl BuffoonBoard {
     /// `None` if `joker` is not a counter joker (so scoring falls through to
     /// `builtin_joker_op`). Arms are added per joker in later tasks, at which
     /// point they will read board state through `&self`.
-    #[allow(clippy::match_single_binding, clippy::unused_self)]
+    #[allow(clippy::unused_self)]
     fn counter_joker_op(&self, joker: &BuffoonCard, counter: i32) -> Option<ScoreOp> {
-        let _ = counter;
         match joker.enhancement {
+            MPip::GainMultPerHandLessDiscard(rate) => {
+                let net = counter.max(0);
+                #[allow(clippy::cast_sign_loss)]
+                Some(ScoreOp::AddMult(rate * net as usize))
+            }
             _ => None,
         }
     }
@@ -1424,5 +1428,26 @@ mod funky__types__board__buffoon_board_tests {
             vec![0],
             "Cavendish is not a counter joker"
         );
+    }
+
+    #[test]
+    fn score__green_joker_gains_mult_per_hand_less_discard() {
+        // Green Joker: +1 Mult per hand played, −1 per discard; floors at 0.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::GREEN_JOKER);
+
+        // 3 hands, 1 discard -> net +2 mult.
+        let hand = bcards!("2S 5D 8C TS KH");
+        board.on_hand_played(&hand);
+        board.on_hand_played(&hand);
+        board.on_hand_played(&hand);
+        board.on_discard(&bcards!("9C"));
+        assert_eq!(board.score(), Score::new(40, 3)); // 1 + 2
+
+        // More discards than hands -> floored at +0 mult, not negative.
+        board.on_discard(&bcards!("9C"));
+        board.on_discard(&bcards!("9C"));
+        board.on_discard(&bcards!("9C"));
+        assert_eq!(board.score(), Score::new(40, 1));
     }
 }
