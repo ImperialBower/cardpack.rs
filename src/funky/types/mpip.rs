@@ -96,6 +96,9 @@ pub enum MPip {
     /// true when the hand is empty). Used by Blackboard (×3 if all held are
     /// Spades or Clubs).
     MultTimesIfHeldAllSuits(usize, [char; 2]),
+    /// +n chips for **each** $1 of money the run holds; debt (negative money)
+    /// scores nothing. Used by Bull (+2 chips per dollar).
+    ChipsPerDollar(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -251,6 +254,7 @@ impl Display for MPip {
             Self::MultTimesIfHeldAllSuits(value, suits) => {
                 write!(f, "MultTimesIfHeldAllSuits({value}, {suits:?})")
             }
+            Self::ChipsPerDollar(value) => write!(f, "ChipsPerDollar({value})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),

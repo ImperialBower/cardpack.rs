@@ -19,6 +19,10 @@ pub struct BuffoonBoard {
     pub consumables: BuffoonPile,
     pub jokers: BuffoonPile,
     pub poker_hands: PokerHands,
+    /// Money the run currently holds. Signed so Credit Card can carry debt to
+    /// -$20. Read by scoring jokers (Bull); written by `+$` jokers, the shop,
+    /// and interest once those lifecycle events land. Inert by default (0).
+    pub money: isize,
 }
 
 impl BuffoonBoard {
@@ -32,6 +36,7 @@ impl BuffoonBoard {
             consumables: BuffoonPile::new_with_capacity(2),
             jokers: BuffoonPile::new_with_capacity(5),
             poker_hands: PokerHands::default(),
+            money: 0,
         }
     }
 
@@ -257,6 +262,23 @@ impl BuffoonBoard {
                     .filter(|card| ranks.contains(&card.rank.index))
                     .count();
                 return ScoreOp::Add(Score::new(chips * count, mult * count));
+            }
+            // Banner: +n chips for each remaining discard (reads round state).
+            MPip::ChipsPerRemainingDiscard(n) => {
+                return ScoreOp::AddChips(n * self.draws.discards);
+            }
+            // Mystic Summit: +n mult only when no discards remain, else inert.
+            MPip::MultPlusOnZeroDiscards(n) => {
+                return if self.draws.discards == 0 {
+                    ScoreOp::AddMult(n)
+                } else {
+                    ScoreOp::Nothing
+                };
+            }
+            // Bull: +n chips per $1 held; debt (negative money) scores nothing.
+            MPip::ChipsPerDollar(n) => {
+                let dollars = usize::try_from(self.money).unwrap_or(0);
+                return ScoreOp::AddChips(n * dollars);
             }
             _ => {}
         }
@@ -933,6 +955,55 @@ mod funky__types__board__buffoon_board_tests {
         // One Uncommon joker (Steel Joker, inert here) -> ×1.5 -> ceil(1×1.5)=2.
         board.jokers.push(card::STEEL_JOKER);
         assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__mystic_summit_adds_mult_only_when_no_discards() {
+        // Mystic Summit: +15 mult when 0 discards remain, else inert.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.jokers.push(card::MYSTIC_SUMMIT);
+
+        // Default draws (3 discards remaining) -> no bonus.
+        assert_eq!(board.draws.discards, 3);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Zero discards remaining -> +15 mult.
+        board.draws.discards = 0;
+        assert_eq!(board.score(), Score::new(40, 16));
+    }
+
+    #[test]
+    fn score__banner_adds_chips_per_remaining_discard() {
+        // Banner: +30 chips for each remaining discard.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.jokers.push(card::BANNER);
+
+        // 3 discards remaining -> +90 chips.
+        assert_eq!(board.draws.discards, 3);
+        assert_eq!(board.score(), Score::new(130, 1));
+
+        // 0 discards remaining -> no bonus.
+        board.draws.discards = 0;
+        assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__bull_scales_with_money() {
+        // Bull: +2 chips for each $1 you have.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.jokers.push(card::BULL);
+
+        // No money -> no bonus.
+        assert_eq!(board.money, 0);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // $7 -> +14 chips.
+        board.money = 7;
+        assert_eq!(board.score(), Score::new(54, 1));
+
+        // Debt (negative money) never subtracts chips -> floors at 0.
+        board.money = -20;
+        assert_eq!(board.score(), Score::new(40, 1));
     }
 
     #[test]

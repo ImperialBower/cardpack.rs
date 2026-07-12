@@ -1326,7 +1326,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::ChipsPerDollar(2),
         resell_value: 0,
         debuffed: false,
     };
