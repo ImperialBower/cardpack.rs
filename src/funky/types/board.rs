@@ -23,6 +23,11 @@ pub struct BuffoonBoard {
     /// -$20. Read by scoring jokers (Bull); written by `+$` jokers, the shop,
     /// and interest once those lifecycle events land. Inert by default (0).
     pub money: isize,
+    /// One accumulator per joker, index-aligned with `jokers`: `joker_state[i]`
+    /// belongs to `jokers[i]`. Signed because Green Joker's net (hands −
+    /// discards) can dip negative before the read floors it at 0. Grown by the
+    /// event hooks, read (never written) during scoring.
+    pub joker_state: Vec<i32>,
 }
 
 impl BuffoonBoard {
@@ -37,6 +42,7 @@ impl BuffoonBoard {
             jokers: BuffoonPile::new_with_capacity(5),
             poker_hands: PokerHands::default(),
             money: 0,
+            joker_state: Vec::new(),
         }
     }
 
@@ -480,6 +486,30 @@ impl BuffoonBoard {
         registry: &EffectRegistry,
     ) -> Score {
         self.fold_jokers::<StdRng>(running, None, Some(registry))
+    }
+
+    /// Add a joker with a fresh (0) counter, keeping `joker_state` aligned.
+    pub fn push_joker(&mut self, joker: BuffoonCard) {
+        self.jokers.push(joker);
+        self.joker_state.push(0);
+    }
+
+    /// Remove the joker at `index`, dropping its counter with it.
+    pub fn remove_joker(&mut self, index: usize) -> BuffoonCard {
+        if index < self.joker_state.len() {
+            self.joker_state.remove(index);
+        }
+        self.jokers.remove(index)
+    }
+
+    /// Pad `joker_state` with zeros up to `jokers.len()`, so a board built by
+    /// setting `jokers` directly still has a counter slot per joker. Only grows —
+    /// never truncates.
+    #[allow(dead_code)]
+    fn ensure_state_len(&mut self) {
+        if self.joker_state.len() < self.jokers.len() {
+            self.joker_state.resize(self.jokers.len(), 0);
+        }
     }
 }
 
@@ -1286,5 +1316,22 @@ mod funky__types__board__buffoon_board_tests {
             varied,
             "Misprint should produce different mults across seeds"
         );
+    }
+
+    #[test]
+    fn joker_state__push_and_remove_stay_aligned() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        board.push_joker(card::JOKER);
+        board.push_joker(card::CAVENDISH);
+        assert_eq!(board.jokers.len(), 2);
+        assert_eq!(board.joker_state, vec![0, 0]);
+
+        // Grow the second joker's counter, then remove the first.
+        board.joker_state[1] = 7;
+        let removed = board.remove_joker(0);
+        assert_eq!(removed, card::JOKER);
+        assert_eq!(board.jokers.len(), 1);
+        // The survivor keeps its counter, now at index 0.
+        assert_eq!(board.joker_state, vec![7]);
     }
 }
