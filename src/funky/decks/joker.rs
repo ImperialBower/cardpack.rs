@@ -806,7 +806,8 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Chips(100),
+        // Ice Cream: +100 chips, −5 per hand played; floors at 0.
+        enhancement: MPip::LoseChipsPerHand(100, 5),
         resell_value: 2,
         debuffed: false,
     };
@@ -2028,11 +2029,7 @@ mod funky__decks__joker_tests {
     /// stays green while the debt stays visible. **Remove an entry when you wire
     /// it** — the guard fails if a listed joker starts scoring, forcing the
     /// cleanup, and fails if a *new* unlisted joker silently scores 0.
-    const KNOWN_UNWIRED: [BuffoonCard; 2] = [
-        // Chips(100): the current value is 100 − 5 × hands-played-this-run, so it
-        // needs the Phase 3 per-run hands counter; wiring a flat +100 would score
-        // wrong once a hand is played.
-        card::ICE_CREAM,
+    const KNOWN_UNWIRED: [BuffoonCard; 1] = [
         // MultTimesOnEmptyJokerSlots(1): ×1 per empty joker slot needs a real
         // joker-slot *limit* on the board (Vec capacity is not the game's 5-slot
         // rule), so it waits on that Phase 3/8 state.

@@ -600,6 +600,11 @@ impl BuffoonBoard {
                 let raw = (base as f32 - per as f32 * counter.max(0) as f32) / 100.0;
                 Some(ScoreOp::TimesMult(raw.max(1.0)))
             }
+            MPip::LoseChipsPerHand(base, per) => {
+                #[allow(clippy::cast_sign_loss)]
+                let hands = counter.max(0) as usize;
+                Some(ScoreOp::AddChips(base.saturating_sub(per * hands)))
+            }
             _ => None,
         }
     }
@@ -1545,5 +1550,27 @@ mod funky__types__board__buffoon_board_tests {
         // Further discards stay floored at ×1.
         board.on_discard(&bcards!("2C 3C 4C 5C 6C"));
         assert_eq!(board.score(), Score::new(40, 1), "floored at x1");
+    }
+
+    #[test]
+    fn score__ice_cream_loses_chips_per_hand_played() {
+        // Ice Cream: +100 chips, −5 for each hand played; floors at 0.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::ICE_CREAM);
+
+        // No hands played yet -> +100 chips.
+        assert_eq!(board.score(), Score::new(140, 1));
+
+        // Two hands played -> +90 chips.
+        let hand = bcards!("2S 5D 8C TS KH");
+        board.on_hand_played(&hand);
+        board.on_hand_played(&hand);
+        assert_eq!(board.score(), Score::new(130, 1));
+
+        // 20+ hands -> floored at +0 chips.
+        for _ in 0..30 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(board.score(), Score::new(40, 1));
     }
 }
