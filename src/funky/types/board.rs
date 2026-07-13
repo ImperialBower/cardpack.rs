@@ -580,6 +580,11 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddMult(rate * net as usize))
             }
+            MPip::GainChipsPerCardCountHand(rate, _n) =>
+            {
+                #[allow(clippy::cast_sign_loss)]
+                Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
+            }
             _ => None,
         }
     }
@@ -1449,5 +1454,21 @@ mod funky__types__board__buffoon_board_tests {
         board.on_discard(&bcards!("9C"));
         board.on_discard(&bcards!("9C"));
         assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__square_joker_gains_chips_per_four_card_hand() {
+        // Square Joker: +4 chips for each hand played with exactly 4 cards.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::SQUARE_JOKER);
+
+        // Two 4-card hands -> +8 chips.
+        board.on_hand_played(&bcards!("2S 5D 8C TC"));
+        board.on_hand_played(&bcards!("3S 6D 9C JC"));
+        assert_eq!(board.score(), Score::new(48, 1));
+
+        // A 5-card hand does not qualify -> no further gain.
+        board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
+        assert_eq!(board.score(), Score::new(48, 1));
     }
 }

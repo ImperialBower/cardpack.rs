@@ -1018,7 +1018,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Square Joker: +4 chips for each hand played with exactly 4 cards.
+        enhancement: MPip::GainChipsPerCardCountHand(4, 4),
         resell_value: 0,
         debuffed: false,
     };
