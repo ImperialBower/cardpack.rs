@@ -3,7 +3,7 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 22;
+    pub const COMMON_JOKERS_SIZE: usize = 23;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::JOKER,
@@ -28,6 +28,7 @@ impl Joker {
         card::MISPRINT,
         card::RAISED_FIST,
         card::CHAOS_THE_CLOWN,
+        card::HANGING_CHAD,
     ];
 
     #[must_use]
@@ -35,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 12;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 13;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -50,6 +51,7 @@ impl Joker {
         card::STEEL_JOKER,
         card::HACK,
         card::PAREIDOLIA,
+        card::SOCK_AND_BUSKIN,
     ];
 
     #[must_use]
@@ -603,8 +605,36 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::RetriggerScoredRanks(['2', '3', '4', '5']),
         resell_value: 3,
+        debuffed: false,
+    };
+    pub const SOCK_AND_BUSKIN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 1091,
+            pip_type: PipType::Joker,
+            index: '🎭',
+            symbol: '🎭',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerScoredFaces,
+        resell_value: 3,
+        debuffed: false,
+    };
+    pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 1151,
+            pip_type: PipType::Joker,
+            index: '🗳',
+            symbol: '🗳',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::RetriggerFirstScored(2),
+        resell_value: 2,
         debuffed: false,
     };
     pub const PAREIDOLIA: BuffoonCard = BuffoonCard {
@@ -1704,7 +1734,9 @@ mod funky__decks__joker_tests {
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 105] = [
+    const ALL_JOKERS: [BuffoonCard; 107] = [
+        card::SOCK_AND_BUSKIN,
+        card::HANGING_CHAD,
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1930,7 +1962,14 @@ mod funky__decks__joker_tests {
             | MPip::LoseChipsPerHand(_, _)
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
-            | MPip::GainChipsPerStraightHand(_) => true,
+            | MPip::GainChipsPerStraightHand(_)
+            // Retriggers re-run a played/held card's contribution, so a wired
+            // retrigger joker does increase the hand score. (Dusk's
+            // RetriggerPlayedCardsInFinalRound stays non-scoring until wired.)
+            | MPip::RetriggerScoredRanks(_)
+            | MPip::RetriggerScoredFaces
+            | MPip::RetriggerFirstScored(_)
+            | MPip::RetriggerCardsInHand(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -1956,7 +1995,6 @@ mod funky__decks__joker_tests {
             | MPip::Planet(_)
             | MPip::RandomJoker(_)
             | MPip::RandomTarot(_)
-            | MPip::RetriggerCardsInHand(_)
             | MPip::RetriggerPlayedCardsInFinalRound
             | MPip::SellValueIncrement(_)
             | MPip::Stone(_)
@@ -1991,12 +2029,19 @@ mod funky__decks__joker_tests {
             b.jokers.push(card::MYSTIC_SUMMIT);
             b
         };
+        // A board holding a Steel card so held-ability retriggers (Mime) are
+        // reachable — the plain-King held piles above have no ability to re-fire.
+        let mut steel_held = mk("AH KH QH JH TH", "KS KC", 0, 3);
+        let mut steel = *bcards!("KH").iter().next().unwrap();
+        steel.enhancement = MPip::STEEL;
+        steel_held.in_hand.push(steel);
         vec![
             mk("AH KH QH JH TH", "KS KC", 100, 3),
             mk("AH KH QH JH TH", "KS KC", 0, 0),
             mk("KH KS QD QC 4S", "KS KC", 0, 3),
             mk("5H 5S 5D", "KS KC", 0, 3),
             mk("8H 8S 8D 8C", "KS KC", 0, 3),
+            steel_held,
         ]
     }
 

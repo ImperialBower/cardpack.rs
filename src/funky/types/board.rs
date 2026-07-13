@@ -103,28 +103,48 @@ impl BuffoonBoard {
     ) -> Score {
         let mut score = running;
 
-        for card in &self.played {
-            // Every played card contributes its built-in chips/mult first, then
-            // its special (probabilistic / custom) effect resolves in card order.
-            score = Self::builtin_played_op(card).apply(score);
+        for (index, card) in self.played.iter().enumerate() {
+            let extra = self.played_retrigger_count(card, index);
+            for _ in 0..=extra {
+                // Every played card contributes its built-in chips/mult first,
+                // then its special (probabilistic / custom) effect resolves in
+                // card order. A retrigger re-runs both, so a Lucky card rolls
+                // fresh each pass.
+                score = Self::builtin_played_op(card).apply(score);
 
-            let special = match card.enhancement {
-                MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
-                    rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
-                        if rng.random_range(0..mult_odds) == 0 {
-                            ScoreOp::AddMult(LUCKY_MULT)
-                        } else {
-                            ScoreOp::Nothing
-                        }
-                    })
-                }
-                MPip::Custom(id) => self.custom_op(*card, id, registry),
-                _ => ScoreOp::Nothing,
-            };
-            score = special.apply(score);
+                let special = match card.enhancement {
+                    MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
+                        rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
+                            if rng.random_range(0..mult_odds) == 0 {
+                                ScoreOp::AddMult(LUCKY_MULT)
+                            } else {
+                                ScoreOp::Nothing
+                            }
+                        })
+                    }
+                    MPip::Custom(id) => self.custom_op(*card, id, registry),
+                    _ => ScoreOp::Nothing,
+                };
+                score = special.apply(score);
+            }
         }
 
         score
+    }
+
+    /// Extra times each played card scores, summed across every joker on the
+    /// board (retriggers stack). `0` when no retrigger joker is present, so the
+    /// played fold runs each card exactly once and `score()` is unchanged.
+    fn played_retrigger_count(&self, card: &BuffoonCard, index: usize) -> usize {
+        self.jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::RetriggerScoredRanks(ranks) if ranks.contains(&card.rank.index) => 1,
+                MPip::RetriggerScoredFaces if matches!(card.rank.index, 'K' | 'Q' | 'J') => 1,
+                MPip::RetriggerFirstScored(n) if index == 0 => n,
+                _ => 0,
+            })
+            .sum()
     }
 
     /// Built-in played-card contribution: base rank chips (+ flat `Chips`) plus
@@ -173,15 +193,31 @@ impl BuffoonBoard {
     fn fold_held_cards(&self, running: Score, registry: Option<&EffectRegistry>) -> Score {
         let mut score = running;
 
-        for card in &self.in_hand {
+        for (index, card) in self.in_hand.iter().enumerate() {
+            let extra = self.held_retrigger_count(card, index);
             let op = match card.enhancement {
                 MPip::Custom(id) => self.custom_op(*card, id, registry),
                 _ => Self::builtin_held_op(card),
             };
-            score = op.apply(score);
+            for _ in 0..=extra {
+                score = op.apply(score);
+            }
         }
 
         score
+    }
+
+    /// Extra times each held card's ability fires, summed across every joker.
+    /// `0` unless a held-retrigger joker (Mime) is present, so the held fold
+    /// runs each card once and `score()` is unchanged.
+    fn held_retrigger_count(&self, _card: &BuffoonCard, _index: usize) -> usize {
+        self.jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::RetriggerCardsInHand(n) => n,
+                _ => 0,
+            })
+            .sum()
     }
 
     /// Built-in held-card contribution: Steel / `MultTimes` give a ×mult, as a
@@ -1166,6 +1202,95 @@ mod funky__types__board__buffoon_board_tests {
 
         assert_eq!(scored.chips, base.chips + 40, "+20 chips per Ace x2");
         assert_eq!(scored.mult, base.mult + 8, "+4 mult per Ace x2");
+    }
+
+    #[test]
+    fn score__hack_retriggers_low_cards() {
+        // Hack retriggers each played card ranked 2/3/4/5. Only the 2S qualifies
+        // here, so its 2 chips are added one extra time; mult unchanged.
+        let mut board = board_playing("2S 8D TC JS KH"); // High Card, one low card
+        let base = board.score();
+
+        board.jokers.push(card::HACK);
+        let scored = board.score();
+
+        assert_eq!(scored.chips, base.chips + 2, "one extra trigger of the 2");
+        assert_eq!(scored.mult, base.mult, "retrigger adds no mult here");
+    }
+
+    #[test]
+    fn score__sock_and_buskin_retriggers_faces() {
+        // Retrigger each played face card (K/Q/J). Only KH qualifies -> +10 chips.
+        let mut board = board_playing("2S 8D 5C 7H KH"); // High Card, one face
+        let base = board.score();
+
+        board.jokers.push(card::SOCK_AND_BUSKIN);
+        let scored = board.score();
+
+        assert_eq!(
+            scored.chips,
+            base.chips + 10,
+            "one extra trigger of the King"
+        );
+        assert_eq!(scored.mult, base.mult);
+    }
+
+    #[test]
+    fn score__hanging_chad_retriggers_first_card_thrice() {
+        // Retrigger the FIRST played card 2 additional times (3 total). First
+        // card is 2S (2 chips) -> +4 chips; later cards untouched.
+        let mut board = board_playing("2S 8D 5C 7H KH");
+        let base = board.score();
+
+        board.jokers.push(card::HANGING_CHAD);
+        let scored = board.score();
+
+        assert_eq!(
+            scored.chips,
+            base.chips + 4,
+            "2 extra triggers of the first card (2)"
+        );
+        assert_eq!(scored.mult, base.mult);
+    }
+
+    #[test]
+    fn score__stacked_retriggers_are_additive() {
+        // Hack (+1 to the 2) and Hanging Chad (+2 to the first card, also the 2)
+        // stack: the 2 scores 1 + 1 + 2 = 4 times -> 3 extra -> +6 chips.
+        let mut board = board_playing("2S 8D TC JS KH"); // only first card is low
+        let base = board.score();
+
+        board.jokers.push(card::HACK);
+        board.jokers.push(card::HANGING_CHAD);
+        let scored = board.score();
+
+        assert_eq!(scored.chips, base.chips + 6, "3 extra triggers of the 2");
+        assert_eq!(scored.mult, base.mult);
+    }
+
+    #[test]
+    fn score__mime_retriggers_held_steel() {
+        // Mime retriggers held-card abilities: a held Steel card applies its
+        // x1.5 mult twice. Build a held Steel King (enhancement is public).
+        let mut board = board_playing("2S 8D TC JS KH");
+        let mut steel = *bcards!("KH").iter().next().unwrap();
+        steel.enhancement = MPip::STEEL; // MultTimes1Dot(15) = x1.5
+        board.in_hand = BuffoonPile::from(vec![steel]);
+
+        let without = board.score(); // Steel applied once
+        board.jokers.push(card::MIME);
+        let with = board.score(); // Steel applied twice
+
+        assert_eq!(
+            with.chips, without.chips,
+            "retrigger of a held card adds no chips"
+        );
+        assert_eq!(
+            with.mult,
+            (f64::from(u32::try_from(without.mult).unwrap()) * 1.5).ceil() as usize,
+            "one extra x1.5 application"
+        );
+        assert!(with.mult > without.mult, "Mime must increase mult");
     }
 
     #[test]

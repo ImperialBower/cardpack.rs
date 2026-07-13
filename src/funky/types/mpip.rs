@@ -120,6 +120,12 @@ pub enum MPip {
     RandomTarot(usize),
     RetriggerCardsInHand(usize),
     RetriggerPlayedCardsInFinalRound,
+    /// Retrigger each played card whose rank index is in the set (Hack: 2/3/4/5).
+    RetriggerScoredRanks([char; 4]),
+    /// Retrigger each played face card (K/Q/J) — Sock and Buskin.
+    RetriggerScoredFaces,
+    /// Retrigger the first played card `n` additional times — Hanging Chad.
+    RetriggerFirstScored(usize),
     SellValueIncrement(usize),
     Stone(usize),
     Strength,
@@ -286,6 +292,9 @@ impl Display for MPip {
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             Self::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
             Self::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
+            Self::RetriggerScoredRanks(ranks) => write!(f, "RetriggerScoredRanks({ranks:?})"),
+            Self::RetriggerScoredFaces => write!(f, "RetriggerScoredFaces"),
+            Self::RetriggerFirstScored(n) => write!(f, "RetriggerFirstScored({n})"),
             Self::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             Self::Stone(value) => write!(f, "Stone({value})"),
             Self::Strength => write!(f, "Strength"),
