@@ -791,7 +791,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::ChipsOnStraight(15),
+        // Runner: +15 chips for each hand played containing a Straight.
+        enhancement: MPip::GainChipsPerStraightHand(15),
         resell_value: 2,
         debuffed: false,
     };

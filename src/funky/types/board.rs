@@ -590,6 +590,11 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddMult(rate * counter.max(0) as usize))
             }
+            MPip::GainChipsPerStraightHand(rate) =>
+            {
+                #[allow(clippy::cast_sign_loss)]
+                Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
+            }
             _ => None,
         }
     }
@@ -1491,5 +1496,21 @@ mod funky__types__board__buffoon_board_tests {
         // A no-two-pair hand does not qualify.
         board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
         assert_eq!(board.score(), Score::new(40, 5));
+    }
+
+    #[test]
+    fn score__runner_gains_chips_per_straight_hand() {
+        // Runner: +15 chips for each hand played containing a Straight.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::RUNNER);
+
+        // Two straight hands -> +30 chips.
+        board.on_hand_played(&bcards!("2S 3D 4C 5H 6C"));
+        board.on_hand_played(&bcards!("5S 6D 7C 8H 9C"));
+        assert_eq!(board.score(), Score::new(70, 1));
+
+        // A non-straight hand does not qualify.
+        board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
+        assert_eq!(board.score(), Score::new(70, 1));
     }
 }
