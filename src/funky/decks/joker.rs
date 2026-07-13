@@ -1433,7 +1433,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Ramen: ×2 Mult, loses ×0.01 per card discarded; floors at ×1.
+        enhancement: MPip::LoseMultTimesPerDiscard(200, 1),
         resell_value: 0,
         debuffed: false,
     };

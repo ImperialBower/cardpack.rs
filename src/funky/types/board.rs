@@ -595,6 +595,11 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
             }
+            MPip::LoseMultTimesPerDiscard(base, per) => {
+                #[allow(clippy::cast_precision_loss, clippy::cast_sign_loss)]
+                let raw = (base as f32 - per as f32 * counter.max(0) as f32) / 100.0;
+                Some(ScoreOp::TimesMult(raw.max(1.0)))
+            }
             _ => None,
         }
     }
@@ -1512,5 +1517,33 @@ mod funky__types__board__buffoon_board_tests {
         // A non-straight hand does not qualify.
         board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
         assert_eq!(board.score(), Score::new(70, 1));
+    }
+
+    #[test]
+    fn score__ramen_loses_x_mult_per_card_discarded() {
+        // Ramen: ×2 Mult, −×0.01 for each card discarded; floors at ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::RAMEN);
+
+        // No discards -> ×2.00 -> mult 1 * 2.00 = 2.
+        assert_eq!(board.score(), Score::new(40, 2));
+
+        // 99 cards discarded -> ×1.01 -> ceil(1 * 1.01) = 2.
+        for _ in 0..33 {
+            board.on_discard(&bcards!("2C 3C 4C")); // 33 * 3 = 99 cards
+        }
+        assert_eq!(board.score(), Score::new(40, 2), "x1.01 ceils to mult 2");
+
+        // 100th card discarded -> exactly ×1.00 -> mult 1 (the floor boundary).
+        board.on_discard(&bcards!("2C"));
+        assert_eq!(
+            board.score(),
+            Score::new(40, 1),
+            "x1.00 at the floor boundary"
+        );
+
+        // Further discards stay floored at ×1.
+        board.on_discard(&bcards!("2C 3C 4C 5C 6C"));
+        assert_eq!(board.score(), Score::new(40, 1), "floored at x1");
     }
 }
