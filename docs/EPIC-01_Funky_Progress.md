@@ -1,5 +1,16 @@
 # EPIC-01 Funky — Progress Report & Quality Evaluation
 
+> ⚠️ **SUPERSEDED — historical snapshot, do not use as current status.** This is a
+> one-time quality evaluation frozen at `cc1595d` (2026-07-05); it was never a living
+> tracker. The branch has moved well past it: all four scoring phases are implemented
+> (no `todo!()` panics remain), funky is CI-gated at `-Dpedantic --all-targets`, the
+> `phf` dependency is gone, the example is a full four-phase demo, and the test count
+> is **466** (not 383). Every "Recommended next step" below has since landed, and its
+> "High"-severity risks (phase `todo!()`s, CI blind spot) no longer exist. **For
+> current status see [`EPIC-01_Funky.md`](EPIC-01_Funky.md); for the active joker-wiring
+> work see [`EPIC-01a_Joker_Wiring_Backlog.md`](EPIC-01a_Joker_Wiring_Backlog.md).**
+> Read the below only as a record of where the project stood on 2026-07-05.
+
 **Date:** 2026-07-05
 **Evaluated at:** `origin/funky` tip `cc1595d` (merge of origin/main 0.7.0 no_std into funky), via detached worktree.
 **Note:** the local `funky` branch is **20 commits behind** `origin/funky` — the missing commits are the main-merge (`cc1595d`) and `f96381d` "ignored mutants". A fast-forward pull brings it current.
