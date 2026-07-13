@@ -59,7 +59,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 |---|---|---|
 | 1 — Economy / money | Bull + all `+$` jokers | **1a/1b done** (money field + Bull); 1c planned |
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
-| 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | Planned |
+| 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | Planned |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | Planned |
@@ -316,7 +316,17 @@ each joker + its test. Track completion by flipping the Status table.
 
 ### Phase 3 — Per-run joker counters
 
-- [ ] **3a.** Add the per-joker counter store to `BuffoonBoard`.
+- [x] **3a.** Added the per-joker counter store to `BuffoonBoard`, plus the two
+  in-round growth events `on_hand_played` and `on_discard`. Six counter jokers
+  wired end-to-end (store → event → read-side score), one test each: **Green
+  Joker** (+1 mult/hand, −1/discard), **Ramen** (×2 mult, decaying −×0.01 per
+  card discarded), **Ice Cream** (+100 chips, decaying −5/hand played — also
+  removed from `KNOWN_UNWIRED`), **Square Joker** (+4 chips per 4-card hand),
+  **Spare Trousers** (+2 mult per two-pair hand), **Runner** (+15 chips per
+  straight hand). Remaining counter jokers (Vampire, Constellation, Hologram,
+  Lucky Cat, Popcorn, Red Card, Fortune Teller, Flash Card) still await their
+  triggering events — round-end, shop, consumables, etc. — before they can be
+  wired.
 - [ ] **3b.** Growth hooks per trigger event; **read**-side `MPip` variants +
   `joker_x_mult`/`builtin_joker_op` arms.
 - [ ] **3c.** Wire the 13 counter jokers + Canio/Yorick; one test each.
