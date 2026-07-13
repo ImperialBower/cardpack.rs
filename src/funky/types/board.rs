@@ -585,6 +585,11 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
             }
+            MPip::GainMultPerTwoPairHand(rate) =>
+            {
+                #[allow(clippy::cast_sign_loss)]
+                Some(ScoreOp::AddMult(rate * counter.max(0) as usize))
+            }
             _ => None,
         }
     }
@@ -1470,5 +1475,21 @@ mod funky__types__board__buffoon_board_tests {
         // A 5-card hand does not qualify -> no further gain.
         board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
         assert_eq!(board.score(), Score::new(48, 1));
+    }
+
+    #[test]
+    fn score__spare_trousers_gains_mult_per_two_pair_hand() {
+        // Spare Trousers: +2 Mult for each hand played containing a Two Pair.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::SPARE_TROUSERS);
+
+        // Two two-pair hands -> +4 mult.
+        board.on_hand_played(&bcards!("2S 2D 5C 5H 8C"));
+        board.on_hand_played(&bcards!("3S 3D 6C 6H 9C"));
+        assert_eq!(board.score(), Score::new(40, 5));
+
+        // A no-two-pair hand does not qualify.
+        board.on_hand_played(&bcards!("2S 5D 8C TS KH"));
+        assert_eq!(board.score(), Score::new(40, 5));
     }
 }

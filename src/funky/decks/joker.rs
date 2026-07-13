@@ -1403,7 +1403,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Spare Trousers: +2 Mult for each hand played containing a Two Pair.
+        enhancement: MPip::GainMultPerTwoPairHand(2),
         resell_value: 0,
         debuffed: false,
     };
