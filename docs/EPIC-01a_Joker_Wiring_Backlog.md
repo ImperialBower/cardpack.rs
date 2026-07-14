@@ -62,7 +62,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
-| 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | Planned |
+| 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **In progress** — `HandRules` seam threaded into hand detection; **Four Fingers** + **Shortcut** wired; Pareidolia/Splash/Smeared/Oops remain |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
 | 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard | **Complete** |
@@ -363,9 +363,37 @@ each joker + its test. Track completion by flipping the Status table.
   Phase 2 "final hand" state), **Seltzer** (retrigger all played for 10 hands —
   needs a Phase 3 per-run counter + round-end decrement).
 
-### Phase 5–8
+### Phase 6 — Rule modifiers (detection hooks)
 
-- [ ] **5–8.** Deck mutation, rule modifiers, full-deck view, boss blinds — each a
+- [~] **6a.** `HandRules` seam landed (`buffoon_pile.rs`): a `{straight_distance,
+  straight_connectors, flush_len}` struct (default = vanilla Balatro) threaded
+  into rule-aware detection variants — `determine_hand_type_with`,
+  `has_straight_with`, `has_flush_with` (+ the composed straight-flush / royal /
+  flush-five / flush-house). The board derives it once from its jokers
+  (`BuffoonBoard::hand_rules`) and passes it into phase-1 hand typing, the
+  straight/flush ×mult conditionals (The Order, The Tribe), and Runner's growth
+  condition; the no-arg detection methods delegate with `HandRules::default()`,
+  so the pure path is unchanged. Two jokers wired, no new consts needed:
+  - **Four Fingers** — `MPip::FourFlushAndStraight` (already on the const) →
+    `straight_connectors 4→3`, `flush_len 5→4`; test
+    `score__four_fingers_makes_four_card_straight_flush` + interaction test
+    `score__four_fingers_enables_the_order_on_four_card_straight`.
+  - **Shortcut** — new `MPip::GappedStraight` (const flipped from `Blank`) →
+    `straight_distance 1→2`; test `score__shortcut_makes_one_gap_straight`.
+
+  Both reclassified scoring in `scores_hand`; two probe boards added (a bare
+  four-card straight flush, a one-gap straight) so the reachability guard
+  exercises them. Each test fails before the seam threads its rule.
+
+- [ ] **6b.** Remaining rule modifiers: **Pareidolia** (all cards are faces —
+  changes the face predicate feeding Scary Face, Smiley, and *Sock and Buskin*'s
+  retrigger), **Smeared** (merge suit pairs — a `count_largest_same_suit`
+  grouping change), **Splash** (all played cards score — likely a verify/no-op in
+  this model), **Oops! All 6s** (doubles the RNG-path odds).
+
+### Phases 5, 7–8
+
+- [ ] **5, 7–8.** Deck mutation, full-deck view, boss blinds — each a
   self-contained sub-EPIC; see Design. Wire jokers as each mechanism lands.
 
 ---

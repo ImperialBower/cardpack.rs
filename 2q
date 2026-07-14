@@ -1,0 +1,24 @@
+Mime (#19) is wired, closing out the unblocked part of Phase 4.
+
+  What I did
+
+  Mime is the held-card mirror of the played-card retrigger machinery, so this slice added the same pattern to phase 3:
+
+  - board.rs — new held_retriggers() helper (sums RetriggerCardsInHand across jokers; card-independent, since Mime retriggers all held cards alike) and reworked fold_held_cards to
+  apply each held card's op 1 + held_retriggers() times. Inert (single pass) when no Mime is held, so the held fold is byte-identical for existing boards.
+  - joker.rs — reclassified RetriggerCardsInHand from non-scoring → scoring in the scores_hand oracle (Mime already had its const, RetriggerCardsInHand(1), and pile membership — no
+  data changes needed). Added a Steel-held probe board so the reachability guard actually sees Mime change a score (the existing probe hands held only plain cards, whose held op is
+  a no-op — Mime would have looked unreachable). Steel is an enhancement, not a rank/suit change, so Baron/Blackboard baselines are untouched.
+  - Test score__mime_retriggers_held_steel_card: AS KS QS JS TS with one held Steel King → the ×1.5 fires twice (8 → 12 → 18) → 151 × 18.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch funky
+# Your branch is up to date with 'origin/funky'.
+#
+# Changes to be committed:
+#	modified:   docs/EPIC-01a_Joker_Wiring_Backlog.md
+#	modified:   src/funky/decks/joker.rs
+#	modified:   src/funky/types/board.rs
+#

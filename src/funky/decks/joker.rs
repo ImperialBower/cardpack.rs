@@ -1079,7 +1079,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::GappedStraight,
         resell_value: 0,
         debuffed: false,
     };
@@ -1974,7 +1974,12 @@ mod funky__decks__joker_tests {
             | MPip::RetriggerPlayedRanks(_, _)
             | MPip::RetriggerPlayedFaces(_)
             | MPip::RetriggerFirstPlayed(_)
-            | MPip::RetriggerCardsInHand(_) => true,
+            | MPip::RetriggerCardsInHand(_)
+            // Rule modifiers change hand classification (Four Fingers: 4-card
+            // straights/flushes; Shortcut: gapped straights), so they change the
+            // base hand score and can enable straight/flush jokers.
+            | MPip::FourFlushAndStraight
+            | MPip::GappedStraight => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -1985,7 +1990,6 @@ mod funky__decks__joker_tests {
             | MPip::Credit(_)
             | MPip::Death(_)
             | MPip::DoubleMoney(_)
-            | MPip::FourFlushAndStraight
             | MPip::FreeReroll(_)
             | MPip::Glass(_, _)
             | MPip::Gold(_)
@@ -2051,6 +2055,13 @@ mod funky__decks__joker_tests {
             mk("5H 5S 5D", "KS KC", 0, 3),
             mk("8H 8S 8D 8C", "KS KC", 0, 3),
             steel_held,
+            // A bare four-card straight flush (9-T-J-Q of Hearts + an off card):
+            // a High Card under vanilla rules, a Straight Flush under Four
+            // Fingers — so its rule modifier is reachable.
+            mk("9H TH JH QH 2S", "KS KC", 0, 3),
+            // A one-gap five-card straight (2-4-6-8-T): a High Card under vanilla
+            // rules, a Straight under Shortcut — so its modifier is reachable.
+            mk("2C 4D 6H 8S TC", "KS KC", 0, 3),
         ]
     }
 

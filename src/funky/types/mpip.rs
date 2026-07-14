@@ -40,6 +40,8 @@ pub enum MPip {
     Death(usize),
     DoubleMoney(usize),
     FourFlushAndStraight,
+    /// Shortcut: straights may skip a rank (a one-gap straight, e.g. 5-7-9-J-K).
+    GappedStraight,
     FreeReroll(usize),
     Glass(usize, usize),
     Gold(usize),
@@ -211,6 +213,7 @@ impl Display for MPip {
             Self::Death(value) => write!(f, "Death({value})"),
             Self::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
             Self::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
+            Self::GappedStraight => write!(f, "GappedStraight"),
             Self::FreeReroll(value) => write!(f, "FreeReroll({value})"),
             Self::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             Self::Gold(value) => write!(f, "Gold({value})"),

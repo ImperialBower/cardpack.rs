@@ -1,7 +1,7 @@
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::preludes::funky::{
-    BCardType, BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score,
+    BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -63,7 +63,7 @@ impl BuffoonBoard {
     /// From [Detailed Break down of Balatro Scoring System and some tips to optimise your hand scoring.](https://www.reddit.com/r/balatro/comments/1blbexa/detailed_break_down_of_balatro_scoring_system_and/)
     #[must_use]
     pub fn scoring_phase1_pre_scoring(&self) -> Score {
-        let hand_type = match self.played.determine_hand_type() {
+        let hand_type = match self.played.determine_hand_type_with(self.hand_rules()) {
             HandType::RoyalFlush => HandType::StraightFlush,
             other => other,
         };
@@ -370,6 +370,27 @@ impl BuffoonBoard {
         )
     }
 
+    /// The straight/flush detection rules in force for this board, loosened by
+    /// its rule-modifier jokers: **Four Fingers** drops straights and flushes to
+    /// four cards; **Shortcut** allows one-gap straights. Vanilla Balatro
+    /// ([`HandRules::default`]) when neither is held, so hand typing is
+    /// unchanged. Multiple modifiers stack (Four Fingers + Shortcut → a
+    /// four-card gapped straight).
+    fn hand_rules(&self) -> HandRules {
+        let mut rules = HandRules::default();
+        for joker in &self.jokers {
+            match joker.enhancement {
+                MPip::FourFlushAndStraight => {
+                    rules.straight_connectors = 3;
+                    rules.flush_len = 4;
+                }
+                MPip::GappedStraight => rules.straight_distance = 2,
+                _ => {}
+            }
+        }
+        rules
+    }
+
     /// The ×mult factor a joker applies to the running score given the played
     /// hand, or `None` if it is not a (satisfied) multiplicative joker — in
     /// which case it is handled additively. Hand-conditional jokers use the
@@ -378,14 +399,18 @@ impl BuffoonBoard {
     #[allow(clippy::cast_precision_loss)]
     fn joker_x_mult(&self, joker: &BuffoonCard) -> Option<f32> {
         let played = &self.played;
+        // The straight/flush conditionals (The Order, The Tribe) honour the
+        // board's rule modifiers, so Four Fingers / Shortcut let them fire on a
+        // four-card or gapped hand just as they widen the base hand type.
+        let rules = self.hand_rules();
         let factor = match joker.enhancement {
             MPip::MultTimes(n) => n as f32,
             MPip::MultTimes1Dot(n) => n as f32 / 10.0,
             MPip::MultTimesOnPair(n) if played.has_pair() => n as f32,
             MPip::MultTimesOnTrips(n) if played.has_trips() => n as f32,
             MPip::MultTimesOn4OfAKind(n) if played.has_4_of_a_kind() => n as f32,
-            MPip::MultTimesOnStraight(n) if played.has_straight() => n as f32,
-            MPip::MultTimesOnFlush(n) if played.has_flush() => n as f32,
+            MPip::MultTimesOnStraight(n) if played.has_straight_with(rules) => n as f32,
+            MPip::MultTimesOnFlush(n) if played.has_flush_with(rules) => n as f32,
             MPip::MultTimesPerScoredRank(n, ranks) => {
                 // ×n for each played card of a matching rank; the factor
                 // compounds, e.g. two Kings and a Queen with Triboulet = ×2³.
@@ -571,7 +596,7 @@ impl BuffoonBoard {
     // Arms are kept one-per-variant (rather than merged where bodies coincide)
     // to mirror `counter_joker_op`'s future per-joker arms one-for-one.
     #[allow(clippy::match_same_arms)]
-    fn growth_delta(enhancement: MPip, event: &GrowthEvent) -> i32 {
+    fn growth_delta(enhancement: MPip, event: &GrowthEvent, rules: HandRules) -> i32 {
         match (enhancement, event) {
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::HandPlayed(_)) => 1,
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::Discard(_)) => -1,
@@ -583,7 +608,11 @@ impl BuffoonBoard {
                 1
             }
             (MPip::GainMultPerTwoPairHand(_), GrowthEvent::HandPlayed(p)) if p.has_2pair() => 1,
-            (MPip::GainChipsPerStraightHand(_), GrowthEvent::HandPlayed(p)) if p.has_straight() => {
+            // Runner counts a straight under the board's rules, so Four Fingers /
+            // Shortcut grow it on a four-card or gapped straight too.
+            (MPip::GainChipsPerStraightHand(_), GrowthEvent::HandPlayed(p))
+                if p.has_straight_with(rules) =>
+            {
                 1
             }
             _ => 0,
@@ -602,10 +631,11 @@ impl BuffoonBoard {
 
     fn apply_growth(&mut self, event: &GrowthEvent) {
         self.ensure_state_len();
+        let rules = self.hand_rules();
         let deltas: Vec<i32> = self
             .jokers
             .iter()
-            .map(|j| Self::growth_delta(j.enhancement, event))
+            .map(|j| Self::growth_delta(j.enhancement, event, rules))
             .collect();
         for (slot, delta) in self.joker_state.iter_mut().zip(deltas) {
             *slot += delta;
@@ -1662,5 +1692,47 @@ mod funky__types__board__buffoon_board_tests {
         // Phase 1+2: 151 chips, 8 mult. Steel retriggered -> 18 mult. Mime adds
         // nothing itself in phase 4. Final 151 x 18.
         assert_eq!(board.score(), Score::new(151, 18));
+    }
+
+    #[test]
+    fn score__four_fingers_makes_four_card_straight_flush() {
+        // 9-T-J-Q of Hearts + an off card: a High Card normally, a four-card
+        // Straight Flush with Four Fingers.
+        let mut board = board_playing("9H TH JH QH 2S");
+        // High Card: 5 base chips + 41 played pips (9+10+10+10+2).
+        assert_eq!(board.score(), Score::new(46, 1));
+
+        board.push_joker(card::FOUR_FINGERS);
+        // Straight Flush base 100/8 + 41 pips; Four Fingers scores nothing
+        // itself. 141 x 8.
+        assert_eq!(board.score(), Score::new(141, 8));
+    }
+
+    #[test]
+    fn score__shortcut_makes_one_gap_straight() {
+        // 2-4-6-8-T: a High Card normally, a Straight with Shortcut (one-gap).
+        let mut board = board_playing("2C 4D 6H 8S TC");
+        // High Card: 5 base chips + 30 played pips (2+4+6+8+10).
+        assert_eq!(board.score(), Score::new(35, 1));
+
+        board.push_joker(card::SHORTCUT);
+        // Straight base 30/4 + 30 pips; Shortcut scores nothing itself. 60 x 4.
+        assert_eq!(board.score(), Score::new(60, 4));
+    }
+
+    #[test]
+    fn score__four_fingers_enables_the_order_on_four_card_straight() {
+        // A rule modifier doesn't just widen the base hand — it lets the
+        // straight/flush jokers fire on the widened hand too.
+        let mut board = board_playing("9H TH JH QH 2S");
+        board.push_joker(card::THE_ORDER); // x3 mult on a straight
+
+        // The four-card straight doesn't register under vanilla rules, so The
+        // Order stays inert: High Card 46/1.
+        assert_eq!(board.score(), Score::new(46, 1));
+
+        board.push_joker(card::FOUR_FINGERS);
+        // Now a Straight Flush (141/8), and The Order fires x3 -> 141 x 24.
+        assert_eq!(board.score(), Score::new(141, 24));
     }
 }
