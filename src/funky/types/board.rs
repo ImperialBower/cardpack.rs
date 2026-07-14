@@ -197,15 +197,35 @@ impl BuffoonBoard {
     fn fold_held_cards(&self, running: Score, registry: Option<&EffectRegistry>) -> Score {
         let mut score = running;
 
+        // Mime retriggers held-card abilities: each held card's op applies
+        // `1 + held_retriggers` times, so a retriggered Steel card gives ×1.5
+        // twice. 0 for a board with no held-retrigger joker (the common case),
+        // leaving the held fold byte-identical.
+        let retriggers = self.held_retriggers();
         for card in &self.in_hand {
             let op = match card.enhancement {
                 MPip::Custom(id) => self.custom_op(*card, id, registry),
                 _ => Self::builtin_held_op(card),
             };
-            score = op.apply(score);
+            for _ in 0..=retriggers {
+                score = op.apply(score);
+            }
         }
 
         score
+    }
+
+    /// How many *additional* times every held card's ability fires, summed over
+    /// the board's held-retrigger jokers (Mime). Unlike `played_retriggers` this
+    /// is card-independent — Mime retriggers all held cards alike.
+    fn held_retriggers(&self) -> usize {
+        self.jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::RetriggerCardsInHand(n) => n,
+                _ => 0,
+            })
+            .sum()
     }
 
     /// Built-in held-card contribution: Steel / `MultTimes` give a ×mult, as a
@@ -1629,5 +1649,18 @@ mod funky__types__board__buffoon_board_tests {
         // Only the first card 2S (+2 chips) retriggers, twice more -> +4 chips;
         // the other four cards are untouched. 40 -> 44.
         assert_eq!(board.score(), Score::new(44, 1));
+    }
+
+    #[test]
+    fn score__mime_retriggers_held_steel_card() {
+        // Mime: retrigger held-card abilities. A held Steel King's ×1.5 fires
+        // twice instead of once: 8 -> 12 -> 18.
+        let mut board = board_playing("AS KS QS JS TS");
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+        board.push_joker(card::MIME);
+
+        // Phase 1+2: 151 chips, 8 mult. Steel retriggered -> 18 mult. Mime adds
+        // nothing itself in phase 4. Final 151 x 18.
+        assert_eq!(board.score(), Score::new(151, 18));
     }
 }

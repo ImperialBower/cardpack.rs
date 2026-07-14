@@ -1967,14 +1967,14 @@ mod funky__decks__joker_tests {
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
             | MPip::GainChipsPerStraightHand(_)
-            // Retriggers re-score played cards, so they score (Hack: each
-            // played 2-5 scores again; Sock and Buskin: each played face;
-            // Hanging Chad: the first played card twice more). Mime/Dusk
-            // retriggers stay non-scoring below until their held/final-round
-            // paths land.
+            // Retriggers re-score cards, so they score (Hack: each played 2-5;
+            // Sock and Buskin: each played face; Hanging Chad: the first played
+            // card twice more; Mime: held-card abilities). Dusk retrigger stays
+            // non-scoring below until its final-round path lands.
             | MPip::RetriggerPlayedRanks(_, _)
             | MPip::RetriggerPlayedFaces(_)
-            | MPip::RetriggerFirstPlayed(_) => true,
+            | MPip::RetriggerFirstPlayed(_)
+            | MPip::RetriggerCardsInHand(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -2000,7 +2000,6 @@ mod funky__decks__joker_tests {
             | MPip::Planet(_)
             | MPip::RandomJoker(_)
             | MPip::RandomTarot(_)
-            | MPip::RetriggerCardsInHand(_)
             | MPip::RetriggerPlayedCardsInFinalRound
             | MPip::SellValueIncrement(_)
             | MPip::Stone(_)
@@ -2035,12 +2034,23 @@ mod funky__decks__joker_tests {
             b.jokers.push(card::MYSTIC_SUMMIT);
             b
         };
+        // A board holding a Steel card (×1.5 while held), so held-card
+        // retriggers (Mime) have a non-trivial held op to double and stay
+        // reachable. Steel is an enhancement, not a rank/suit change, so the
+        // other held-reading jokers (Baron, Blackboard) are unaffected.
+        let mut steel_held = mk("AH KH QH JH TH", "KS KC", 0, 3);
+        let steel_king = BuffoonCard {
+            enhancement: MPip::STEEL,
+            ..bcards!("KS").iter().next().copied().unwrap()
+        };
+        steel_held.in_hand.push(steel_king);
         vec![
             mk("AH KH QH JH TH", "KS KC", 100, 3),
             mk("AH KH QH JH TH", "KS KC", 0, 0),
             mk("KH KS QD QC 4S", "KS KC", 0, 3),
             mk("5H 5S 5D", "KS KC", 0, 3),
             mk("8H 8S 8D 8C", "KS KC", 0, 3),
+            steel_held,
         ]
     }
 

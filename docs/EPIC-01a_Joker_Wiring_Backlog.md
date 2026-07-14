@@ -60,7 +60,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 1 — Economy / money | Bull + all `+$` jokers | **1a/1b done** (money field + Bull); 1c planned |
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
-| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — per-card retrigger loop in `fold_played_cards`; all three pure per-card jokers (**Hack**, **Sock and Buskin**, **Hanging Chad**) wired; state-dependent (Dusk/Seltzer/Mime) remain |
+| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | Planned |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
@@ -351,10 +351,17 @@ each joker + its test. Track completion by flipping the Status table.
 
   `ALL_JOKERS` grew 105→107, all three reclassified scoring in `scores_hand`.
 
-- [ ] **4b.** State-dependent retriggers: **Dusk** (final-round — needs Phase 2
-  "final hand" state), **Seltzer** (retrigger all for 10 hands — Phase 3 counter),
-  **Mime** (retrigger *held*-card abilities — hooks into the phase-3 held fold,
-  not `fold_played_cards`).
+- [~] **4b.** Held-card retriggers: **Mime** wired. New `fold_held_cards` loop
+  applies each held card's op `1 + held_retriggers()` times (a retriggered Steel
+  card gives ×1.5 twice); `held_retriggers` sums `MPip::RetriggerCardsInHand`
+  across jokers (card-independent — Mime retriggers all held cards alike). Mime
+  reclassified scoring in `scores_hand`; a Steel-held probe board added so the
+  reachability guard exercises it. Test `score__mime_retriggers_held_steel_card`
+  (held Steel King, 8→12→18; fails before the arm lands).
+
+- [ ] **4c.** Round-state retriggers, still blocked: **Dusk** (final-round — needs
+  Phase 2 "final hand" state), **Seltzer** (retrigger all played for 10 hands —
+  needs a Phase 3 per-run counter + round-end decrement).
 
 ### Phase 5–8
 
