@@ -120,6 +120,16 @@ pub enum MPip {
     RandomTarot(usize),
     RetriggerCardsInHand(usize),
     RetriggerPlayedCardsInFinalRound,
+    /// Hack: re-score each played card of one of these ranks `n` additional
+    /// times. `RetriggerPlayedRanks(1, ['2','3','4','5'])` retriggers every
+    /// played 2, 3, 4, or 5 once more.
+    RetriggerPlayedRanks(usize, [char; 4]),
+    /// Sock and Buskin: re-score each played **face** card (K/Q/J) `n`
+    /// additional times.
+    RetriggerPlayedFaces(usize),
+    /// Hanging Chad: re-score the **first** played card `n` additional times
+    /// (`RetriggerFirstPlayed(2)` = scored 3× total).
+    RetriggerFirstPlayed(usize),
     SellValueIncrement(usize),
     Stone(usize),
     Strength,
@@ -286,6 +296,11 @@ impl Display for MPip {
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             Self::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
             Self::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
+            Self::RetriggerPlayedRanks(value, ranks) => {
+                write!(f, "RetriggerPlayedRanks({value}, {ranks:?})")
+            }
+            Self::RetriggerPlayedFaces(value) => write!(f, "RetriggerPlayedFaces({value})"),
+            Self::RetriggerFirstPlayed(value) => write!(f, "RetriggerFirstPlayed({value})"),
             Self::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             Self::Stone(value) => write!(f, "Stone({value})"),
             Self::Strength => write!(f, "Strength"),

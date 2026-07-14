@@ -60,7 +60,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 1 — Economy / money | Bull + all `+$` jokers | **1a/1b done** (money field + Bull); 1c planned |
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
-| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | Planned |
+| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — per-card retrigger loop in `fold_played_cards`; all three pure per-card jokers (**Hack**, **Sock and Buskin**, **Hanging Chad**) wired; state-dependent (Dusk/Seltzer/Mime) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | Planned |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
@@ -333,8 +333,28 @@ each joker + its test. Track completion by flipping the Status table.
 
 ### Phase 4 — Retriggers
 
-- [ ] **4a.** Per-card retrigger count in `fold_played_cards`; **Hack**, **Sock and
-  Buskin**, **Hanging Chad** first (pure per-card), then the state-dependent ones.
+- [x] **4a.** Per-card retrigger count landed in `fold_played_cards`: each played
+  card at `index` is scored `1 + played_retriggers(index, card)` times, re-running
+  its full contribution (so a retriggered Lucky card rolls again). All three pure
+  per-card retrigger jokers wired, one exact-value test each (each fails before
+  its arm lands):
+  - **Hack** — variant `MPip::RetriggerPlayedRanks(1, ['2','3','4','5'])`
+    (retrigger each played 2-5); test
+    `score__hack_retriggers_played_two_through_five`.
+  - **Sock and Buskin** — new const (Uncommon / $6 / 🧦, weight 803,
+    `UNCOMMON_JOKERS` 12→13), variant `MPip::RetriggerPlayedFaces(1)` matching
+    K/Q/J; test `score__sock_and_buskin_retriggers_played_faces`.
+  - **Hanging Chad** — new const (Common / $4 / 🗳, weight 804, `COMMON_JOKERS`
+    22→23), variant `MPip::RetriggerFirstPlayed(2)` gated on `index == 0`
+    (the positional case — `played_retriggers` now takes the card's index);
+    test `score__hanging_chad_retriggers_first_played_card_twice`.
+
+  `ALL_JOKERS` grew 105→107, all three reclassified scoring in `scores_hand`.
+
+- [ ] **4b.** State-dependent retriggers: **Dusk** (final-round — needs Phase 2
+  "final hand" state), **Seltzer** (retrigger all for 10 hands — Phase 3 counter),
+  **Mime** (retrigger *held*-card abilities — hooks into the phase-3 held fold,
+  not `fold_played_cards`).
 
 ### Phase 5–8
 

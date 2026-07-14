@@ -103,28 +103,52 @@ impl BuffoonBoard {
     ) -> Score {
         let mut score = running;
 
-        for card in &self.played {
-            // Every played card contributes its built-in chips/mult first, then
-            // its special (probabilistic / custom) effect resolves in card order.
-            score = Self::builtin_played_op(card).apply(score);
+        for (index, card) in self.played.iter().enumerate() {
+            // A card is scored once, plus once more for each retrigger a joker
+            // grants it (Hack: each played 2-5; Hanging Chad: the first card).
+            // Retriggering re-runs the whole per-card contribution, so a
+            // retriggered Lucky card rolls again — matching Balatro. With no
+            // retrigger joker this is a single pass.
+            for _ in 0..=self.played_retriggers(index, card) {
+                // Every played card contributes its built-in chips/mult first,
+                // then its special (probabilistic / custom) effect resolves.
+                score = Self::builtin_played_op(card).apply(score);
 
-            let special = match card.enhancement {
-                MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
-                    rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
-                        if rng.random_range(0..mult_odds) == 0 {
-                            ScoreOp::AddMult(LUCKY_MULT)
-                        } else {
-                            ScoreOp::Nothing
-                        }
-                    })
-                }
-                MPip::Custom(id) => self.custom_op(*card, id, registry),
-                _ => ScoreOp::Nothing,
-            };
-            score = special.apply(score);
+                let special = match card.enhancement {
+                    MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
+                        rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
+                            if rng.random_range(0..mult_odds) == 0 {
+                                ScoreOp::AddMult(LUCKY_MULT)
+                            } else {
+                                ScoreOp::Nothing
+                            }
+                        })
+                    }
+                    MPip::Custom(id) => self.custom_op(*card, id, registry),
+                    _ => ScoreOp::Nothing,
+                };
+                score = special.apply(score);
+            }
         }
 
         score
+    }
+
+    /// How many *additional* times the played card at `index` is scored, summed
+    /// over the board's retrigger jokers. 0 for a board with none (the common
+    /// case), so the played-card fold is byte-identical when no retrigger joker
+    /// is held. `index` is the card's position in `self.played`, used by
+    /// position-based retriggers (Hanging Chad fires only on the first card).
+    fn played_retriggers(&self, index: usize, card: &BuffoonCard) -> usize {
+        self.jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::RetriggerPlayedRanks(n, ranks) if ranks.contains(&card.rank.index) => n,
+                MPip::RetriggerPlayedFaces(n) if matches!(card.rank.index, 'K' | 'Q' | 'J') => n,
+                MPip::RetriggerFirstPlayed(n) if index == 0 => n,
+                _ => 0,
+            })
+            .sum()
     }
 
     /// Built-in played-card contribution: base rank chips (+ flat `Chips`) plus
@@ -1572,5 +1596,38 @@ mod funky__types__board__buffoon_board_tests {
             board.on_hand_played(&hand);
         }
         assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__hack_retriggers_played_two_through_five() {
+        // Hack: retrigger each played 2, 3, 4, or 5 one additional time.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::HACK);
+
+        // Only 2S (+2 chips) and 5D (+5 chips) qualify; each scores a second
+        // time -> +7 chips. 8/T/K are untouched. 40 -> 47.
+        assert_eq!(board.score(), Score::new(47, 1));
+    }
+
+    #[test]
+    fn score__sock_and_buskin_retriggers_played_faces() {
+        // Sock and Buskin: retrigger each played face card (K/Q/J) one more time.
+        let mut board = board_playing("KH QD 8C 5S 2H"); // High Card 40/1
+        board.push_joker(card::SOCK_AND_BUSKIN);
+
+        // KH (+10) and QD (+10) each score a second time; the 8/5/2 pips are
+        // untouched (T is not a face). 40 -> 60.
+        assert_eq!(board.score(), Score::new(60, 1));
+    }
+
+    #[test]
+    fn score__hanging_chad_retriggers_first_played_card_twice() {
+        // Hanging Chad: the first played card is scored 3× total (+2 triggers).
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::HANGING_CHAD);
+
+        // Only the first card 2S (+2 chips) retriggers, twice more -> +4 chips;
+        // the other four cards are untouched. 40 -> 44.
+        assert_eq!(board.score(), Score::new(44, 1));
     }
 }

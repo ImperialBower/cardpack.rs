@@ -3,7 +3,7 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 22;
+    pub const COMMON_JOKERS_SIZE: usize = 23;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::JOKER,
@@ -28,6 +28,7 @@ impl Joker {
         card::MISPRINT,
         card::RAISED_FIST,
         card::CHAOS_THE_CLOWN,
+        card::HANGING_CHAD,
     ];
 
     #[must_use]
@@ -35,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 12;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 13;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -50,6 +51,7 @@ impl Joker {
         card::STEEL_JOKER,
         card::HACK,
         card::PAREIDOLIA,
+        card::SOCK_AND_BUSKIN,
     ];
 
     #[must_use]
@@ -603,7 +605,7 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::RetriggerPlayedRanks(1, ['2', '3', '4', '5']),
         resell_value: 3,
         debuffed: false,
     };
@@ -1455,6 +1457,38 @@ pub mod card {
         debuffed: false,
     };
 
+    // 109 Sock and Buskin — Uncommon, $6. Retrigger all played face cards.
+    pub const SOCK_AND_BUSKIN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 803,
+            pip_type: PipType::Joker,
+            index: '🧦',
+            symbol: '🧦',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerPlayedFaces(1),
+        resell_value: 3,
+        debuffed: false,
+    };
+
+    // 115 Hanging Chad — Common, $4. Retrigger first played card 2 extra times.
+    pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 804,
+            pip_type: PipType::Joker,
+            index: '🗳',
+            symbol: '🗳',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::RetriggerFirstPlayed(2),
+        resell_value: 2,
+        debuffed: false,
+    };
+
     // The "family" of Rare jokers that give ×Mult when the played hand contains
     // a given category (Balatro #131–135). "Contains" matches Balatro: e.g. The
     // Duo fires on any hand with at least a pair (two pair, trips, full house,
@@ -1704,7 +1738,7 @@ mod funky__decks__joker_tests {
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 105] = [
+    const ALL_JOKERS: [BuffoonCard; 107] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1800,6 +1834,8 @@ mod funky__decks__joker_tests {
         card::ANCIENT_JOKER,
         card::RAMEN,
         card::WALKIE_TALKIE,
+        card::SOCK_AND_BUSKIN,
+        card::HANGING_CHAD,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -1930,7 +1966,15 @@ mod funky__decks__joker_tests {
             | MPip::LoseChipsPerHand(_, _)
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
-            | MPip::GainChipsPerStraightHand(_) => true,
+            | MPip::GainChipsPerStraightHand(_)
+            // Retriggers re-score played cards, so they score (Hack: each
+            // played 2-5 scores again; Sock and Buskin: each played face;
+            // Hanging Chad: the first played card twice more). Mime/Dusk
+            // retriggers stay non-scoring below until their held/final-round
+            // paths land.
+            | MPip::RetriggerPlayedRanks(_, _)
+            | MPip::RetriggerPlayedFaces(_)
+            | MPip::RetriggerFirstPlayed(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
