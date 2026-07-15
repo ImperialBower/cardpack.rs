@@ -680,6 +680,68 @@ impl BuffoonBoard {
         self.jokers.remove(index)
     }
 
+    /// Add a card to the run's deck: the run now **owns** it (it joins
+    /// [`full_deck`](Self::full_deck)) and it is **undealt** (it joins
+    /// [`deck`](Self::deck)). This is the only sanctioned way to grow the deck —
+    /// writing either pile alone desynchronises the roster from the remainder.
+    ///
+    /// [`starting_deck_size`](Self::starting_deck_size) is deliberately *not*
+    /// bumped: it records where the run started, so a deck grown past it leaves
+    /// Erosion scoring nothing rather than going negative.
+    pub fn add_card_to_deck(&mut self, card: BuffoonCard) {
+        self.full_deck.push(card);
+        self.deck.push(card);
+    }
+
+    /// Destroy the roster card at `index`: it leaves the run entirely, so it
+    /// goes from [`full_deck`](Self::full_deck) and — if it had not been dealt
+    /// yet — from [`deck`](Self::deck) too. Returns the destroyed card, or
+    /// `None` if `index` is out of bounds.
+    ///
+    /// The undealt copy is located by **value**, since a [`BuffoonCard`] is a
+    /// `Copy` value type with no identity. That is not a compromise: two
+    /// value-equal cards are interchangeable, so removing either leaves the same
+    /// multiset. A card the roster holds but the remainder does not (i.e. it is
+    /// already dealt, played, or held) simply leaves the remainder untouched.
+    pub fn destroy_deck_card(&mut self, index: usize) -> Option<BuffoonCard> {
+        if index >= self.full_deck.len() {
+            return None;
+        }
+        let card = self.full_deck.remove(index);
+        if let Some(undealt) = self.deck.iter().position(|c| *c == card) {
+            self.deck.remove(undealt);
+        }
+        Some(card)
+    }
+
+    /// Replace the roster card at `index` with `replacement`, keeping the
+    /// undealt copy (if any) in step. Returns `false` if `index` is out of
+    /// bounds.
+    ///
+    /// This is the seam every permanent card mutation goes through — enhancing a
+    /// deck card to Steel or Stone, Hiker's `+4` chips, a tarot's rank/suit
+    /// change. Same value-matching rule as [`destroy_deck_card`](Self::destroy_deck_card).
+    pub fn replace_deck_card(&mut self, index: usize, replacement: BuffoonCard) -> bool {
+        let Some(old) = self.full_deck.get(index).copied() else {
+            return false;
+        };
+        self.full_deck.remove(index);
+        self.full_deck.insert(index, replacement);
+        if let Some(undealt) = self.deck.iter().position(|c| *c == old) {
+            self.deck.remove(undealt);
+            self.deck.insert(undealt, replacement);
+        }
+        true
+    }
+
+    /// Where `card` sits in the roster, or `None` if the run does not own it.
+    /// First match wins — see [`destroy_deck_card`](Self::destroy_deck_card) for
+    /// why that is exact rather than approximate.
+    #[must_use]
+    pub fn full_deck_index_of(&self, card: BuffoonCard) -> Option<usize> {
+        self.full_deck.iter().position(|c| *c == card)
+    }
+
     /// Pad `joker_state` with zeros up to `jokers.len()`, so a board built by
     /// setting `jokers` directly still has a counter slot per joker. Only grows —
     /// never truncates.
@@ -726,6 +788,63 @@ impl BuffoonBoard {
     /// Grow every joker's counter for a discard.
     pub fn on_discard(&mut self, discarded: &BuffoonPile) {
         self.apply_growth(&GrowthEvent::Discard(discarded));
+    }
+
+    /// Apply the permanent card mutations that fire when the played hand scores,
+    /// then score it. Today that is Hiker (`MPip::GainChipsOnScored`): every card
+    /// in [`played`](Self::played) gains chips for the rest of the run.
+    ///
+    /// Call this **before** [`score`](Self::score): in Balatro a card gains
+    /// Hiker's chips as it scores, so the boost lands on the very hand that
+    /// triggers it and on every later hand the card appears in. This mirrors the
+    /// order the counter jokers already use — events fire, then scoring reads.
+    ///
+    /// The bump is applied to the played card *and* to the run's roster copy of
+    /// it, so it persists once the card cycles back into the deck. A played card
+    /// the roster does not hold (the board conserves no deal invariant — see
+    /// [`full_deck`](Self::full_deck)) still scores its boost; only the
+    /// persistence is skipped.
+    ///
+    /// Chips are added to the card's **base rank value**, which is orthogonal to
+    /// its `enhancement`, so a Steel or Stone card accumulates Hiker chips
+    /// without either effect clobbering the other. Rank `weight` is untouched,
+    /// so a fattened card still sorts and connects normally — Hiker cannot
+    /// silently break straight or flush detection.
+    ///
+    /// # Known gap: retriggers
+    ///
+    /// Each played card is bumped **once per hand**, not once per scoring
+    /// trigger. Balatro fires Hiker on every trigger, so a card retriggered by
+    /// Hack would gain `+4` twice, with the second trigger scoring the
+    /// already-fattened card. Getting that exact needs the bump interleaved into
+    /// [`fold_played_cards`](Self::fold_played_cards), which is a pure `&self`
+    /// fold and cannot mutate — so it waits on scoring becoming mutating.
+    /// Boards without a retrigger joker (every board today except Hack, Sock and
+    /// Buskin, and Hanging Chad ones) are exact.
+    pub fn on_scored(&mut self) {
+        let bump: usize = self
+            .jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::GainChipsOnScored(n) => n,
+                _ => 0,
+            })
+            .sum();
+        if bump == 0 {
+            return;
+        }
+
+        for index in 0..self.played.len() {
+            let Some(card) = self.played.get(index).copied() else {
+                continue;
+            };
+            let fattened = card.add_base_chips(bump);
+            self.played.remove(index);
+            self.played.insert(index, fattened);
+            if let Some(slot) = self.full_deck_index_of(card) {
+                self.replace_deck_card(slot, fattened);
+            }
+        }
     }
 
     fn apply_growth(&mut self, event: &GrowthEvent) {
@@ -1942,10 +2061,11 @@ mod funky__types__board__buffoon_board_tests {
     /// Swap the first `n` cards of the board's full deck for `enhancement`-ed
     /// copies. Size-preserving, so it moves Steel/Stone counts without also
     /// tripping Erosion.
+    /// Enhance the first `n` roster cards, through the real mutation seam.
     fn enhance_in_full_deck(board: &mut BuffoonBoard, n: usize, enhancement: MPip) {
-        for _ in 0..n {
-            let card = board.full_deck.remove(0);
-            board.full_deck.push(enhanced(card, enhancement));
+        for index in 0..n {
+            let card = board.full_deck.get(index).copied().unwrap();
+            assert!(board.replace_deck_card(index, enhanced(card, enhancement)));
         }
     }
 
@@ -2016,6 +2136,80 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
+    fn add_card_to_deck__grows_the_roster_and_the_undealt_remainder() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let start = board.starting_deck_size;
+
+        board.add_card_to_deck(enhanced(basic::ACE_SPADES, MPip::TOWER));
+
+        // The run owns one more card, and it has not been dealt yet.
+        assert_eq!(board.full_deck.len(), start + 1);
+        assert_eq!(board.deck.len(), start + 1);
+        // Where the run *started* is history and does not move, so Erosion keeps
+        // measuring against the original size.
+        assert_eq!(board.starting_deck_size, start);
+    }
+
+    #[test]
+    fn destroy_deck_card__removes_the_undealt_copy_but_tolerates_a_dealt_one() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let start = board.starting_deck_size;
+
+        // An undealt card leaves both piles: the run no longer owns it, and it
+        // can no longer be drawn.
+        let card = board.full_deck.get(0).copied().unwrap();
+        assert_eq!(board.destroy_deck_card(0), Some(card));
+        assert_eq!(board.full_deck.len(), start - 1);
+        assert_eq!(board.deck.len(), start - 1);
+        assert!(!board.deck.contains(&card));
+
+        // A card already dealt out of the remainder still leaves the roster; the
+        // remainder simply has nothing to drop. This is the case the board's
+        // lack of a deal invariant makes real.
+        let dealt = board.full_deck.get(0).copied().unwrap();
+        let removed = board.deck.iter().position(|c| *c == dealt).unwrap();
+        board.deck.remove(removed);
+        assert_eq!(board.destroy_deck_card(0), Some(dealt));
+        assert_eq!(board.full_deck.len(), start - 2);
+        assert_eq!(board.deck.len(), start - 2);
+
+        // Out of bounds is None, not a panic.
+        assert_eq!(board.destroy_deck_card(9_999), None);
+    }
+
+    #[test]
+    fn replace_deck_card__swaps_the_card_in_both_piles_and_keeps_its_slot() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let card = board.full_deck.get(3).copied().unwrap();
+        let steel = enhanced(card, MPip::STEEL);
+
+        assert!(board.replace_deck_card(3, steel));
+
+        // Same size, same slot, new card -- in the roster and the remainder both.
+        assert_eq!(board.full_deck.len(), board.starting_deck_size);
+        assert_eq!(board.full_deck.get(3), Some(&steel));
+        assert!(board.deck.contains(&steel));
+        assert!(!board.deck.contains(&card));
+
+        assert!(!board.replace_deck_card(9_999, steel));
+    }
+
+    #[test]
+    fn score__erosion_moves_through_real_deck_mutation() {
+        // Phase 7 could only pose Erosion by poking `full_deck` directly. The
+        // mutation seam is what makes it move the way play would.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::EROSION);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        for _ in 0..3 {
+            assert!(board.destroy_deck_card(0).is_some());
+        }
+        // Three cards below the starting size -> +12 mult.
+        assert_eq!(board.score(), Score::new(40, 13));
+    }
+
+    #[test]
     fn score__steel_joker_counts_the_deck_not_the_hand() {
         // The Steel *card* scores x1.5 while held (phase 3); the Steel *Joker*
         // reads the roster (phase 4). A Steel card held but not in the full
@@ -2028,5 +2222,110 @@ mod funky__types__board__buffoon_board_tests {
         // Held Steel: x1.5 -> ceil(1 x 1.5) = 2. Steel Joker still sees an
         // unenhanced deck -> x1.
         assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__hiker_permanently_adds_chips_to_every_scored_card() {
+        // Hiker: every played card permanently gains +4 chips when scored. The
+        // boost lands on the hand that triggers it, so five cards -> +20 chips.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.push_joker(card::HIKER);
+
+        // Inert until the hand actually scores.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(60, 1));
+
+        // "Permanently" is the whole joker: scoring the same cards again stacks
+        // another +4 each rather than re-applying a flat bonus.
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(80, 1));
+    }
+
+    #[test]
+    fn on_scored__persists_the_chips_onto_the_run_roster() {
+        // The bump has to outlive the hand, or Hiker is just a +4/card scoring
+        // arm. The roster copy is what the card carries back into the deck.
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        board.played = BuffoonPile::from(vec![basic::KING_SPADES]);
+        board.push_joker(card::HIKER);
+
+        let slot = board.full_deck_index_of(basic::KING_SPADES).unwrap();
+        board.on_scored();
+
+        // A King is 10 chips; after one scoring it is 14, in the roster and in
+        // the undealt remainder both.
+        let fattened = board.full_deck.get(slot).copied().unwrap();
+        assert_eq!(fattened.get_chips(), 14);
+        assert!(board.deck.contains(&fattened));
+        assert!(!board.deck.contains(&basic::KING_SPADES));
+    }
+
+    #[test]
+    fn on_scored__stacks_with_an_enhancement_rather_than_clobbering_it() {
+        // Chips ride on the base rank value; enhancements are a separate field.
+        // A Steel card must keep its x1.5 *and* collect Hiker's chips -- this is
+        // why the bump goes through `add_base_chips` and not `enhance`.
+        let mut board = board_playing("2S 5D 8C TS"); // 4 cards
+        let steel_king = enhanced(basic::KING_HEARTS, MPip::STEEL);
+        board.in_hand = BuffoonPile::from(vec![steel_king]);
+        board.played.push(steel_king);
+        board.push_joker(card::HIKER);
+
+        board.on_scored();
+
+        let played_king = board.played.get(4).copied().unwrap();
+        assert_eq!(played_king.get_chips(), 14);
+        assert_eq!(played_king.enhancement, MPip::STEEL);
+    }
+
+    #[test]
+    fn on_scored__leaves_rank_weight_alone_so_detection_is_unaffected() {
+        // Hiker fattens `rank.value`; straights and flushes key off `weight`. If
+        // the bump touched weight, a Hiker board would silently stop detecting
+        // its own straight flush -- the exact silent-wrong class this EPIC
+        // guards against.
+        let mut board = board_playing("9H TH JH QH KH");
+        board.push_joker(card::HIKER);
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+
+        board.on_scored();
+        board.on_scored();
+
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+        // Straight Flush 100/8 + (49 pips + 5 cards x 8 chips) = 189/8.
+        assert_eq!(board.score(), Score::new(189, 8));
+    }
+
+    #[test]
+    fn on_scored__bumps_once_per_hand_even_when_a_card_is_retriggered() {
+        // Characterization of a known gap, not an endorsement. Balatro fires
+        // Hiker per scoring *trigger*, so Hack's retriggered 5 would gain +4
+        // twice and score the second time already fattened. `on_scored` runs
+        // before the pure fold, so it bumps once per hand instead. Pinned here
+        // so the deviation is visible and this test fails the day scoring
+        // becomes mutating and the gap can be closed properly.
+        let mut board = board_playing("5H 5S 5D"); // Trips
+        board.push_joker(card::HIKER);
+        board.push_joker(card::HACK); // retriggers each played 2-5
+
+        board.on_scored();
+
+        // Each 5 is bumped once (5 -> 9) and scored twice by Hack: Trips base
+        // 30/3 + 6 x 9 = 84/3. Balatro would give 30 + (9+13) x 3 = 96/3.
+        assert_eq!(board.score(), Score::new(84, 3));
+    }
+
+    #[test]
+    fn on_scored__is_inert_without_hiker() {
+        // Every other board must be byte-identical across the new hook.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MYSTIC_SUMMIT);
+        let before = board.clone();
+
+        board.on_scored();
+
+        assert_eq!(board, before);
     }
 }

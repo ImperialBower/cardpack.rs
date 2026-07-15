@@ -416,6 +416,15 @@ impl BuffoonPile {
         self.has_x_of_a_kind(3)
     }
 
+    /// Inserts `card` at `position`, shifting everything at or after it right.
+    ///
+    /// # Panics
+    ///
+    /// If `position > len()`.
+    pub fn insert(&mut self, position: usize, card: BuffoonCard) {
+        self.0.insert(position, card);
+    }
+
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()

@@ -61,7 +61,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
-| 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
+| 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | **In progress** — mutation seam (`add_card_to_deck` / `destroy_deck_card` / `replace_deck_card`) + `on_scored`; **Hiker** wired (the phase's only scoring joker). The rest need consumables, packs, blinds, or the shop |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **Complete** — `HandRules` seam (straight/flush/smeared), face-predicate hook, and RNG odds-numerator; all six wired (Four Fingers, Shortcut, Pareidolia, Smeared, Splash [no-op], Oops! All 6s) |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | **Complete** — `full_deck` roster + `starting_deck_size` on the board; all three wired |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
@@ -483,12 +483,87 @@ each joker + its test. Track completion by flipping the Status table.
   unreconciled against the wiki. Worth one sweep rather than piecemeal fixes;
   logged under Data fixes.
 
-### Phases 5, 8
+### Phase 5 — Deck mutation / create / consumables
 
-- [ ] **5, 8.** Deck mutation, boss blinds — each a self-contained sub-EPIC; see
-  Design. Wire jokers as each mechanism lands. Phase 5 owns the only legitimate
-  writer of `full_deck`, and will make Erosion/Steel Joker/Stone Joker move in
-  real play rather than only under test.
+- [x] **5a.** The deck-mutation seam landed on `BuffoonBoard` — the legitimate
+  writer of `full_deck` that Phase 7 deferred to this phase. Three primitives,
+  each keeping the roster and the undealt remainder coherent:
+  `add_card_to_deck` (the run owns one more, undealt — and deliberately does
+  *not* bump `starting_deck_size`, so a grown deck leaves Erosion at 0 rather
+  than going negative), `destroy_deck_card(index) -> Option<BuffoonCard>`, and
+  `replace_deck_card(index, card)` (the seam every permanent card mutation goes
+  through), plus a `full_deck_index_of` lookup. `BuffoonPile` gained `insert`,
+  matching its existing `Vec`-passthrough style. Tests:
+  `add_card_to_deck__grows_the_roster_and_the_undealt_remainder`,
+  `destroy_deck_card__removes_the_undealt_copy_but_tolerates_a_dealt_one`,
+  `replace_deck_card__swaps_the_card_in_both_piles_and_keeps_its_slot`, and
+  `score__erosion_moves_through_real_deck_mutation` — Erosion now moves through
+  real destruction rather than a poked `full_deck`. The Phase 7 tests' private
+  `enhance_in_full_deck` helper was rewritten onto `replace_deck_card`, so
+  Steel/Stone Joker are exercised through the seam too.
+
+  *Design finding:* a `BuffoonCard` is a `Copy` value type with no identity, so
+  locating a card's undealt copy has to be a value match. That is exact, not a
+  compromise: two value-equal cards are interchangeable, so removing or
+  replacing either leaves the same multiset — and the moment Hiker fattens one
+  of a duplicate pair, they stop being value-equal and the match distinguishes
+  them again. Roster-only cards (already dealt, played, or held) are tolerated,
+  since the board conserves no deal invariant (the 7a finding).
+
+- [x] **5b.** **Hiker** (#56) wired — the phase's only joker that touches a hand
+  score. New `MPip::GainChipsOnScored(4)` (const flipped from `Blank`; no new
+  const, so no new weight or pile) and a new `on_scored()` lifecycle hook — one
+  of the three item 1c already anticipates. Unlike its `Gain*` neighbours it is
+  not a counter: nothing accumulates on the joker, the growth lives on the
+  *cards*. Every card in `played` gains +4 chips, applied to the played card and
+  persisted to its roster copy through 5a's `replace_deck_card`.
+
+  Chips ride on the card's **base rank value** (`add_base_chips`), which is
+  orthogonal to `enhancement` — so a Steel card collects Hiker chips and keeps
+  its ×1.5 — and leaves rank `weight` untouched, which is what `distance`
+  (and therefore straight/flush detection) keys off. Hiker cannot silently
+  break hand detection; `on_scored__leaves_rank_weight_alone_so_detection_is_unaffected`
+  pins that.
+
+  Classified **scoring** in `scores_hand`, and `is_reachable` now fires
+  `on_scored()` — verified the guard genuinely covers Hiker by removing that
+  call and watching it report Hiker as a silent zero. Four tests, each failing
+  before the const flips: `score__hiker_permanently_adds_chips_to_every_scored_card`
+  (5 cards → +20, and stacking on a second scoring, which is what "permanently"
+  means), `on_scored__persists_the_chips_onto_the_run_roster`,
+  `on_scored__stacks_with_an_enhancement_rather_than_clobbering_it`, and the
+  detection guard above. Plus `on_scored__is_inert_without_hiker` for exit
+  criterion 2.
+
+  **Known gap, characterized not hidden:** Balatro fires Hiker per scoring
+  *trigger*, so a Hack-retriggered card gains +4 twice and scores the second
+  trigger already fattened. `on_scored` runs before the pure `&self` fold and
+  cannot interleave, so it bumps once per hand. Every board without a retrigger
+  joker is exact; the deviation is pinned by
+  `on_scored__bumps_once_per_hand_even_when_a_card_is_retriggered` (84/3 where
+  Balatro gives 96/3), which will fail the day scoring becomes mutating and the
+  gap can be closed properly.
+
+- [ ] **5c.** Consumable create: a `create_consumable` path honouring the cap-2
+  slot, then **Superposition** (#59, Tarot on an Ace + Straight) and **Vagabond**
+  (#71, Tarot on a hand played with ≤$4 — money already exists from Phase 1).
+  Both draw from the existing 22-card `MajorArcana::DECK` via the seeded-RNG path.
+
+- [ ] **5d.** Blind-select creators, shared with 2c/Phase 8's `on_blind_selected()`:
+  **Marble Joker** (#24, add a Stone card to the deck — 5a's `add_card_to_deck`)
+  and **Riff-Raff** (#67, create 2 Common Jokers).
+
+- [ ] **5e.** Blocked on subsystems outside this EPIC, each with its reason:
+  **Sixth Sense** (#54) and **Séance** (#66) need **Spectral cards, which do not
+  exist** — `BCardType::Spectral` is a bare tag with no deck (EPIC-01 Story 3).
+  **Hallucination** (#85) needs booster packs. **Perkeo** (#150) needs the shop
+  and Negative editions. **DNA** (#51) needs "first hand of round" state and a
+  draw step. All stay `Blank` rather than take a plausible-but-wrong value.
+
+### Phase 8
+
+- [ ] **8.** Boss blinds — a self-contained sub-EPIC; see Design. Wire jokers as
+  the mechanism lands.
 
 ---
 

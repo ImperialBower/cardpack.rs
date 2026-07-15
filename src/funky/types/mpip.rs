@@ -141,6 +141,14 @@ pub enum MPip {
     GainMultPerTwoPairHand(usize),
     /// Runner: +`rate` chips per hand played containing a Straight.
     GainChipsPerStraightHand(usize),
+    /// Hiker: every played card **permanently** gains `n` chips when scored.
+    ///
+    /// Unlike its `Gain*` neighbours this is not a counter — nothing accumulates
+    /// on the joker. The growth lives on the *cards*: each scored card's base
+    /// chips are bumped for the rest of the run, so the joker's contribution is
+    /// whatever those fattened cards go on to score. Applied by
+    /// `BuffoonBoard::on_scored`, not by a scoring arm.
+    GainChipsOnScored(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -329,6 +337,7 @@ impl Display for MPip {
             }
             Self::GainMultPerTwoPairHand(n) => write!(f, "GainMultPerTwoPairHand({n})"),
             Self::GainChipsPerStraightHand(n) => write!(f, "GainChipsPerStraightHand({n})"),
+            Self::GainChipsOnScored(n) => write!(f, "GainChipsOnScored({n})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
@@ -392,6 +401,10 @@ mod funky__types__mpips_tests {
         assert_eq!(
             MPip::GainChipsPerStraightHand(15).to_string(),
             "GainChipsPerStraightHand(15)"
+        );
+        assert_eq!(
+            MPip::GainChipsOnScored(4).to_string(),
+            "GainChipsOnScored(4)"
         );
     }
 }

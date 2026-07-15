@@ -898,7 +898,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Hiker: every played card permanently gains +4 chips when scored.
+        enhancement: MPip::GainChipsOnScored(4),
         resell_value: 0,
         debuffed: false,
     };
@@ -2029,6 +2030,9 @@ mod funky__decks__joker_tests {
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
             | MPip::GainChipsPerStraightHand(_)
+            // Hiker fattens the cards rather than itself, but the boost lands on
+            // the hand that triggers it, so it does change the score.
+            | MPip::GainChipsOnScored(_)
             // Retriggers re-score cards, so they score (Hack: each played 2-5;
             // Sock and Buskin: each played face; Hanging Chad: the first played
             // card twice more; Mime: held-card abilities). Dusk retrigger stays
@@ -2167,7 +2171,8 @@ mod funky__decks__joker_tests {
 
     /// A joker is *reachable* if adding it to some probe board changes the score.
     /// In-round events are fired after the joker is added so counter jokers
-    /// (Green Joker, Ramen, …) accumulate before the score is read.
+    /// (Green Joker, Ramen, …) accumulate — and the scored-card mutations (Hiker)
+    /// land — before the score is read.
     fn is_reachable(joker: BuffoonCard) -> bool {
         // Hands that satisfy every growth condition across the slice: a 4-card
         // straight (Square + Runner), a two-pair hand (Spare Trousers), and a
@@ -2184,6 +2189,7 @@ mod funky__decks__joker_tests {
                 board.on_hand_played(hand);
             }
             board.on_discard(&bcards!("2C 3C 4C"));
+            board.on_scored();
             board.score() != baseline
         })
     }
