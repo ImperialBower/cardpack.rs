@@ -1767,10 +1767,12 @@ pub mod card {
 mod funky__decks__joker_tests {
     use super::*;
     use crate::bcards;
+    use crate::funky::decks::basic::card as basic;
+    use crate::funky::decks::tarot::MajorArcana;
     use crate::funky::types::board::BuffoonBoard;
     use crate::funky::types::draws::Draws;
     use crate::funky::types::mpip::MPip;
-    use crate::preludes::funky::{BCardType, Deck};
+    use crate::preludes::funky::{BCardType, BuffoonPile, Deck};
     use std::collections::HashSet;
 
     /// Every joker const defined in this file, in declaration order. The single
@@ -2053,7 +2055,14 @@ mod funky__decks__joker_tests {
             // straight/flush jokers.
             | MPip::FourFlushAndStraight
             | MPip::GappedStraight
-            | MPip::SmearedSuits => true,
+            | MPip::SmearedSuits
+            // Glass card: xn mult when scored. The 1-in-N destruction rides the
+            // same variant but does not gate the mult, so this scores flatly --
+            // the Gros Michel shape, on a card instead of a joker.
+            | MPip::Glass(_, _)
+            // Stone card: +n chips when scored (and no rank/suit for detection,
+            // which is why it is still in KNOWN_UNWIRED_CARD_ENHANCEMENTS).
+            | MPip::Stone(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -2076,7 +2085,6 @@ mod funky__decks__joker_tests {
             // not a deterministic scorer.
             | MPip::DoubleOdds
             | MPip::FreeReroll(_)
-            | MPip::Glass(_, _)
             | MPip::Gold(_)
             | MPip::Hanged(_)
             | MPip::JokersValue(_)
@@ -2091,7 +2099,6 @@ mod funky__decks__joker_tests {
             | MPip::RandomTarot(_)
             | MPip::RetriggerPlayedCardsInFinalRound
             | MPip::SellValueIncrement(_)
-            | MPip::Stone(_)
             | MPip::Strength
             | MPip::Odds1in(_)
             | MPip::Odds1inCashOn3Ranks(_, _, _)
@@ -2249,6 +2256,118 @@ mod funky__decks__joker_tests {
         assert!(
             new_silent_zero.is_empty(),
             "these jokers intend to score but silently add nothing (wire them or, if intentional, adjust the data): {new_silent_zero:?}"
+        );
+    }
+
+    /// Every `MPip` a **playing card** can end up wearing, derived rather than
+    /// hand-listed: stamp each tarot onto a plain card via [`BuffoonCard::enhance`]
+    /// and read back what stuck. Tarots that mutate rank or suit (Strength, the
+    /// four suit-changers) or that act on the run rather than the card (Death,
+    /// Judgement, …) leave the enhancement `Blank` and drop out.
+    ///
+    /// Deriving it means a **new tarot joins the guard automatically** — the
+    /// registry cannot silently fall behind the deck the way a hand-written list
+    /// would.
+    ///
+    /// [`BuffoonCard::enhance`]: crate::funky::types::buffoon_card::BuffoonCard::enhance
+    fn all_card_enhancements() -> Vec<MPip> {
+        let plain = basic::KING_HEARTS;
+        let mut found: Vec<MPip> = MajorArcana::DECK
+            .iter()
+            .map(|tarot| plain.enhance(*tarot).enhancement)
+            .filter(|enhancement| *enhancement != MPip::Blank)
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+        found.sort_unstable();
+        found
+    }
+
+    /// A card enhancement is *reachable* if a card wearing it scores differently
+    /// from the same card plain — in **either** the played or the held position.
+    /// Both are probed because the two are wired through different folds: a Bonus
+    /// card's chips land in phase 2, a Steel card's ×1.5 only in phase 3, and an
+    /// enhancement wired to the wrong one scores nothing where it counts.
+    fn is_card_enhancement_reachable(enhancement: MPip) -> bool {
+        let plain = basic::KING_HEARTS;
+        let enhanced = BuffoonCard {
+            enhancement,
+            ..plain
+        };
+
+        // The board needs a real hand under it: a held ×mult multiplies the
+        // running score, so it cannot show up against a score of zero.
+        let probe = |plain_card: BuffoonCard, enhanced_card: BuffoonCard, held: bool| {
+            let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+            board.played = bcards!("2S 5D 8C TS");
+            let mut with = |card: BuffoonCard| {
+                if held {
+                    board.in_hand = BuffoonPile::from(vec![card]);
+                } else {
+                    board.played = bcards!("2S 5D 8C TS");
+                    board.played.push(card);
+                }
+                board.score()
+            };
+            with(plain_card) != with(enhanced_card)
+        };
+
+        probe(plain, enhanced, false) || probe(plain, enhanced, true)
+    }
+
+    /// Card enhancements that *intend* to score but have no wiring yet. The
+    /// card-level twin of [`KNOWN_UNWIRED`] — same contract: remove an entry when
+    /// you wire it, and the guard fails if a listed one starts scoring.
+    const KNOWN_UNWIRED_CARD_ENHANCEMENTS: [MPip; 1] = [
+        // Stone card (TOWER): +50 chips, and no rank or suit for detection
+        // purposes. The chips are trivial, but the rank/suit suppression is not
+        // — a Stone card must not count toward a straight or flush, which needs
+        // a detection hook rather than a scoring arm. Wiring only the chips
+        // would trade a silent zero for a silently *wrong* hand type, so it
+        // waits for both halves to land together.
+        MPip::TOWER,
+    ];
+
+    /// The card-level silent-zero guard — the twin of
+    /// [`all_jokers__intended_hand_scorers_are_reachable`], which iterates
+    /// `ALL_JOKERS` and therefore cannot see a *card* enhancement at all. That
+    /// blind spot is exactly how the Glass card kept its ×2 mult unwired through
+    /// the whole of Phase 0b.
+    ///
+    /// Same contract as the joker guard, against the same intent oracle: an
+    /// enhancement a card can wear, whose variant claims to score, must actually
+    /// move the score somewhere.
+    #[test]
+    fn all_card_enhancements__intended_hand_scorers_are_reachable() {
+        let known: HashSet<_> = KNOWN_UNWIRED_CARD_ENHANCEMENTS.iter().collect();
+        let mut new_silent_zero = Vec::new();
+        let mut now_wired = Vec::new();
+        let mut misclassified = Vec::new();
+        for enhancement in all_card_enhancements() {
+            let intends = scores_hand(enhancement);
+            let reachable = is_card_enhancement_reachable(enhancement);
+            let listed = known.contains(&enhancement);
+            if intends && !reachable && !listed {
+                new_silent_zero.push(format!("{enhancement}"));
+            }
+            if listed && reachable {
+                now_wired.push(format!("{enhancement}"));
+            }
+            if !intends && reachable {
+                misclassified.push(format!("{enhancement}"));
+            }
+        }
+        assert!(
+            misclassified.is_empty(),
+            "these card enhancements scored but are classified non-scoring — reclassify in `scores_hand`: {misclassified:?}"
+        );
+        assert!(
+            now_wired.is_empty(),
+            "these are wired now — remove them from KNOWN_UNWIRED_CARD_ENHANCEMENTS: {now_wired:?}"
+        );
+        assert!(
+            new_silent_zero.is_empty(),
+            "these card enhancements intend to score but silently add nothing: {new_silent_zero:?}"
         );
     }
 

@@ -117,8 +117,12 @@ impl BuffoonBoard {
 
     /// The single played-card fold behind phase 2. Each card adds its chips and
     /// built-in additive effects, then its special enhancement resolves:
-    /// a Lucky card rolls (if `rng`), a `MPip::Custom` card is looked up (if
-    /// `registry`). Built-in cards are unaffected by the options.
+    /// a Lucky card rolls (if `rng`), a Glass card applies its ×mult, a
+    /// `MPip::Custom` card is looked up (if `registry`). Built-in cards are
+    /// unaffected by the options.
+    // Glass's ×mult factor is a small literal from the card data; the same
+    // allow the other ×mult seams carry (`builtin_held_op`, `joker_x_mult`).
+    #[allow(clippy::cast_precision_loss)]
     fn fold_played_cards<R: Rng + ?Sized>(
         &self,
         running: Score,
@@ -151,6 +155,13 @@ impl BuffoonBoard {
                             }
                         })
                     }
+                    // Glass card: ×n mult when scored. Multiplicative, so it
+                    // cannot ride the additive `calculate_plus` path — it scales
+                    // the running score at this card's position, like a held
+                    // Steel card does in phase 3. The destruction half
+                    // (1-in-`_odds` after the hand) is data only until a
+                    // round-end hook exists, exactly as with Gros Michel.
+                    MPip::Glass(mult, _odds) => ScoreOp::TimesMult(mult as f32),
                     MPip::Custom(id) => self.custom_op(*card, id, registry),
                     _ => ScoreOp::Nothing,
                 };
@@ -2226,6 +2237,52 @@ mod funky__types__board__buffoon_board_tests {
         // Held Steel: x1.5 -> ceil(1 x 1.5) = 2. Steel Joker still sees an
         // unenhanced deck -> x1.
         assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__glass_card_multiplies_mult_when_scored() {
+        // Glass card: x2 Mult when scored, 1 in 4 chance to be destroyed after
+        // the hand. Both halves were declared on the const and neither was
+        // wired, so a Glass King scored exactly like a plain King.
+        let mut board = board_playing("2S 5D 8C TS"); // High Card 5/1 + 25 = 30/1
+        assert_eq!(board.score(), Score::new(30, 1));
+
+        // A plain King is +10 chips and nothing else.
+        board.played.push(basic::KING_HEARTS);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // The same King in Glass keeps its chips and doubles the mult.
+        board.played.remove(4);
+        board
+            .played
+            .push(enhanced(basic::KING_HEARTS, MPip::Glass(2, 4)));
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__glass_card_multiplies_at_its_own_position_in_the_hand() {
+        // x-mult is order-sensitive: Glass scales the score accumulated up to
+        // *its* card, so a later +mult card is not doubled. Pinning this stops
+        // the arm drifting into the additive `calculate_plus` path, where it
+        // would silently lose its ordering.
+        let glass = enhanced(basic::KING_HEARTS, MPip::Glass(2, 4));
+        let mult_card = enhanced(basic::QUEEN_HEARTS, MPip::MultPlus(4));
+
+        // Chips are order-independent: High Card base 5 + 2 + K10 + Q10 = 27.
+        let chips = 5 + 2 + 10 + 10;
+
+        // Glass first: mult 1 x2 = 2, then the Mult card's +4 = 6.
+        let mut glass_first = board_playing("2S");
+        glass_first.played.push(glass);
+        glass_first.played.push(mult_card);
+        assert_eq!(glass_first.score(), Score::new(chips, 6));
+
+        // Mult card first: 1 + 4 = 5, then Glass doubles it = 10. Same cards,
+        // same chips, different mult -- which is the whole point.
+        let mut mult_first = board_playing("2S");
+        mult_first.played.push(mult_card);
+        mult_first.played.push(glass);
+        assert_eq!(mult_first.score(), Score::new(chips, 10));
     }
 
     #[test]

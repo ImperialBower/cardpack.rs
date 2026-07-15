@@ -65,7 +65,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **Complete** — `HandRules` seam (straight/flush/smeared), face-predicate hook, and RNG odds-numerator; all six wired (Four Fingers, Shortcut, Pareidolia, Smeared, Splash [no-op], Oops! All 6s) |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | **Complete** — `full_deck` roster + `starting_deck_size` on the board; all three wired |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
-| 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard, Gros Michel | **Complete** — 0c fixed Gros Michel's missing +15 mult; the audit found the same shape broken in **Glass** (live) and **Cavendish** (latent), see 0c |
+| 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard, Gros Michel, Glass | **Complete** — 0c fixed Gros Michel's missing +15 mult; 0d wired the **Glass** card and added the **card-level** silent-zero guard, which promptly found the **Stone** card scoring 0 (tracked, needs a detection hook too). **Cavendish** remains latently short its destroy chance |
 
 ---
 
@@ -255,19 +255,23 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   in no rarity pile; Balatro has both at **Uncommon / $6**.~~ Fixed in Phase 7 —
   see 7c. The remaining ~59 defined-but-unpiled consts still want one reconciling
   sweep across rarity/cost/pile.
-- **Glass card scores nothing** (`decks/tarot.rs`, the `JUSTICE` const →
-  `MPip::Glass(2, 4)`). Balatro's Glass card is **×2 Mult when scored**, 1-in-4
-  destroyed after the hand. Neither half is implemented: a Glass King scores
-  exactly like a plain King (verified 40/1 both). Found by the 0c audit. Fixing
-  the ×2 means an arm in the played-card fold (`fold_played_cards` /
-  `builtin_played_op`); the destruction waits on the same round-end hook as Gros
-  Michel's. **This is a live wrong-scoring bug with wider reach than Gros Michel**
-  — Glass is an enhancement any card can wear.
-- **The silent-zero guard is joker-only.** `all_jokers__intended_hand_scorers_are_reachable`
-  iterates `ALL_JOKERS`, so no *card* enhancement is covered — which is why Glass
-  went unnoticed through the whole of Phase 0b. A card-level counterpart (probe a
-  card wearing each scoring enhancement; assert it moves the score) would close
-  the class rather than the instance, and would have caught Glass for free.
+- ~~**Glass card scores nothing** (`decks/tarot.rs`, the `JUSTICE` const →
+  `MPip::Glass(2, 4)`).~~ Fixed in 0d.
+- ~~**The silent-zero guard is joker-only**, so no *card* enhancement is
+  covered.~~ Closed in 0d — `all_card_enhancements__intended_hand_scorers_are_reachable`
+  is the card-level twin.
+- **Stone card scores nothing** (`decks/tarot.rs`, the `TOWER` const →
+  `MPip::Stone(50)`). Balatro's Stone card is **+50 chips**, with **no rank or
+  suit**. Found by the 0d guard; tracked in `KNOWN_UNWIRED_CARD_ENHANCEMENTS`
+  rather than wired, because the chips alone would make a Stone card count toward
+  straights and flushes it should not — a silently wrong *hand type*, worse than
+  the silent zero it replaces. Needs the chips **and** a detection suppression
+  together; Phase 6's `HandRules` seam is the natural home for the latter.
+- **Cavendish** (#33) is missing its **1-in-1000 destroy chance** (`MultTimes(3)`
+  carries only the mult) — the mirror image of the Gros Michel bug fixed in 0c.
+  Latent, not live: scoring is correct today and nothing drives destruction yet.
+  Give it `MultTimesChanceDestroyed` when the round-end hook lands, rather than
+  minting a compound variant now for a system that does not exist.
 - **Hiker** (#56) is tagged `CommonJoker` / `value: 5` and sits in no rarity pile.
   Balatro is believed to have it at **Uncommon / $5** — unverified against the
   wiki, so deliberately *not* fixed on a guess (the in-repo catalog at
@@ -348,11 +352,53 @@ each joker + its test. Track completion by flipping the Status table.
   - **Glass card** (tarot `JUSTICE`) — `MPip::Glass(2, 4)`: carries **both**
     halves and **scores neither**. A Glass King scores identically to a plain
     King (verified: 40/1 both). *Live wrong-scoring*, and worse than Gros Michel
-    in reach — Glass is a card enhancement, not a single joker. It is invisible
+    in reach — Glass is a card enhancement, not a single joker. It was invisible
     to the reachability guard for a structural reason: the guard iterates
-    `ALL_JOKERS`, and Glass is a **card**. Fixing it means scoring `Glass` in the
-    played-card fold; **the guard has no card-level counterpart, which is the
-    real gap.**
+    `ALL_JOKERS`, and Glass is a **card**. **Fixed in 0d**, along with the guard
+    gap itself.
+
+- [x] **0d.** The **card-level silent-zero guard** — the structural gap 0c
+  surfaced — plus the two bugs it exists to catch.
+
+  **Glass card wired.** `MPip::Glass(mult, _)` → `ScoreOp::TimesMult` in
+  `fold_played_cards`'s special match, beside Lucky. It belongs there and not on
+  the additive `calculate_plus` path because ×mult is **order-sensitive**: Glass
+  scales the score accumulated up to *its own card*. Reclassified **scoring** in
+  `scores_hand`. Two tests, both failing before the arm lands:
+  `score__glass_card_multiplies_mult_when_scored` (a Glass King keeps its 10
+  chips and doubles the mult, 40/1 → 40/2) and
+  `score__glass_card_multiplies_at_its_own_position_in_the_hand` (same two cards,
+  swapped order → mult 6 vs 10; this is what stops the arm drifting back onto the
+  additive path, where the ordering would be silently lost). The 1-in-4
+  destruction half stays data-only, pending the same round-end hook as Gros
+  Michel's.
+
+  **The guard** — `all_card_enhancements__intended_hand_scorers_are_reachable`,
+  the twin of the joker guard, against the **same** `scores_hand` intent oracle,
+  so there is one definition of "intends to score" for the whole crate. Two
+  design choices worth keeping:
+  - The registry is **derived, not hand-listed**: stamp every tarot onto a plain
+    card via `enhance` and read back what stuck (rank/suit mutators and run-level
+    tarots leave it `Blank` and drop out). A new tarot joins the guard
+    automatically; a hand-written list would quietly fall behind the deck — the
+    same rot that produced these bugs.
+  - It probes the card **played *and* held**, because the two run through
+    different folds. A Bonus card's chips land in phase 2, a Steel card's ×1.5
+    only in phase 3, and an enhancement wired to the wrong fold scores nothing
+    where it counts.
+
+  Verified the guard bites rather than passing vacuously: reverting the Glass arm
+  makes it fail naming `Glass(2, 4)`.
+
+  **It immediately found a third bug, independently: the Stone card.**
+  `MPip::TOWER` = `Stone(50)` should be +50 chips when scored and currently adds
+  **nothing** (confirmed by emptying `KNOWN_UNWIRED_CARD_ENHANCEMENTS` and
+  watching the guard report `Stone(50)`). It is listed in
+  `KNOWN_UNWIRED_CARD_ENHANCEMENTS` rather than wired, deliberately: a Stone card
+  also has **no rank or suit** for detection, so wiring only the chips would
+  trade a silent zero for a silently *wrong hand type* — a strictly worse bug.
+  Both halves should land together, behind a detection hook (Phase 6's
+  `HandRules` seam is the natural home).
 
 ### Phase 1 — Economy / money  *(keystone)*
 
