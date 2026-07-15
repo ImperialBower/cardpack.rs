@@ -637,7 +637,10 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::ChanceDestroyed(1, 6),
+        // Gros Michel: +15 Mult, and a 1-in-6 chance of being destroyed at end
+        // of round. The mult is the whole reason to play it; the const carried
+        // only the destruction until EPIC-01a Phase 0b's audit caught it.
+        enhancement: MPip::MultPlusChanceDestroyed(15, 1, 6),
         resell_value: 2,
         debuffed: false,
     };
@@ -1997,6 +2000,9 @@ mod funky__decks__joker_tests {
             | MPip::ChipsPlusOn5Ranks(_, _)
             | MPip::ChipsPlusPerScoredFace(_)
             | MPip::MultPlus(_)
+            // Gros Michel scores its +mult unconditionally; the destruction half
+            // is a separate, end-of-round concern that does not gate it.
+            | MPip::MultPlusChanceDestroyed(_, _, _)
             | MPip::MultPlusChipsOnRank(_, _, _)
             | MPip::MultPlusOn5Ranks(_, _)
             | MPip::MultPlusOnFlush(_)

@@ -65,7 +65,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **Complete** — `HandRules` seam (straight/flush/smeared), face-predicate hook, and RNG odds-numerator; all six wired (Four Fingers, Shortcut, Pareidolia, Smeared, Splash [no-op], Oops! All 6s) |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | **Complete** — `full_deck` roster + `starting_deck_size` on the board; all three wired |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
-| 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard | **Complete** |
+| 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard, Gros Michel | **Complete** — 0c fixed Gros Michel's missing +15 mult; the audit found the same shape broken in **Glass** (live) and **Cavendish** (latent), see 0c |
 
 ---
 
@@ -255,6 +255,23 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   in no rarity pile; Balatro has both at **Uncommon / $6**.~~ Fixed in Phase 7 —
   see 7c. The remaining ~59 defined-but-unpiled consts still want one reconciling
   sweep across rarity/cost/pile.
+- **Glass card scores nothing** (`decks/tarot.rs`, the `JUSTICE` const →
+  `MPip::Glass(2, 4)`). Balatro's Glass card is **×2 Mult when scored**, 1-in-4
+  destroyed after the hand. Neither half is implemented: a Glass King scores
+  exactly like a plain King (verified 40/1 both). Found by the 0c audit. Fixing
+  the ×2 means an arm in the played-card fold (`fold_played_cards` /
+  `builtin_played_op`); the destruction waits on the same round-end hook as Gros
+  Michel's. **This is a live wrong-scoring bug with wider reach than Gros Michel**
+  — Glass is an enhancement any card can wear.
+- **The silent-zero guard is joker-only.** `all_jokers__intended_hand_scorers_are_reachable`
+  iterates `ALL_JOKERS`, so no *card* enhancement is covered — which is why Glass
+  went unnoticed through the whole of Phase 0b. A card-level counterpart (probe a
+  card wearing each scoring enhancement; assert it moves the score) would close
+  the class rather than the instance, and would have caught Glass for free.
+- **Hiker** (#56) is tagged `CommonJoker` / `value: 5` and sits in no rarity pile.
+  Balatro is believed to have it at **Uncommon / $5** — unverified against the
+  wiki, so deliberately *not* fixed on a guess (the in-repo catalog at
+  `joker.rs` only covers #96–150). Fold into the reconciling sweep above.
 
 ---
 
@@ -294,11 +311,48 @@ each joker + its test. Track completion by flipping the Status table.
     `Chips(100)` decays −5 per hand played (needs the Phase 3 hands counter; a flat
     +100 would score wrong), and **Joker Stencil** `MultTimesOnEmptyJokerSlots`
     needs a real joker-slot *limit* on the board (Vec capacity ≠ the 5-slot rule).
-  - *Not catchable by this guard — separate data bug:* **Gros Michel** encodes
+  - ~~*Not catchable by this guard — separate data bug:* **Gros Michel** encodes
     only `ChanceDestroyed(1, 6)`; its **+15 mult is missing from the const
     entirely**. The guard classifies by the *variant*, so a joker using a
     non-scoring variant when it should score is invisible to it. Needs a compound
-    `chance + mult` representation.
+    `chance + mult` representation.~~ **Fixed** — see 0c.
+
+- [x] **0c.** **Gros Michel** fixed, via the compound representation 0b called
+  for: new `MPip::MultPlusChanceDestroyed(15, 1, 6)` (+15 mult, 1-in-6 destroyed
+  at end of round), const flipped from `ChanceDestroyed(1, 6)`, scored through a
+  `builtin_joker_op` arm as a flat `AddMult`. Classified **scoring**; the joker
+  was reachable immediately, so no probe board was needed. Tests, both failing
+  before the const flips (the joker scored `mult: 1` — literally zero):
+  `score__gros_michel_adds_mult_regardless_of_its_destruction_chance` and
+  `score__gros_michel_mult_is_not_a_probabilistic_effect` (the +15 is flat, so
+  all 16 probed seeds agree with the pure `score()` — it must not drift onto the
+  RNG path like Lucky). `score__cavendish_still_scores_its_x3_beside_its_sibling`
+  pins the sibling against regression.
+
+  The destruction half is **data only** — end of round has no hook yet — but is
+  recorded as an explicit numerator/denominator so it routes through
+  `probability_numerator` and inherits Oops! All 6s free when a round-end lands
+  (the Phase 6e prediction). `ChanceDestroyed` now has no users; it is kept but
+  documented as a footgun, since encoding only the destruction half is precisely
+  what hid the mult.
+
+  **Audit finding — Gros Michel is one of three, not one.** The same "a card
+  that both scores and can be destroyed" shape is encoded three different ways,
+  each broken differently:
+  - **Gros Michel** — `ChanceDestroyed(1, 6)`: had the destruction, lost the
+    mult. *Live wrong-scoring.* **Fixed here.**
+  - **Cavendish** (#33) — `MultTimes(3)`: the exact mirror image. Has the mult,
+    lost its **1-in-1000 destroy chance**. *Latent only* — scoring is correct
+    today, and the missing half has no system to drive it, so it is left alone
+    rather than given a second compound variant on spec.
+  - **Glass card** (tarot `JUSTICE`) — `MPip::Glass(2, 4)`: carries **both**
+    halves and **scores neither**. A Glass King scores identically to a plain
+    King (verified: 40/1 both). *Live wrong-scoring*, and worse than Gros Michel
+    in reach — Glass is a card enhancement, not a single joker. It is invisible
+    to the reachability guard for a structural reason: the guard iterates
+    `ALL_JOKERS`, and Glass is a **card**. Fixing it means scoring `Glass` in the
+    played-card fold; **the guard has no card-level counterpart, which is the
+    real gap.**
 
 ### Phase 1 — Economy / money  *(keystone)*
 

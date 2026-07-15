@@ -375,6 +375,10 @@ impl BuffoonBoard {
                 let dollars = usize::try_from(self.money).unwrap_or(0);
                 return ScoreOp::AddChips(n * dollars);
             }
+            // Gros Michel: +n mult unconditionally. The destruction half of the
+            // variant is inert here — it rolls at end of round, which has no
+            // hook yet — but the mult is not conditional on it and scores now.
+            MPip::MultPlusChanceDestroyed(n, _, _) => return ScoreOp::AddMult(n),
             // Scholar: +chips and +mult for each played card of the given rank;
             // compounds with the count (+20 chips, +4 mult per played Ace).
             MPip::MultPlusChipsOnRank(mult, chips, rank) => {
@@ -817,8 +821,8 @@ impl BuffoonBoard {
     /// trigger. Balatro fires Hiker on every trigger, so a card retriggered by
     /// Hack would gain `+4` twice, with the second trigger scoring the
     /// already-fattened card. Getting that exact needs the bump interleaved into
-    /// [`fold_played_cards`](Self::fold_played_cards), which is a pure `&self`
-    /// fold and cannot mutate — so it waits on scoring becoming mutating.
+    /// the played-card fold, which is a pure `&self` fold and cannot mutate — so
+    /// it waits on scoring becoming mutating.
     /// Boards without a retrigger joker (every board today except Hack, Sock and
     /// Buskin, and Hanging Chad ones) are exact.
     pub fn on_scored(&mut self) {
@@ -2222,6 +2226,45 @@ mod funky__types__board__buffoon_board_tests {
         // Held Steel: x1.5 -> ceil(1 x 1.5) = 2. Steel Joker still sees an
         // unenhanced deck -> x1.
         assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__gros_michel_adds_mult_regardless_of_its_destruction_chance() {
+        // Gros Michel: +15 Mult, 1 in 6 chance to be destroyed at end of round.
+        // The const carried only the destruction, so the joker silently scored
+        // nothing -- it is the whole reason to play the card.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        board.push_joker(card::GROS_MICHEL);
+
+        // The mult is unconditional: nothing about the 1-in-6 roll gates it, and
+        // the pure score() path never rolls at all.
+        assert_eq!(board.score(), Score::new(40, 16));
+    }
+
+    #[test]
+    fn score__gros_michel_mult_is_not_a_probabilistic_effect() {
+        // Its sibling Lucky rolls on the seeded path and floors on the pure one.
+        // Gros Michel must not: +15 is flat, so every seed agrees with score().
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::GROS_MICHEL);
+
+        for seed in 0..16_u64 {
+            assert_eq!(board.score_with_seed(seed), Score::new(40, 16));
+        }
+    }
+
+    #[test]
+    fn score__cavendish_still_scores_its_x3_beside_its_sibling() {
+        // Gros Michel and Cavendish are a matched pair in Balatro, and were
+        // mirror-image data bugs: Gros Michel kept the destruction and lost the
+        // mult, Cavendish kept the mult and lost the destruction. Cavendish's
+        // scoring half is the one that always worked -- pin it so the compound
+        // variant landing next door cannot regress it.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.push_joker(card::CAVENDISH);
+        assert_eq!(board.score(), Score::new(40, 3));
     }
 
     #[test]

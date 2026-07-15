@@ -24,6 +24,15 @@ pub enum MPip {
     Blank,
     AddBaseChips(usize),
     AddCardTypeWhenBlindSelected(BCardType),
+    /// A `numerator`-in-`denominator` chance the card is destroyed at end of
+    /// round, and **nothing else**.
+    ///
+    /// Prefer a compound variant like
+    /// [`MultPlusChanceDestroyed`](Self::MultPlusChanceDestroyed) for any card
+    /// that also scores. Encoding only the destruction half is what hid Gros
+    /// Michel's +15 mult: the reachability guard classifies by variant, and this
+    /// variant legitimately does not score, so a card wearing it is invisible to
+    /// the guard whether or not it *should* have scored.
     ChanceDestroyed(usize, usize),
     Chips(usize),
     ChipsMultPlus(usize, usize),
@@ -60,6 +69,18 @@ pub enum MPip {
     JokersValue(usize),
     Lucky(usize, usize),
     MultPlus(usize),
+    /// Gros Michel: `+mult` unconditionally, **and** a `numerator`-in-`denominator`
+    /// chance the joker is destroyed at end of round —
+    /// `MultPlusChanceDestroyed(15, 1, 6)`.
+    ///
+    /// Compound because one card is one `MPip`, and both halves are the card:
+    /// splitting them is what let the mult go missing. The scoring half is a
+    /// pure `AddMult`, applied in `builtin_joker_op`. The destruction half is
+    /// **data only** until a round-end hook exists to roll it; it is recorded as
+    /// an explicit numerator/denominator so it can route through
+    /// `BuffoonBoard::probability_numerator` and inherit Oops! All 6s for free,
+    /// the way the seeded-RNG path already works.
+    MultPlusChanceDestroyed(usize, usize, usize),
     MultPlusChipsOnRank(usize, usize, char),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
     MultPlusOn5Ranks(usize, [char; 5]),
@@ -257,6 +278,12 @@ impl Display for MPip {
             Self::JokersValue(value) => write!(f, "JokersValue({value})"),
             Self::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             Self::MultPlus(value) => write!(f, "MultPlus({value})"),
+            Self::MultPlusChanceDestroyed(mult, numerator, denominator) => {
+                write!(
+                    f,
+                    "MultPlusChanceDestroyed({mult}, {numerator}, {denominator})"
+                )
+            }
             Self::MultPlusChipsOnRank(mult, chips, rank_char) => {
                 write!(f, "MultPlusChipsOnRank({mult}, {chips}, {rank_char})")
             }
@@ -405,6 +432,10 @@ mod funky__types__mpips_tests {
         assert_eq!(
             MPip::GainChipsOnScored(4).to_string(),
             "GainChipsOnScored(4)"
+        );
+        assert_eq!(
+            MPip::MultPlusChanceDestroyed(15, 1, 6).to_string(),
+            "MultPlusChanceDestroyed(15, 1, 6)"
         );
     }
 }
