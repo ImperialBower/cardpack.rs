@@ -116,8 +116,11 @@ impl BuffoonBoard {
 
                 let special = match card.enhancement {
                     MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
+                        // A 1-in-`mult_odds` roll wins on outcomes `0..wins`;
+                        // Oops! All 6s doubles `wins` (capped at certainty).
+                        let wins = self.probability_numerator().min(mult_odds);
                         rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
-                            if rng.random_range(0..mult_odds) == 0 {
+                            if rng.random_range(0..mult_odds) < wins {
                                 ScoreOp::AddMult(LUCKY_MULT)
                             } else {
                                 ScoreOp::Nothing
@@ -403,6 +406,23 @@ impl BuffoonBoard {
         self.jokers
             .iter()
             .any(|joker| matches!(joker.enhancement, MPip::AllCardsAreFaces))
+    }
+
+    /// Winning outcomes for a 1-in-N probability roll.
+    ///
+    /// 1 normally, doubled per **Oops! All 6s** on the board (each doubles
+    /// listed probabilities). The caller caps it at the roll's denominator so
+    /// it never exceeds certainty.
+    fn probability_numerator(&self) -> usize {
+        let oops = self
+            .jokers
+            .iter()
+            .filter(|joker| matches!(joker.enhancement, MPip::DoubleOdds))
+            .count();
+        // 2^oops, saturating so a pathological joker count can't overflow-shift.
+        1usize
+            .checked_shl(u32::try_from(oops).unwrap_or(u32::MAX))
+            .unwrap_or(usize::MAX)
     }
 
     /// The ×mult factor a joker applies to the running score given the played
@@ -1807,5 +1827,49 @@ mod funky__types__board__buffoon_board_tests {
         board.push_joker(card::SMEARED_JOKER);
         // Now a Flush (85/4), and The Tribe fires x2 -> 85 x 8.
         assert_eq!(board.score(), Score::new(85, 8));
+    }
+
+    #[test]
+    fn score__splash_is_inert_because_all_played_cards_already_score() {
+        // In Balatro only the paired Kings would score; the 2/3/4 kickers would
+        // not. This engine has no scoring-vs-kicker split — every played card's
+        // chips already count — so Splash's "all cards score" is a verified
+        // no-op, not a silent-zero bug.
+        let mut board = board_playing("KS KD 2S 3H 4C"); // Pair
+        // Pair base 10/2 + all five card pips (10+10+2+3+4 = 29) = 39/2. The
+        // kickers contributing is what proves cards already all score.
+        assert_eq!(board.score(), Score::new(39, 2));
+
+        board.push_joker(card::SPLASH);
+        // Splash changes nothing — the score is identical.
+        assert_eq!(board.score(), Score::new(39, 2));
+    }
+
+    fn lucky_two_board() -> BuffoonBoard {
+        // A 1-in-2 Lucky ace: floor 16 x 1, proc (+20 mult) 16 x 21.
+        let mut board = board_playing("2S");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Lucky(2, 15))]);
+        board
+    }
+
+    #[test]
+    fn score__oops_all_6s_doubles_lucky_odds_to_certainty() {
+        // Without Oops, a 1-in-2 roll misses on some seeds.
+        let plain = lucky_two_board();
+        assert!(
+            (0..16).any(|seed| plain.score_with_seed(seed) == Score::new(16, 1)),
+            "a 1-in-2 Lucky should floor on at least one seed without Oops"
+        );
+
+        // Oops! All 6s doubles 1-in-2 to 2-in-2 -> it procs on every seed.
+        let mut oops = lucky_two_board();
+        oops.push_joker(card::OOPS_ALL_6S);
+        for seed in 0..16 {
+            assert_eq!(
+                oops.score_with_seed(seed),
+                Score::new(16, 21),
+                "seed {seed} must proc once odds are doubled to certainty"
+            );
+        }
     }
 }

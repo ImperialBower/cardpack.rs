@@ -36,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 14;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 15;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -53,6 +53,7 @@ impl Joker {
         card::PAREIDOLIA,
         card::SOCK_AND_BUSKIN,
         card::SMEARED_JOKER,
+        card::OOPS_ALL_6S,
     ];
 
     #[must_use]
@@ -838,7 +839,7 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::AllPlayedCardsScore,
         resell_value: 0,
         debuffed: false,
     };
@@ -1490,6 +1491,22 @@ pub mod card {
         debuffed: false,
     };
 
+    // 126 Oops! All 6s — Uncommon, $4. Doubles all listed probabilities.
+    pub const OOPS_ALL_6S: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 807,
+            pip_type: PipType::Joker,
+            index: '🎲',
+            symbol: '🎲',
+            value: 4,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::DoubleOdds,
+        resell_value: 2,
+        debuffed: false,
+    };
+
     // 115 Hanging Chad — Common, $4. Retrigger first played card 2 extra times.
     pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
@@ -1755,7 +1772,7 @@ mod funky__decks__joker_tests {
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 108] = [
+    const ALL_JOKERS: [BuffoonCard; 109] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1854,6 +1871,7 @@ mod funky__decks__joker_tests {
         card::SOCK_AND_BUSKIN,
         card::HANGING_CHAD,
         card::SMEARED_JOKER,
+        card::OOPS_ALL_6S,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -2014,6 +2032,13 @@ mod funky__decks__joker_tests {
             // amplifies the face-reading jokers (Scary Face, Sock and Buskin),
             // so on its own it changes nothing and is intentionally non-scoring.
             | MPip::AllCardsAreFaces
+            // Splash: inert here — this engine already scores every played card,
+            // so "all played cards score" is a no-op, not a silent-zero bug.
+            | MPip::AllPlayedCardsScore
+            // Oops! All 6s: only affects the probabilistic (seeded-RNG) path, so
+            // it is invisible to the pure-score reachability guard — a modifier,
+            // not a deterministic scorer.
+            | MPip::DoubleOdds
             | MPip::FreeReroll(_)
             | MPip::Glass(_, _)
             | MPip::Gold(_)

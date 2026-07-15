@@ -47,6 +47,12 @@ pub enum MPip {
     AllCardsAreFaces,
     /// Smeared Joker: Hearts≡Diamonds and Spades≡Clubs when sizing a flush.
     SmearedSuits,
+    /// Splash: every played card scores. Inert in this engine, which already
+    /// scores every played card (it has no scoring-vs-kicker distinction).
+    AllPlayedCardsScore,
+    /// Oops! All 6s: doubles every listed probability (a 1-in-N roll wins twice
+    /// as often); stacks, capped at certainty.
+    DoubleOdds,
     FreeReroll(usize),
     Glass(usize, usize),
     Gold(usize),
@@ -221,6 +227,8 @@ impl Display for MPip {
             Self::GappedStraight => write!(f, "GappedStraight"),
             Self::AllCardsAreFaces => write!(f, "AllCardsAreFaces"),
             Self::SmearedSuits => write!(f, "SmearedSuits"),
+            Self::AllPlayedCardsScore => write!(f, "AllPlayedCardsScore"),
+            Self::DoubleOdds => write!(f, "DoubleOdds"),
             Self::FreeReroll(value) => write!(f, "FreeReroll({value})"),
             Self::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             Self::Gold(value) => write!(f, "Gold({value})"),

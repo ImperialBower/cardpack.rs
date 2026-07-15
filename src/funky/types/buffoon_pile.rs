@@ -13,12 +13,13 @@ use std::str::FromStr;
 pub struct BuffoonPile(Vec<BuffoonCard>);
 
 /// Straight- and flush-detection parameters, so hand classification can honour
-/// the jokers that bend those rules. The [`Default`] is vanilla Balatro (a
-/// gap-free five-card straight, a five-card flush, each suit its own); a board
-/// loosens it from its active jokers (Four Fingers → four-card straights &
-/// flushes; Shortcut → one-gap straights; Smeared → Hearts≡Diamonds and
-/// Spades≡Clubs for flushes) and threads it through the `*_with` detection
-/// methods.
+/// the jokers that bend those rules.
+///
+/// The [`Default`] is vanilla Balatro (a gap-free five-card straight, a
+/// five-card flush, each suit its own); a board loosens it from its active
+/// jokers (Four Fingers → four-card straights & flushes; Shortcut → one-gap
+/// straights; Smeared → Hearts≡Diamonds and Spades≡Clubs for flushes) and
+/// threads it through the `*_with` detection methods.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HandRules {
     /// Max rank gap allowed between adjacent straight cards (1 = gap-free;
