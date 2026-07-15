@@ -63,7 +63,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **Complete** — `HandRules` seam (straight/flush/smeared), face-predicate hook, and RNG odds-numerator; all six wired (Four Fingers, Shortcut, Pareidolia, Smeared, Splash [no-op], Oops! All 6s) |
-| 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
+| 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | **Complete** — `full_deck` roster + `starting_deck_size` on the board; all three wired |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
 | 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard | **Complete** |
 
@@ -251,6 +251,11 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   cost; it then belongs in `RARE_JOKERS`, not adrift.
 - **Blackboard** shares `weight: 895` with **Abstract Joker** (`joker.rs`). Weights
   are display/sort order and should be unique; re-weight one.
+- **Erosion** and **Stone Joker** are tagged `CommonJoker` / `value: 5` and sit in
+  no rarity pile; Balatro has both at **Uncommon / $6** (found while wiring Phase
+  7). Same shape as the Baron fix, but they are 2 of the ~61 defined-but-unpiled
+  consts 0a identified — worth one sweep that reconciles rarity/cost/pile across
+  all of them rather than fixing them piecemeal.
 
 ---
 
@@ -432,10 +437,52 @@ each joker + its test. Track completion by flipping the Status table.
   one wired 1-in-N effect (Lucky) — Business Card / Bloodstone / etc. inherit it
   free once they route through `probability_numerator`.
 
-### Phases 5, 7–8
+### Phase 7 — Full-deck view  *(Complete)*
 
-- [ ] **5, 7–8.** Deck mutation, full-deck view, boss blinds — each a
-  self-contained sub-EPIC; see Design. Wire jokers as each mechanism lands.
+- [x] **7a.** Full-deck view built. `BuffoonBoard` gains `full_deck: BuffoonPile`
+  (every card the run owns) and `starting_deck_size: usize`, both seeded from the
+  deck in `new()`. Test `full_deck__starts_as_the_whole_deck_and_records_its_size`.
+
+  *Design finding:* the EPIC assumed the full deck could be **computed** as
+  `deck ∪ in_hand ∪ played ∪ discarded`. It can't — the board conserves no deal
+  invariant (nothing draws; `board.played = …` leaves the card in `deck` too, so a
+  union double-counts), and there is no discard pile at all. A stored **roster** is
+  both correct here and what Balatro actually models: the full deck is a stable
+  list that drawing doesn't shrink, while `deck` stays the *undealt remainder*
+  (Blue Joker's `ChipsPerDeckCard` keeps reading that). Only deck **mutation**
+  (Phase 5) should write `full_deck`.
+
+- [x] **7b.** All three jokers wired, each flipping an existing `Blank` const
+  (no new consts, so no new weights/piles):
+  - **Steel Joker** (#32) → `MPip::MultTimesPlusPerFullDeckSteel(2)`, via
+    `joker_x_mult`. Factor is **additive**, `1 + 0.2×count` — not compounding like
+    the neighbouring per-card ×jokers; `score__steel_joker_x_mult_grows_additively_per_full_deck_steel`
+    pins ×1.8 at four Steel (mult 15), which ×1.2⁴ (17) would fail.
+    `score__steel_joker_counts_the_deck_not_the_hand` guards the roster-vs-location
+    split: a held Steel *card* moves phase 3 only.
+  - **Stone Joker** (#89) → `MPip::ChipsPerFullDeckStone(25)`, via
+    `builtin_joker_op`. Test `score__stone_joker_adds_chips_per_full_deck_stone`.
+  - **Erosion** (#81) → `MPip::MultPlusPerMissingDeckCard(4)`, via
+    `builtin_joker_op`, scoring `starting_deck_size.saturating_sub(full_deck.len())`.
+    Test `score__erosion_adds_mult_per_card_below_starting_deck_size`, including a
+    grown deck scoring 0 rather than wrapping.
+
+  All three classified **scoring**; the guard duly caught all three as silent
+  zeros until `probe_boards()` gained a worn-deck board (2 Steel + 2 Stone
+  enhanced, 3 cards destroyed).
+
+  *Data finding (not fixed here):* **Erosion** and **Stone Joker** are tagged
+  `CommonJoker` / `value: 5` and sit in no rarity pile — Balatro has both at
+  **Uncommon / $6**. This is the Baron situation from 0a, but they are 2 of the
+  ~61 defined-but-unpiled consts, so it belongs in a data sweep, not this slice.
+  Logged under Data fixes below.
+
+### Phases 5, 8
+
+- [ ] **5, 8.** Deck mutation, boss blinds — each a self-contained sub-EPIC; see
+  Design. Wire jokers as each mechanism lands. Phase 5 owns the only legitimate
+  writer of `full_deck`, and will make Erosion/Steel Joker/Stone Joker move in
+  real play rather than only under test.
 
 ---
 

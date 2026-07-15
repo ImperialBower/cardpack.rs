@@ -93,7 +93,20 @@ pub enum MPip {
     MultPlusPerJoker(usize),
     /// +n chips for **each** card remaining in the deck. Used by Blue Joker
     /// (+2 per card in deck).
+    ///
+    /// Note this reads the **undealt remainder**, not the full deck; contrast
+    /// [`ChipsPerFullDeckStone`](Self::ChipsPerFullDeckStone).
     ChipsPerDeckCard(usize),
+    /// ×mult that gains ×(n/10) for **each** Steel card in the run's *full*
+    /// deck. The factor is additive, not compounding: `1 + (n/10) × count`, so
+    /// Steel Joker (`n = 2`) is ×1 with no Steel and ×1.4 with two.
+    MultTimesPlusPerFullDeckSteel(usize),
+    /// +n chips for **each** Stone card in the run's *full* deck. Used by Stone
+    /// Joker (+25 per Stone).
+    ChipsPerFullDeckStone(usize),
+    /// +n mult for **each** card the run's *full* deck is **below** its
+    /// starting size — i.e. per card destroyed. Used by Erosion (+4).
+    MultPlusPerMissingDeckCard(usize),
     /// ×(n/10) mult for **each** card of the given rank **held in hand** — the
     /// factor compounds. Used by Baron (×1.5 per held King).
     MultTimesPerHeldRank(usize, char),
@@ -285,6 +298,13 @@ impl Display for MPip {
             }
             Self::MultPlusPerJoker(value) => write!(f, "MultPlusPerJoker({value})"),
             Self::ChipsPerDeckCard(value) => write!(f, "ChipsPerDeckCard({value})"),
+            Self::MultTimesPlusPerFullDeckSteel(value) => {
+                write!(f, "MultTimesPlusPerFullDeckSteel({value})")
+            }
+            Self::ChipsPerFullDeckStone(value) => write!(f, "ChipsPerFullDeckStone({value})"),
+            Self::MultPlusPerMissingDeckCard(value) => {
+                write!(f, "MultPlusPerMissingDeckCard({value})")
+            }
             Self::MultTimesPerHeldRank(value, rank) => {
                 write!(f, "MultTimesPerHeldRank({value}, {rank})")
             }

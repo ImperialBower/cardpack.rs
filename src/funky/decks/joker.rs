@@ -549,7 +549,7 @@ pub mod card {
             value: 7,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::MultTimesPlusPerFullDeckSteel(2),
         resell_value: 3,
         debuffed: false,
     };
@@ -1166,7 +1166,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::MultPlusPerMissingDeckCard(4),
         resell_value: 0,
         debuffed: false,
     };
@@ -1278,7 +1278,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::ChipsPerFullDeckStone(25),
         resell_value: 0,
         debuffed: false,
     };
@@ -1967,6 +1967,7 @@ mod funky__decks__joker_tests {
             | MPip::ChipsOnStraight(_)
             | MPip::ChipsOnTrips(_)
             | MPip::ChipsPerDeckCard(_)
+            | MPip::ChipsPerFullDeckStone(_)
             | MPip::ChipsPerDollar(_)
             | MPip::ChipsPerRemainingDiscard(_)
             | MPip::ChipsPlusOn5Ranks(_, _)
@@ -1984,6 +1985,7 @@ mod funky__decks__joker_tests {
             | MPip::MultPlusOnZeroDiscards(_)
             | MPip::MultPlusZeroDiscards(_)
             | MPip::MultPlusPerJoker(_)
+            | MPip::MultPlusPerMissingDeckCard(_)
             | MPip::MultPlusXOnLowestRankInHand(_)
             | MPip::MultTimes(_)
             | MPip::MultTimes1Dot(_)
@@ -1996,6 +1998,7 @@ mod funky__decks__joker_tests {
             | MPip::MultTimesPerScoredRank(_, _)
             | MPip::MultTimesPerHeldRank(_, _)
             | MPip::MultTimesPerUncommonJoker(_)
+            | MPip::MultTimesPlusPerFullDeckSteel(_)
             | MPip::MultTimesIfHeldAllSuits(_, _)
             | MPip::GainMultPerHandLessDiscard(_)
             | MPip::LoseMultTimesPerDiscard(_, _)
@@ -2097,6 +2100,26 @@ mod funky__decks__joker_tests {
             ..bcards!("KS").iter().next().copied().unwrap()
         };
         steel_held.in_hand.push(steel_king);
+        // A worn deck: cards enhanced to Steel and Stone, and cards destroyed
+        // outright. Only the full-deck *roster* moves here — `deck` (the undealt
+        // remainder) is left alone, since that is the distinction the "in full
+        // deck" jokers (Steel Joker, Stone Joker, Erosion) turn on.
+        let mut worn_deck = mk("AH KH QH JH TH", "KS KC", 0, 3);
+        let mut wear = |enhancement: MPip, n: usize| {
+            for _ in 0..n {
+                let card = worn_deck.full_deck.remove(0);
+                worn_deck.full_deck.push(BuffoonCard {
+                    enhancement,
+                    ..card
+                });
+            }
+        };
+        wear(MPip::STEEL, 2);
+        wear(MPip::TOWER, 2);
+        // Destroy three, putting the deck below its starting size for Erosion.
+        for _ in 0..3 {
+            worn_deck.full_deck.remove(0);
+        }
         vec![
             mk("AH KH QH JH TH", "KS KC", 100, 3),
             mk("AH KH QH JH TH", "KS KC", 0, 0),
@@ -2115,6 +2138,7 @@ mod funky__decks__joker_tests {
             // straight: a High Card normally, a Flush under Smeared — so its
             // modifier is reachable.
             mk("AH KH 9H QD JD", "KS KC", 0, 3),
+            worn_deck,
         ]
     }
 

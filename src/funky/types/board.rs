@@ -34,14 +34,38 @@ pub struct BuffoonBoard {
     /// discards) can dip negative before the read floors it at 0. Grown by the
     /// event hooks, read (never written) during scoring.
     pub joker_state: Vec<i32>,
+    /// Every card the run **owns** — Balatro's "full deck".
+    ///
+    /// This is a stable roster, not a location: a card stays in `full_deck`
+    /// once drawn, played, discarded, or held. Contrast [`deck`](Self::deck),
+    /// which is the *undealt remainder* and shrinks as cards are drawn (Blue
+    /// Joker reads that one). Modelling the roster separately is what Balatro
+    /// does, and it keeps the "in full deck" jokers (Steel Joker, Stone Joker,
+    /// Erosion) correct without requiring the deal to be conserved across the
+    /// location piles.
+    ///
+    /// Seeded from the deck at [`new`](Self::new); only deck **mutation**
+    /// (adding or destroying cards) should change it.
+    pub full_deck: BuffoonPile,
+    /// How big [`full_deck`](Self::full_deck) was when the run started.
+    ///
+    /// Recorded rather than assumed to be 52, since alternate decks start at
+    /// other sizes. Erosion scores the shortfall against this.
+    pub starting_deck_size: usize,
 }
 
 impl BuffoonBoard {
     #[must_use]
     pub fn new(draws: Draws, deck: BuffoonPile) -> Self {
+        // At construction the run owns exactly the deck it was handed, so the
+        // roster and the undealt remainder start out equal.
+        let full_deck = deck.clone();
+        let starting_deck_size = full_deck.len();
         Self {
             draws,
             deck,
+            full_deck,
+            starting_deck_size,
             in_hand: BuffoonPile::default(),
             played: BuffoonPile::default(),
             consumables: BuffoonPile::new_with_capacity(2),
@@ -310,6 +334,14 @@ impl BuffoonBoard {
         match joker.enhancement {
             MPip::MultPlusPerJoker(n) => return ScoreOp::AddMult(n * self.jokers.len()),
             MPip::ChipsPerDeckCard(n) => return ScoreOp::AddChips(n * self.deck.len()),
+            // Stone Joker: +n chips per Stone card in the full deck.
+            MPip::ChipsPerFullDeckStone(n) => {
+                return ScoreOp::AddChips(n * self.full_deck_stone_count());
+            }
+            // Erosion: +n mult per card destroyed from the starting deck.
+            MPip::MultPlusPerMissingDeckCard(n) => {
+                return ScoreOp::AddMult(n * self.cards_missing_from_deck());
+            }
             MPip::ChipsPlusPerScoredFace(n) => {
                 let faces = self
                     .played
@@ -408,6 +440,32 @@ impl BuffoonBoard {
             .any(|joker| matches!(joker.enhancement, MPip::AllCardsAreFaces))
     }
 
+    /// How many cards in the run's full deck carry a Steel enhancement.
+    ///
+    /// Steel is modelled as `MultTimes1Dot`, matching what
+    /// [`builtin_held_op`](Self::builtin_held_op) treats as Steel while held.
+    fn full_deck_steel_count(&self) -> usize {
+        self.full_deck
+            .iter()
+            .filter(|card| matches!(card.enhancement, MPip::MultTimes1Dot(_)))
+            .count()
+    }
+
+    /// How many cards in the run's full deck are Stone cards.
+    fn full_deck_stone_count(&self) -> usize {
+        self.full_deck
+            .iter()
+            .filter(|card| matches!(card.enhancement, MPip::Stone(_)))
+            .count()
+    }
+
+    /// How many cards the full deck is **below** its starting size — the count
+    /// of cards destroyed over the run. Saturates at 0, so a deck grown past
+    /// its starting size (DNA, Séance) scores nothing rather than wrapping.
+    fn cards_missing_from_deck(&self) -> usize {
+        self.starting_deck_size.saturating_sub(self.full_deck.len())
+    }
+
     /// Winning outcomes for a 1-in-N probability roll.
     ///
     /// 1 normally, doubled per **Oops! All 6s** on the board (each doubles
@@ -463,6 +521,13 @@ impl BuffoonBoard {
                     .count();
                 let per = tenths as f32 / 10.0;
                 (0..held).fold(1.0, |acc, _| acc * per)
+            }
+            MPip::MultTimesPlusPerFullDeckSteel(tenths) => {
+                // Steel Joker: ×1 base, gaining ×(tenths/10) per Steel card in
+                // the full deck. Additive in the factor, unlike the compounding
+                // per-card jokers above: two Steel with ×0.2 is ×1.4, not ×1.44.
+                let steel = self.full_deck_steel_count();
+                1.0 + (tenths * steel) as f32 / 10.0
             }
             MPip::MultTimesPerUncommonJoker(tenths) => {
                 // ×(tenths/10) per Uncommon joker on the board; compounds. Baseball Card.
@@ -1208,7 +1273,8 @@ mod funky__types__board__buffoon_board_tests {
         // No Uncommon jokers -> ×1.
         assert_eq!(board.score(), Score::new(40, 1));
 
-        // One Uncommon joker (Steel Joker, inert here) -> ×1.5 -> ceil(1×1.5)=2.
+        // One Uncommon joker -> ×1.5 -> ceil(1×1.5)=2. Steel Joker is the stand-in
+        // and contributes ×1 of its own, the deck holding no Steel cards.
         board.jokers.push(card::STEEL_JOKER);
         assert_eq!(board.score(), Score::new(40, 2));
     }
@@ -1871,5 +1937,96 @@ mod funky__types__board__buffoon_board_tests {
                 "seed {seed} must proc once odds are doubled to certainty"
             );
         }
+    }
+
+    /// Swap the first `n` cards of the board's full deck for `enhancement`-ed
+    /// copies. Size-preserving, so it moves Steel/Stone counts without also
+    /// tripping Erosion.
+    fn enhance_in_full_deck(board: &mut BuffoonBoard, n: usize, enhancement: MPip) {
+        for _ in 0..n {
+            let card = board.full_deck.remove(0);
+            board.full_deck.push(enhanced(card, enhancement));
+        }
+    }
+
+    #[test]
+    fn full_deck__starts_as_the_whole_deck_and_records_its_size() {
+        let board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        // The run owns everything it was dealt from, so the roster and the
+        // undealt remainder start equal.
+        assert_eq!(board.full_deck.len(), Deck::DECK_SIZE);
+        assert_eq!(board.starting_deck_size, Deck::DECK_SIZE);
+        assert_eq!(board.deck.len(), Deck::DECK_SIZE);
+    }
+
+    #[test]
+    fn score__stone_joker_adds_chips_per_full_deck_stone() {
+        // Stone Joker: +25 chips for each Stone card in the run's full deck.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.push_joker(card::STONE_JOKER);
+
+        // A stock deck holds no Stone cards -> inert.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Two Stone cards in the deck -> +50 chips. They score from the roster;
+        // the played hand is untouched, which is the whole point of the joker.
+        enhance_in_full_deck(&mut board, 2, MPip::TOWER);
+        assert_eq!(board.score(), Score::new(90, 1));
+    }
+
+    #[test]
+    fn score__erosion_adds_mult_per_card_below_starting_deck_size() {
+        // Erosion: +4 mult for each card the full deck is below its start size.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.push_joker(card::EROSION);
+
+        // A whole deck is not eroded -> inert.
+        assert_eq!(board.full_deck.len(), board.starting_deck_size);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Destroy three cards -> +12 mult.
+        for _ in 0..3 {
+            board.full_deck.remove(0);
+        }
+        assert_eq!(board.score(), Score::new(40, 13));
+
+        // A deck grown past its starting size scores nothing, rather than
+        // wrapping around on the subtraction.
+        let mut grown = board_playing("2S 5D 8C TS KH");
+        grown.push_joker(card::EROSION);
+        grown.full_deck.push(basic::ACE_SPADES);
+        assert_eq!(grown.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__steel_joker_x_mult_grows_additively_per_full_deck_steel() {
+        // Steel Joker: x1 base, +x0.2 per Steel card in the full deck.
+        let mut board = board_playing("9H TH JH QH KH"); // Straight Flush 100/8 + 49 = 149/8
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+        board.push_joker(card::STEEL_JOKER);
+
+        // No Steel in the deck -> x1, not zero.
+        assert_eq!(board.score(), Score::new(149, 8));
+
+        // Four Steel -> x(1 + 0.2x4) = x1.8 -> ceil(8 x 1.8) = 15. Were the
+        // factor compounding (1.2^4 = x2.07) this would be 17, so the exact
+        // value pins the additive rule.
+        enhance_in_full_deck(&mut board, 4, MPip::STEEL);
+        assert_eq!(board.score(), Score::new(149, 15));
+    }
+
+    #[test]
+    fn score__steel_joker_counts_the_deck_not_the_hand() {
+        // The Steel *card* scores x1.5 while held (phase 3); the Steel *Joker*
+        // reads the roster (phase 4). A Steel card held but not in the full
+        // deck must move only the former -- this is the distinction the
+        // full-deck view exists to draw.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+        board.push_joker(card::STEEL_JOKER);
+
+        // Held Steel: x1.5 -> ceil(1 x 1.5) = 2. Steel Joker still sees an
+        // unenhanced deck -> x1.
+        assert_eq!(board.score(), Score::new(40, 2));
     }
 }
