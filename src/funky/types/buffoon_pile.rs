@@ -12,6 +12,39 @@ use std::str::FromStr;
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct BuffoonPile(Vec<BuffoonCard>);
 
+/// Straight- and flush-detection parameters, so hand classification can honour
+/// the jokers that bend those rules.
+///
+/// The [`Default`] is vanilla Balatro (a gap-free five-card straight, a
+/// five-card flush, each suit its own); a board loosens it from its active
+/// jokers (Four Fingers → four-card straights & flushes; Shortcut → one-gap
+/// straights; Smeared → Hearts≡Diamonds and Spades≡Clubs for flushes) and
+/// threads it through the `*_with` detection methods.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct HandRules {
+    /// Max rank gap allowed between adjacent straight cards (1 = gap-free;
+    /// Shortcut = 2).
+    pub straight_distance: usize,
+    /// Connectors a straight needs (4 = five cards; Four Fingers = 3 for four).
+    pub straight_connectors: usize,
+    /// Cards of one suit a flush needs (5; Four Fingers = 4).
+    pub flush_len: usize,
+    /// Smeared Joker: Hearts and Diamonds count as one suit, Spades and Clubs as
+    /// one suit, when sizing a flush.
+    pub smeared: bool,
+}
+
+impl Default for HandRules {
+    fn default() -> Self {
+        Self {
+            straight_distance: 1,
+            straight_connectors: 4,
+            flush_len: 5,
+            smeared: false,
+        }
+    }
+}
+
 /// # Dimensions
 ///
 /// Cards can have effects on the following dimensions of play:
@@ -130,26 +163,54 @@ impl BuffoonPile {
         self.combos_by_suit().first().map_or(0, BasicPile::len)
     }
 
+    /// [`count_largest_same_suit`](Self::count_largest_same_suit), but under
+    /// Smeared it counts the largest *merged* group — Hearts+Diamonds (red) or
+    /// Spades+Clubs (black) — so a mixed red (or black) hand can flush.
+    #[must_use]
+    pub fn count_largest_same_suit_with(&self, rules: HandRules) -> usize {
+        if !rules.smeared {
+            return self.count_largest_same_suit();
+        }
+        let red = self
+            .iter()
+            .filter(|c| matches!(c.suit.index, 'H' | 'D'))
+            .count();
+        let black = self
+            .iter()
+            .filter(|c| matches!(c.suit.index, 'S' | 'C'))
+            .count();
+        red.max(black)
+    }
+
     /// TODO: HACKY
     #[must_use]
     pub fn determine_hand_type(&self) -> HandType {
-        if self.has_flush_five() {
+        self.determine_hand_type_with(HandRules::default())
+    }
+
+    /// [`determine_hand_type`](Self::determine_hand_type) under the given
+    /// [`HandRules`], so the straight/flush families reflect the board's active
+    /// rule-modifier jokers (Four Fingers, Shortcut). Rank-only categories
+    /// (pairs, trips, quads, full house) are rule-independent.
+    #[must_use]
+    pub fn determine_hand_type_with(&self, rules: HandRules) -> HandType {
+        if self.has_flush_five_with(rules) {
             HandType::FlushFive
         } else if self.has_5_of_a_kind() {
             HandType::FiveOfAKind
-        } else if self.has_flush_house() {
+        } else if self.has_flush_house_with(rules) {
             HandType::FlushHouse
-        } else if self.has_royal_flush() {
+        } else if self.has_royal_flush_with(rules) {
             HandType::RoyalFlush
-        } else if self.has_straight_flush() {
+        } else if self.has_straight_flush_with(rules) {
             HandType::StraightFlush
         } else if self.has_4_of_a_kind() {
             HandType::FourOfAKind
         } else if self.has_full_house() {
             HandType::FullHouse
-        } else if self.has_flush() {
+        } else if self.has_flush_with(rules) {
             HandType::Flush
-        } else if self.has_straight() {
+        } else if self.has_straight_with(rules) {
             HandType::Straight
         } else if self.has_trips() {
             HandType::ThreeOfAKind
@@ -221,17 +282,34 @@ impl BuffoonPile {
 
     #[must_use]
     pub fn has_flush(&self) -> bool {
-        self.count_largest_same_suit() >= 5
+        self.has_flush_with(HandRules::default())
+    }
+
+    /// [`has_flush`](Self::has_flush) under the given [`HandRules`] (Four Fingers
+    /// lowers the required same-suit count to 4; Smeared merges suit pairs).
+    #[must_use]
+    pub fn has_flush_with(&self, rules: HandRules) -> bool {
+        self.count_largest_same_suit_with(rules) >= rules.flush_len
     }
 
     #[must_use]
     pub fn has_flush_five(&self) -> bool {
-        self.has_flush() && self.has_x_of_a_kind(5)
+        self.has_flush_five_with(HandRules::default())
+    }
+
+    #[must_use]
+    pub fn has_flush_five_with(&self, rules: HandRules) -> bool {
+        self.has_flush_with(rules) && self.has_x_of_a_kind(5)
     }
 
     #[must_use]
     pub fn has_flush_house(&self) -> bool {
-        self.has_flush() && self.has_full_house()
+        self.has_flush_house_with(HandRules::default())
+    }
+
+    #[must_use]
+    pub fn has_flush_house_with(&self, rules: HandRules) -> bool {
+        self.has_flush_with(rules) && self.has_full_house()
     }
 
     #[must_use]
@@ -299,27 +377,52 @@ impl BuffoonPile {
     /// TODO: HACKY
     #[must_use]
     pub fn has_royal_flush(&self) -> bool {
+        self.has_royal_flush_with(HandRules::default())
+    }
+
+    #[must_use]
+    pub fn has_royal_flush_with(&self, rules: HandRules) -> bool {
         self.basic_pile()
             .sorted()
             .first()
-            .is_some_and(|card| self.has_straight_flush() && card.rank == FrenchRank::ACE)
+            .is_some_and(|card| self.has_straight_flush_with(rules) && card.rank == FrenchRank::ACE)
     }
 
-    /// TODO: This is going to get harder when we need to take into account the `Jokers`
-    /// that alter what is acceptable as a straight.
+    /// Whether the pile forms a straight. Vanilla Balatro (gap-free, five cards)
+    /// by default; [`has_straight_with`](Self::has_straight_with) honours the
+    /// jokers that loosen it (Four Fingers, Shortcut).
     #[must_use]
     pub fn has_straight(&self) -> bool {
-        self.connectors(1) >= 4
+        self.has_straight_with(HandRules::default())
+    }
+
+    #[must_use]
+    pub fn has_straight_with(&self, rules: HandRules) -> bool {
+        self.connectors(rules.straight_distance) >= rules.straight_connectors
     }
 
     #[must_use]
     pub fn has_straight_flush(&self) -> bool {
-        self.has_straight() && self.has_flush()
+        self.has_straight_flush_with(HandRules::default())
+    }
+
+    #[must_use]
+    pub fn has_straight_flush_with(&self, rules: HandRules) -> bool {
+        self.has_straight_with(rules) && self.has_flush_with(rules)
     }
 
     #[must_use]
     pub fn has_trips(&self) -> bool {
         self.has_x_of_a_kind(3)
+    }
+
+    /// Inserts `card` at `position`, shifting everything at or after it right.
+    ///
+    /// # Panics
+    ///
+    /// If `position > len()`.
+    pub fn insert(&mut self, position: usize, card: BuffoonCard) {
+        self.0.insert(position, card);
     }
 
     #[must_use]

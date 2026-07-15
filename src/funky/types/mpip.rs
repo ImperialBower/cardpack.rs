@@ -24,6 +24,15 @@ pub enum MPip {
     Blank,
     AddBaseChips(usize),
     AddCardTypeWhenBlindSelected(BCardType),
+    /// A `numerator`-in-`denominator` chance the card is destroyed at end of
+    /// round, and **nothing else**.
+    ///
+    /// Prefer a compound variant like
+    /// [`MultPlusChanceDestroyed`](Self::MultPlusChanceDestroyed) for any card
+    /// that also scores. Encoding only the destruction half is what hid Gros
+    /// Michel's +15 mult: the reachability guard classifies by variant, and this
+    /// variant legitimately does not score, so a card wearing it is invisible to
+    /// the guard whether or not it *should* have scored.
     ChanceDestroyed(usize, usize),
     Chips(usize),
     ChipsMultPlus(usize, usize),
@@ -40,6 +49,19 @@ pub enum MPip {
     Death(usize),
     DoubleMoney(usize),
     FourFlushAndStraight,
+    /// Shortcut: straights may skip a rank (a one-gap straight, e.g. 5-7-9-J-K).
+    GappedStraight,
+    /// Pareidolia: every card counts as a face card, feeding the face-reading
+    /// jokers (Scary Face, Sock and Buskin). No standalone score of its own.
+    AllCardsAreFaces,
+    /// Smeared Joker: Hearts≡Diamonds and Spades≡Clubs when sizing a flush.
+    SmearedSuits,
+    /// Splash: every played card scores. Inert in this engine, which already
+    /// scores every played card (it has no scoring-vs-kicker distinction).
+    AllPlayedCardsScore,
+    /// Oops! All 6s: doubles every listed probability (a 1-in-N roll wins twice
+    /// as often); stacks, capped at certainty.
+    DoubleOdds,
     FreeReroll(usize),
     Glass(usize, usize),
     Gold(usize),
@@ -47,6 +69,18 @@ pub enum MPip {
     JokersValue(usize),
     Lucky(usize, usize),
     MultPlus(usize),
+    /// Gros Michel: `+mult` unconditionally, **and** a `numerator`-in-`denominator`
+    /// chance the joker is destroyed at end of round —
+    /// `MultPlusChanceDestroyed(15, 1, 6)`.
+    ///
+    /// Compound because one card is one `MPip`, and both halves are the card:
+    /// splitting them is what let the mult go missing. The scoring half is a
+    /// pure `AddMult`, applied in `builtin_joker_op`. The destruction half is
+    /// **data only** until a round-end hook exists to roll it; it is recorded as
+    /// an explicit numerator/denominator so it can route through
+    /// `BuffoonBoard::probability_numerator` and inherit Oops! All 6s for free,
+    /// the way the seeded-RNG path already works.
+    MultPlusChanceDestroyed(usize, usize, usize),
     MultPlusChipsOnRank(usize, usize, char),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
     MultPlusOn5Ranks(usize, [char; 5]),
@@ -80,7 +114,20 @@ pub enum MPip {
     MultPlusPerJoker(usize),
     /// +n chips for **each** card remaining in the deck. Used by Blue Joker
     /// (+2 per card in deck).
+    ///
+    /// Note this reads the **undealt remainder**, not the full deck; contrast
+    /// [`ChipsPerFullDeckStone`](Self::ChipsPerFullDeckStone).
     ChipsPerDeckCard(usize),
+    /// ×mult that gains ×(n/10) for **each** Steel card in the run's *full*
+    /// deck. The factor is additive, not compounding: `1 + (n/10) × count`, so
+    /// Steel Joker (`n = 2`) is ×1 with no Steel and ×1.4 with two.
+    MultTimesPlusPerFullDeckSteel(usize),
+    /// +n chips for **each** Stone card in the run's *full* deck. Used by Stone
+    /// Joker (+25 per Stone).
+    ChipsPerFullDeckStone(usize),
+    /// +n mult for **each** card the run's *full* deck is **below** its
+    /// starting size — i.e. per card destroyed. Used by Erosion (+4).
+    MultPlusPerMissingDeckCard(usize),
     /// ×(n/10) mult for **each** card of the given rank **held in hand** — the
     /// factor compounds. Used by Baron (×1.5 per held King).
     MultTimesPerHeldRank(usize, char),
@@ -115,17 +162,29 @@ pub enum MPip {
     GainMultPerTwoPairHand(usize),
     /// Runner: +`rate` chips per hand played containing a Straight.
     GainChipsPerStraightHand(usize),
+    /// Hiker: every played card **permanently** gains `n` chips when scored.
+    ///
+    /// Unlike its `Gain*` neighbours this is not a counter — nothing accumulates
+    /// on the joker. The growth lives on the *cards*: each scored card's base
+    /// chips are bumped for the rest of the run, so the joker's contribution is
+    /// whatever those fattened cards go on to score. Applied by
+    /// `BuffoonBoard::on_scored`, not by a scoring arm.
+    GainChipsOnScored(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
     RetriggerCardsInHand(usize),
     RetriggerPlayedCardsInFinalRound,
-    /// Retrigger each played card whose rank index is in the set (Hack: 2/3/4/5).
-    RetriggerScoredRanks([char; 4]),
-    /// Retrigger each played face card (K/Q/J) — Sock and Buskin.
-    RetriggerScoredFaces,
-    /// Retrigger the first played card `n` additional times — Hanging Chad.
-    RetriggerFirstScored(usize),
+    /// Hack: re-score each played card of one of these ranks `n` additional
+    /// times. `RetriggerPlayedRanks(1, ['2','3','4','5'])` retriggers every
+    /// played 2, 3, 4, or 5 once more.
+    RetriggerPlayedRanks(usize, [char; 4]),
+    /// Sock and Buskin: re-score each played **face** card (K/Q/J) `n`
+    /// additional times.
+    RetriggerPlayedFaces(usize),
+    /// Hanging Chad: re-score the **first** played card `n` additional times
+    /// (`RetriggerFirstPlayed(2)` = scored 3× total).
+    RetriggerFirstPlayed(usize),
     SellValueIncrement(usize),
     Stone(usize),
     Strength,
@@ -207,6 +266,11 @@ impl Display for MPip {
             Self::Death(value) => write!(f, "Death({value})"),
             Self::DoubleMoney(value) => write!(f, "DoubleMoney({value})"),
             Self::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
+            Self::GappedStraight => write!(f, "GappedStraight"),
+            Self::AllCardsAreFaces => write!(f, "AllCardsAreFaces"),
+            Self::SmearedSuits => write!(f, "SmearedSuits"),
+            Self::AllPlayedCardsScore => write!(f, "AllPlayedCardsScore"),
+            Self::DoubleOdds => write!(f, "DoubleOdds"),
             Self::FreeReroll(value) => write!(f, "FreeReroll({value})"),
             Self::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             Self::Gold(value) => write!(f, "Gold({value})"),
@@ -214,6 +278,12 @@ impl Display for MPip {
             Self::JokersValue(value) => write!(f, "JokersValue({value})"),
             Self::Lucky(a, b) => write!(f, "Lucky({a}, {b})"),
             Self::MultPlus(value) => write!(f, "MultPlus({value})"),
+            Self::MultPlusChanceDestroyed(mult, numerator, denominator) => {
+                write!(
+                    f,
+                    "MultPlusChanceDestroyed({mult}, {numerator}, {denominator})"
+                )
+            }
             Self::MultPlusChipsOnRank(mult, chips, rank_char) => {
                 write!(f, "MultPlusChipsOnRank({mult}, {chips}, {rank_char})")
             }
@@ -263,6 +333,13 @@ impl Display for MPip {
             }
             Self::MultPlusPerJoker(value) => write!(f, "MultPlusPerJoker({value})"),
             Self::ChipsPerDeckCard(value) => write!(f, "ChipsPerDeckCard({value})"),
+            Self::MultTimesPlusPerFullDeckSteel(value) => {
+                write!(f, "MultTimesPlusPerFullDeckSteel({value})")
+            }
+            Self::ChipsPerFullDeckStone(value) => write!(f, "ChipsPerFullDeckStone({value})"),
+            Self::MultPlusPerMissingDeckCard(value) => {
+                write!(f, "MultPlusPerMissingDeckCard({value})")
+            }
             Self::MultTimesPerHeldRank(value, rank) => {
                 write!(f, "MultTimesPerHeldRank({value}, {rank})")
             }
@@ -287,14 +364,17 @@ impl Display for MPip {
             }
             Self::GainMultPerTwoPairHand(n) => write!(f, "GainMultPerTwoPairHand({n})"),
             Self::GainChipsPerStraightHand(n) => write!(f, "GainChipsPerStraightHand({n})"),
+            Self::GainChipsOnScored(n) => write!(f, "GainChipsOnScored({n})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
             Self::RetriggerCardsInHand(value) => write!(f, "RetriggerCardsInHand({value})"),
             Self::RetriggerPlayedCardsInFinalRound => write!(f, "RetriggerPlayedCardsInFinalRound"),
-            Self::RetriggerScoredRanks(ranks) => write!(f, "RetriggerScoredRanks({ranks:?})"),
-            Self::RetriggerScoredFaces => write!(f, "RetriggerScoredFaces"),
-            Self::RetriggerFirstScored(n) => write!(f, "RetriggerFirstScored({n})"),
+            Self::RetriggerPlayedRanks(value, ranks) => {
+                write!(f, "RetriggerPlayedRanks({value}, {ranks:?})")
+            }
+            Self::RetriggerPlayedFaces(value) => write!(f, "RetriggerPlayedFaces({value})"),
+            Self::RetriggerFirstPlayed(value) => write!(f, "RetriggerFirstPlayed({value})"),
             Self::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             Self::Stone(value) => write!(f, "Stone({value})"),
             Self::Strength => write!(f, "Strength"),
@@ -348,6 +428,14 @@ mod funky__types__mpips_tests {
         assert_eq!(
             MPip::GainChipsPerStraightHand(15).to_string(),
             "GainChipsPerStraightHand(15)"
+        );
+        assert_eq!(
+            MPip::GainChipsOnScored(4).to_string(),
+            "GainChipsOnScored(4)"
+        );
+        assert_eq!(
+            MPip::MultPlusChanceDestroyed(15, 1, 6).to_string(),
+            "MultPlusChanceDestroyed(15, 1, 6)"
         );
     }
 }

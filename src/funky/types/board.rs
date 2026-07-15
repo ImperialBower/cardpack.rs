@@ -1,7 +1,7 @@
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::preludes::funky::{
-    BCardType, BuffoonCard, BuffoonPile, HandType, MPip, PokerHands, Score,
+    BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -34,14 +34,38 @@ pub struct BuffoonBoard {
     /// discards) can dip negative before the read floors it at 0. Grown by the
     /// event hooks, read (never written) during scoring.
     pub joker_state: Vec<i32>,
+    /// Every card the run **owns** — Balatro's "full deck".
+    ///
+    /// This is a stable roster, not a location: a card stays in `full_deck`
+    /// once drawn, played, discarded, or held. Contrast [`deck`](Self::deck),
+    /// which is the *undealt remainder* and shrinks as cards are drawn (Blue
+    /// Joker reads that one). Modelling the roster separately is what Balatro
+    /// does, and it keeps the "in full deck" jokers (Steel Joker, Stone Joker,
+    /// Erosion) correct without requiring the deal to be conserved across the
+    /// location piles.
+    ///
+    /// Seeded from the deck at [`new`](Self::new); only deck **mutation**
+    /// (adding or destroying cards) should change it.
+    pub full_deck: BuffoonPile,
+    /// How big [`full_deck`](Self::full_deck) was when the run started.
+    ///
+    /// Recorded rather than assumed to be 52, since alternate decks start at
+    /// other sizes. Erosion scores the shortfall against this.
+    pub starting_deck_size: usize,
 }
 
 impl BuffoonBoard {
     #[must_use]
     pub fn new(draws: Draws, deck: BuffoonPile) -> Self {
+        // At construction the run owns exactly the deck it was handed, so the
+        // roster and the undealt remainder start out equal.
+        let full_deck = deck.clone();
+        let starting_deck_size = full_deck.len();
         Self {
             draws,
             deck,
+            full_deck,
+            starting_deck_size,
             in_hand: BuffoonPile::default(),
             played: BuffoonPile::default(),
             consumables: BuffoonPile::new_with_capacity(2),
@@ -63,7 +87,7 @@ impl BuffoonBoard {
     /// From [Detailed Break down of Balatro Scoring System and some tips to optimise your hand scoring.](https://www.reddit.com/r/balatro/comments/1blbexa/detailed_break_down_of_balatro_scoring_system_and/)
     #[must_use]
     pub fn scoring_phase1_pre_scoring(&self) -> Score {
-        let hand_type = match self.played.determine_hand_type() {
+        let hand_type = match self.played.determine_hand_type_with(self.hand_rules()) {
             HandType::RoyalFlush => HandType::StraightFlush,
             other => other,
         };
@@ -93,8 +117,12 @@ impl BuffoonBoard {
 
     /// The single played-card fold behind phase 2. Each card adds its chips and
     /// built-in additive effects, then its special enhancement resolves:
-    /// a Lucky card rolls (if `rng`), a `MPip::Custom` card is looked up (if
-    /// `registry`). Built-in cards are unaffected by the options.
+    /// a Lucky card rolls (if `rng`), a Glass card applies its ×mult, a
+    /// `MPip::Custom` card is looked up (if `registry`). Built-in cards are
+    /// unaffected by the options.
+    // Glass's ×mult factor is a small literal from the card data; the same
+    // allow the other ×mult seams carry (`builtin_held_op`, `joker_x_mult`).
+    #[allow(clippy::cast_precision_loss)]
     fn fold_played_cards<R: Rng + ?Sized>(
         &self,
         running: Score,
@@ -104,24 +132,36 @@ impl BuffoonBoard {
         let mut score = running;
 
         for (index, card) in self.played.iter().enumerate() {
-            let extra = self.played_retrigger_count(card, index);
-            for _ in 0..=extra {
+            // A card is scored once, plus once more for each retrigger a joker
+            // grants it (Hack: each played 2-5; Hanging Chad: the first card).
+            // Retriggering re-runs the whole per-card contribution, so a
+            // retriggered Lucky card rolls again — matching Balatro. With no
+            // retrigger joker this is a single pass.
+            for _ in 0..=self.played_retriggers(index, card) {
                 // Every played card contributes its built-in chips/mult first,
-                // then its special (probabilistic / custom) effect resolves in
-                // card order. A retrigger re-runs both, so a Lucky card rolls
-                // fresh each pass.
+                // then its special (probabilistic / custom) effect resolves.
                 score = Self::builtin_played_op(card).apply(score);
 
                 let special = match card.enhancement {
                     MPip::Lucky(mult_odds, _) if mult_odds > 0 => {
+                        // A 1-in-`mult_odds` roll wins on outcomes `0..wins`;
+                        // Oops! All 6s doubles `wins` (capped at certainty).
+                        let wins = self.probability_numerator().min(mult_odds);
                         rng.as_deref_mut().map_or(ScoreOp::Nothing, |rng| {
-                            if rng.random_range(0..mult_odds) == 0 {
+                            if rng.random_range(0..mult_odds) < wins {
                                 ScoreOp::AddMult(LUCKY_MULT)
                             } else {
                                 ScoreOp::Nothing
                             }
                         })
                     }
+                    // Glass card: ×n mult when scored. Multiplicative, so it
+                    // cannot ride the additive `calculate_plus` path — it scales
+                    // the running score at this card's position, like a held
+                    // Steel card does in phase 3. The destruction half
+                    // (1-in-`_odds` after the hand) is data only until a
+                    // round-end hook exists, exactly as with Gros Michel.
+                    MPip::Glass(mult, _odds) => ScoreOp::TimesMult(mult as f32),
                     MPip::Custom(id) => self.custom_op(*card, id, registry),
                     _ => ScoreOp::Nothing,
                 };
@@ -132,16 +172,18 @@ impl BuffoonBoard {
         score
     }
 
-    /// Extra times each played card scores, summed across every joker on the
-    /// board (retriggers stack). `0` when no retrigger joker is present, so the
-    /// played fold runs each card exactly once and `score()` is unchanged.
-    fn played_retrigger_count(&self, card: &BuffoonCard, index: usize) -> usize {
+    /// How many *additional* times the played card at `index` is scored, summed
+    /// over the board's retrigger jokers. 0 for a board with none (the common
+    /// case), so the played-card fold is byte-identical when no retrigger joker
+    /// is held. `index` is the card's position in `self.played`, used by
+    /// position-based retriggers (Hanging Chad fires only on the first card).
+    fn played_retriggers(&self, index: usize, card: &BuffoonCard) -> usize {
         self.jokers
             .iter()
             .map(|joker| match joker.enhancement {
-                MPip::RetriggerScoredRanks(ranks) if ranks.contains(&card.rank.index) => 1,
-                MPip::RetriggerScoredFaces if matches!(card.rank.index, 'K' | 'Q' | 'J') => 1,
-                MPip::RetriggerFirstScored(n) if index == 0 => n,
+                MPip::RetriggerPlayedRanks(n, ranks) if ranks.contains(&card.rank.index) => n,
+                MPip::RetriggerPlayedFaces(n) if self.is_face_card(card) => n,
+                MPip::RetriggerFirstPlayed(n) if index == 0 => n,
                 _ => 0,
             })
             .sum()
@@ -193,13 +235,17 @@ impl BuffoonBoard {
     fn fold_held_cards(&self, running: Score, registry: Option<&EffectRegistry>) -> Score {
         let mut score = running;
 
-        for (index, card) in self.in_hand.iter().enumerate() {
-            let extra = self.held_retrigger_count(card, index);
+        // Mime retriggers held-card abilities: each held card's op applies
+        // `1 + held_retriggers` times, so a retriggered Steel card gives ×1.5
+        // twice. 0 for a board with no held-retrigger joker (the common case),
+        // leaving the held fold byte-identical.
+        let retriggers = self.held_retriggers();
+        for card in &self.in_hand {
             let op = match card.enhancement {
                 MPip::Custom(id) => self.custom_op(*card, id, registry),
                 _ => Self::builtin_held_op(card),
             };
-            for _ in 0..=extra {
+            for _ in 0..=retriggers {
                 score = op.apply(score);
             }
         }
@@ -207,10 +253,10 @@ impl BuffoonBoard {
         score
     }
 
-    /// Extra times each held card's ability fires, summed across every joker.
-    /// `0` unless a held-retrigger joker (Mime) is present, so the held fold
-    /// runs each card once and `score()` is unchanged.
-    fn held_retrigger_count(&self, _card: &BuffoonCard, _index: usize) -> usize {
+    /// How many *additional* times every held card's ability fires, summed over
+    /// the board's held-retrigger jokers (Mime). Unlike `played_retriggers` this
+    /// is card-independent — Mime retriggers all held cards alike.
+    fn held_retriggers(&self) -> usize {
         self.jokers
             .iter()
             .map(|joker| match joker.enhancement {
@@ -299,11 +345,19 @@ impl BuffoonBoard {
         match joker.enhancement {
             MPip::MultPlusPerJoker(n) => return ScoreOp::AddMult(n * self.jokers.len()),
             MPip::ChipsPerDeckCard(n) => return ScoreOp::AddChips(n * self.deck.len()),
+            // Stone Joker: +n chips per Stone card in the full deck.
+            MPip::ChipsPerFullDeckStone(n) => {
+                return ScoreOp::AddChips(n * self.full_deck_stone_count());
+            }
+            // Erosion: +n mult per card destroyed from the starting deck.
+            MPip::MultPlusPerMissingDeckCard(n) => {
+                return ScoreOp::AddMult(n * self.cards_missing_from_deck());
+            }
             MPip::ChipsPlusPerScoredFace(n) => {
                 let faces = self
                     .played
                     .iter()
-                    .filter(|card| matches!(card.rank.index, 'K' | 'Q' | 'J'))
+                    .filter(|card| self.is_face_card(card))
                     .count();
                 return ScoreOp::AddChips(n * faces);
             }
@@ -332,6 +386,10 @@ impl BuffoonBoard {
                 let dollars = usize::try_from(self.money).unwrap_or(0);
                 return ScoreOp::AddChips(n * dollars);
             }
+            // Gros Michel: +n mult unconditionally. The destruction half of the
+            // variant is inert here — it rolls at end of round, which has no
+            // hook yet — but the mult is not conditional on it and scores now.
+            MPip::MultPlusChanceDestroyed(n, _, _) => return ScoreOp::AddMult(n),
             // Scholar: +chips and +mult for each played card of the given rank;
             // compounds with the count (+20 chips, +4 mult per played Ace).
             MPip::MultPlusChipsOnRank(mult, chips, rank) => {
@@ -362,6 +420,84 @@ impl BuffoonBoard {
         )
     }
 
+    /// The straight/flush detection rules in force for this board, loosened by
+    /// its rule-modifier jokers: **Four Fingers** drops straights and flushes to
+    /// four cards; **Shortcut** allows one-gap straights. Vanilla Balatro
+    /// ([`HandRules::default`]) when neither is held, so hand typing is
+    /// unchanged. Multiple modifiers stack (Four Fingers + Shortcut → a
+    /// four-card gapped straight).
+    fn hand_rules(&self) -> HandRules {
+        let mut rules = HandRules::default();
+        for joker in &self.jokers {
+            match joker.enhancement {
+                MPip::FourFlushAndStraight => {
+                    rules.straight_connectors = 3;
+                    rules.flush_len = 4;
+                }
+                MPip::GappedStraight => rules.straight_distance = 2,
+                MPip::SmearedSuits => rules.smeared = true,
+                _ => {}
+            }
+        }
+        rules
+    }
+
+    /// Whether `card` counts as a face card for the face-reading jokers. Kings,
+    /// Queens and Jacks always do; **Pareidolia** makes *every* card a face.
+    fn is_face_card(&self, card: &BuffoonCard) -> bool {
+        self.all_cards_are_faces() || matches!(card.rank.index, 'K' | 'Q' | 'J')
+    }
+
+    /// Whether Pareidolia is on the board (every card is treated as a face).
+    fn all_cards_are_faces(&self) -> bool {
+        self.jokers
+            .iter()
+            .any(|joker| matches!(joker.enhancement, MPip::AllCardsAreFaces))
+    }
+
+    /// How many cards in the run's full deck carry a Steel enhancement.
+    ///
+    /// Steel is modelled as `MultTimes1Dot`, matching what
+    /// [`builtin_held_op`](Self::builtin_held_op) treats as Steel while held.
+    fn full_deck_steel_count(&self) -> usize {
+        self.full_deck
+            .iter()
+            .filter(|card| matches!(card.enhancement, MPip::MultTimes1Dot(_)))
+            .count()
+    }
+
+    /// How many cards in the run's full deck are Stone cards.
+    fn full_deck_stone_count(&self) -> usize {
+        self.full_deck
+            .iter()
+            .filter(|card| matches!(card.enhancement, MPip::Stone(_)))
+            .count()
+    }
+
+    /// How many cards the full deck is **below** its starting size — the count
+    /// of cards destroyed over the run. Saturates at 0, so a deck grown past
+    /// its starting size (DNA, Séance) scores nothing rather than wrapping.
+    fn cards_missing_from_deck(&self) -> usize {
+        self.starting_deck_size.saturating_sub(self.full_deck.len())
+    }
+
+    /// Winning outcomes for a 1-in-N probability roll.
+    ///
+    /// 1 normally, doubled per **Oops! All 6s** on the board (each doubles
+    /// listed probabilities). The caller caps it at the roll's denominator so
+    /// it never exceeds certainty.
+    fn probability_numerator(&self) -> usize {
+        let oops = self
+            .jokers
+            .iter()
+            .filter(|joker| matches!(joker.enhancement, MPip::DoubleOdds))
+            .count();
+        // 2^oops, saturating so a pathological joker count can't overflow-shift.
+        1usize
+            .checked_shl(u32::try_from(oops).unwrap_or(u32::MAX))
+            .unwrap_or(usize::MAX)
+    }
+
     /// The ×mult factor a joker applies to the running score given the played
     /// hand, or `None` if it is not a (satisfied) multiplicative joker — in
     /// which case it is handled additively. Hand-conditional jokers use the
@@ -370,14 +506,18 @@ impl BuffoonBoard {
     #[allow(clippy::cast_precision_loss)]
     fn joker_x_mult(&self, joker: &BuffoonCard) -> Option<f32> {
         let played = &self.played;
+        // The straight/flush conditionals (The Order, The Tribe) honour the
+        // board's rule modifiers, so Four Fingers / Shortcut let them fire on a
+        // four-card or gapped hand just as they widen the base hand type.
+        let rules = self.hand_rules();
         let factor = match joker.enhancement {
             MPip::MultTimes(n) => n as f32,
             MPip::MultTimes1Dot(n) => n as f32 / 10.0,
             MPip::MultTimesOnPair(n) if played.has_pair() => n as f32,
             MPip::MultTimesOnTrips(n) if played.has_trips() => n as f32,
             MPip::MultTimesOn4OfAKind(n) if played.has_4_of_a_kind() => n as f32,
-            MPip::MultTimesOnStraight(n) if played.has_straight() => n as f32,
-            MPip::MultTimesOnFlush(n) if played.has_flush() => n as f32,
+            MPip::MultTimesOnStraight(n) if played.has_straight_with(rules) => n as f32,
+            MPip::MultTimesOnFlush(n) if played.has_flush_with(rules) => n as f32,
             MPip::MultTimesPerScoredRank(n, ranks) => {
                 // ×n for each played card of a matching rank; the factor
                 // compounds, e.g. two Kings and a Queen with Triboulet = ×2³.
@@ -396,6 +536,13 @@ impl BuffoonBoard {
                     .count();
                 let per = tenths as f32 / 10.0;
                 (0..held).fold(1.0, |acc, _| acc * per)
+            }
+            MPip::MultTimesPlusPerFullDeckSteel(tenths) => {
+                // Steel Joker: ×1 base, gaining ×(tenths/10) per Steel card in
+                // the full deck. Additive in the factor, unlike the compounding
+                // per-card jokers above: two Steel with ×0.2 is ×1.4, not ×1.44.
+                let steel = self.full_deck_steel_count();
+                1.0 + (tenths * steel) as f32 / 10.0
             }
             MPip::MultTimesPerUncommonJoker(tenths) => {
                 // ×(tenths/10) per Uncommon joker on the board; compounds. Baseball Card.
@@ -548,6 +695,68 @@ impl BuffoonBoard {
         self.jokers.remove(index)
     }
 
+    /// Add a card to the run's deck: the run now **owns** it (it joins
+    /// [`full_deck`](Self::full_deck)) and it is **undealt** (it joins
+    /// [`deck`](Self::deck)). This is the only sanctioned way to grow the deck —
+    /// writing either pile alone desynchronises the roster from the remainder.
+    ///
+    /// [`starting_deck_size`](Self::starting_deck_size) is deliberately *not*
+    /// bumped: it records where the run started, so a deck grown past it leaves
+    /// Erosion scoring nothing rather than going negative.
+    pub fn add_card_to_deck(&mut self, card: BuffoonCard) {
+        self.full_deck.push(card);
+        self.deck.push(card);
+    }
+
+    /// Destroy the roster card at `index`: it leaves the run entirely, so it
+    /// goes from [`full_deck`](Self::full_deck) and — if it had not been dealt
+    /// yet — from [`deck`](Self::deck) too. Returns the destroyed card, or
+    /// `None` if `index` is out of bounds.
+    ///
+    /// The undealt copy is located by **value**, since a [`BuffoonCard`] is a
+    /// `Copy` value type with no identity. That is not a compromise: two
+    /// value-equal cards are interchangeable, so removing either leaves the same
+    /// multiset. A card the roster holds but the remainder does not (i.e. it is
+    /// already dealt, played, or held) simply leaves the remainder untouched.
+    pub fn destroy_deck_card(&mut self, index: usize) -> Option<BuffoonCard> {
+        if index >= self.full_deck.len() {
+            return None;
+        }
+        let card = self.full_deck.remove(index);
+        if let Some(undealt) = self.deck.iter().position(|c| *c == card) {
+            self.deck.remove(undealt);
+        }
+        Some(card)
+    }
+
+    /// Replace the roster card at `index` with `replacement`, keeping the
+    /// undealt copy (if any) in step. Returns `false` if `index` is out of
+    /// bounds.
+    ///
+    /// This is the seam every permanent card mutation goes through — enhancing a
+    /// deck card to Steel or Stone, Hiker's `+4` chips, a tarot's rank/suit
+    /// change. Same value-matching rule as [`destroy_deck_card`](Self::destroy_deck_card).
+    pub fn replace_deck_card(&mut self, index: usize, replacement: BuffoonCard) -> bool {
+        let Some(old) = self.full_deck.get(index).copied() else {
+            return false;
+        };
+        self.full_deck.remove(index);
+        self.full_deck.insert(index, replacement);
+        if let Some(undealt) = self.deck.iter().position(|c| *c == old) {
+            self.deck.remove(undealt);
+            self.deck.insert(undealt, replacement);
+        }
+        true
+    }
+
+    /// Where `card` sits in the roster, or `None` if the run does not own it.
+    /// First match wins — see [`destroy_deck_card`](Self::destroy_deck_card) for
+    /// why that is exact rather than approximate.
+    #[must_use]
+    pub fn full_deck_index_of(&self, card: BuffoonCard) -> Option<usize> {
+        self.full_deck.iter().position(|c| *c == card)
+    }
+
     /// Pad `joker_state` with zeros up to `jokers.len()`, so a board built by
     /// setting `jokers` directly still has a counter slot per joker. Only grows —
     /// never truncates.
@@ -563,7 +772,7 @@ impl BuffoonBoard {
     // Arms are kept one-per-variant (rather than merged where bodies coincide)
     // to mirror `counter_joker_op`'s future per-joker arms one-for-one.
     #[allow(clippy::match_same_arms)]
-    fn growth_delta(enhancement: MPip, event: &GrowthEvent) -> i32 {
+    fn growth_delta(enhancement: MPip, event: &GrowthEvent, rules: HandRules) -> i32 {
         match (enhancement, event) {
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::HandPlayed(_)) => 1,
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::Discard(_)) => -1,
@@ -575,7 +784,11 @@ impl BuffoonBoard {
                 1
             }
             (MPip::GainMultPerTwoPairHand(_), GrowthEvent::HandPlayed(p)) if p.has_2pair() => 1,
-            (MPip::GainChipsPerStraightHand(_), GrowthEvent::HandPlayed(p)) if p.has_straight() => {
+            // Runner counts a straight under the board's rules, so Four Fingers /
+            // Shortcut grow it on a four-card or gapped straight too.
+            (MPip::GainChipsPerStraightHand(_), GrowthEvent::HandPlayed(p))
+                if p.has_straight_with(rules) =>
+            {
                 1
             }
             _ => 0,
@@ -592,12 +805,70 @@ impl BuffoonBoard {
         self.apply_growth(&GrowthEvent::Discard(discarded));
     }
 
+    /// Apply the permanent card mutations that fire when the played hand scores,
+    /// then score it. Today that is Hiker (`MPip::GainChipsOnScored`): every card
+    /// in [`played`](Self::played) gains chips for the rest of the run.
+    ///
+    /// Call this **before** [`score`](Self::score): in Balatro a card gains
+    /// Hiker's chips as it scores, so the boost lands on the very hand that
+    /// triggers it and on every later hand the card appears in. This mirrors the
+    /// order the counter jokers already use — events fire, then scoring reads.
+    ///
+    /// The bump is applied to the played card *and* to the run's roster copy of
+    /// it, so it persists once the card cycles back into the deck. A played card
+    /// the roster does not hold (the board conserves no deal invariant — see
+    /// [`full_deck`](Self::full_deck)) still scores its boost; only the
+    /// persistence is skipped.
+    ///
+    /// Chips are added to the card's **base rank value**, which is orthogonal to
+    /// its `enhancement`, so a Steel or Stone card accumulates Hiker chips
+    /// without either effect clobbering the other. Rank `weight` is untouched,
+    /// so a fattened card still sorts and connects normally — Hiker cannot
+    /// silently break straight or flush detection.
+    ///
+    /// # Known gap: retriggers
+    ///
+    /// Each played card is bumped **once per hand**, not once per scoring
+    /// trigger. Balatro fires Hiker on every trigger, so a card retriggered by
+    /// Hack would gain `+4` twice, with the second trigger scoring the
+    /// already-fattened card. Getting that exact needs the bump interleaved into
+    /// the played-card fold, which is a pure `&self` fold and cannot mutate — so
+    /// it waits on scoring becoming mutating.
+    /// Boards without a retrigger joker (every board today except Hack, Sock and
+    /// Buskin, and Hanging Chad ones) are exact.
+    pub fn on_scored(&mut self) {
+        let bump: usize = self
+            .jokers
+            .iter()
+            .map(|joker| match joker.enhancement {
+                MPip::GainChipsOnScored(n) => n,
+                _ => 0,
+            })
+            .sum();
+        if bump == 0 {
+            return;
+        }
+
+        for index in 0..self.played.len() {
+            let Some(card) = self.played.get(index).copied() else {
+                continue;
+            };
+            let fattened = card.add_base_chips(bump);
+            self.played.remove(index);
+            self.played.insert(index, fattened);
+            if let Some(slot) = self.full_deck_index_of(card) {
+                self.replace_deck_card(slot, fattened);
+            }
+        }
+    }
+
     fn apply_growth(&mut self, event: &GrowthEvent) {
         self.ensure_state_len();
+        let rules = self.hand_rules();
         let deltas: Vec<i32> = self
             .jokers
             .iter()
-            .map(|j| Self::growth_delta(j.enhancement, event))
+            .map(|j| Self::growth_delta(j.enhancement, event, rules))
             .collect();
         for (slot, delta) in self.joker_state.iter_mut().zip(deltas) {
             *slot += delta;
@@ -1136,7 +1407,8 @@ mod funky__types__board__buffoon_board_tests {
         // No Uncommon jokers -> ×1.
         assert_eq!(board.score(), Score::new(40, 1));
 
-        // One Uncommon joker (Steel Joker, inert here) -> ×1.5 -> ceil(1×1.5)=2.
+        // One Uncommon joker -> ×1.5 -> ceil(1×1.5)=2. Steel Joker is the stand-in
+        // and contributes ×1 of its own, the deck holding no Steel cards.
         board.jokers.push(card::STEEL_JOKER);
         assert_eq!(board.score(), Score::new(40, 2));
     }
@@ -1202,95 +1474,6 @@ mod funky__types__board__buffoon_board_tests {
 
         assert_eq!(scored.chips, base.chips + 40, "+20 chips per Ace x2");
         assert_eq!(scored.mult, base.mult + 8, "+4 mult per Ace x2");
-    }
-
-    #[test]
-    fn score__hack_retriggers_low_cards() {
-        // Hack retriggers each played card ranked 2/3/4/5. Only the 2S qualifies
-        // here, so its 2 chips are added one extra time; mult unchanged.
-        let mut board = board_playing("2S 8D TC JS KH"); // High Card, one low card
-        let base = board.score();
-
-        board.jokers.push(card::HACK);
-        let scored = board.score();
-
-        assert_eq!(scored.chips, base.chips + 2, "one extra trigger of the 2");
-        assert_eq!(scored.mult, base.mult, "retrigger adds no mult here");
-    }
-
-    #[test]
-    fn score__sock_and_buskin_retriggers_faces() {
-        // Retrigger each played face card (K/Q/J). Only KH qualifies -> +10 chips.
-        let mut board = board_playing("2S 8D 5C 7H KH"); // High Card, one face
-        let base = board.score();
-
-        board.jokers.push(card::SOCK_AND_BUSKIN);
-        let scored = board.score();
-
-        assert_eq!(
-            scored.chips,
-            base.chips + 10,
-            "one extra trigger of the King"
-        );
-        assert_eq!(scored.mult, base.mult);
-    }
-
-    #[test]
-    fn score__hanging_chad_retriggers_first_card_thrice() {
-        // Retrigger the FIRST played card 2 additional times (3 total). First
-        // card is 2S (2 chips) -> +4 chips; later cards untouched.
-        let mut board = board_playing("2S 8D 5C 7H KH");
-        let base = board.score();
-
-        board.jokers.push(card::HANGING_CHAD);
-        let scored = board.score();
-
-        assert_eq!(
-            scored.chips,
-            base.chips + 4,
-            "2 extra triggers of the first card (2)"
-        );
-        assert_eq!(scored.mult, base.mult);
-    }
-
-    #[test]
-    fn score__stacked_retriggers_are_additive() {
-        // Hack (+1 to the 2) and Hanging Chad (+2 to the first card, also the 2)
-        // stack: the 2 scores 1 + 1 + 2 = 4 times -> 3 extra -> +6 chips.
-        let mut board = board_playing("2S 8D TC JS KH"); // only first card is low
-        let base = board.score();
-
-        board.jokers.push(card::HACK);
-        board.jokers.push(card::HANGING_CHAD);
-        let scored = board.score();
-
-        assert_eq!(scored.chips, base.chips + 6, "3 extra triggers of the 2");
-        assert_eq!(scored.mult, base.mult);
-    }
-
-    #[test]
-    fn score__mime_retriggers_held_steel() {
-        // Mime retriggers held-card abilities: a held Steel card applies its
-        // x1.5 mult twice. Build a held Steel King (enhancement is public).
-        let mut board = board_playing("2S 8D TC JS KH");
-        let mut steel = *bcards!("KH").iter().next().unwrap();
-        steel.enhancement = MPip::STEEL; // MultTimes1Dot(15) = x1.5
-        board.in_hand = BuffoonPile::from(vec![steel]);
-
-        let without = board.score(); // Steel applied once
-        board.jokers.push(card::MIME);
-        let with = board.score(); // Steel applied twice
-
-        assert_eq!(
-            with.chips, without.chips,
-            "retrigger of a held card adds no chips"
-        );
-        assert_eq!(
-            with.mult,
-            (f64::from(u32::try_from(without.mult).unwrap()) * 1.5).ceil() as usize,
-            "one extra x1.5 application"
-        );
-        assert!(with.mult > without.mult, "Mime must increase mult");
     }
 
     #[test]
@@ -1697,5 +1880,567 @@ mod funky__types__board__buffoon_board_tests {
             board.on_hand_played(&hand);
         }
         assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__hack_retriggers_played_two_through_five() {
+        // Hack: retrigger each played 2, 3, 4, or 5 one additional time.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::HACK);
+
+        // Only 2S (+2 chips) and 5D (+5 chips) qualify; each scores a second
+        // time -> +7 chips. 8/T/K are untouched. 40 -> 47.
+        assert_eq!(board.score(), Score::new(47, 1));
+    }
+
+    #[test]
+    fn score__sock_and_buskin_retriggers_played_faces() {
+        // Sock and Buskin: retrigger each played face card (K/Q/J) one more time.
+        let mut board = board_playing("KH QD 8C 5S 2H"); // High Card 40/1
+        board.push_joker(card::SOCK_AND_BUSKIN);
+
+        // KH (+10) and QD (+10) each score a second time; the 8/5/2 pips are
+        // untouched (T is not a face). 40 -> 60.
+        assert_eq!(board.score(), Score::new(60, 1));
+    }
+
+    #[test]
+    fn score__hanging_chad_retriggers_first_played_card_twice() {
+        // Hanging Chad: the first played card is scored 3× total (+2 triggers).
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::HANGING_CHAD);
+
+        // Only the first card 2S (+2 chips) retriggers, twice more -> +4 chips;
+        // the other four cards are untouched. 40 -> 44.
+        assert_eq!(board.score(), Score::new(44, 1));
+    }
+
+    #[test]
+    fn score__stacked_retriggers_are_additive() {
+        // Hack (+1 to the 2) and Hanging Chad (+2 to the first card, also the
+        // 2S) stack: the 2 scores 1 + 1 + 2 = 4 times -> 3 extra -> +6 chips.
+        let mut board = board_playing("2S 8D TC JS KH"); // only first card is low
+        let base = board.score();
+
+        board.push_joker(card::HACK);
+        board.push_joker(card::HANGING_CHAD);
+        let scored = board.score();
+
+        assert_eq!(scored.chips, base.chips + 6, "3 extra triggers of the 2");
+        assert_eq!(scored.mult, base.mult);
+    }
+
+    #[test]
+    fn score__mime_retriggers_held_steel_card() {
+        // Mime: retrigger held-card abilities. A held Steel King's ×1.5 fires
+        // twice instead of once: 8 -> 12 -> 18.
+        let mut board = board_playing("AS KS QS JS TS");
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+        board.push_joker(card::MIME);
+
+        // Phase 1+2: 151 chips, 8 mult. Steel retriggered -> 18 mult. Mime adds
+        // nothing itself in phase 4. Final 151 x 18.
+        assert_eq!(board.score(), Score::new(151, 18));
+    }
+
+    #[test]
+    fn score__four_fingers_makes_four_card_straight_flush() {
+        // 9-T-J-Q of Hearts + an off card: a High Card normally, a four-card
+        // Straight Flush with Four Fingers.
+        let mut board = board_playing("9H TH JH QH 2S");
+        // High Card: 5 base chips + 41 played pips (9+10+10+10+2).
+        assert_eq!(board.score(), Score::new(46, 1));
+
+        board.push_joker(card::FOUR_FINGERS);
+        // Straight Flush base 100/8 + 41 pips; Four Fingers scores nothing
+        // itself. 141 x 8.
+        assert_eq!(board.score(), Score::new(141, 8));
+    }
+
+    #[test]
+    fn score__shortcut_makes_one_gap_straight() {
+        // 2-4-6-8-T: a High Card normally, a Straight with Shortcut (one-gap).
+        let mut board = board_playing("2C 4D 6H 8S TC");
+        // High Card: 5 base chips + 30 played pips (2+4+6+8+10).
+        assert_eq!(board.score(), Score::new(35, 1));
+
+        board.push_joker(card::SHORTCUT);
+        // Straight base 30/4 + 30 pips; Shortcut scores nothing itself. 60 x 4.
+        assert_eq!(board.score(), Score::new(60, 4));
+    }
+
+    #[test]
+    fn score__four_fingers_enables_the_order_on_four_card_straight() {
+        // A rule modifier doesn't just widen the base hand — it lets the
+        // straight/flush jokers fire on the widened hand too.
+        let mut board = board_playing("9H TH JH QH 2S");
+        board.push_joker(card::THE_ORDER); // x3 mult on a straight
+
+        // The four-card straight doesn't register under vanilla rules, so The
+        // Order stays inert: High Card 46/1.
+        assert_eq!(board.score(), Score::new(46, 1));
+
+        board.push_joker(card::FOUR_FINGERS);
+        // Now a Straight Flush (141/8), and The Order fires x3 -> 141 x 24.
+        assert_eq!(board.score(), Score::new(141, 24));
+    }
+
+    #[test]
+    fn score__pareidolia_makes_every_card_a_face_for_scary_face() {
+        // Scary Face: +30 chips per face card. Pareidolia makes all five count.
+        let mut board = board_playing("KS QD 2S 3H 4C"); // High Card 34/1, 2 faces
+        board.push_joker(card::SCARY_FACE);
+        // K, Q only -> +60 chips. 34 -> 94.
+        assert_eq!(board.score(), Score::new(94, 1));
+
+        board.push_joker(card::PAREIDOLIA);
+        // All five cards are faces -> +150 chips. 34 -> 184.
+        assert_eq!(board.score(), Score::new(184, 1));
+    }
+
+    #[test]
+    fn score__pareidolia_retriggers_every_card_under_sock_and_buskin() {
+        // Sock and Buskin retriggers face cards; Pareidolia makes every card one.
+        let mut board = board_playing("KS QD 2S 3H 4C"); // High Card 34/1, 2 faces
+        board.push_joker(card::SOCK_AND_BUSKIN);
+        // Only K (+10) and Q (+10) retrigger -> +20 chips. 34 -> 54.
+        assert_eq!(board.score(), Score::new(54, 1));
+
+        board.push_joker(card::PAREIDOLIA);
+        // Every card retriggers -> +(10+10+2+3+4) = +29 chips. 34 -> 63.
+        assert_eq!(board.score(), Score::new(63, 1));
+    }
+
+    #[test]
+    fn score__smeared_joker_merges_suits_for_flush() {
+        // Five red cards over two suits (3 Hearts + 2 Diamonds): a High Card
+        // normally, a Flush with Smeared.
+        let mut board = board_playing("AH KH 9H QD JD");
+        // High Card: 5 base + 50 played pips (11+10+9+10+10).
+        assert_eq!(board.score(), Score::new(55, 1));
+
+        board.push_joker(card::SMEARED_JOKER);
+        // Flush base 35/4 + 50 pips; Smeared scores nothing itself. 85 x 4.
+        assert_eq!(board.score(), Score::new(85, 4));
+
+        // Only four cards of a merged colour is still not a flush.
+        let mut four_red = board_playing("AH KH QD JD 9C");
+        four_red.push_joker(card::SMEARED_JOKER);
+        // Still High Card: 5 + (11+10+10+10+9) = 55/1.
+        assert_eq!(four_red.score(), Score::new(55, 1));
+    }
+
+    #[test]
+    fn score__smeared_enables_the_tribe_on_red_flush() {
+        // The merged-suit flush also lets the flush jokers fire.
+        let mut board = board_playing("AH KH 9H QD JD");
+        board.push_joker(card::THE_TRIBE); // x2 mult on a flush
+
+        // No flush under vanilla rules, so The Tribe stays inert: High Card 55/1.
+        assert_eq!(board.score(), Score::new(55, 1));
+
+        board.push_joker(card::SMEARED_JOKER);
+        // Now a Flush (85/4), and The Tribe fires x2 -> 85 x 8.
+        assert_eq!(board.score(), Score::new(85, 8));
+    }
+
+    #[test]
+    fn score__splash_is_inert_because_all_played_cards_already_score() {
+        // In Balatro only the paired Kings would score; the 2/3/4 kickers would
+        // not. This engine has no scoring-vs-kicker split — every played card's
+        // chips already count — so Splash's "all cards score" is a verified
+        // no-op, not a silent-zero bug.
+        let mut board = board_playing("KS KD 2S 3H 4C"); // Pair
+        // Pair base 10/2 + all five card pips (10+10+2+3+4 = 29) = 39/2. The
+        // kickers contributing is what proves cards already all score.
+        assert_eq!(board.score(), Score::new(39, 2));
+
+        board.push_joker(card::SPLASH);
+        // Splash changes nothing — the score is identical.
+        assert_eq!(board.score(), Score::new(39, 2));
+    }
+
+    fn lucky_two_board() -> BuffoonBoard {
+        // A 1-in-2 Lucky ace: floor 16 x 1, proc (+20 mult) 16 x 21.
+        let mut board = board_playing("2S");
+        board.played = BuffoonPile::from(vec![enhanced(basic::ACE_SPADES, MPip::Lucky(2, 15))]);
+        board
+    }
+
+    #[test]
+    fn score__oops_all_6s_doubles_lucky_odds_to_certainty() {
+        // Without Oops, a 1-in-2 roll misses on some seeds.
+        let plain = lucky_two_board();
+        assert!(
+            (0..16).any(|seed| plain.score_with_seed(seed) == Score::new(16, 1)),
+            "a 1-in-2 Lucky should floor on at least one seed without Oops"
+        );
+
+        // Oops! All 6s doubles 1-in-2 to 2-in-2 -> it procs on every seed.
+        let mut oops = lucky_two_board();
+        oops.push_joker(card::OOPS_ALL_6S);
+        for seed in 0..16 {
+            assert_eq!(
+                oops.score_with_seed(seed),
+                Score::new(16, 21),
+                "seed {seed} must proc once odds are doubled to certainty"
+            );
+        }
+    }
+
+    /// Swap the first `n` cards of the board's full deck for `enhancement`-ed
+    /// copies. Size-preserving, so it moves Steel/Stone counts without also
+    /// tripping Erosion.
+    /// Enhance the first `n` roster cards, through the real mutation seam.
+    fn enhance_in_full_deck(board: &mut BuffoonBoard, n: usize, enhancement: MPip) {
+        for index in 0..n {
+            let card = board.full_deck.get(index).copied().unwrap();
+            assert!(board.replace_deck_card(index, enhanced(card, enhancement)));
+        }
+    }
+
+    #[test]
+    fn full_deck__starts_as_the_whole_deck_and_records_its_size() {
+        let board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        // The run owns everything it was dealt from, so the roster and the
+        // undealt remainder start equal.
+        assert_eq!(board.full_deck.len(), Deck::DECK_SIZE);
+        assert_eq!(board.starting_deck_size, Deck::DECK_SIZE);
+        assert_eq!(board.deck.len(), Deck::DECK_SIZE);
+    }
+
+    #[test]
+    fn score__stone_joker_adds_chips_per_full_deck_stone() {
+        // Stone Joker: +25 chips for each Stone card in the run's full deck.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.push_joker(card::STONE_JOKER);
+
+        // A stock deck holds no Stone cards -> inert.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Two Stone cards in the deck -> +50 chips. They score from the roster;
+        // the played hand is untouched, which is the whole point of the joker.
+        enhance_in_full_deck(&mut board, 2, MPip::TOWER);
+        assert_eq!(board.score(), Score::new(90, 1));
+    }
+
+    #[test]
+    fn score__erosion_adds_mult_per_card_below_starting_deck_size() {
+        // Erosion: +4 mult for each card the full deck is below its start size.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.push_joker(card::EROSION);
+
+        // A whole deck is not eroded -> inert.
+        assert_eq!(board.full_deck.len(), board.starting_deck_size);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Destroy three cards -> +12 mult.
+        for _ in 0..3 {
+            board.full_deck.remove(0);
+        }
+        assert_eq!(board.score(), Score::new(40, 13));
+
+        // A deck grown past its starting size scores nothing, rather than
+        // wrapping around on the subtraction.
+        let mut grown = board_playing("2S 5D 8C TS KH");
+        grown.push_joker(card::EROSION);
+        grown.full_deck.push(basic::ACE_SPADES);
+        assert_eq!(grown.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__steel_joker_x_mult_grows_additively_per_full_deck_steel() {
+        // Steel Joker: x1 base, +x0.2 per Steel card in the full deck.
+        let mut board = board_playing("9H TH JH QH KH"); // Straight Flush 100/8 + 49 = 149/8
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+        board.push_joker(card::STEEL_JOKER);
+
+        // No Steel in the deck -> x1, not zero.
+        assert_eq!(board.score(), Score::new(149, 8));
+
+        // Four Steel -> x(1 + 0.2x4) = x1.8 -> ceil(8 x 1.8) = 15. Were the
+        // factor compounding (1.2^4 = x2.07) this would be 17, so the exact
+        // value pins the additive rule.
+        enhance_in_full_deck(&mut board, 4, MPip::STEEL);
+        assert_eq!(board.score(), Score::new(149, 15));
+    }
+
+    #[test]
+    fn add_card_to_deck__grows_the_roster_and_the_undealt_remainder() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let start = board.starting_deck_size;
+
+        board.add_card_to_deck(enhanced(basic::ACE_SPADES, MPip::TOWER));
+
+        // The run owns one more card, and it has not been dealt yet.
+        assert_eq!(board.full_deck.len(), start + 1);
+        assert_eq!(board.deck.len(), start + 1);
+        // Where the run *started* is history and does not move, so Erosion keeps
+        // measuring against the original size.
+        assert_eq!(board.starting_deck_size, start);
+    }
+
+    #[test]
+    fn destroy_deck_card__removes_the_undealt_copy_but_tolerates_a_dealt_one() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let start = board.starting_deck_size;
+
+        // An undealt card leaves both piles: the run no longer owns it, and it
+        // can no longer be drawn.
+        let card = board.full_deck.get(0).copied().unwrap();
+        assert_eq!(board.destroy_deck_card(0), Some(card));
+        assert_eq!(board.full_deck.len(), start - 1);
+        assert_eq!(board.deck.len(), start - 1);
+        assert!(!board.deck.contains(&card));
+
+        // A card already dealt out of the remainder still leaves the roster; the
+        // remainder simply has nothing to drop. This is the case the board's
+        // lack of a deal invariant makes real.
+        let dealt = board.full_deck.get(0).copied().unwrap();
+        let removed = board.deck.iter().position(|c| *c == dealt).unwrap();
+        board.deck.remove(removed);
+        assert_eq!(board.destroy_deck_card(0), Some(dealt));
+        assert_eq!(board.full_deck.len(), start - 2);
+        assert_eq!(board.deck.len(), start - 2);
+
+        // Out of bounds is None, not a panic.
+        assert_eq!(board.destroy_deck_card(9_999), None);
+    }
+
+    #[test]
+    fn replace_deck_card__swaps_the_card_in_both_piles_and_keeps_its_slot() {
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        let card = board.full_deck.get(3).copied().unwrap();
+        let steel = enhanced(card, MPip::STEEL);
+
+        assert!(board.replace_deck_card(3, steel));
+
+        // Same size, same slot, new card -- in the roster and the remainder both.
+        assert_eq!(board.full_deck.len(), board.starting_deck_size);
+        assert_eq!(board.full_deck.get(3), Some(&steel));
+        assert!(board.deck.contains(&steel));
+        assert!(!board.deck.contains(&card));
+
+        assert!(!board.replace_deck_card(9_999, steel));
+    }
+
+    #[test]
+    fn score__erosion_moves_through_real_deck_mutation() {
+        // Phase 7 could only pose Erosion by poking `full_deck` directly. The
+        // mutation seam is what makes it move the way play would.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::EROSION);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        for _ in 0..3 {
+            assert!(board.destroy_deck_card(0).is_some());
+        }
+        // Three cards below the starting size -> +12 mult.
+        assert_eq!(board.score(), Score::new(40, 13));
+    }
+
+    #[test]
+    fn score__steel_joker_counts_the_deck_not_the_hand() {
+        // The Steel *card* scores x1.5 while held (phase 3); the Steel *Joker*
+        // reads the roster (phase 4). A Steel card held but not in the full
+        // deck must move only the former -- this is the distinction the
+        // full-deck view exists to draw.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.in_hand = BuffoonPile::from(vec![enhanced(basic::KING_HEARTS, MPip::STEEL)]);
+        board.push_joker(card::STEEL_JOKER);
+
+        // Held Steel: x1.5 -> ceil(1 x 1.5) = 2. Steel Joker still sees an
+        // unenhanced deck -> x1.
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__glass_card_multiplies_mult_when_scored() {
+        // Glass card: x2 Mult when scored, 1 in 4 chance to be destroyed after
+        // the hand. Both halves were declared on the const and neither was
+        // wired, so a Glass King scored exactly like a plain King.
+        let mut board = board_playing("2S 5D 8C TS"); // High Card 5/1 + 25 = 30/1
+        assert_eq!(board.score(), Score::new(30, 1));
+
+        // A plain King is +10 chips and nothing else.
+        board.played.push(basic::KING_HEARTS);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // The same King in Glass keeps its chips and doubles the mult.
+        board.played.remove(4);
+        board
+            .played
+            .push(enhanced(basic::KING_HEARTS, MPip::Glass(2, 4)));
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__glass_card_multiplies_at_its_own_position_in_the_hand() {
+        // x-mult is order-sensitive: Glass scales the score accumulated up to
+        // *its* card, so a later +mult card is not doubled. Pinning this stops
+        // the arm drifting into the additive `calculate_plus` path, where it
+        // would silently lose its ordering.
+        let glass = enhanced(basic::KING_HEARTS, MPip::Glass(2, 4));
+        let mult_card = enhanced(basic::QUEEN_HEARTS, MPip::MultPlus(4));
+
+        // Chips are order-independent: High Card base 5 + 2 + K10 + Q10 = 27.
+        let chips = 5 + 2 + 10 + 10;
+
+        // Glass first: mult 1 x2 = 2, then the Mult card's +4 = 6.
+        let mut glass_first = board_playing("2S");
+        glass_first.played.push(glass);
+        glass_first.played.push(mult_card);
+        assert_eq!(glass_first.score(), Score::new(chips, 6));
+
+        // Mult card first: 1 + 4 = 5, then Glass doubles it = 10. Same cards,
+        // same chips, different mult -- which is the whole point.
+        let mut mult_first = board_playing("2S");
+        mult_first.played.push(mult_card);
+        mult_first.played.push(glass);
+        assert_eq!(mult_first.score(), Score::new(chips, 10));
+    }
+
+    #[test]
+    fn score__gros_michel_adds_mult_regardless_of_its_destruction_chance() {
+        // Gros Michel: +15 Mult, 1 in 6 chance to be destroyed at end of round.
+        // The const carried only the destruction, so the joker silently scored
+        // nothing -- it is the whole reason to play the card.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        board.push_joker(card::GROS_MICHEL);
+
+        // The mult is unconditional: nothing about the 1-in-6 roll gates it, and
+        // the pure score() path never rolls at all.
+        assert_eq!(board.score(), Score::new(40, 16));
+    }
+
+    #[test]
+    fn score__gros_michel_mult_is_not_a_probabilistic_effect() {
+        // Its sibling Lucky rolls on the seeded path and floors on the pure one.
+        // Gros Michel must not: +15 is flat, so every seed agrees with score().
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::GROS_MICHEL);
+
+        for seed in 0..16_u64 {
+            assert_eq!(board.score_with_seed(seed), Score::new(40, 16));
+        }
+    }
+
+    #[test]
+    fn score__cavendish_still_scores_its_x3_beside_its_sibling() {
+        // Gros Michel and Cavendish are a matched pair in Balatro, and were
+        // mirror-image data bugs: Gros Michel kept the destruction and lost the
+        // mult, Cavendish kept the mult and lost the destruction. Cavendish's
+        // scoring half is the one that always worked -- pin it so the compound
+        // variant landing next door cannot regress it.
+        let mut board = board_playing("2S 5D 8C TS KH"); // 40/1
+        board.push_joker(card::CAVENDISH);
+        assert_eq!(board.score(), Score::new(40, 3));
+    }
+
+    #[test]
+    fn score__hiker_permanently_adds_chips_to_every_scored_card() {
+        // Hiker: every played card permanently gains +4 chips when scored. The
+        // boost lands on the hand that triggers it, so five cards -> +20 chips.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 5/1 + 35 = 40/1
+        board.push_joker(card::HIKER);
+
+        // Inert until the hand actually scores.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(60, 1));
+
+        // "Permanently" is the whole joker: scoring the same cards again stacks
+        // another +4 each rather than re-applying a flat bonus.
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(80, 1));
+    }
+
+    #[test]
+    fn on_scored__persists_the_chips_onto_the_run_roster() {
+        // The bump has to outlive the hand, or Hiker is just a +4/card scoring
+        // arm. The roster copy is what the card carries back into the deck.
+        let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+        board.played = BuffoonPile::from(vec![basic::KING_SPADES]);
+        board.push_joker(card::HIKER);
+
+        let slot = board.full_deck_index_of(basic::KING_SPADES).unwrap();
+        board.on_scored();
+
+        // A King is 10 chips; after one scoring it is 14, in the roster and in
+        // the undealt remainder both.
+        let fattened = board.full_deck.get(slot).copied().unwrap();
+        assert_eq!(fattened.get_chips(), 14);
+        assert!(board.deck.contains(&fattened));
+        assert!(!board.deck.contains(&basic::KING_SPADES));
+    }
+
+    #[test]
+    fn on_scored__stacks_with_an_enhancement_rather_than_clobbering_it() {
+        // Chips ride on the base rank value; enhancements are a separate field.
+        // A Steel card must keep its x1.5 *and* collect Hiker's chips -- this is
+        // why the bump goes through `add_base_chips` and not `enhance`.
+        let mut board = board_playing("2S 5D 8C TS"); // 4 cards
+        let steel_king = enhanced(basic::KING_HEARTS, MPip::STEEL);
+        board.in_hand = BuffoonPile::from(vec![steel_king]);
+        board.played.push(steel_king);
+        board.push_joker(card::HIKER);
+
+        board.on_scored();
+
+        let played_king = board.played.get(4).copied().unwrap();
+        assert_eq!(played_king.get_chips(), 14);
+        assert_eq!(played_king.enhancement, MPip::STEEL);
+    }
+
+    #[test]
+    fn on_scored__leaves_rank_weight_alone_so_detection_is_unaffected() {
+        // Hiker fattens `rank.value`; straights and flushes key off `weight`. If
+        // the bump touched weight, a Hiker board would silently stop detecting
+        // its own straight flush -- the exact silent-wrong class this EPIC
+        // guards against.
+        let mut board = board_playing("9H TH JH QH KH");
+        board.push_joker(card::HIKER);
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+
+        board.on_scored();
+        board.on_scored();
+
+        assert_eq!(board.played.determine_hand_type(), HandType::StraightFlush);
+        // Straight Flush 100/8 + (49 pips + 5 cards x 8 chips) = 189/8.
+        assert_eq!(board.score(), Score::new(189, 8));
+    }
+
+    #[test]
+    fn on_scored__bumps_once_per_hand_even_when_a_card_is_retriggered() {
+        // Characterization of a known gap, not an endorsement. Balatro fires
+        // Hiker per scoring *trigger*, so Hack's retriggered 5 would gain +4
+        // twice and score the second time already fattened. `on_scored` runs
+        // before the pure fold, so it bumps once per hand instead. Pinned here
+        // so the deviation is visible and this test fails the day scoring
+        // becomes mutating and the gap can be closed properly.
+        let mut board = board_playing("5H 5S 5D"); // Trips
+        board.push_joker(card::HIKER);
+        board.push_joker(card::HACK); // retriggers each played 2-5
+
+        board.on_scored();
+
+        // Each 5 is bumped once (5 -> 9) and scored twice by Hack: Trips base
+        // 30/3 + 6 x 9 = 84/3. Balatro would give 30 + (9+13) x 3 = 96/3.
+        assert_eq!(board.score(), Score::new(84, 3));
+    }
+
+    #[test]
+    fn on_scored__is_inert_without_hiker() {
+        // Every other board must be byte-identical across the new hook.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MYSTIC_SUMMIT);
+        let before = board.clone();
+
+        board.on_scored();
+
+        assert_eq!(board, before);
     }
 }

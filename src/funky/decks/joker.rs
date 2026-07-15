@@ -36,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 13;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 17;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -52,6 +52,10 @@ impl Joker {
         card::HACK,
         card::PAREIDOLIA,
         card::SOCK_AND_BUSKIN,
+        card::SMEARED_JOKER,
+        card::OOPS_ALL_6S,
+        card::EROSION,
+        card::STONE_JOKER,
     ];
 
     #[must_use]
@@ -547,7 +551,7 @@ pub mod card {
             value: 7,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::MultTimesPlusPerFullDeckSteel(2),
         resell_value: 3,
         debuffed: false,
     };
@@ -605,36 +609,8 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::RetriggerScoredRanks(['2', '3', '4', '5']),
+        enhancement: MPip::RetriggerPlayedRanks(1, ['2', '3', '4', '5']),
         resell_value: 3,
-        debuffed: false,
-    };
-    pub const SOCK_AND_BUSKIN: BuffoonCard = BuffoonCard {
-        suit: FrenchSuit::JOKER,
-        rank: Pip {
-            weight: 1091,
-            pip_type: PipType::Joker,
-            index: '🎭',
-            symbol: '🎭',
-            value: 6,
-        },
-        card_type: BCardType::UncommonJoker,
-        enhancement: MPip::RetriggerScoredFaces,
-        resell_value: 3,
-        debuffed: false,
-    };
-    pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
-        suit: FrenchSuit::JOKER,
-        rank: Pip {
-            weight: 1151,
-            pip_type: PipType::Joker,
-            index: '🗳',
-            symbol: '🗳',
-            value: 4,
-        },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::RetriggerFirstScored(2),
-        resell_value: 2,
         debuffed: false,
     };
     pub const PAREIDOLIA: BuffoonCard = BuffoonCard {
@@ -647,7 +623,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::AllCardsAreFaces,
         resell_value: 2,
         debuffed: false,
     };
@@ -661,7 +637,10 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::ChanceDestroyed(1, 6),
+        // Gros Michel: +15 Mult, and a 1-in-6 chance of being destroyed at end
+        // of round. The mult is the whole reason to play it; the const carried
+        // only the destruction until EPIC-01a Phase 0b's audit caught it.
+        enhancement: MPip::MultPlusChanceDestroyed(15, 1, 6),
         resell_value: 2,
         debuffed: false,
     };
@@ -865,7 +844,7 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::AllPlayedCardsScore,
         resell_value: 0,
         debuffed: false,
     };
@@ -922,7 +901,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Hiker: every played card permanently gains +4 chips when scored.
+        enhancement: MPip::GainChipsOnScored(4),
         resell_value: 0,
         debuffed: false,
     };
@@ -1107,7 +1087,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::GappedStraight,
         resell_value: 0,
         debuffed: false,
     };
@@ -1189,10 +1169,10 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∻',
             symbol: '∻',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::MultPlusPerMissingDeckCard(4),
         resell_value: 0,
         debuffed: false,
     };
@@ -1301,10 +1281,10 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≃',
             symbol: '≃',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::ChipsPerFullDeckStone(25),
         resell_value: 0,
         debuffed: false,
     };
@@ -1482,6 +1462,70 @@ pub mod card {
         // Walkie Talkie: each played 10 or 4 gives +10 chips and +4 mult.
         enhancement: MPip::ChipsMultPlusPerScoredRanks(10, 4, ['T', '4']),
         resell_value: 0,
+        debuffed: false,
+    };
+
+    // 109 Sock and Buskin — Uncommon, $6. Retrigger all played face cards.
+    pub const SOCK_AND_BUSKIN: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 803,
+            pip_type: PipType::Joker,
+            index: '🧦',
+            symbol: '🧦',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerPlayedFaces(1),
+        resell_value: 3,
+        debuffed: false,
+    };
+
+    // 113 Smeared Joker — Uncommon, $7. Hearts≡Diamonds, Spades≡Clubs for flushes.
+    pub const SMEARED_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 806,
+            pip_type: PipType::Joker,
+            index: '🖍',
+            symbol: '🖍',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::SmearedSuits,
+        resell_value: 3,
+        debuffed: false,
+    };
+
+    // 126 Oops! All 6s — Uncommon, $4. Doubles all listed probabilities.
+    pub const OOPS_ALL_6S: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 807,
+            pip_type: PipType::Joker,
+            index: '🎲',
+            symbol: '🎲',
+            value: 4,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::DoubleOdds,
+        resell_value: 2,
+        debuffed: false,
+    };
+
+    // 115 Hanging Chad — Common, $4. Retrigger first played card 2 extra times.
+    pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 804,
+            pip_type: PipType::Joker,
+            index: '🗳',
+            symbol: '🗳',
+            value: 4,
+        },
+        card_type: BCardType::CommonJoker,
+        enhancement: MPip::RetriggerFirstPlayed(2),
+        resell_value: 2,
         debuffed: false,
     };
 
@@ -1723,10 +1767,12 @@ pub mod card {
 mod funky__decks__joker_tests {
     use super::*;
     use crate::bcards;
+    use crate::funky::decks::basic::card as basic;
+    use crate::funky::decks::tarot::MajorArcana;
     use crate::funky::types::board::BuffoonBoard;
     use crate::funky::types::draws::Draws;
     use crate::funky::types::mpip::MPip;
-    use crate::preludes::funky::{BCardType, Deck};
+    use crate::preludes::funky::{BCardType, BuffoonPile, Deck};
     use std::collections::HashSet;
 
     /// Every joker const defined in this file, in declaration order. The single
@@ -1734,9 +1780,7 @@ mod funky__decks__joker_tests {
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 107] = [
-        card::SOCK_AND_BUSKIN,
-        card::HANGING_CHAD,
+    const ALL_JOKERS: [BuffoonCard; 109] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1832,6 +1876,10 @@ mod funky__decks__joker_tests {
         card::ANCIENT_JOKER,
         card::RAMEN,
         card::WALKIE_TALKIE,
+        card::SOCK_AND_BUSKIN,
+        card::HANGING_CHAD,
+        card::SMEARED_JOKER,
+        card::OOPS_ALL_6S,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -1900,6 +1948,27 @@ mod funky__decks__joker_tests {
         );
     }
 
+    #[test]
+    fn erosion_and_stone_joker__are_uncommon_dollar_six_and_piled() {
+        // Both were tagged Common / $5 and left out of every rarity pile, the
+        // same drift the Baron fix corrected.
+        for (joker, name) in [
+            (card::EROSION, "Erosion"),
+            (card::STONE_JOKER, "Stone Joker"),
+        ] {
+            assert_eq!(
+                joker.card_type,
+                BCardType::UncommonJoker,
+                "{name} is an Uncommon joker in Balatro"
+            );
+            assert_eq!(joker.rank.value, 6, "{name} costs $6 in Balatro");
+            assert!(
+                Joker::UNCOMMON_JOKERS.contains(&joker),
+                "{name} belongs in UNCOMMON_JOKERS"
+            );
+        }
+    }
+
     /// Does this `MPip` variant *intend* to add a deterministic contribution to
     /// the hand score — a pure function of the current played hand, held cards,
     /// or on-board resources (money, discards, deck, jokers)? This is the
@@ -1927,11 +1996,15 @@ mod funky__decks__joker_tests {
             | MPip::ChipsOnStraight(_)
             | MPip::ChipsOnTrips(_)
             | MPip::ChipsPerDeckCard(_)
+            | MPip::ChipsPerFullDeckStone(_)
             | MPip::ChipsPerDollar(_)
             | MPip::ChipsPerRemainingDiscard(_)
             | MPip::ChipsPlusOn5Ranks(_, _)
             | MPip::ChipsPlusPerScoredFace(_)
             | MPip::MultPlus(_)
+            // Gros Michel scores its +mult unconditionally; the destruction half
+            // is a separate, end-of-round concern that does not gate it.
+            | MPip::MultPlusChanceDestroyed(_, _, _)
             | MPip::MultPlusChipsOnRank(_, _, _)
             | MPip::MultPlusOn5Ranks(_, _)
             | MPip::MultPlusOnFlush(_)
@@ -1944,6 +2017,7 @@ mod funky__decks__joker_tests {
             | MPip::MultPlusOnZeroDiscards(_)
             | MPip::MultPlusZeroDiscards(_)
             | MPip::MultPlusPerJoker(_)
+            | MPip::MultPlusPerMissingDeckCard(_)
             | MPip::MultPlusXOnLowestRankInHand(_)
             | MPip::MultTimes(_)
             | MPip::MultTimes1Dot(_)
@@ -1956,6 +2030,7 @@ mod funky__decks__joker_tests {
             | MPip::MultTimesPerScoredRank(_, _)
             | MPip::MultTimesPerHeldRank(_, _)
             | MPip::MultTimesPerUncommonJoker(_)
+            | MPip::MultTimesPlusPerFullDeckSteel(_)
             | MPip::MultTimesIfHeldAllSuits(_, _)
             | MPip::GainMultPerHandLessDiscard(_)
             | MPip::LoseMultTimesPerDiscard(_, _)
@@ -1963,13 +2038,31 @@ mod funky__decks__joker_tests {
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
             | MPip::GainChipsPerStraightHand(_)
-            // Retriggers re-run a played/held card's contribution, so a wired
-            // retrigger joker does increase the hand score. (Dusk's
-            // RetriggerPlayedCardsInFinalRound stays non-scoring until wired.)
-            | MPip::RetriggerScoredRanks(_)
-            | MPip::RetriggerScoredFaces
-            | MPip::RetriggerFirstScored(_)
-            | MPip::RetriggerCardsInHand(_) => true,
+            // Hiker fattens the cards rather than itself, but the boost lands on
+            // the hand that triggers it, so it does change the score.
+            | MPip::GainChipsOnScored(_)
+            // Retriggers re-score cards, so they score (Hack: each played 2-5;
+            // Sock and Buskin: each played face; Hanging Chad: the first played
+            // card twice more; Mime: held-card abilities). Dusk retrigger stays
+            // non-scoring below until its final-round path lands.
+            | MPip::RetriggerPlayedRanks(_, _)
+            | MPip::RetriggerPlayedFaces(_)
+            | MPip::RetriggerFirstPlayed(_)
+            | MPip::RetriggerCardsInHand(_)
+            // Rule modifiers change hand classification (Four Fingers: 4-card
+            // straights/flushes; Shortcut: gapped straights; Smeared: merged-suit
+            // flushes), so they change the base hand score and can enable
+            // straight/flush jokers.
+            | MPip::FourFlushAndStraight
+            | MPip::GappedStraight
+            | MPip::SmearedSuits
+            // Glass card: xn mult when scored. The 1-in-N destruction rides the
+            // same variant but does not gate the mult, so this scores flatly --
+            // the Gros Michel shape, on a card instead of a joker.
+            | MPip::Glass(_, _)
+            // Stone card: +n chips when scored (and no rank/suit for detection,
+            // which is why it is still in KNOWN_UNWIRED_CARD_ENHANCEMENTS).
+            | MPip::Stone(_) => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -1980,9 +2073,18 @@ mod funky__decks__joker_tests {
             | MPip::Credit(_)
             | MPip::Death(_)
             | MPip::DoubleMoney(_)
-            | MPip::FourFlushAndStraight
+            // Pareidolia: a detection hook with no standalone score — it only
+            // amplifies the face-reading jokers (Scary Face, Sock and Buskin),
+            // so on its own it changes nothing and is intentionally non-scoring.
+            | MPip::AllCardsAreFaces
+            // Splash: inert here — this engine already scores every played card,
+            // so "all played cards score" is a no-op, not a silent-zero bug.
+            | MPip::AllPlayedCardsScore
+            // Oops! All 6s: only affects the probabilistic (seeded-RNG) path, so
+            // it is invisible to the pure-score reachability guard — a modifier,
+            // not a deterministic scorer.
+            | MPip::DoubleOdds
             | MPip::FreeReroll(_)
-            | MPip::Glass(_, _)
             | MPip::Gold(_)
             | MPip::Hanged(_)
             | MPip::JokersValue(_)
@@ -1997,7 +2099,6 @@ mod funky__decks__joker_tests {
             | MPip::RandomTarot(_)
             | MPip::RetriggerPlayedCardsInFinalRound
             | MPip::SellValueIncrement(_)
-            | MPip::Stone(_)
             | MPip::Strength
             | MPip::Odds1in(_)
             | MPip::Odds1inCashOn3Ranks(_, _, _)
@@ -2029,12 +2130,36 @@ mod funky__decks__joker_tests {
             b.jokers.push(card::MYSTIC_SUMMIT);
             b
         };
-        // A board holding a Steel card so held-ability retriggers (Mime) are
-        // reachable — the plain-King held piles above have no ability to re-fire.
+        // A board holding a Steel card (×1.5 while held), so held-card
+        // retriggers (Mime) have a non-trivial held op to double and stay
+        // reachable. Steel is an enhancement, not a rank/suit change, so the
+        // other held-reading jokers (Baron, Blackboard) are unaffected.
         let mut steel_held = mk("AH KH QH JH TH", "KS KC", 0, 3);
-        let mut steel = *bcards!("KH").iter().next().unwrap();
-        steel.enhancement = MPip::STEEL;
-        steel_held.in_hand.push(steel);
+        let steel_king = BuffoonCard {
+            enhancement: MPip::STEEL,
+            ..bcards!("KS").iter().next().copied().unwrap()
+        };
+        steel_held.in_hand.push(steel_king);
+        // A worn deck: cards enhanced to Steel and Stone, and cards destroyed
+        // outright. Only the full-deck *roster* moves here — `deck` (the undealt
+        // remainder) is left alone, since that is the distinction the "in full
+        // deck" jokers (Steel Joker, Stone Joker, Erosion) turn on.
+        let mut worn_deck = mk("AH KH QH JH TH", "KS KC", 0, 3);
+        let mut wear = |enhancement: MPip, n: usize| {
+            for _ in 0..n {
+                let card = worn_deck.full_deck.remove(0);
+                worn_deck.full_deck.push(BuffoonCard {
+                    enhancement,
+                    ..card
+                });
+            }
+        };
+        wear(MPip::STEEL, 2);
+        wear(MPip::TOWER, 2);
+        // Destroy three, putting the deck below its starting size for Erosion.
+        for _ in 0..3 {
+            worn_deck.full_deck.remove(0);
+        }
         vec![
             mk("AH KH QH JH TH", "KS KC", 100, 3),
             mk("AH KH QH JH TH", "KS KC", 0, 0),
@@ -2042,12 +2167,25 @@ mod funky__decks__joker_tests {
             mk("5H 5S 5D", "KS KC", 0, 3),
             mk("8H 8S 8D 8C", "KS KC", 0, 3),
             steel_held,
+            // A bare four-card straight flush (9-T-J-Q of Hearts + an off card):
+            // a High Card under vanilla rules, a Straight Flush under Four
+            // Fingers — so its rule modifier is reachable.
+            mk("9H TH JH QH 2S", "KS KC", 0, 3),
+            // A one-gap five-card straight (2-4-6-8-T): a High Card under vanilla
+            // rules, a Straight under Shortcut — so its modifier is reachable.
+            mk("2C 4D 6H 8S TC", "KS KC", 0, 3),
+            // Five red cards across two suits (3 Hearts + 2 Diamonds), no pair or
+            // straight: a High Card normally, a Flush under Smeared — so its
+            // modifier is reachable.
+            mk("AH KH 9H QD JD", "KS KC", 0, 3),
+            worn_deck,
         ]
     }
 
     /// A joker is *reachable* if adding it to some probe board changes the score.
     /// In-round events are fired after the joker is added so counter jokers
-    /// (Green Joker, Ramen, …) accumulate before the score is read.
+    /// (Green Joker, Ramen, …) accumulate — and the scored-card mutations (Hiker)
+    /// land — before the score is read.
     fn is_reachable(joker: BuffoonCard) -> bool {
         // Hands that satisfy every growth condition across the slice: a 4-card
         // straight (Square + Runner), a two-pair hand (Spare Trousers), and a
@@ -2064,6 +2202,7 @@ mod funky__decks__joker_tests {
                 board.on_hand_played(hand);
             }
             board.on_discard(&bcards!("2C 3C 4C"));
+            board.on_scored();
             board.score() != baseline
         })
     }
@@ -2117,6 +2256,118 @@ mod funky__decks__joker_tests {
         assert!(
             new_silent_zero.is_empty(),
             "these jokers intend to score but silently add nothing (wire them or, if intentional, adjust the data): {new_silent_zero:?}"
+        );
+    }
+
+    /// Every `MPip` a **playing card** can end up wearing, derived rather than
+    /// hand-listed: stamp each tarot onto a plain card via [`BuffoonCard::enhance`]
+    /// and read back what stuck. Tarots that mutate rank or suit (Strength, the
+    /// four suit-changers) or that act on the run rather than the card (Death,
+    /// Judgement, …) leave the enhancement `Blank` and drop out.
+    ///
+    /// Deriving it means a **new tarot joins the guard automatically** — the
+    /// registry cannot silently fall behind the deck the way a hand-written list
+    /// would.
+    ///
+    /// [`BuffoonCard::enhance`]: crate::funky::types::buffoon_card::BuffoonCard::enhance
+    fn all_card_enhancements() -> Vec<MPip> {
+        let plain = basic::KING_HEARTS;
+        let mut found: Vec<MPip> = MajorArcana::DECK
+            .iter()
+            .map(|tarot| plain.enhance(*tarot).enhancement)
+            .filter(|enhancement| *enhancement != MPip::Blank)
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+        found.sort_unstable();
+        found
+    }
+
+    /// A card enhancement is *reachable* if a card wearing it scores differently
+    /// from the same card plain — in **either** the played or the held position.
+    /// Both are probed because the two are wired through different folds: a Bonus
+    /// card's chips land in phase 2, a Steel card's ×1.5 only in phase 3, and an
+    /// enhancement wired to the wrong one scores nothing where it counts.
+    fn is_card_enhancement_reachable(enhancement: MPip) -> bool {
+        let plain = basic::KING_HEARTS;
+        let enhanced = BuffoonCard {
+            enhancement,
+            ..plain
+        };
+
+        // The board needs a real hand under it: a held ×mult multiplies the
+        // running score, so it cannot show up against a score of zero.
+        let probe = |plain_card: BuffoonCard, enhanced_card: BuffoonCard, held: bool| {
+            let mut board = BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile());
+            board.played = bcards!("2S 5D 8C TS");
+            let mut with = |card: BuffoonCard| {
+                if held {
+                    board.in_hand = BuffoonPile::from(vec![card]);
+                } else {
+                    board.played = bcards!("2S 5D 8C TS");
+                    board.played.push(card);
+                }
+                board.score()
+            };
+            with(plain_card) != with(enhanced_card)
+        };
+
+        probe(plain, enhanced, false) || probe(plain, enhanced, true)
+    }
+
+    /// Card enhancements that *intend* to score but have no wiring yet. The
+    /// card-level twin of [`KNOWN_UNWIRED`] — same contract: remove an entry when
+    /// you wire it, and the guard fails if a listed one starts scoring.
+    const KNOWN_UNWIRED_CARD_ENHANCEMENTS: [MPip; 1] = [
+        // Stone card (TOWER): +50 chips, and no rank or suit for detection
+        // purposes. The chips are trivial, but the rank/suit suppression is not
+        // — a Stone card must not count toward a straight or flush, which needs
+        // a detection hook rather than a scoring arm. Wiring only the chips
+        // would trade a silent zero for a silently *wrong* hand type, so it
+        // waits for both halves to land together.
+        MPip::TOWER,
+    ];
+
+    /// The card-level silent-zero guard — the twin of
+    /// [`all_jokers__intended_hand_scorers_are_reachable`], which iterates
+    /// `ALL_JOKERS` and therefore cannot see a *card* enhancement at all. That
+    /// blind spot is exactly how the Glass card kept its ×2 mult unwired through
+    /// the whole of Phase 0b.
+    ///
+    /// Same contract as the joker guard, against the same intent oracle: an
+    /// enhancement a card can wear, whose variant claims to score, must actually
+    /// move the score somewhere.
+    #[test]
+    fn all_card_enhancements__intended_hand_scorers_are_reachable() {
+        let known: HashSet<_> = KNOWN_UNWIRED_CARD_ENHANCEMENTS.iter().collect();
+        let mut new_silent_zero = Vec::new();
+        let mut now_wired = Vec::new();
+        let mut misclassified = Vec::new();
+        for enhancement in all_card_enhancements() {
+            let intends = scores_hand(enhancement);
+            let reachable = is_card_enhancement_reachable(enhancement);
+            let listed = known.contains(&enhancement);
+            if intends && !reachable && !listed {
+                new_silent_zero.push(format!("{enhancement}"));
+            }
+            if listed && reachable {
+                now_wired.push(format!("{enhancement}"));
+            }
+            if !intends && reachable {
+                misclassified.push(format!("{enhancement}"));
+            }
+        }
+        assert!(
+            misclassified.is_empty(),
+            "these card enhancements scored but are classified non-scoring — reclassify in `scores_hand`: {misclassified:?}"
+        );
+        assert!(
+            now_wired.is_empty(),
+            "these are wired now — remove them from KNOWN_UNWIRED_CARD_ENHANCEMENTS: {now_wired:?}"
+        );
+        assert!(
+            new_silent_zero.is_empty(),
+            "these card enhancements intend to score but silently add nothing: {new_silent_zero:?}"
         );
     }
 
