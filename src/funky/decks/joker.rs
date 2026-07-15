@@ -36,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 15;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 17;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -54,6 +54,8 @@ impl Joker {
         card::SOCK_AND_BUSKIN,
         card::SMEARED_JOKER,
         card::OOPS_ALL_6S,
+        card::EROSION,
+        card::STONE_JOKER,
     ];
 
     #[must_use]
@@ -1163,9 +1165,9 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∻',
             symbol: '∻',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::MultPlusPerMissingDeckCard(4),
         resell_value: 0,
         debuffed: false,
@@ -1275,9 +1277,9 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≃',
             symbol: '≃',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::ChipsPerFullDeckStone(25),
         resell_value: 0,
         debuffed: false,
@@ -1938,6 +1940,27 @@ mod funky__decks__joker_tests {
             Joker::RARE_JOKERS.contains(&card::BARON),
             "Baron belongs in RARE_JOKERS"
         );
+    }
+
+    #[test]
+    fn erosion_and_stone_joker__are_uncommon_dollar_six_and_piled() {
+        // Both were tagged Common / $5 and left out of every rarity pile, the
+        // same drift the Baron fix corrected.
+        for (joker, name) in [
+            (card::EROSION, "Erosion"),
+            (card::STONE_JOKER, "Stone Joker"),
+        ] {
+            assert_eq!(
+                joker.card_type,
+                BCardType::UncommonJoker,
+                "{name} is an Uncommon joker in Balatro"
+            );
+            assert_eq!(joker.rank.value, 6, "{name} costs $6 in Balatro");
+            assert!(
+                Joker::UNCOMMON_JOKERS.contains(&joker),
+                "{name} belongs in UNCOMMON_JOKERS"
+            );
+        }
     }
 
     /// Does this `MPip` variant *intend* to add a deterministic contribution to

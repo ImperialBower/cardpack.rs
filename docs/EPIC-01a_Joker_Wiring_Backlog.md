@@ -251,11 +251,10 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   cost; it then belongs in `RARE_JOKERS`, not adrift.
 - **Blackboard** shares `weight: 895` with **Abstract Joker** (`joker.rs`). Weights
   are display/sort order and should be unique; re-weight one.
-- **Erosion** and **Stone Joker** are tagged `CommonJoker` / `value: 5` and sit in
-  no rarity pile; Balatro has both at **Uncommon / $6** (found while wiring Phase
-  7). Same shape as the Baron fix, but they are 2 of the ~61 defined-but-unpiled
-  consts 0a identified — worth one sweep that reconciles rarity/cost/pile across
-  all of them rather than fixing them piecemeal.
+- ~~**Erosion** and **Stone Joker** are tagged `CommonJoker` / `value: 5` and sit
+  in no rarity pile; Balatro has both at **Uncommon / $6**.~~ Fixed in Phase 7 —
+  see 7c. The remaining ~59 defined-but-unpiled consts still want one reconciling
+  sweep across rarity/cost/pile.
 
 ---
 
@@ -471,11 +470,18 @@ each joker + its test. Track completion by flipping the Status table.
   zeros until `probe_boards()` gained a worn-deck board (2 Steel + 2 Stone
   enhanced, 3 cards destroyed).
 
-  *Data finding (not fixed here):* **Erosion** and **Stone Joker** are tagged
-  `CommonJoker` / `value: 5` and sit in no rarity pile — Balatro has both at
-  **Uncommon / $6**. This is the Baron situation from 0a, but they are 2 of the
-  ~61 defined-but-unpiled consts, so it belongs in a data sweep, not this slice.
-  Logged under Data fixes below.
+- [x] **7c.** Data fix, the Baron pattern from 0a applied to the two consts this
+  phase touched: **Erosion** and **Stone Joker** were tagged `CommonJoker` /
+  `value: 5` and adrift from every rarity pile; Balatro has both at **Uncommon /
+  $6**. Both re-tagged and added to `UNCOMMON_JOKERS` (size 15→17). Test
+  `erosion_and_stone_joker__are_uncommon_dollar_six_and_piled`. `ALL_JOKERS`
+  is unchanged at 109 — they were already in it, only adrift from their rarity
+  pile. `resell_value` left at 0, matching what the Baron fix did (resell is a
+  separate dimension, still 0 across all the adrift consts).
+
+  *Still open:* ~59 defined-but-unpiled consts remain, with rarity/cost/pile
+  unreconciled against the wiki. Worth one sweep rather than piecemeal fixes;
+  logged under Data fixes.
 
 ### Phases 5, 8
 
