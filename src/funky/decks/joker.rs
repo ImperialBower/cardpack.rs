@@ -619,7 +619,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::AllCardsAreFaces,
         resell_value: 2,
         debuffed: false,
     };
@@ -1990,6 +1990,10 @@ mod funky__decks__joker_tests {
             | MPip::Credit(_)
             | MPip::Death(_)
             | MPip::DoubleMoney(_)
+            // Pareidolia: a detection hook with no standalone score — it only
+            // amplifies the face-reading jokers (Scary Face, Sock and Buskin),
+            // so on its own it changes nothing and is intentionally non-scoring.
+            | MPip::AllCardsAreFaces
             | MPip::FreeReroll(_)
             | MPip::Glass(_, _)
             | MPip::Gold(_)

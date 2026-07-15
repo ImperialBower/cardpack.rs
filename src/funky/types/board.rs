@@ -144,7 +144,7 @@ impl BuffoonBoard {
             .iter()
             .map(|joker| match joker.enhancement {
                 MPip::RetriggerPlayedRanks(n, ranks) if ranks.contains(&card.rank.index) => n,
-                MPip::RetriggerPlayedFaces(n) if matches!(card.rank.index, 'K' | 'Q' | 'J') => n,
+                MPip::RetriggerPlayedFaces(n) if self.is_face_card(card) => n,
                 MPip::RetriggerFirstPlayed(n) if index == 0 => n,
                 _ => 0,
             })
@@ -311,7 +311,7 @@ impl BuffoonBoard {
                 let faces = self
                     .played
                     .iter()
-                    .filter(|card| matches!(card.rank.index, 'K' | 'Q' | 'J'))
+                    .filter(|card| self.is_face_card(card))
                     .count();
                 return ScoreOp::AddChips(n * faces);
             }
@@ -389,6 +389,19 @@ impl BuffoonBoard {
             }
         }
         rules
+    }
+
+    /// Whether `card` counts as a face card for the face-reading jokers. Kings,
+    /// Queens and Jacks always do; **Pareidolia** makes *every* card a face.
+    fn is_face_card(&self, card: &BuffoonCard) -> bool {
+        self.all_cards_are_faces() || matches!(card.rank.index, 'K' | 'Q' | 'J')
+    }
+
+    /// Whether Pareidolia is on the board (every card is treated as a face).
+    fn all_cards_are_faces(&self) -> bool {
+        self.jokers
+            .iter()
+            .any(|joker| matches!(joker.enhancement, MPip::AllCardsAreFaces))
     }
 
     /// The ×mult factor a joker applies to the running score given the played
@@ -1734,5 +1747,31 @@ mod funky__types__board__buffoon_board_tests {
         board.push_joker(card::FOUR_FINGERS);
         // Now a Straight Flush (141/8), and The Order fires x3 -> 141 x 24.
         assert_eq!(board.score(), Score::new(141, 24));
+    }
+
+    #[test]
+    fn score__pareidolia_makes_every_card_a_face_for_scary_face() {
+        // Scary Face: +30 chips per face card. Pareidolia makes all five count.
+        let mut board = board_playing("KS QD 2S 3H 4C"); // High Card 34/1, 2 faces
+        board.push_joker(card::SCARY_FACE);
+        // K, Q only -> +60 chips. 34 -> 94.
+        assert_eq!(board.score(), Score::new(94, 1));
+
+        board.push_joker(card::PAREIDOLIA);
+        // All five cards are faces -> +150 chips. 34 -> 184.
+        assert_eq!(board.score(), Score::new(184, 1));
+    }
+
+    #[test]
+    fn score__pareidolia_retriggers_every_card_under_sock_and_buskin() {
+        // Sock and Buskin retriggers face cards; Pareidolia makes every card one.
+        let mut board = board_playing("KS QD 2S 3H 4C"); // High Card 34/1, 2 faces
+        board.push_joker(card::SOCK_AND_BUSKIN);
+        // Only K (+10) and Q (+10) retrigger -> +20 chips. 34 -> 54.
+        assert_eq!(board.score(), Score::new(54, 1));
+
+        board.push_joker(card::PAREIDOLIA);
+        // Every card retriggers -> +(10+10+2+3+4) = +29 chips. 34 -> 63.
+        assert_eq!(board.score(), Score::new(63, 1));
     }
 }
