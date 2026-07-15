@@ -36,7 +36,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 13;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 14;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -52,6 +52,7 @@ impl Joker {
         card::HACK,
         card::PAREIDOLIA,
         card::SOCK_AND_BUSKIN,
+        card::SMEARED_JOKER,
     ];
 
     #[must_use]
@@ -1473,6 +1474,22 @@ pub mod card {
         debuffed: false,
     };
 
+    // 113 Smeared Joker — Uncommon, $7. Hearts≡Diamonds, Spades≡Clubs for flushes.
+    pub const SMEARED_JOKER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 806,
+            pip_type: PipType::Joker,
+            index: '🖍',
+            symbol: '🖍',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::SmearedSuits,
+        resell_value: 3,
+        debuffed: false,
+    };
+
     // 115 Hanging Chad — Common, $4. Retrigger first played card 2 extra times.
     pub const HANGING_CHAD: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
@@ -1738,7 +1755,7 @@ mod funky__decks__joker_tests {
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 107] = [
+    const ALL_JOKERS: [BuffoonCard; 108] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1836,6 +1853,7 @@ mod funky__decks__joker_tests {
         card::WALKIE_TALKIE,
         card::SOCK_AND_BUSKIN,
         card::HANGING_CHAD,
+        card::SMEARED_JOKER,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -1976,10 +1994,12 @@ mod funky__decks__joker_tests {
             | MPip::RetriggerFirstPlayed(_)
             | MPip::RetriggerCardsInHand(_)
             // Rule modifiers change hand classification (Four Fingers: 4-card
-            // straights/flushes; Shortcut: gapped straights), so they change the
-            // base hand score and can enable straight/flush jokers.
+            // straights/flushes; Shortcut: gapped straights; Smeared: merged-suit
+            // flushes), so they change the base hand score and can enable
+            // straight/flush jokers.
             | MPip::FourFlushAndStraight
-            | MPip::GappedStraight => true,
+            | MPip::GappedStraight
+            | MPip::SmearedSuits => true,
 
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
@@ -2066,6 +2086,10 @@ mod funky__decks__joker_tests {
             // A one-gap five-card straight (2-4-6-8-T): a High Card under vanilla
             // rules, a Straight under Shortcut — so its modifier is reachable.
             mk("2C 4D 6H 8S TC", "KS KC", 0, 3),
+            // Five red cards across two suits (3 Hearts + 2 Diamonds), no pair or
+            // straight: a High Card normally, a Flush under Smeared — so its
+            // modifier is reachable.
+            mk("AH KH 9H QD JD", "KS KC", 0, 3),
         ]
     }
 

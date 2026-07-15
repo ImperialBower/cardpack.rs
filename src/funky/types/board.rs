@@ -385,6 +385,7 @@ impl BuffoonBoard {
                     rules.flush_len = 4;
                 }
                 MPip::GappedStraight => rules.straight_distance = 2,
+                MPip::SmearedSuits => rules.smeared = true,
                 _ => {}
             }
         }
@@ -1773,5 +1774,38 @@ mod funky__types__board__buffoon_board_tests {
         board.push_joker(card::PAREIDOLIA);
         // Every card retriggers -> +(10+10+2+3+4) = +29 chips. 34 -> 63.
         assert_eq!(board.score(), Score::new(63, 1));
+    }
+
+    #[test]
+    fn score__smeared_joker_merges_suits_for_flush() {
+        // Five red cards over two suits (3 Hearts + 2 Diamonds): a High Card
+        // normally, a Flush with Smeared.
+        let mut board = board_playing("AH KH 9H QD JD");
+        // High Card: 5 base + 50 played pips (11+10+9+10+10).
+        assert_eq!(board.score(), Score::new(55, 1));
+
+        board.push_joker(card::SMEARED_JOKER);
+        // Flush base 35/4 + 50 pips; Smeared scores nothing itself. 85 x 4.
+        assert_eq!(board.score(), Score::new(85, 4));
+
+        // Only four cards of a merged colour is still not a flush.
+        let mut four_red = board_playing("AH KH QD JD 9C");
+        four_red.push_joker(card::SMEARED_JOKER);
+        // Still High Card: 5 + (11+10+10+10+9) = 55/1.
+        assert_eq!(four_red.score(), Score::new(55, 1));
+    }
+
+    #[test]
+    fn score__smeared_enables_the_tribe_on_red_flush() {
+        // The merged-suit flush also lets the flush jokers fire.
+        let mut board = board_playing("AH KH 9H QD JD");
+        board.push_joker(card::THE_TRIBE); // x2 mult on a flush
+
+        // No flush under vanilla rules, so The Tribe stays inert: High Card 55/1.
+        assert_eq!(board.score(), Score::new(55, 1));
+
+        board.push_joker(card::SMEARED_JOKER);
+        // Now a Flush (85/4), and The Tribe fires x2 -> 85 x 8.
+        assert_eq!(board.score(), Score::new(85, 8));
     }
 }

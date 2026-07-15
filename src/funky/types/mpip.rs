@@ -45,6 +45,8 @@ pub enum MPip {
     /// Pareidolia: every card counts as a face card, feeding the face-reading
     /// jokers (Scary Face, Sock and Buskin). No standalone score of its own.
     AllCardsAreFaces,
+    /// Smeared Joker: Hearts≡Diamonds and Spades≡Clubs when sizing a flush.
+    SmearedSuits,
     FreeReroll(usize),
     Glass(usize, usize),
     Gold(usize),
@@ -218,6 +220,7 @@ impl Display for MPip {
             Self::FourFlushAndStraight => write!(f, "FourFlushAndStraight"),
             Self::GappedStraight => write!(f, "GappedStraight"),
             Self::AllCardsAreFaces => write!(f, "AllCardsAreFaces"),
+            Self::SmearedSuits => write!(f, "SmearedSuits"),
             Self::FreeReroll(value) => write!(f, "FreeReroll({value})"),
             Self::Glass(a, b) => write!(f, "Glass({a}, {b})"),
             Self::Gold(value) => write!(f, "Gold({value})"),

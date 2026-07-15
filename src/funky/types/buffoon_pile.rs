@@ -14,9 +14,11 @@ pub struct BuffoonPile(Vec<BuffoonCard>);
 
 /// Straight- and flush-detection parameters, so hand classification can honour
 /// the jokers that bend those rules. The [`Default`] is vanilla Balatro (a
-/// gap-free five-card straight, a five-card flush); a board loosens it from its
-/// active jokers (Four Fingers → four-card straights & flushes; Shortcut →
-/// one-gap straights) and threads it through the `*_with` detection methods.
+/// gap-free five-card straight, a five-card flush, each suit its own); a board
+/// loosens it from its active jokers (Four Fingers → four-card straights &
+/// flushes; Shortcut → one-gap straights; Smeared → Hearts≡Diamonds and
+/// Spades≡Clubs for flushes) and threads it through the `*_with` detection
+/// methods.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HandRules {
     /// Max rank gap allowed between adjacent straight cards (1 = gap-free;
@@ -26,6 +28,9 @@ pub struct HandRules {
     pub straight_connectors: usize,
     /// Cards of one suit a flush needs (5; Four Fingers = 4).
     pub flush_len: usize,
+    /// Smeared Joker: Hearts and Diamonds count as one suit, Spades and Clubs as
+    /// one suit, when sizing a flush.
+    pub smeared: bool,
 }
 
 impl Default for HandRules {
@@ -34,6 +39,7 @@ impl Default for HandRules {
             straight_distance: 1,
             straight_connectors: 4,
             flush_len: 5,
+            smeared: false,
         }
     }
 }
@@ -156,6 +162,25 @@ impl BuffoonPile {
         self.combos_by_suit().first().map_or(0, BasicPile::len)
     }
 
+    /// [`count_largest_same_suit`](Self::count_largest_same_suit), but under
+    /// Smeared it counts the largest *merged* group — Hearts+Diamonds (red) or
+    /// Spades+Clubs (black) — so a mixed red (or black) hand can flush.
+    #[must_use]
+    pub fn count_largest_same_suit_with(&self, rules: HandRules) -> usize {
+        if !rules.smeared {
+            return self.count_largest_same_suit();
+        }
+        let red = self
+            .iter()
+            .filter(|c| matches!(c.suit.index, 'H' | 'D'))
+            .count();
+        let black = self
+            .iter()
+            .filter(|c| matches!(c.suit.index, 'S' | 'C'))
+            .count();
+        red.max(black)
+    }
+
     /// TODO: HACKY
     #[must_use]
     pub fn determine_hand_type(&self) -> HandType {
@@ -260,10 +285,10 @@ impl BuffoonPile {
     }
 
     /// [`has_flush`](Self::has_flush) under the given [`HandRules`] (Four Fingers
-    /// lowers the required same-suit count to 4).
+    /// lowers the required same-suit count to 4; Smeared merges suit pairs).
     #[must_use]
     pub fn has_flush_with(&self, rules: HandRules) -> bool {
-        self.count_largest_same_suit() >= rules.flush_len
+        self.count_largest_same_suit_with(rules) >= rules.flush_len
     }
 
     #[must_use]

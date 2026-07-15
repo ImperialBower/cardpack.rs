@@ -62,7 +62,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | Planned |
-| 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **In progress** — `HandRules` seam (straight/flush) + face-predicate hook; **Four Fingers**, **Shortcut**, **Pareidolia** wired; Splash/Smeared/Oops remain |
+| 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **In progress** — `HandRules` seam (straight/flush/smeared) + face-predicate hook; **Four Fingers**, **Shortcut**, **Pareidolia**, **Smeared** wired; Splash/Oops remain |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | Planned |
 | 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
 | 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard | **Complete** |
@@ -396,12 +396,21 @@ each joker + its test. Track completion by flipping the Status table.
   `score__pareidolia_retriggers_every_card_under_sock_and_buskin`. Both fail
   before the hook lands.
 
-- [ ] **6c.** Remaining rule modifiers: **Smeared** (merge suit pairs — a
-  `count_largest_same_suit` grouping change; would slot into the `HandRules`
-  seam), **Splash** (all played cards score — likely a verify/no-op in this
-  model, which already scores every played card), **Oops! All 6s** (doubles the
-  RNG-path odds — belongs with the seeded probabilistic path). Smiley Face and
-  Photograph (also face-readers) have no const yet.
+- [~] **6c.** **Smeared** wired: new `MPip::SmearedSuits` + new const (Uncommon /
+  $7 / 🖍, weight 806, `UNCOMMON_JOKERS` 13→14, `ALL_JOKERS` 107→108). Extends the
+  `HandRules` seam with a `smeared` flag; `count_largest_same_suit_with` counts
+  the largest *merged* colour group (Hearts+Diamonds, Spades+Clubs) so a mixed
+  red/black hand can flush. Reclassified scoring (changes the base hand type
+  standalone); a five-red probe board added. Tests
+  `score__smeared_joker_merges_suits_for_flush` (5 red → Flush, and a 4-red hand
+  stays High Card) and `score__smeared_enables_the_tribe_on_red_flush`
+  (interaction); both fail before the flag threads.
+
+- [ ] **6d.** Remaining rule modifiers: **Splash** (all played cards score —
+  likely a verify/no-op in this model, which already scores every played card),
+  **Oops! All 6s** (doubles the RNG-path odds — belongs with the seeded
+  probabilistic path). Smiley Face and Photograph (also face-readers) have no
+  const yet.
 
 ### Phases 5, 7–8
 
