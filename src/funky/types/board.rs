@@ -904,7 +904,7 @@ impl BuffoonBoard {
             }
             MPip::LoseMultTimesPerDiscard(base, per) => {
                 #[allow(clippy::cast_precision_loss, clippy::cast_sign_loss)]
-                let raw = (base as f32 - per as f32 * counter.max(0) as f32) / 100.0;
+                let raw = (per as f32).mul_add(-(counter.max(0) as f32), base as f32) / 100.0;
                 Some(ScoreOp::TimesMult(raw.max(1.0)))
             }
             MPip::LoseChipsPerHand(base, per) => {
