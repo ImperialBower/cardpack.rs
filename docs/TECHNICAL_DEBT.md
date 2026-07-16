@@ -63,5 +63,31 @@
 ## 🤖 Automated review findings
 
 <!-- Machine-proposed. Promote good ones up to "Tracked debt", delete the rest. -->
+<!-- Deep review run 2026-07-15 (branch `funky`, post-merge 6d3ac11). -->
 
-*(Deep review in progress — findings will be appended when it completes.)*
+- [ ] 🤖 **`Pile::draw_random` panics on an empty pile, contradicting its own
+  doc** — the doc says "If the `Pile` is empty, `None` is returned," but
+  `rng.random_range(0..self.len())` panics on an empty range; only the
+  non-empty case is tested. Suggested: early-return `None` when empty + an
+  empty-pile test. (`src/basic/types/pile.rs:286`)
+- [ ] 🤖 **`BasicPile::remove` / `BasicPileCell::remove` panic out-of-bounds,
+  unlike the deliberately hardened `Pile::remove`** — `Pile::remove`
+  (`pile.rs:648`) documents returning a blank card to avoid the `Vec::remove`
+  panic; the guard was never ported to the other two, and neither has a unit
+  test. Suggested: apply the same bounds check (or document the panic) + tests.
+  (`src/basic/types/basic_pile.rs:182`, `src/basic/types/basic.rs:174`)
+- [ ] 🤖 **`BuffoonPile::remove` — third copy of the same unguarded panic** —
+  public API; current internal callers bounds-check first, so it's latent.
+  Three copy-pasted `remove`s, one hardened and two not, is basic↔funky drift.
+  Suggested: harden to match `Pile::remove` + test. (`src/funky/types/buffoon_pile.rs:454`)
+- [ ] 🤖 **`BuffoonPile::forgiving_from_str` swallows parse errors silently,
+  unlike its `basic` counterpart** — `Pile::forgiving_from_str` logs a
+  `log::warn!` on invalid input; the funky version returns an empty pile with
+  no diagnostic, and it backs the `bcards!` macro (`src/funky/macros.rs:545`)
+  used across the joker test suite — a typo'd card string silently truncates a
+  hand. Suggested: add the same `log::warn!` for parity. (`src/funky/types/buffoon_pile.rs:264`)
+
+Checked and ruled out by the review: no `unwrap`/`panic` in funky library code
+(all in `#[cfg(test)]`), sign-loss casts in counter scoring are `.max(0)`-guarded
+and explicitly allowed, no `std` leakage into `basic`, and the known
+`ChanceDestroyed`/joker-wiring gaps are already tracked in EPIC-01a.
