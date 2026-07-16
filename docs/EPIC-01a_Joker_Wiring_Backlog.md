@@ -58,7 +58,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | Subsystem (phase) | Unblocks (declared Blank jokers) | Status |
 |---|---|---|
 | 1 — Economy / money | Bull + all `+$` jokers | **Complete** — money field + Bull (1a/1b); round-end/discard payout seam: Golden Joker, Delayed Gratification, Cloud 9, To the Moon, Faceless Joker, Egg, plus the Gros Michel/Cavendish destruction rolls and Ice Cream's melt (1c). Still `Blank` with reasons: To Do List, Mail-In Rebate, Rocket, Trading Card, Reserved Parking |
-| 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
+| 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **Complete** — Banner + Mystic wired (2a/2b); `on_blind_selected()` recomputes `Draws` from a recorded baseline: Juggler (+1 hand size), Drunkard (+1 discard), Burglar (+3 hands, wipes all discards) (2c) |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
 | 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | **In progress** — mutation seam (`add_card_to_deck` / `destroy_deck_card` / `replace_deck_card`) + `on_scored`; **Hiker** wired (the phase's only scoring joker). The rest need consumables, packs, blinds, or the shop |
@@ -459,8 +459,27 @@ each joker + its test. Track completion by flipping the Status table.
   `score__mystic_summit_adds_mult_only_when_no_discards`.
 - [x] **2b.** `builtin_joker_op` arm for `ChipsPerRemainingDiscard`; **Banner**
   no longer scores 0; test `score__banner_adds_chips_per_remaining_discard`.
-- [ ] **2c.** `on_blind_selected()` hook + `Draws` mutators for Burglar/Juggler/
-  Drunkard (game state, not scoring).
+- [x] **2c.** `on_blind_selected()` landed, completing Phase 2. `Draws` gained
+  a `hand_size` field (base 8, Balatro's default — the concept did not exist
+  anywhere on the board), and `BuffoonBoard` records `starting_draws` — the
+  `starting_deck_size` pattern — so the hook **recomputes** the round's
+  `draws` from the baseline instead of mutating in place. That makes it
+  idempotent (a second blind select never stacks a bonus) and self-cleaning
+  (a sold joker takes its bonus with it at the next blind). It also resets
+  `discards_used`, since a new blind is a new round for Delayed
+  Gratification. Three jokers wired, each flipping an existing `Blank` const,
+  all classified non-scoring (they change what the round *grants*, not the
+  hand score):
+  - **Juggler** (#87) → `MPip::HandSizeIncrement(1)`;
+  - **Drunkard** (#88) → `MPip::DiscardIncrement(1)` — interaction test:
+    Banner reads the recomputed discards (+30 × 4);
+  - **Burglar** (#47) → `MPip::GainHandsLoseDiscardsWhenBlindSelected(3)` —
+    the discard wipe lands **after** every increment, so it erases Drunkard's
+    +1 regardless of joker order (pinned), and it switches Mystic Summit on
+    (interaction test: +15 mult at zero discards).
+
+  Six tests, each failing before its wiring (spot-verified by reverting the
+  Burglar const), plus the inert-plain-board guard for exit criterion 2.
 
 ### Phase 3 — Per-run joker counters
 

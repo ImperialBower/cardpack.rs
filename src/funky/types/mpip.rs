@@ -171,6 +171,15 @@ pub enum MPip {
     /// by Faceless Joker ($5 at ≥3 faces); Pareidolia widens what counts as a
     /// face, as in Balatro.
     CashOnFacesDiscarded(usize, usize),
+    /// +n hand size while held. Used by Juggler (+1). Applied when
+    /// `BuffoonBoard::on_blind_selected` recomputes the round's `Draws`.
+    HandSizeIncrement(usize),
+    /// +n discards per round while held. Used by Drunkard (+1). Applied when
+    /// `BuffoonBoard::on_blind_selected` recomputes the round's `Draws`.
+    DiscardIncrement(usize),
+    /// Burglar: when a Blind is selected, gain +n hands and lose **all**
+    /// discards — including any other joker's discard bonus, as in Balatro.
+    GainHandsLoseDiscardsWhenBlindSelected(usize),
     /// Green Joker: +n mult per hand played, −n per discard; the accumulator is
     /// the net (hands − discards), the read floors it at 0.
     GainMultPerHandLessDiscard(usize),
@@ -396,6 +405,11 @@ impl Display for MPip {
             Self::CashOnFacesDiscarded(cash, min_faces) => {
                 write!(f, "CashOnFacesDiscarded({cash}, {min_faces})")
             }
+            Self::HandSizeIncrement(value) => write!(f, "HandSizeIncrement({value})"),
+            Self::DiscardIncrement(value) => write!(f, "DiscardIncrement({value})"),
+            Self::GainHandsLoseDiscardsWhenBlindSelected(value) => {
+                write!(f, "GainHandsLoseDiscardsWhenBlindSelected({value})")
+            }
             Self::GainMultPerHandLessDiscard(n) => write!(f, "GainMultPerHandLessDiscard({n})"),
             Self::LoseMultTimesPerDiscard(base, per) => {
                 write!(f, "LoseMultTimesPerDiscard({base}, {per})")
@@ -500,6 +514,19 @@ mod funky__types__mpips_tests {
         assert_eq!(
             MPip::MultTimesChanceDestroyed(3, 1, 1000).to_string(),
             "MultTimesChanceDestroyed(3, 1, 1000)"
+        );
+    }
+
+    #[test]
+    fn display__draw_modifier_variants() {
+        assert_eq!(
+            MPip::HandSizeIncrement(1).to_string(),
+            "HandSizeIncrement(1)"
+        );
+        assert_eq!(MPip::DiscardIncrement(1).to_string(), "DiscardIncrement(1)");
+        assert_eq!(
+            MPip::GainHandsLoseDiscardsWhenBlindSelected(3).to_string(),
+            "GainHandsLoseDiscardsWhenBlindSelected(3)"
         );
     }
 }

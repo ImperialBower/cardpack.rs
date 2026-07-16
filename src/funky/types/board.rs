@@ -35,9 +35,16 @@ pub struct BuffoonBoard {
     /// [`on_discard`](Self::on_discard), reset by
     /// [`on_round_end`](Self::on_round_end). Delayed Gratification forfeits its
     /// payout the moment this is non-zero. Kept separate from
-    /// [`draws`](Self::draws), which stays static config until Phase 2c adds
-    /// its mutators.
+    /// [`draws`](Self::draws), which counts what the round *grants*, not what
+    /// it has consumed.
     pub discards_used: usize,
+    /// The round configuration the run started with — the baseline
+    /// [`on_blind_selected`](Self::on_blind_selected) recomputes
+    /// [`draws`](Self::draws) from. Recorded (like
+    /// [`starting_deck_size`](Self::starting_deck_size)) so joker draw
+    /// modifiers never stack across blinds, and a sold modifier joker takes
+    /// its bonus with it at the next blind.
+    pub starting_draws: Draws,
     /// One accumulator per joker, index-aligned with `jokers`: `joker_state[i]`
     /// belongs to `jokers[i]`. Signed because Green Joker's net (hands −
     /// discards) can dip negative before the read floors it at 0. Grown by the
@@ -72,6 +79,7 @@ impl BuffoonBoard {
         let starting_deck_size = full_deck.len();
         Self {
             draws,
+            starting_draws: draws,
             deck,
             full_deck,
             starting_deck_size,
@@ -829,6 +837,42 @@ impl BuffoonBoard {
         self.discards_used += 1;
     }
 
+    /// Start-of-blind lifecycle: recompute the round's [`draws`](Self::draws)
+    /// from [`starting_draws`](Self::starting_draws) plus the board's draw
+    /// modifiers — Juggler (+hand size), Drunkard (+discards), Burglar
+    /// (+hands, then lose **all** discards, wiping Drunkard's bonus too, as in
+    /// Balatro; the wipe lands after every increment so joker order cannot
+    /// matter).
+    ///
+    /// Recomputing from the recorded baseline rather than mutating in place
+    /// makes the hook idempotent: selecting the next blind never stacks a
+    /// bonus twice, and a sold joker takes its bonus with it. On a board with
+    /// no draw modifiers this is the identity.
+    ///
+    /// Also resets [`discards_used`](Self::discards_used): a new blind is a
+    /// new round for Delayed Gratification's forfeit signal, whether or not
+    /// [`on_round_end`](Self::on_round_end) was driven in between.
+    pub fn on_blind_selected(&mut self) {
+        let mut draws = self.starting_draws;
+        let mut lose_discards = false;
+        for joker in &self.jokers {
+            match joker.enhancement {
+                MPip::HandSizeIncrement(n) => draws.hand_size += n,
+                MPip::DiscardIncrement(n) => draws.discards += n,
+                MPip::GainHandsLoseDiscardsWhenBlindSelected(n) => {
+                    draws.hands_to_play += n;
+                    lose_discards = true;
+                }
+                _ => {}
+            }
+        }
+        if lose_discards {
+            draws.discards = 0;
+        }
+        self.draws = draws;
+        self.discards_used = 0;
+    }
+
     /// End-of-round lifecycle, the deterministic half: pay the round-end `+$`
     /// jokers into [`money`](Self::money), grow each Egg's resell value, and
     /// reset the round's discard count. Inert on a board without those jokers.
@@ -859,9 +903,9 @@ impl BuffoonBoard {
     /// destruction pass: each joker carrying a destruction chance
     /// ([`MPip::MultPlusChanceDestroyed`], [`MPip::MultTimesChanceDestroyed`],
     /// or a bare [`MPip::ChanceDestroyed`]) rolls its
-    /// `numerator`-in-`denominator`, scaled through
-    /// [`probability_numerator`](Self::probability_numerator) so Oops! All 6s
-    /// doubles it, capped at certainty.
+    /// `numerator`-in-`denominator`, scaled through the board's shared odds
+    /// seam (`probability_numerator`) so Oops! All 6s doubles it, capped at
+    /// certainty.
     ///
     /// Payouts land before destruction — Balatro's cash-out-then-cleanup
     /// order, so a hypothetical paying self-destroyer would still pay the
@@ -2279,6 +2323,92 @@ mod funky__types__board__buffoon_board_tests {
         board.on_hand_played(&hand);
         assert!(board.jokers.is_empty(), "the 20th hand melts it");
         assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn on_blind_selected__juggler_increases_hand_size() {
+        // Juggler: +1 hand size while held. board_playing starts at the base
+        // hand size of 8.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JUGGLER);
+
+        board.on_blind_selected();
+        assert_eq!(board.draws.hand_size, 9);
+
+        // Selling the joker takes its bonus with it at the next blind.
+        board.remove_joker(0);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hand_size, 8);
+    }
+
+    #[test]
+    fn on_blind_selected__drunkard_adds_a_discard() {
+        // Drunkard: +1 discard each round. board_playing starts at 3.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::DRUNKARD);
+
+        board.on_blind_selected();
+        assert_eq!(board.draws.discards, 4);
+
+        // Banner reads the recomputed round state: +30 chips per remaining
+        // discard is now 4 discards' worth.
+        board.push_joker(card::BANNER);
+        assert_eq!(board.score(), Score::new(40 + 120, 1));
+    }
+
+    #[test]
+    fn on_blind_selected__burglar_gains_hands_and_wipes_discards() {
+        // Burglar: +3 hands and lose ALL discards when the Blind is selected —
+        // including another joker's discard bonus, so it lands after every
+        // increment regardless of joker order (Drunkard sits to its right).
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::BURGLAR);
+        board.push_joker(card::DRUNKARD);
+
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 7);
+        assert_eq!(board.draws.discards, 0, "Drunkard's +1 is wiped too");
+    }
+
+    #[test]
+    fn on_blind_selected__burglar_enables_mystic_summit() {
+        // Mystic Summit (+15 mult on zero discards) reads what Burglar wipes:
+        // selecting a blind with both aboard turns it on.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MYSTIC_SUMMIT);
+        assert_eq!(board.score(), Score::new(40, 1), "3 discards -> inert");
+
+        board.push_joker(card::BURGLAR);
+        board.on_blind_selected();
+        assert_eq!(board.score(), Score::new(40, 16));
+    }
+
+    #[test]
+    fn on_blind_selected__is_idempotent() {
+        // Recomputed from starting_draws, never accumulated: a second blind
+        // select must not stack the bonuses.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JUGGLER);
+        board.push_joker(card::DRUNKARD);
+        board.push_joker(card::BURGLAR);
+
+        board.on_blind_selected();
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 7);
+        assert_eq!(board.draws.discards, 0);
+        assert_eq!(board.draws.hand_size, 9);
+    }
+
+    #[test]
+    fn on_blind_selected__is_inert_on_a_plain_board() {
+        // Exit criterion 2: with no draw-modifier jokers the hook changes
+        // nothing.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        let before = board.clone();
+
+        board.on_blind_selected();
+        assert_eq!(board, before);
     }
 
     #[test]

@@ -20,24 +20,32 @@ use serde::{Deserialize, Serialize};
 pub struct Draws {
     pub hands_to_play: usize,
     pub discards: usize,
+    /// How many cards the player holds in hand — Balatro's hand size (base 8,
+    /// which [`new`](Self::new) defaults to). Round configuration like its
+    /// neighbours: Juggler reads +1 onto it at blind select.
+    pub hand_size: usize,
 }
 
 impl std::fmt::Display for Draws {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Draws {{ hands: {}, discards: {} }}",
-            self.hands_to_play, self.discards
+            "Draws {{ hands: {}, discards: {}, hand_size: {} }}",
+            self.hands_to_play, self.discards, self.hand_size
         )
     }
 }
 
 impl Draws {
+    /// Balatro's base hand size.
+    pub const DEFAULT_HAND_SIZE: usize = 8;
+
     #[must_use]
     pub fn new(hands_to_play: usize, discards: usize) -> Self {
         Self {
             hands_to_play,
             discards,
+            hand_size: Self::DEFAULT_HAND_SIZE,
         }
     }
 }
@@ -50,6 +58,14 @@ mod funky__types__draws_tests {
     #[test]
     fn display() {
         let draws = Draws::new(1, 2);
-        assert_eq!(draws.to_string(), "Draws { hands: 1, discards: 2 }");
+        assert_eq!(
+            draws.to_string(),
+            "Draws { hands: 1, discards: 2, hand_size: 8 }"
+        );
+    }
+
+    #[test]
+    fn new__defaults_to_the_base_hand_size() {
+        assert_eq!(Draws::new(4, 3).hand_size, Draws::DEFAULT_HAND_SIZE);
     }
 }

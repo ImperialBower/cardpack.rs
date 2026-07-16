@@ -773,7 +773,9 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Burglar: when a Blind is selected, gain +3 hands and lose all
+        // discards (wiping any discard bonus, e.g. Drunkard's).
+        enhancement: MPip::GainHandsLoseDiscardsWhenBlindSelected(3),
         resell_value: 3,
         debuffed: false,
     };
@@ -1265,7 +1267,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Juggler: +1 hand size while held — round config, not hand score.
+        enhancement: MPip::HandSizeIncrement(1),
         resell_value: 0,
         debuffed: false,
     };
@@ -1279,7 +1282,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Drunkard: +1 discard each round while held.
+        enhancement: MPip::DiscardIncrement(1),
         resell_value: 0,
         debuffed: false,
     };
@@ -2089,6 +2093,13 @@ mod funky__decks__joker_tests {
             | MPip::CashPerFullDeckRank(_, _)
             | MPip::ExtraInterest(_)
             | MPip::CashOnFacesDiscarded(_, _)
+            // The draw modifiers change how many hands/discards/cards a round
+            // grants (`on_blind_selected` recomputes `Draws` from them), never
+            // the score of the hand in front of them. Banner / Mystic Summit
+            // read the *result*, through their own arms.
+            | MPip::HandSizeIncrement(_)
+            | MPip::DiscardIncrement(_)
+            | MPip::GainHandsLoseDiscardsWhenBlindSelected(_)
             | MPip::CreateCardOnRankPlay(_, _, _)
             | MPip::Credit(_)
             | MPip::Death(_)
