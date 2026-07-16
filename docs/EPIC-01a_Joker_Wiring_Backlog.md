@@ -57,7 +57,7 @@ was careful to avoid), so each is gated behind building the real mechanism.
 
 | Subsystem (phase) | Unblocks (declared Blank jokers) | Status |
 |---|---|---|
-| 1 — Economy / money | Bull + all `+$` jokers | **1a/1b done** (money field + Bull); 1c planned |
+| 1 — Economy / money | Bull + all `+$` jokers | **Complete** — money field + Bull (1a/1b); round-end/discard payout seam: Golden Joker, Delayed Gratification, Cloud 9, To the Moon, Faceless Joker, Egg, plus the Gros Michel/Cavendish destruction rolls and Ice Cream's melt (1c). Still `Blank` with reasons: To Do List, Mail-In Rebate, Rocket, Trading Card, Reserved Parking |
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **2a/2b done** (Banner + Mystic wired); 2c planned |
 | 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
 | 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
@@ -267,11 +267,13 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   straights and flushes it should not — a silently wrong *hand type*, worse than
   the silent zero it replaces. Needs the chips **and** a detection suppression
   together; Phase 6's `HandRules` seam is the natural home for the latter.
-- **Cavendish** (#33) is missing its **1-in-1000 destroy chance** (`MultTimes(3)`
+- ~~**Cavendish** (#33) is missing its **1-in-1000 destroy chance** (`MultTimes(3)`
   carries only the mult) — the mirror image of the Gros Michel bug fixed in 0c.
   Latent, not live: scoring is correct today and nothing drives destruction yet.
   Give it `MultTimesChanceDestroyed` when the round-end hook lands, rather than
-  minting a compound variant now for a system that does not exist.
+  minting a compound variant now for a system that does not exist.~~ Fixed in
+  1c, exactly as planned: `MultTimesChanceDestroyed(3, 1, 1000)`, rolled by
+  `on_round_end_with_rng`.
 - **Hiker** (#56) is tagged `CommonJoker` / `value: 5` and sits in no rarity pile.
   Balatro is believed to have it at **Uncommon / $5** — unverified against the
   wiki, so deliberately *not* fixed on a guess (the in-repo catalog at
@@ -405,8 +407,50 @@ each joker + its test. Track completion by flipping the Status table.
 - [x] **1a.** Added `BuffoonBoard.money: isize` (`board.rs`), default 0.
 - [x] **1b.** `MPip::ChipsPerDollar(usize)` + `builtin_joker_op` arm; **Bull**
   wired; test `score__bull_scales_with_money`.
-- [ ] **1c.** Lifecycle hooks (`on_round_end`, `on_discard`, `on_scored`) that pay
-  out the `+$` jokers; one test per payout. *(Can trail — not scoring.)*
+- [x] **1c.** Round lifecycle hooks landed (design:
+  [`2026-07-15-funky-lifecycle-hooks-design.md`](./superpowers/specs/2026-07-15-funky-lifecycle-hooks-design.md)).
+  The Phase 3 event seam grew a `RoundEnd` variant and a **money mirror** of
+  `growth_delta` — `payout_delta(&self, …) -> isize`, applied by
+  `apply_payouts` as one sum computed from the pre-event board, so joker
+  order cannot matter and To the Moon reads the balance *before* this
+  round's payouts (Balatro's cash-out screen semantics). Plus
+  `BuffoonBoard.discards_used` (reset each round end; `draws` stays static
+  config until 2c) and the `on_round_end` / `on_round_end_with_rng` split
+  mirroring `score`/`score_with_rng` — no RNG, no destruction rolls, like
+  Lucky staying inert in the pure `score()`. Six jokers wired, one test per
+  behaviour, each verified to fail without its arm:
+  - **Golden Joker** → `CashOnRoundEnd(4)` — pays the $4 that 0b's audit
+    found mislabelled as `Chips(4)`;
+  - **Delayed Gratification** → `CashPerDiscardIfNoneUsed(2)` — $2 per
+    remaining discard, forfeited by any discard this round;
+  - **Cloud 9** → `CashPerFullDeckRank(1, '9')` — reads the roster, so a
+    destroyed 9 stops paying (pinned via 5a's `destroy_deck_card`);
+  - **To the Moon** → `ExtraInterest(1)` — `min(money/5, 5)`, the base
+    interest cap; base-game interest itself is an economy rule, not a
+    joker, and stays out of scope;
+  - **Faceless Joker** → `CashOnFacesDiscarded(5, 3)` — fires on
+    `on_discard`, classified through `is_face_card`, so Pareidolia makes
+    any three discarded cards pay (interaction test);
+  - **Egg** — its `SellValueIncrement(3)` now grows its own `resell_value`
+    in place each round end.
+
+  The destruction pass closes 0c's deferred debt: **Gros Michel** rolls its
+  1-in-6, and **Cavendish** gained its missing 1-in-1000 via the new
+  compound `MultTimesChanceDestroyed(3, 1, 1000)` (the §Data fixes mirror
+  bug; its ×3 keeps scoring through `joker_x_mult`, pinned by the existing
+  Cavendish tests). Both roll through `probability_numerator`, so Oops!
+  All 6s doubles them — pinned: three Oops make Gros Michel's destruction
+  certain on every seed. Bare `ChanceDestroyed` rolls too, so the 0c
+  footgun variant can no longer hide a destruction. **Ice Cream** melts on
+  the hand that empties its chips (`on_hand_played`, where its counter
+  already grows — exact Balatro timing; the 19th hand leaves it, the 20th
+  removes it). All hooks are inert on a board without these jokers
+  (`on_round_end__is_inert_on_a_plain_board`).
+
+  Still `Blank` with reasons (the design's scope cut): **To Do List** and
+  **Mail-In Rebate** (need a per-round random target), **Rocket** (boss
+  blinds), **Trading Card** (discard destruction), **Reserved Parking**
+  (probabilistic held-card payout — deferred, not blocked).
 
 ### Phase 2 — Round & hand state
 

@@ -25,7 +25,8 @@ pub enum MPip {
     AddBaseChips(usize),
     AddCardTypeWhenBlindSelected(BCardType),
     /// A `numerator`-in-`denominator` chance the card is destroyed at end of
-    /// round, and **nothing else**.
+    /// round, and **nothing else**. Rolled by
+    /// `BuffoonBoard::on_round_end_with_rng` like its compound siblings.
     ///
     /// Prefer a compound variant like
     /// [`MultPlusChanceDestroyed`](Self::MultPlusChanceDestroyed) for any card
@@ -75,12 +76,19 @@ pub enum MPip {
     ///
     /// Compound because one card is one `MPip`, and both halves are the card:
     /// splitting them is what let the mult go missing. The scoring half is a
-    /// pure `AddMult`, applied in `builtin_joker_op`. The destruction half is
-    /// **data only** until a round-end hook exists to roll it; it is recorded as
-    /// an explicit numerator/denominator so it can route through
-    /// `BuffoonBoard::probability_numerator` and inherit Oops! All 6s for free,
-    /// the way the seeded-RNG path already works.
+    /// pure `AddMult`, applied in `builtin_joker_op`. The destruction half
+    /// rolls in `BuffoonBoard::on_round_end_with_rng`, routed through
+    /// `BuffoonBoard::probability_numerator` so it inherits Oops! All 6s for
+    /// free, the way the seeded-RNG path already works.
     MultPlusChanceDestroyed(usize, usize, usize),
+    /// Cavendish: ×mult unconditionally, **and** a `numerator`-in-`denominator`
+    /// chance the joker is destroyed at end of round —
+    /// `MultTimesChanceDestroyed(3, 1, 1000)`. The
+    /// [`MultPlusChanceDestroyed`](Self::MultPlusChanceDestroyed) compound
+    /// shape, on the ×mult side: the scoring half applies in `joker_x_mult`,
+    /// the destruction half rolls in `BuffoonBoard::on_round_end_with_rng`,
+    /// routed through `probability_numerator` so Oops! All 6s doubles it.
+    MultTimesChanceDestroyed(usize, usize, usize),
     MultPlusChipsOnRank(usize, usize, char),
     MultPlusDoubleValueDestroyJokerOnRight(usize),
     MultPlusOn5Ranks(usize, [char; 5]),
@@ -146,6 +154,23 @@ pub enum MPip {
     /// +n chips for **each** $1 of money the run holds; debt (negative money)
     /// scores nothing. Used by Bull (+2 chips per dollar).
     ChipsPerDollar(usize),
+    /// Earn $n at end of round. Used by Golden Joker ($4). Paid by
+    /// `BuffoonBoard::on_round_end`, never by a scoring arm.
+    CashOnRoundEnd(usize),
+    /// Earn $n per **remaining** discard at end of round, forfeited entirely
+    /// if any discard was used this round. Used by Delayed Gratification ($2).
+    CashPerDiscardIfNoneUsed(usize),
+    /// Earn $n per card of the given rank in the run's **full deck** at end of
+    /// round. Used by Cloud 9 ($1 per 9) — destroyed 9s stop paying, added
+    /// ones start.
+    CashPerFullDeckRank(usize, char),
+    /// Earn $n extra interest per $5 held at end of round, capped at the base
+    /// interest cap (5 steps); debt earns nothing. Used by To the Moon ($1).
+    ExtraInterest(usize),
+    /// Earn $cash when at least `min` face cards are discarded at once. Used
+    /// by Faceless Joker ($5 at ≥3 faces); Pareidolia widens what counts as a
+    /// face, as in Balatro.
+    CashOnFacesDiscarded(usize, usize),
     /// Green Joker: +n mult per hand played, −n per discard; the accumulator is
     /// the net (hands − discards), the read floors it at 0.
     GainMultPerHandLessDiscard(usize),
@@ -284,6 +309,12 @@ impl Display for MPip {
                     "MultPlusChanceDestroyed({mult}, {numerator}, {denominator})"
                 )
             }
+            Self::MultTimesChanceDestroyed(mult, numerator, denominator) => {
+                write!(
+                    f,
+                    "MultTimesChanceDestroyed({mult}, {numerator}, {denominator})"
+                )
+            }
             Self::MultPlusChipsOnRank(mult, chips, rank_char) => {
                 write!(f, "MultPlusChipsOnRank({mult}, {chips}, {rank_char})")
             }
@@ -354,6 +385,17 @@ impl Display for MPip {
                 write!(f, "MultTimesIfHeldAllSuits({value}, {suits:?})")
             }
             Self::ChipsPerDollar(value) => write!(f, "ChipsPerDollar({value})"),
+            Self::CashOnRoundEnd(value) => write!(f, "CashOnRoundEnd({value})"),
+            Self::CashPerDiscardIfNoneUsed(value) => {
+                write!(f, "CashPerDiscardIfNoneUsed({value})")
+            }
+            Self::CashPerFullDeckRank(value, rank) => {
+                write!(f, "CashPerFullDeckRank({value}, {rank})")
+            }
+            Self::ExtraInterest(value) => write!(f, "ExtraInterest({value})"),
+            Self::CashOnFacesDiscarded(cash, min_faces) => {
+                write!(f, "CashOnFacesDiscarded({cash}, {min_faces})")
+            }
             Self::GainMultPerHandLessDiscard(n) => write!(f, "GainMultPerHandLessDiscard({n})"),
             Self::LoseMultTimesPerDiscard(base, per) => {
                 write!(f, "LoseMultTimesPerDiscard({base}, {per})")
@@ -436,6 +478,28 @@ mod funky__types__mpips_tests {
         assert_eq!(
             MPip::MultPlusChanceDestroyed(15, 1, 6).to_string(),
             "MultPlusChanceDestroyed(15, 1, 6)"
+        );
+    }
+
+    #[test]
+    fn display__payout_variants() {
+        assert_eq!(MPip::CashOnRoundEnd(4).to_string(), "CashOnRoundEnd(4)");
+        assert_eq!(
+            MPip::CashPerDiscardIfNoneUsed(2).to_string(),
+            "CashPerDiscardIfNoneUsed(2)"
+        );
+        assert_eq!(
+            MPip::CashPerFullDeckRank(1, '9').to_string(),
+            "CashPerFullDeckRank(1, 9)"
+        );
+        assert_eq!(MPip::ExtraInterest(1).to_string(), "ExtraInterest(1)");
+        assert_eq!(
+            MPip::CashOnFacesDiscarded(5, 3).to_string(),
+            "CashOnFacesDiscarded(5, 3)"
+        );
+        assert_eq!(
+            MPip::MultTimesChanceDestroyed(3, 1, 1000).to_string(),
+            "MultTimesChanceDestroyed(3, 1, 1000)"
         );
     }
 }

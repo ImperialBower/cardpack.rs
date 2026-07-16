@@ -10,10 +10,11 @@ use serde::{Deserialize, Serialize};
 /// Balatro's Lucky card grants a flat +20 mult on a successful (1-in-N) roll.
 const LUCKY_MULT: usize = 20;
 
-/// An in-round event that can grow a joker's counter.
+/// A lifecycle event that can grow a joker's counter or pay a joker's cash.
 enum GrowthEvent<'a> {
     HandPlayed(&'a BuffoonPile),
     Discard(&'a BuffoonPile),
+    RoundEnd,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -26,9 +27,17 @@ pub struct BuffoonBoard {
     pub jokers: BuffoonPile,
     pub poker_hands: PokerHands,
     /// Money the run currently holds. Signed so Credit Card can carry debt to
-    /// -$20. Read by scoring jokers (Bull); written by `+$` jokers, the shop,
-    /// and interest once those lifecycle events land. Inert by default (0).
+    /// -$20. Read by scoring jokers (Bull); written by the `+$` jokers through
+    /// [`on_round_end`](Self::on_round_end) / [`on_discard`](Self::on_discard),
+    /// and later by the shop and base interest. Inert by default (0).
     pub money: isize,
+    /// How many discards have been used this round. Incremented by
+    /// [`on_discard`](Self::on_discard), reset by
+    /// [`on_round_end`](Self::on_round_end). Delayed Gratification forfeits its
+    /// payout the moment this is non-zero. Kept separate from
+    /// [`draws`](Self::draws), which stays static config until Phase 2c adds
+    /// its mutators.
+    pub discards_used: usize,
     /// One accumulator per joker, index-aligned with `jokers`: `joker_state[i]`
     /// belongs to `jokers[i]`. Signed because Green Joker's net (hands −
     /// discards) can dip negative before the read floors it at 0. Grown by the
@@ -72,6 +81,7 @@ impl BuffoonBoard {
             jokers: BuffoonPile::new_with_capacity(5),
             poker_hands: PokerHands::default(),
             money: 0,
+            discards_used: 0,
             joker_state: Vec::new(),
         }
     }
@@ -159,8 +169,10 @@ impl BuffoonBoard {
                     // cannot ride the additive `calculate_plus` path — it scales
                     // the running score at this card's position, like a held
                     // Steel card does in phase 3. The destruction half
-                    // (1-in-`_odds` after the hand) is data only until a
-                    // round-end hook exists, exactly as with Gros Michel.
+                    // (1-in-`_odds` after the hand) is still data only:
+                    // `on_round_end_with_rng` rolls *joker* destruction, and
+                    // destroying a played card needs the deck-mutation seam
+                    // wired into a round loop that does not exist yet.
                     MPip::Glass(mult, _odds) => ScoreOp::TimesMult(mult as f32),
                     MPip::Custom(id) => self.custom_op(*card, id, registry),
                     _ => ScoreOp::Nothing,
@@ -511,7 +523,11 @@ impl BuffoonBoard {
         // four-card or gapped hand just as they widen the base hand type.
         let rules = self.hand_rules();
         let factor = match joker.enhancement {
-            MPip::MultTimes(n) => n as f32,
+            // Cavendish (`MultTimesChanceDestroyed`) rides the plain ×n arm:
+            // its destruction half rolls at end of round
+            // (`on_round_end_with_rng`), never gating the mult — the Gros
+            // Michel compound shape, on the ×mult side.
+            MPip::MultTimes(n) | MPip::MultTimesChanceDestroyed(n, _, _) => n as f32,
             MPip::MultTimes1Dot(n) => n as f32 / 10.0,
             MPip::MultTimesOnPair(n) if played.has_pair() => n as f32,
             MPip::MultTimesOnTrips(n) if played.has_trips() => n as f32,
@@ -795,14 +811,172 @@ impl BuffoonBoard {
         }
     }
 
-    /// Grow every joker's counter for a played hand.
+    /// Grow every joker's counter for a played hand, then melt any decaying
+    /// joker that has reached zero: Ice Cream is destroyed **by the hand that
+    /// empties it**, not at end of round — exact Balatro timing, which is why
+    /// the check rides this hook rather than [`on_round_end`](Self::on_round_end).
     pub fn on_hand_played(&mut self, played: &BuffoonPile) {
         self.apply_growth(&GrowthEvent::HandPlayed(played));
+        self.melt_emptied_jokers();
     }
 
-    /// Grow every joker's counter for a discard.
+    /// Grow every joker's counter for a discard, pay the discard-triggered
+    /// jokers (Faceless Joker), and record that a discard was used this round
+    /// (Delayed Gratification's forfeit signal).
     pub fn on_discard(&mut self, discarded: &BuffoonPile) {
         self.apply_growth(&GrowthEvent::Discard(discarded));
+        self.apply_payouts(&GrowthEvent::Discard(discarded));
+        self.discards_used += 1;
+    }
+
+    /// End-of-round lifecycle, the deterministic half: pay the round-end `+$`
+    /// jokers into [`money`](Self::money), grow each Egg's resell value, and
+    /// reset the round's discard count. Inert on a board without those jokers.
+    ///
+    /// The probabilistic half — the joker destruction rolls (Gros Michel,
+    /// Cavendish) — lives in
+    /// [`on_round_end_with_rng`](Self::on_round_end_with_rng), mirroring the
+    /// `score`/`score_with_rng` split: with no RNG the rolls are simply
+    /// skipped, the way a Lucky card stays inert in the pure [`score`](Self::score).
+    pub fn on_round_end(&mut self) {
+        self.apply_payouts(&GrowthEvent::RoundEnd);
+        // Egg: its own resell value grows in place, every round.
+        for index in 0..self.jokers.len() {
+            let Some(joker) = self.jokers.get(index).copied() else {
+                continue;
+            };
+            if let MPip::SellValueIncrement(n) = joker.enhancement {
+                let mut grown = joker;
+                grown.resell_value = grown.resell_value.saturating_add(n);
+                self.jokers.remove(index);
+                self.jokers.insert(index, grown);
+            }
+        }
+        self.discards_used = 0;
+    }
+
+    /// Everything [`on_round_end`](Self::on_round_end) does, then the
+    /// destruction pass: each joker carrying a destruction chance
+    /// ([`MPip::MultPlusChanceDestroyed`], [`MPip::MultTimesChanceDestroyed`],
+    /// or a bare [`MPip::ChanceDestroyed`]) rolls its
+    /// `numerator`-in-`denominator`, scaled through
+    /// [`probability_numerator`](Self::probability_numerator) so Oops! All 6s
+    /// doubles it, capped at certainty.
+    ///
+    /// Payouts land before destruction — Balatro's cash-out-then-cleanup
+    /// order, so a hypothetical paying self-destroyer would still pay the
+    /// round it dies. Destroyed indices are collected first and removed in
+    /// reverse via [`remove_joker`](Self::remove_joker), which keeps
+    /// `joker_state` aligned.
+    pub fn on_round_end_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.on_round_end();
+        let scale = self.probability_numerator();
+        let destroyed: Vec<usize> = self
+            .jokers
+            .iter()
+            .enumerate()
+            .filter_map(|(index, joker)| {
+                let (MPip::ChanceDestroyed(numerator, denominator)
+                | MPip::MultPlusChanceDestroyed(_, numerator, denominator)
+                | MPip::MultTimesChanceDestroyed(_, numerator, denominator)) = joker.enhancement
+                else {
+                    return None;
+                };
+                if denominator == 0 {
+                    return None;
+                }
+                let wins = numerator.saturating_mul(scale).min(denominator);
+                (rng.random_range(0..denominator) < wins).then_some(index)
+            })
+            .collect();
+        for index in destroyed.into_iter().rev() {
+            self.remove_joker(index);
+        }
+    }
+
+    /// Money a joker pays for one lifecycle event — the cash mirror of
+    /// [`growth_delta`](Self::growth_delta); returns 0 for every non-cash
+    /// joker. Takes `&self` because payouts read board state: Cloud 9 counts
+    /// the full deck, To the Moon reads `money`, Delayed Gratification reads
+    /// the round's discard usage, and Faceless Joker classifies the discarded
+    /// cards through [`is_face_card`](Self::is_face_card) — so Pareidolia
+    /// amplifies it, as in Balatro.
+    fn payout_delta(&self, enhancement: MPip, event: &GrowthEvent) -> isize {
+        let cash = |n: usize| isize::try_from(n).unwrap_or(isize::MAX);
+        match (enhancement, event) {
+            // Golden Joker: a flat $n every round.
+            (MPip::CashOnRoundEnd(n), GrowthEvent::RoundEnd) => cash(n),
+            // Delayed Gratification: $n per remaining discard, forfeited the
+            // moment any discard is used this round.
+            (MPip::CashPerDiscardIfNoneUsed(n), GrowthEvent::RoundEnd) => {
+                if self.discards_used == 0 {
+                    cash(n * self.draws.discards)
+                } else {
+                    0
+                }
+            }
+            // Cloud 9: $n per matching rank in the full deck — the roster, so
+            // destroyed 9s stop paying and added ones start.
+            (MPip::CashPerFullDeckRank(n, rank), GrowthEvent::RoundEnd) => {
+                let count = self
+                    .full_deck
+                    .iter()
+                    .filter(|card| card.rank.index == rank)
+                    .count();
+                cash(n * count)
+            }
+            // To the Moon: $n extra interest per full $5 held, capped at the
+            // base interest cap (5 steps); debt earns nothing.
+            (MPip::ExtraInterest(n), GrowthEvent::RoundEnd) => {
+                let steps = (self.money / 5).clamp(0, 5);
+                cash(n).saturating_mul(steps)
+            }
+            // Faceless Joker: $cash when enough faces go in a single discard.
+            (MPip::CashOnFacesDiscarded(payout, min_faces), GrowthEvent::Discard(discarded)) => {
+                let faces = discarded
+                    .iter()
+                    .filter(|card| self.is_face_card(card))
+                    .count();
+                if faces >= min_faces { cash(payout) } else { 0 }
+            }
+            _ => 0,
+        }
+    }
+
+    /// Pay every joker's cash for one lifecycle event into
+    /// [`money`](Self::money). Every delta is computed from the **pre-event**
+    /// board and applied as one sum, so joker order cannot matter — in
+    /// particular, To the Moon's interest reads the money held *before* this
+    /// round's payouts land, matching Balatro's cash-out screen, where every
+    /// line is computed from the same starting balance.
+    fn apply_payouts(&mut self, event: &GrowthEvent) {
+        let total: isize = self
+            .jokers
+            .iter()
+            .map(|joker| self.payout_delta(joker.enhancement, event))
+            .sum();
+        self.money = self.money.saturating_add(total);
+    }
+
+    /// Remove every decaying joker whose decay has consumed its base — today
+    /// that is Ice Cream (`LoseChipsPerHand`), destroyed when `base − per ×
+    /// hands` reaches 0. Slots are walked in reverse so a removal cannot shift
+    /// an unprocessed index; [`remove_joker`](Self::remove_joker) keeps
+    /// `joker_state` aligned.
+    fn melt_emptied_jokers(&mut self) {
+        for index in (0..self.jokers.len()).rev() {
+            let Some(joker) = self.jokers.get(index) else {
+                continue;
+            };
+            let MPip::LoseChipsPerHand(base, per) = joker.enhancement else {
+                continue;
+            };
+            let hands =
+                usize::try_from(self.joker_state.get(index).copied().unwrap_or(0)).unwrap_or(0);
+            if base.saturating_sub(per.saturating_mul(hands)) == 0 {
+                self.remove_joker(index);
+            }
+        }
     }
 
     /// Apply the permanent card mutations that fire when the played hand scores,
@@ -1875,10 +2049,235 @@ mod funky__types__board__buffoon_board_tests {
         board.on_hand_played(&hand);
         assert_eq!(board.score(), Score::new(130, 1));
 
-        // 20+ hands -> floored at +0 chips.
+        // 20+ hands -> the decay empties it, and the emptying hand melts the
+        // joker away entirely (see on_hand_played__ice_cream_melts_at_zero_chips).
         for _ in 0..30 {
             board.on_hand_played(&hand);
         }
+        assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn on_round_end__golden_joker_pays_4() {
+        // Golden Joker: earn $4 at end of round — money, not hand score.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::GOLDEN_JOKER);
+
+        board.on_round_end();
+        assert_eq!(board.money, 4);
+
+        // It pays every round, and never touches the hand score.
+        board.on_round_end();
+        assert_eq!(board.money, 8);
+        assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn on_round_end__delayed_gratification_pays_2_per_remaining_discard() {
+        // Delayed Gratification: $2 per remaining discard when none was used.
+        // board_playing gives Draws::new(4, 3) -> 3 discards -> $6.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::DELAYED_GRATIFICATION);
+
+        board.on_round_end();
+        assert_eq!(board.money, 6);
+    }
+
+    #[test]
+    fn on_round_end__delayed_gratification_pays_0_after_a_discard() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::DELAYED_GRATIFICATION);
+
+        board.on_discard(&bcards!("9C"));
+        board.on_round_end();
+        assert_eq!(board.money, 0, "any discard this round forfeits the payout");
+
+        // on_round_end resets the round, so the next clean round pays again.
+        board.on_round_end();
+        assert_eq!(board.money, 6);
+    }
+
+    #[test]
+    fn on_round_end__cloud_9_pays_1_per_nine_in_full_deck() {
+        // Cloud 9: $1 for each 9 in the full deck. The basic deck owns four.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::CLOUD_9);
+
+        board.on_round_end();
+        assert_eq!(board.money, 4);
+
+        // Destroy a 9 from the run: it stops paying. Cloud 9 reads the
+        // roster, not the undealt remainder, so real destruction is what
+        // moves it.
+        let nine = board
+            .full_deck
+            .iter()
+            .position(|card| card.rank.index == '9')
+            .unwrap();
+        board.destroy_deck_card(nine);
+        board.on_round_end();
+        assert_eq!(board.money, 4 + 3);
+    }
+
+    #[test]
+    fn on_round_end__to_the_moon_pays_1_per_5_dollars_capped_at_5() {
+        // To the Moon: $1 extra interest per $5 held, capped at $5.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::TO_THE_MOON);
+
+        // $12 held -> two full $5 steps -> $2.
+        board.money = 12;
+        board.on_round_end();
+        assert_eq!(board.money, 14);
+
+        // $50 held -> ten steps, capped at five -> $5.
+        board.money = 50;
+        board.on_round_end();
+        assert_eq!(board.money, 55);
+
+        // Debt earns nothing (and costs nothing).
+        board.money = -20;
+        board.on_round_end();
+        assert_eq!(board.money, -20);
+    }
+
+    #[test]
+    fn on_discard__faceless_joker_pays_5_on_three_faces() {
+        // Faceless Joker: $5 when 3 or more face cards are discarded at once.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::FACELESS_JOKER);
+
+        board.on_discard(&bcards!("KH QD JC 2S"));
+        assert_eq!(board.money, 5);
+    }
+
+    #[test]
+    fn on_discard__faceless_joker_pays_0_on_two_faces() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::FACELESS_JOKER);
+
+        board.on_discard(&bcards!("KH QD 2S 3S"));
+        assert_eq!(board.money, 0, "two faces are not enough");
+    }
+
+    #[test]
+    fn on_discard__faceless_joker_pareidolia_makes_any_three_cards_faces() {
+        // Pareidolia makes every card a face, so any 3-card discard pays —
+        // the payout goes through the same is_face_card hook as scoring.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::FACELESS_JOKER);
+        board.push_joker(card::PAREIDOLIA);
+
+        board.on_discard(&bcards!("2C 3D 4H"));
+        assert_eq!(board.money, 5);
+    }
+
+    #[test]
+    fn on_round_end__egg_grows_resell_value() {
+        // Egg: its own sell value grows $3 every round, in place.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::EGG);
+        assert_eq!(board.jokers.get(0).unwrap().resell_value, 2);
+
+        board.on_round_end();
+        assert_eq!(board.jokers.get(0).unwrap().resell_value, 5);
+
+        board.on_round_end();
+        assert_eq!(board.jokers.get(0).unwrap().resell_value, 8);
+        assert_eq!(board.money, 0, "Egg is value growth, not a payout");
+    }
+
+    #[test]
+    fn on_round_end__is_inert_on_a_plain_board() {
+        // Exit criterion 2: with no cash / decay / destruction jokers, the
+        // round-end hooks change nothing at all.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        let before = board.clone();
+
+        board.on_round_end();
+        board.on_round_end_with_rng(&mut StdRng::seed_from_u64(7));
+        assert_eq!(board, before);
+    }
+
+    #[test]
+    fn on_round_end_with_rng__gros_michel_survives_and_dies() {
+        // Gros Michel: a 1-in-6 destruction roll at end of round. Across
+        // seeds both outcomes must occur, deterministically per seed — the
+        // same contract as score_with_seed.
+        let mut survived = false;
+        let mut destroyed = false;
+        for seed in 0..64 {
+            let mut board = board_playing("2S 5D 8C TS KH");
+            board.push_joker(card::GROS_MICHEL);
+            board.on_round_end_with_rng(&mut StdRng::seed_from_u64(seed));
+            if board.jokers.is_empty() {
+                destroyed = true;
+            } else {
+                survived = true;
+            }
+        }
+        assert!(destroyed, "a 1-in-6 roll should destroy over 64 seeds");
+        assert!(survived, "a 1-in-6 roll should survive over 64 seeds");
+    }
+
+    #[test]
+    fn on_round_end_with_rng__cavendish_1_in_1000() {
+        // Cavendish: 1-in-1000 — rare but real. Deterministic for a given
+        // rand version; expected ~4 destructions over 4000 seeds.
+        let mut destructions = 0;
+        for seed in 0..4000 {
+            let mut board = board_playing("2S 5D 8C TS KH");
+            board.push_joker(card::CAVENDISH);
+            board.on_round_end_with_rng(&mut StdRng::seed_from_u64(seed));
+            if board.jokers.is_empty() {
+                destructions += 1;
+            }
+        }
+        assert!(destructions >= 1, "1-in-1000 must be able to fire");
+        assert!(
+            destructions < 40,
+            "1-in-1000 must stay rare (got {destructions} in 4000)"
+        );
+    }
+
+    #[test]
+    fn on_round_end_with_rng__oops_doubles_gros_michel_odds() {
+        // Three Oops! All 6s scale the 1-in-6 by 2^3 = 8, capped at
+        // certainty: Gros Michel dies on every seed, through the same
+        // probability_numerator seam the Lucky roll uses.
+        for seed in 0..16 {
+            let mut board = board_playing("2S 5D 8C TS KH");
+            board.push_joker(card::GROS_MICHEL);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.on_round_end_with_rng(&mut StdRng::seed_from_u64(seed));
+            assert_eq!(
+                board.jokers.len(),
+                3,
+                "seed {seed}: certainty must destroy Gros Michel (and only it)"
+            );
+        }
+    }
+
+    #[test]
+    fn on_hand_played__ice_cream_melts_at_zero_chips() {
+        // Ice Cream: 100 chips decaying −5 per hand. The 19th hand leaves +5;
+        // the 20th empties it, and the emptying hand melts the joker — on
+        // that hand, not at round end (exact Balatro timing).
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::ICE_CREAM);
+
+        let hand = bcards!("2S 5D 8C TS KH");
+        for _ in 0..19 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(board.jokers.len(), 1, "19 hands leave +5 chips");
+        assert_eq!(board.score(), Score::new(45, 1));
+
+        board.on_hand_played(&hand);
+        assert!(board.jokers.is_empty(), "the 20th hand melts it");
         assert_eq!(board.score(), Score::new(40, 1));
     }
 

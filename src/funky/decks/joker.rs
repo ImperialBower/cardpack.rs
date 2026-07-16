@@ -595,7 +595,9 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Delayed Gratification: earn $2 per discard at end of round, but
+        // only if no discard was used this round.
+        enhancement: MPip::CashPerDiscardIfNoneUsed(2),
         resell_value: 2,
         debuffed: false,
     };
@@ -916,7 +918,9 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Faceless Joker: earn $5 when 3 or more face cards are discarded at
+        // the same time.
+        enhancement: MPip::CashOnFacesDiscarded(5, 3),
         resell_value: 0,
         debuffed: false,
     };
@@ -973,8 +977,10 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        // Cavendish: X3 Mult (unconditional).
-        enhancement: MPip::MultTimes(3),
+        // Cavendish: ×3 Mult (unconditional), and a 1-in-1000 chance of being
+        // destroyed at end of round — the Gros Michel compound shape on the
+        // ×mult side. The const carried only the mult until EPIC-01a Phase 1c.
+        enhancement: MPip::MultTimesChanceDestroyed(3, 1, 1000),
         resell_value: 0,
         debuffed: false,
     };
@@ -1144,7 +1150,8 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Cloud 9: earn $1 for each 9 in the full deck at end of round.
+        enhancement: MPip::CashPerFullDeckRank(1, '9'),
         resell_value: 0,
         debuffed: false,
     };
@@ -1214,7 +1221,9 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // To the Moon: earn $1 extra interest per $5 held at end of round,
+        // capped at the base interest cap ($5).
+        enhancement: MPip::ExtraInterest(1),
         resell_value: 0,
         debuffed: false,
     };
@@ -1299,10 +1308,9 @@ pub mod card {
         },
         card_type: BCardType::CommonJoker,
         // Golden Joker: earn $4 at end of round — economy, not hand score.
-        // Blank until the money-payout lifecycle lands (EPIC-01a Phase 1c),
-        // matching the other `+$` jokers (Rocket, To the Moon, …). It was
-        // mislabelled `Chips(4)`, which made it silently add 0 chips.
-        enhancement: MPip::Blank,
+        // Paid by `on_round_end`. (It was once mislabelled `Chips(4)`, which
+        // made it silently add 0 chips.)
+        enhancement: MPip::CashOnRoundEnd(4),
         resell_value: 0,
         debuffed: false,
     };
@@ -1982,6 +1990,8 @@ mod funky__decks__joker_tests {
     /// modifiers, and every probabilistic effect (those resolve through the
     /// seeded-RNG path, not deterministic scoring). The match is exhaustive on
     /// purpose: a new `MPip` variant will not compile until it is classified.
+    // One arm per variant — a long but flat exhaustive match, like `Display`.
+    #[allow(clippy::too_many_lines)]
     fn scores_hand(mpip: MPip) -> bool {
         match mpip {
             // --- deterministic hand-score contributions ---
@@ -2004,7 +2014,9 @@ mod funky__decks__joker_tests {
             | MPip::MultPlus(_)
             // Gros Michel scores its +mult unconditionally; the destruction half
             // is a separate, end-of-round concern that does not gate it.
+            // Cavendish is the same compound shape on the ×mult side.
             | MPip::MultPlusChanceDestroyed(_, _, _)
+            | MPip::MultTimesChanceDestroyed(_, _, _)
             | MPip::MultPlusChipsOnRank(_, _, _)
             | MPip::MultPlusOn5Ranks(_, _)
             | MPip::MultPlusOnFlush(_)
@@ -2069,6 +2081,14 @@ mod funky__decks__joker_tests {
             MPip::Blank
             | MPip::AddCardTypeWhenBlindSelected(_)
             | MPip::ChanceDestroyed(_, _)
+            // The `+$` payouts move money at lifecycle events (round end,
+            // discard), never the hand score. Bull turns money into chips,
+            // but that is Bull's arm, not theirs.
+            | MPip::CashOnRoundEnd(_)
+            | MPip::CashPerDiscardIfNoneUsed(_)
+            | MPip::CashPerFullDeckRank(_, _)
+            | MPip::ExtraInterest(_)
+            | MPip::CashOnFacesDiscarded(_, _)
             | MPip::CreateCardOnRankPlay(_, _, _)
             | MPip::Credit(_)
             | MPip::Death(_)
