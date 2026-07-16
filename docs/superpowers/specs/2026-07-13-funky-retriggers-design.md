@@ -1,5 +1,18 @@
 # EPIC-01a Phase 4a — Per-Card Retriggers (Design)
 
+> ⚠️ **SUPERSEDED — this design lost the merge race, do not implement from it.**
+> A parallel implementation of the same four jokers landed on `origin/funky`
+> (`26db1db` "Phase 4" + `c5b7b0e` Mime) and won at merge `6d3ac11`. The shipped
+> vocabulary differs from this spec: the `MPip` variants are
+> `RetriggerPlayedRanks(n, ranks)`, `RetriggerPlayedFaces(n)`, and
+> `RetriggerFirstPlayed(n)` — each carrying an explicit trigger count — not the
+> count-less `RetriggerScoredRanks`/`RetriggerScoredFaces`/`RetriggerFirstScored`
+> designed below. The count helpers shipped as `played_retriggers` /
+> `held_retriggers` in `src/funky/types/board.rs`. The one piece of this effort
+> that survived the merge is the stacking test
+> (`score__stacked_retriggers_are_additive`). Read the below only as a record of
+> the design explored on 2026-07-13; the code is the current truth.
+
 **Date:** 2026-07-13 · **Branch:** `funky` · **EPIC:** [EPIC-01a Phase 4](../../EPIC-01a_Joker_Wiring_Backlog.md) (Retriggers)
 
 ## Summary

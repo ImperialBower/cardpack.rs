@@ -1,5 +1,16 @@
 # Funky Per-Card Retriggers (EPIC-01a Phase 4a) Implementation Plan
 
+> ⚠️ **SUPERSEDED — do not execute this plan.** The feature it plans is already
+> shipped: a parallel implementation from `origin/funky` (`26db1db` + `c5b7b0e`)
+> won at merge `6d3ac11`, wiring all four jokers (Hack, Sock and Buskin, Hanging
+> Chad, Mime) with a different `MPip` vocabulary —
+> `RetriggerPlayedRanks(n, ranks)` / `RetriggerPlayedFaces(n)` /
+> `RetriggerFirstPlayed(n)` instead of the variants named below — and
+> `played_retriggers` / `held_retriggers` as the count helpers. Only the
+> stacking test (`score__stacked_retriggers_are_additive`) survived from this
+> plan's implementation. See the matching superseded note in
+> [the design spec](../specs/2026-07-13-funky-retriggers-design.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make a played or held card's scoring contribution apply `1 + n` times, where retrigger jokers grant `n`, and wire four jokers (Hack, Sock and Buskin, Hanging Chad, Mime) end-to-end.
