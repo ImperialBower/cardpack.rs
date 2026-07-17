@@ -280,8 +280,15 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   in no rarity pile; Balatro has both at **Uncommon / $6**.~~ Fixed in Phase 7 —
   see 7c.
 
-  **The sweep is still open, and the drift is now measured rather than
-  estimated.** Every joker Phases 3–8 touched needed the *same* fix — the const
+  ~~**The sweep is still open**~~ — **swept 2026-07-16** (post-close-out): 52
+  consts reconciled against balatrowiki.org, the piles now partition
+  `ALL_JOKERS` (56/41/10/5), and two new guards pin it —
+  `all_jokers__every_joker_is_piled_by_its_rarity` and
+  `all_jokers__resell_value_is_half_cost_floored_at_one`. The sweep also caught
+  **Mystic Summit piled and wrong** (Uncommon/$6 in `UNCOMMON_JOKERS`; the wiki
+  has Common/$5) — a *consistently* misfiled const is invisible to both guards,
+  so only source reconciliation finds it. The drift was measured rather than
+  estimated before the sweep: Every joker Phases 3–8 touched needed the *same* fix — the const
   had been left at the `CommonJoker` / `value: 5` / `resell_value: 0` default and
   adrift from every pile. Nine more were corrected in passing (Hologram, Vampire,
   Constellation, Fortune Teller, Superposition, Vagabond, Riff-Raff, Madness,
@@ -311,10 +318,10 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   minting a compound variant now for a system that does not exist.~~ Fixed in
   1c, exactly as planned: `MultTimesChanceDestroyed(3, 1, 1000)`, rolled by
   `on_round_end_with_rng`.
-- **Hiker** (#56) is tagged `CommonJoker` / `value: 5` and sits in no rarity pile.
-  Balatro is believed to have it at **Uncommon / $5** — unverified against the
-  wiki, so deliberately *not* fixed on a guess (the in-repo catalog at
-  `joker.rs` only covers #96–150). Fold into the reconciling sweep above.
+- ~~**Hiker** (#56) is tagged `CommonJoker` / `value: 5` and sits in no rarity
+  pile. Balatro is believed to have it at **Uncommon / $5** — unverified against
+  the wiki, so deliberately *not* fixed on a guess.~~ Verified and fixed in the
+  2026-07-16 sweep: the wiki confirms **Uncommon / $5**, exactly as believed.
 
 ---
 
@@ -758,9 +765,9 @@ each joker + its test. Track completion by flipping the Status table.
   pile. `resell_value` left at 0, matching what the Baron fix did (resell is a
   separate dimension, still 0 across all the adrift consts).
 
-  *Still open:* ~59 defined-but-unpiled consts remain, with rarity/cost/pile
-  unreconciled against the wiki. Worth one sweep rather than piecemeal fixes;
-  logged under Data fixes.
+  ~~*Still open:* ~59 defined-but-unpiled consts remain, with rarity/cost/pile
+  unreconciled against the wiki.~~ Closed by the 2026-07-16 sweep — see §Data
+  fixes.
 
 ### Phase 5 — Deck mutation / create / consumables
 

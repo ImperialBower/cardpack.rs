@@ -25,9 +25,9 @@
 
 - [ ] **`determine_hand_type` is HACKY** — sequential if-chain hand detection;
   also tracked in EPIC-01 ("Resolve the HACKY markers").
-  (`src/funky/types/buffoon_pile.rs:185`)
+  (`src/funky/types/buffoon_pile.rs:235`)
 - [ ] **`has_royal_flush` is HACKY** — same cluster as above.
-  (`src/funky/types/buffoon_pile.rs:377`)
+  (`src/funky/types/buffoon_pile.rs:430`)
 - [ ] **`Pip::PRIMES` const marked HACK** — a hard-coded 60-prime table used for
   weighting. (`src/basic/types/pips.rs:98`)
 - [ ] **i18n `fluent_*` path marked HACK** — author notes fluent-templates may
@@ -56,17 +56,20 @@
 > the 1 the EPIC flagged), Baron's rarity (0a), Cavendish's missing 1-in-1000
 > destroy chance (1c), and Erosion/Stone Joker's rarity (7c).
 
-- [ ] **~50 defined-but-unpiled joker consts** want one reconciling rarity/cost/
-  pile sweep. (EPIC-01a §Data fixes)
-
-  **Now measured rather than estimated, and the shape is known.** Twelve have
-  been corrected so far, and *every one* needed the identical fix: the const had
-  been left at the `CommonJoker` / `value: 5` / `resell_value: 0` default and was
-  absent from every rarity pile. That is not coincidence — `CommonJoker`/$5 is
-  simply **what an unwired const looks like**, so rarity drift and `MPip::Blank`
-  are one debt seen twice. The corollary is useful: the piecemeal route is
-  self-correcting, because nothing gets wired without its data being looked up.
-  A sweep is still cheaper than 50 more one-offs.
+- [x] ~~**~50 defined-but-unpiled joker consts** want one reconciling rarity/cost/
+  pile sweep.~~ — **Swept 2026-07-16**, against balatrowiki.org. 52 consts
+  reconciled (47 adrift + Mystic Summit + 4 resell-only stragglers): every joker
+  now carries its wiki rarity, cost, and sell value, and sits in its rarity's
+  pile (COMMON 26→56, UNCOMMON 26→41, RARE 8→10; the piles now partition
+  `ALL_JOKERS`). Two new guards keep it fixed:
+  `all_jokers__every_joker_is_piled_by_its_rarity` (the inverse of the superset
+  guard — an adrift const can no longer hide) and
+  `all_jokers__resell_value_is_half_cost_floored_at_one` (Balatro's sell rule as
+  an invariant; `sell_joker` pays `resell_value` out for real, so a stale 0 was
+  silently lost money). *Finding:* **Mystic Summit was piled and wrong** —
+  Uncommon/$6 in `UNCOMMON_JOKERS`, but Common/$5 per the wiki infobox. A
+  consistently misfiled joker is invisible to both guards; only reconciling
+  against the source catches it. (EPIC-01a §Data fixes)
 
 - [x] ~~**Stone card scores 0**~~ — **Fixed.** It needed +50 chips *and* hand-type
   suppression together, and both are in: `BuffoonCard::is_stone` masks the chips
@@ -94,12 +97,12 @@
   the deck ends up **empty with those 3 gone**. Either drain nothing on failure
   (check `len()` first) or return what it has; the second is what callers want,
   and is what `BuffoonBoard::deal_to_hand_size` does instead of using this.
-  Found while building the round loop. (`src/funky/types/buffoon_pile.rs:227`)
+  Found while building the round loop. (`src/funky/types/buffoon_pile.rs:277`)
 
 - [ ] **`draw` and `draw_first` deal from opposite ends** — `draw(n)` uses `pop`
   (the end), `draw_first` uses `remove(0)` (the front). Related to the "treat the
   end of the vector as the top of the deck" refactor above; the round loop deals
-  with `pop`. (`src/funky/types/buffoon_pile.rs:227,239`)
+  with `pop`. (`src/funky/types/buffoon_pile.rs:277,289`)
 
 ## 🤖 Automated review findings
 

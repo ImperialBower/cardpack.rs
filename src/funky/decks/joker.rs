@@ -3,7 +3,7 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 26;
+    pub const COMMON_JOKERS_SIZE: usize = 56;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
         card::SUPERPOSITION,
@@ -32,6 +32,36 @@ impl Joker {
         card::RAISED_FIST,
         card::CHAOS_THE_CLOWN,
         card::HANGING_CHAD,
+        card::SCARY_FACE,
+        card::ABSTRACT_JOKER,
+        card::DELAYED_GRATIFICATION,
+        card::GROS_MICHEL,
+        card::EVEN_STEVEN,
+        card::ODD_TODD,
+        card::SCHOLAR,
+        card::BUSINESS_CARD,
+        card::SUPERNOVA,
+        card::RIDE_THE_BUS,
+        card::EGG,
+        card::RUNNER,
+        card::ICE_CREAM,
+        card::SPLASH,
+        card::BLUE_JOKER,
+        card::FACELESS_JOKER,
+        card::GREEN_JOKER,
+        card::TO_DO_LIST,
+        card::CAVENDISH,
+        card::RED_CARD,
+        card::SQUARE_JOKER,
+        card::RESERVED_PARKING,
+        card::MAIL_IN_REBATE,
+        card::HALLUCINATION,
+        card::JUGGLER,
+        card::DRUNKARD,
+        card::GOLDEN_JOKER,
+        card::POPCORN,
+        card::WALKIE_TALKIE,
+        card::MYSTIC_SUMMIT,
     ];
 
     #[must_use]
@@ -39,14 +69,13 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 26;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 41;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
         card::FOUR_FINGERS,
         card::MIME,
         card::CEREMONIAL_DAGGER,
-        card::MYSTIC_SUMMIT,
         card::MARBLE_JOKER,
         card::LOYALTY_CARD,
         card::DUSK,
@@ -68,6 +97,22 @@ impl Joker {
         card::MADNESS,
         card::CARD_SHARP,
         card::ROCKET,
+        card::SPACE_JOKER,
+        card::BURGLAR,
+        card::BLACKBOARD,
+        card::SIXTH_SENSE,
+        card::HIKER,
+        card::SHORTCUT,
+        card::CLOUD_9,
+        card::TO_THE_MOON,
+        card::LUCKY_CAT,
+        card::BULL,
+        card::DIET_COLA,
+        card::TRADING_CARD,
+        card::FLASH_CARD,
+        card::SPARE_TROUSERS,
+        card::RAMEN,
+        card::SEANCE,
     ];
 
     #[must_use]
@@ -75,7 +120,7 @@ impl Joker {
         BuffoonPile::from(&Self::UNCOMMON_JOKERS[..])
     }
 
-    pub const RARE_JOKERS_SIZE: usize = 8;
+    pub const RARE_JOKERS_SIZE: usize = 10;
 
     pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
         card::VAGABOND,
@@ -86,6 +131,8 @@ impl Joker {
         card::THE_ORDER,
         card::THE_TRIBE,
         card::BARON,
+        card::DNA,
+        card::BASEBALL_CARD,
     ];
 
     #[must_use]
@@ -434,9 +481,9 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '🏔',
             symbol: '🏔',
-            value: 6,
+            value: 5,
         },
-        card_type: BCardType::UncommonJoker,
+        card_type: BCardType::CommonJoker,
         enhancement: MPip::MultPlusOnZeroDiscards(15),
         resell_value: 2,
         debuffed: false,
@@ -452,7 +499,7 @@ pub mod card {
         },
         card_type: BCardType::UncommonJoker,
         enhancement: MPip::AddCardTypeWhenBlindSelected(BCardType::Stone),
-        resell_value: 2,
+        resell_value: 3,
         debuffed: false,
     };
     pub const LOYALTY_CARD: BuffoonCard = BuffoonCard {
@@ -667,7 +714,7 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '▤',
             symbol: '▤',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::MultPlusOn5Ranks(4, ['T', '8', '6', '4', '2']),
@@ -681,7 +728,7 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '▲',
             symbol: '▲',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::ChipsPlusOn5Ranks(31, ['A', '9', '7', '5', '3']),
@@ -695,7 +742,7 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '🎓',
             symbol: '🎓',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::MultPlusChipsOnRank(4, 20, 'A'),
@@ -758,7 +805,7 @@ pub mod card {
             symbol: '∝',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Odds1inUpgradeHand(4),
         resell_value: 2,
         debuffed: false,
@@ -770,7 +817,7 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∞',
             symbol: '∞',
-            value: 6,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::SellValueIncrement(3),
@@ -786,7 +833,7 @@ pub mod card {
             symbol: '∟',
             value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Burglar: when a Blind is selected, gain +3 hands and lose all
         // discards (wiping any discard bonus, e.g. Drunkard's).
         enhancement: MPip::GainHandsLoseDiscardsWhenBlindSelected(3),
@@ -800,9 +847,9 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∠',
             symbol: '∠',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Blackboard: ×3 mult if all cards held in hand are Spades or Clubs.
         enhancement: MPip::MultTimesIfHeldAllSuits(3, ['S', 'C']),
         resell_value: 3,
@@ -830,7 +877,7 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∢',
             symbol: '∢',
-            value: 6,
+            value: 5,
         },
         card_type: BCardType::CommonJoker,
         // Ice Cream: +100 chips, −5 per hand played; floors at 0.
@@ -845,11 +892,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∣',
             symbol: '∣',
-            value: 5,
+            value: 8,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         enhancement: MPip::Blank,
-        resell_value: 2,
+        resell_value: 4,
         debuffed: false,
     };
     pub const SPLASH: BuffoonCard = BuffoonCard {
@@ -859,11 +906,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∤',
             symbol: '∤',
-            value: 4,
+            value: 3,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::AllPlayedCardsScore,
-        resell_value: 0,
+        resell_value: 1,
         debuffed: false,
     };
     pub const BLUE_JOKER: BuffoonCard = BuffoonCard {
@@ -878,7 +925,7 @@ pub mod card {
         card_type: BCardType::CommonJoker,
         // Blue Joker: +2 chips for each card remaining in the deck.
         enhancement: MPip::ChipsPerDeckCard(2),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const SIXTH_SENSE: BuffoonCard = BuffoonCard {
@@ -888,11 +935,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∦',
             symbol: '∦',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     // 55 Constellation — Uncommon, $6. Was tagged Common / $5 and unpiled.
@@ -920,10 +967,10 @@ pub mod card {
             symbol: '∨',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Hiker: every played card permanently gains +4 chips when scored.
         enhancement: MPip::GainChipsOnScored(4),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const FACELESS_JOKER: BuffoonCard = BuffoonCard {
@@ -933,13 +980,13 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∩',
             symbol: '∩',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Faceless Joker: earn $5 when 3 or more face cards are discarded at
         // the same time.
         enhancement: MPip::CashOnFacesDiscarded(5, 3),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const GREEN_JOKER: BuffoonCard = BuffoonCard {
@@ -949,12 +996,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∪',
             symbol: '∪',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Green Joker: +1 Mult per hand played, −1 per discard (net, floored ≥0).
         enhancement: MPip::GainMultPerHandLessDiscard(1),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const SUPERPOSITION: BuffoonCard = BuffoonCard {
@@ -979,11 +1026,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∬',
             symbol: '∬',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const CAVENDISH: BuffoonCard = BuffoonCard {
@@ -993,14 +1040,14 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∭',
             symbol: '∭',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Cavendish: ×3 Mult (unconditional), and a 1-in-1000 chance of being
         // destroyed at end of round — the Gros Michel compound shape on the
         // ×mult side. The const carried only the mult until EPIC-01a Phase 1c.
         enhancement: MPip::MultTimesChanceDestroyed(3, 1, 1000),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const CARD_SHARP: BuffoonCard = BuffoonCard {
@@ -1029,7 +1076,7 @@ pub mod card {
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const MADNESS: BuffoonCard = BuffoonCard {
@@ -1055,12 +1102,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∱',
             symbol: '∱',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Square Joker: +4 chips for each hand played with exactly 4 cards.
         enhancement: MPip::GainChipsPerCardCountHand(4, 4),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const SEANCE: BuffoonCard = BuffoonCard {
@@ -1070,11 +1117,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∲',
             symbol: '∲',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const RIFF_RAFF: BuffoonCard = BuffoonCard {
@@ -1117,11 +1164,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∵',
             symbol: '∵',
-            value: 5,
+            value: 7,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::GappedStraight,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     // 70 Hologram — Uncommon, $7. The Baron/Erosion data-fix pattern: it was
@@ -1168,7 +1215,7 @@ pub mod card {
         card_type: BCardType::RareJoker,
         // Baron: each King held in hand gives ×1.5 mult (compounds).
         enhancement: MPip::MultTimesPerHeldRank(15, 'K'),
-        resell_value: 0,
+        resell_value: 4,
         debuffed: false,
     };
     pub const CLOUD_9: BuffoonCard = BuffoonCard {
@@ -1178,12 +1225,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∹',
             symbol: '∹',
-            value: 5,
+            value: 7,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Cloud 9: earn $1 for each 9 in the full deck at end of round.
         enhancement: MPip::CashPerFullDeckRank(1, '9'),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const ROCKET: BuffoonCard = BuffoonCard {
@@ -1212,7 +1259,7 @@ pub mod card {
         },
         card_type: BCardType::UncommonJoker,
         enhancement: MPip::MultPlusPerMissingDeckCard(4),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const RESERVED_PARKING: BuffoonCard = BuffoonCard {
@@ -1222,11 +1269,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∼',
             symbol: '∼',
-            value: 5,
+            value: 6,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const MAIL_IN_REBATE: BuffoonCard = BuffoonCard {
@@ -1236,11 +1283,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∽',
             symbol: '∽',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const TO_THE_MOON: BuffoonCard = BuffoonCard {
@@ -1252,11 +1299,11 @@ pub mod card {
             symbol: '∾',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // To the Moon: earn $1 extra interest per $5 held at end of round,
         // capped at the base interest cap ($5).
         enhancement: MPip::ExtraInterest(1),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const HALLUCINATION: BuffoonCard = BuffoonCard {
@@ -1266,11 +1313,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∿',
             symbol: '∿',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     // 86 Fortune Teller — Common, $6. Cost was $5.
@@ -1297,12 +1344,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≁',
             symbol: '≁',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Juggler: +1 hand size while held — round config, not hand score.
         enhancement: MPip::HandSizeIncrement(1),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const DRUNKARD: BuffoonCard = BuffoonCard {
@@ -1312,12 +1359,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≂',
             symbol: '≂',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Drunkard: +1 discard each round while held.
         enhancement: MPip::DiscardIncrement(1),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const STONE_JOKER: BuffoonCard = BuffoonCard {
@@ -1331,7 +1378,7 @@ pub mod card {
         },
         card_type: BCardType::UncommonJoker,
         enhancement: MPip::ChipsPerFullDeckStone(25),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const GOLDEN_JOKER: BuffoonCard = BuffoonCard {
@@ -1341,14 +1388,14 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≄',
             symbol: '≄',
-            value: 5,
+            value: 6,
         },
         card_type: BCardType::CommonJoker,
         // Golden Joker: earn $4 at end of round — economy, not hand score.
         // Paid by `on_round_end`. (It was once mislabelled `Chips(4)`, which
         // made it silently add 0 chips.)
         enhancement: MPip::CashOnRoundEnd(4),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const LUCKY_CAT: BuffoonCard = BuffoonCard {
@@ -1358,11 +1405,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≅',
             symbol: '≅',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const BASEBALL_CARD: BuffoonCard = BuffoonCard {
@@ -1372,12 +1419,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≆',
             symbol: '≆',
-            value: 5,
+            value: 8,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::RareJoker,
         // Baseball Card: Uncommon jokers each give ×1.5 mult (compounds).
         enhancement: MPip::MultTimesPerUncommonJoker(15),
-        resell_value: 0,
+        resell_value: 4,
         debuffed: false,
     };
     pub const BULL: BuffoonCard = BuffoonCard {
@@ -1387,11 +1434,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≇',
             symbol: '≇',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::ChipsPerDollar(2),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const DIET_COLA: BuffoonCard = BuffoonCard {
@@ -1401,11 +1448,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≈',
             symbol: '≈',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const TRADING_CARD: BuffoonCard = BuffoonCard {
@@ -1415,11 +1462,11 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≉',
             symbol: '≉',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const FLASH_CARD: BuffoonCard = BuffoonCard {
@@ -1431,9 +1478,9 @@ pub mod card {
             symbol: '≊',
             value: 5,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         enhancement: MPip::Blank,
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const POPCORN: BuffoonCard = BuffoonCard {
@@ -1449,7 +1496,7 @@ pub mod card {
         // Popcorn: +20 mult, losing 4 per round played — spent after 5 rounds,
         // when the round that empties it destroys it.
         enhancement: MPip::LoseMultPerRound(20, 4),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
     pub const SPARE_TROUSERS: BuffoonCard = BuffoonCard {
@@ -1459,12 +1506,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≌',
             symbol: '≌',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Spare Trousers: +2 Mult for each hand played containing a Two Pair.
         enhancement: MPip::GainMultPerTwoPairHand(2),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const ANCIENT_JOKER: BuffoonCard = BuffoonCard {
@@ -1490,12 +1537,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '🍜',
             symbol: '🍜',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
+        card_type: BCardType::UncommonJoker,
         // Ramen: ×2 Mult, loses ×0.01 per card discarded; floors at ×1.
         enhancement: MPip::LoseMultTimesPerDiscard(200, 1),
-        resell_value: 0,
+        resell_value: 3,
         debuffed: false,
     };
     pub const WALKIE_TALKIE: BuffoonCard = BuffoonCard {
@@ -1505,12 +1552,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '📻',
             symbol: '📻',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
         // Walkie Talkie: each played 10 or 4 gives +10 chips and +4 mult.
         enhancement: MPip::ChipsMultPlusPerScoredRanks(10, 4, ['T', '4']),
-        resell_value: 0,
+        resell_value: 2,
         debuffed: false,
     };
 
@@ -2022,6 +2069,66 @@ mod funky__decks__joker_tests {
                 );
             }
         }
+    }
+
+    /// The inverse of the superset guard: every joker in [`ALL_JOKERS`] must
+    /// sit in the rarity pile its own `card_type` names. An adrift joker is
+    /// invisible to everything that draws from the piles (Riff-Raff already
+    /// mints from `COMMON_JOKERS`; the shop will draw stock the same way) —
+    /// and `CommonJoker`/$5/`resell_value: 0` with no pile is exactly what
+    /// stale default data looks like (EPIC-01a §Data fixes).
+    #[test]
+    fn all_jokers__every_joker_is_piled_by_its_rarity() {
+        let mut adrift: Vec<String> = Vec::new();
+        for card in ALL_JOKERS {
+            let pile: &[BuffoonCard] = match card.card_type {
+                BCardType::CommonJoker => &Joker::COMMON_JOKERS,
+                BCardType::UncommonJoker => &Joker::UNCOMMON_JOKERS,
+                BCardType::RareJoker => &Joker::RARE_JOKERS,
+                BCardType::LegendaryJoker => &Joker::LEGENDARY_JOKERS,
+                other => {
+                    adrift.push(format!("{card} has non-joker card_type {other:?}"));
+                    continue;
+                }
+            };
+            if !pile.contains(&card) {
+                adrift.push(format!("{card}"));
+            }
+        }
+        assert!(
+            adrift.is_empty(),
+            "{} jokers missing from their rarity's pile:\n{}",
+            adrift.len(),
+            adrift.join("\n")
+        );
+    }
+
+    /// Balatro's sell value is half the buy cost, rounded down, floored at $1
+    /// (a $2 Joker sells for $1, a $7 Vampire for $3). `sell_joker` pays
+    /// `resell_value` out for real now, so a stale 0 is money silently lost.
+    /// Legendary jokers are excluded: they cannot be bought, carry cost 0, and
+    /// the engine models no sell price for them.
+    #[test]
+    fn all_jokers__resell_value_is_half_cost_floored_at_one() {
+        let mut wrong: Vec<String> = Vec::new();
+        for card in ALL_JOKERS {
+            if card.card_type == BCardType::LegendaryJoker {
+                continue;
+            }
+            let expected = (card.rank.value / 2).max(1);
+            if card.resell_value != expected {
+                wrong.push(format!(
+                    "{card}: cost ${} should sell ${expected}, has ${}",
+                    card.rank.value, card.resell_value
+                ));
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "{} jokers with a wrong resell_value:\n{}",
+            wrong.len(),
+            wrong.join("\n")
+        );
     }
 
     /// `weight` is a joker's sort key; distinct jokers must not share one, or

@@ -18,9 +18,10 @@ still `MPip::Blank` each carry a test-enforced reason (`BLANK_WITH_REASON`,
 booster packs, the shop, tags, a draw step, in-fold effects, per-hand boss
 abilities. Carried forward, tracked outside the EPIC:
 
-- [ ] The reconciling rarity/cost/pile sweep over the ~50 remaining
-  defined-but-unpiled joker consts (12 fixed piecemeal during the EPIC; see
-  EPIC-01a §Data fixes and TECHNICAL_DEBT).
+- [x] ~~The reconciling rarity/cost/pile sweep over the ~50 remaining
+  defined-but-unpiled joker consts.~~ Swept 2026-07-16: 52 consts reconciled
+  against the wiki, piles now partition `ALL_JOKERS`, two new guards pin it
+  (see TECHNICAL_DEBT for the full note, incl. the Mystic Summit misfile).
 - [ ] `BuffoonPile::draw(n)` loses cards when the deck can't supply the full
   count — sidestepped by `deal_to_hand_size`, tracked in TECHNICAL_DEBT.
 
