@@ -7,8 +7,8 @@
 > a persistent, run-wide modifier the shop sells once, read live by the round
 > configuration the engine already recomputes each blind.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–2 complete
-(2026-07-17); Phases 3–5 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–3 complete
+(2026-07-17); Phases 4–5 planned
 
 ---
 
@@ -53,7 +53,7 @@ joker directly** — vouchers are their own reward: a complete, spendable shop.
 |---|---|---|
 | 1 — `Voucher` type, board state, shop slot, redeem | the voucher slot the shop has been missing | **Complete** (2026-07-17) |
 | 2 — Draws vouchers (Grabber/Nacho Tong, Wasteful/Recyclomancy, Paint Brush/Palette) | hands / discards / hand-size, via `recompute_draws` | **Complete** (2026-07-17) |
-| 3 — Slot vouchers (Overstock/Plus, Crystal Ball, Antimatter) | shop card slots, consumable slots, joker slots | Planned |
+| 3 — Slot vouchers (Overstock/Plus, Crystal Ball, Antimatter) | shop card slots, consumable slots, joker slots | **Complete** (2026-07-17) |
 | 4 — Economy vouchers (Reroll Surplus/Glut, Clearance Sale/Liquidation, Seed Money/Money Tree) | reroll cost, buy discount, interest cap | Planned |
 | 5 — Shop-weight vouchers (Tarot/Planet Merchant + Tycoon) | the 20/4/4 stock roll | Planned |
 
@@ -295,13 +295,25 @@ Tycoons quadruple — so the roll's denominator and thresholds become voucher-aw
   non-empty set). The upgrade-needs-base rule is enforced at redeem (Phase 1c),
   so an unheld Nacho Tong never reaches the board to be read here.
 
-### Phase 3 — Slot vouchers
+### Phase 3 — Slot vouchers — **Complete 2026-07-17**
 
-- [ ] **3a.** Crystal Ball / Antimatter bump `consumable_slots` / `joker_slots`
-  at redeem; `has_consumable_room` / `has_joker_room` see the new room. Tests:
-  buying a third consumable succeeds only after Crystal Ball.
-- [ ] **3b.** Overstock/Plus size the shop's card slots live at open. Test: a
-  shop opened with Overstock offers 3 stock cards, Plus offers 4.
+- [x] **3a.** Crystal Ball / Antimatter bump `consumable_slots` / `joker_slots`
+  in `redeem_shop_voucher` (a permanent, once-guarded bump — the slot fields have
+  no recompute pass, unlike the Draws vouchers). `has_consumable_room` /
+  `has_joker_room` read those fields, so the new room appears immediately. Tests:
+  each bumps only its own slot; and the end-to-end `crystal_ball__opens_room_for_a_third_consumable`
+  — a full inventory refuses `buy_stock` of a third consumable, and redeeming
+  Crystal Ball opens exactly the room for it.
+- [x] **3b.** Overstock/Plus size the shop's card slots **live** at open via
+  `overstock_bonus()` (there is no shop-slot field to bump — the count is
+  computed each `open_shop_with_rng`): +1 for Overstock, +1 more for Overstock
+  Plus (which requires Overstock, so holding it means holding both). Tests: a
+  shop opened with Overstock offers 3 stock cards, with both offers 4.
+- **Two mechanisms, by target.** Board slots (Crystal Ball/Antimatter) are
+  persistent fields, so they bump once at redeem; the shop's card-slot count
+  (Overstock) has no field and is read live at open — the same live-vs-bump split
+  as Draws-vouchers-vs-board-slots, chosen by whether a persistent field exists
+  to hold the effect.
 
 ### Phase 4 — Economy vouchers
 

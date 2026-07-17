@@ -1684,7 +1684,8 @@ impl BuffoonBoard {
     /// stock to draw, exactly as [`on_blind_selected_with_rng`](Self::on_blind_selected_with_rng)
     /// exists for Riff-Raff. A fresh shop has rerolled nothing.
     pub fn open_shop_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
-        let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
+        let slots = 2 + self.overstock_bonus();
+        let stock = (0..slots).map(|_| Self::draw_stock_card(rng)).collect();
         let packs = vec![Self::draw_pack(rng), Self::draw_pack(rng)];
         let eligible = self.eligible_vouchers();
         let voucher = if eligible.is_empty() {
@@ -1698,6 +1699,17 @@ impl BuffoonBoard {
             voucher,
             rerolls_used: 0,
         });
+    }
+
+    /// Extra shop card slots from the Overstock vouchers, read **live** at open:
+    /// +1 for Overstock, +1 more for Overstock Plus (which requires Overstock, so
+    /// holding it means holding both). Unlike the board slots, there is no field
+    /// to bump — the shop's card-slot count is computed fresh each open.
+    fn overstock_bonus(&self) -> usize {
+        self.vouchers
+            .iter()
+            .filter(|voucher| matches!(voucher, Voucher::Overstock | Voucher::OverstockPlus))
+            .count()
     }
 
     /// The vouchers the shop may offer: those **not yet redeemed** whose
@@ -1724,6 +1736,14 @@ impl BuffoonBoard {
     /// floor, so a Credit Card lets a voucher go into debt too). On success the
     /// voucher joins the run and the slot is cleared — a voucher is redeemed once
     /// and never returns to the pool.
+    ///
+    /// The board-slot vouchers apply their **permanent** bump here: Crystal Ball
+    /// grows [`consumable_slots`](Self::consumable_slots), Antimatter
+    /// [`joker_slots`](Self::joker_slots). Unlike the Draws vouchers (recomputed
+    /// live each blind), the slot fields have no recompute pass, and a redeem
+    /// happens once and is guarded — so a one-time bump cannot stack. (Overstock
+    /// is not here: it sizes the *shop's* card slots, read live at open, with no
+    /// board field to bump.)
     pub fn redeem_shop_voucher(&mut self) -> bool {
         let Some(voucher) = self.shop.as_ref().and_then(|shop| shop.voucher) else {
             return false;
@@ -1742,6 +1762,11 @@ impl BuffoonBoard {
         }
         self.money = self.money.saturating_sub(price);
         self.vouchers.push(voucher);
+        match voucher {
+            Voucher::CrystalBall => self.consumable_slots += 1,
+            Voucher::Antimatter => self.joker_slots += 1,
+            _ => {}
+        }
         if let Some(shop) = self.shop.as_mut() {
             shop.voucher = None;
         }
@@ -5807,6 +5832,83 @@ mod funky__types__board__buffoon_board_tests {
         board.on_blind_selected();
         board.on_blind_selected();
         assert_eq!(board.draws.hands_to_play, 5, "still +1, never +3");
+    }
+
+    // ---- Slot vouchers, EPIC-01c Phase 3 ----------------------------------
+
+    #[test]
+    fn redeem_shop_voucher__crystal_ball_adds_a_consumable_slot() {
+        let mut board = board_offering_voucher(Voucher::CrystalBall);
+        board.money = 20;
+        assert_eq!(
+            board.consumable_slots,
+            BuffoonBoard::DEFAULT_CONSUMABLE_SLOTS
+        );
+
+        assert!(board.redeem_shop_voucher());
+        assert_eq!(
+            board.consumable_slots,
+            BuffoonBoard::DEFAULT_CONSUMABLE_SLOTS + 1,
+            "Crystal Ball adds a consumable slot"
+        );
+        assert_eq!(
+            board.joker_slots,
+            BuffoonBoard::DEFAULT_JOKER_SLOTS,
+            "and leaves joker slots alone"
+        );
+    }
+
+    #[test]
+    fn redeem_shop_voucher__antimatter_adds_a_joker_slot() {
+        let mut board = board_offering_voucher(Voucher::Antimatter);
+        board.money = 20;
+
+        assert!(board.redeem_shop_voucher());
+        assert_eq!(board.joker_slots, BuffoonBoard::DEFAULT_JOKER_SLOTS + 1);
+        assert_eq!(
+            board.consumable_slots,
+            BuffoonBoard::DEFAULT_CONSUMABLE_SLOTS
+        );
+    }
+
+    #[test]
+    fn crystal_ball__opens_room_for_a_third_consumable() {
+        // The end-to-end: a full inventory refuses a third consumable, and Crystal
+        // Ball redeemed opens exactly the room for it.
+        let mut board = board_for_a_round();
+        board.money = 20;
+        assert!(board.create_consumable(tarot_card::FOOL));
+        assert!(board.create_consumable(tarot_card::FOOL));
+        assert!(!board.has_consumable_room(), "the two slots are full");
+
+        let mut shop = crate::funky::types::shop::Shop::with_stock(vec![tarot_card::FOOL]);
+        shop.voucher = Some(Voucher::CrystalBall);
+        board.shop = Some(shop);
+
+        assert!(!board.buy_stock(0), "no room for a third consumable yet");
+        assert!(board.redeem_shop_voucher(), "redeem Crystal Ball");
+        assert!(board.buy_stock(0), "now the third fits");
+        assert_eq!(board.consumables.len(), 3);
+    }
+
+    #[test]
+    fn open_shop_with_rng__overstock_offers_three_card_slots() {
+        // Overstock sizes the shop's card slots live at open, not a board field.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Overstock);
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.shop.as_ref().unwrap().stock.len(), 3);
+    }
+
+    #[test]
+    fn open_shop_with_rng__overstock_plus_offers_four_card_slots() {
+        // Overstock Plus requires Overstock, so holding it means holding both —
+        // the bonus is +2.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Overstock);
+        board.vouchers.push(Voucher::OverstockPlus);
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.shop.as_ref().unwrap().stock.len(), 4);
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------
