@@ -615,7 +615,7 @@ each joker + its test. Track completion by flipping the Status table.
 
   `ALL_JOKERS` grew 105→107, all three reclassified scoring in `scores_hand`.
 
-- [~] **4b.** Held-card retriggers: **Mime** wired. New `fold_held_cards` loop
+- [x] **4b.** Held-card retriggers: **Mime** wired. New `fold_held_cards` loop
   applies each held card's op `1 + held_retriggers()` times (a retriggered Steel
   card gives ×1.5 twice); `held_retriggers` sums `MPip::RetriggerCardsInHand`
   across jokers (card-independent — Mime retriggers all held cards alike). Mime
@@ -648,7 +648,7 @@ each joker + its test. Track completion by flipping the Status table.
 
 ### Phase 6 — Rule modifiers (detection hooks)
 
-- [~] **6a.** `HandRules` seam landed (`buffoon_pile.rs`): a `{straight_distance,
+- [x] **6a.** `HandRules` seam landed (`buffoon_pile.rs`): a `{straight_distance,
   straight_connectors, flush_len}` struct (default = vanilla Balatro) threaded
   into rule-aware detection variants — `determine_hand_type_with`,
   `has_straight_with`, `has_flush_with` (+ the composed straight-flush / royal /
@@ -668,7 +668,7 @@ each joker + its test. Track completion by flipping the Status table.
   four-card straight flush, a one-gap straight) so the reachability guard
   exercises them. Each test fails before the seam threads its rule.
 
-- [~] **6b.** **Pareidolia** wired: new `MPip::AllCardsAreFaces` (const flipped
+- [x] **6b.** **Pareidolia** wired: new `MPip::AllCardsAreFaces` (const flipped
   from `Blank`); a board face-predicate hook `is_face_card`/`all_cards_are_faces`
   replaces the two inline `matches!(index, K|Q|J)` sites (Scary Face's
   `ChipsPlusPerScoredFace`, Sock and Buskin's `RetriggerPlayedFaces`). Pareidolia
@@ -679,7 +679,7 @@ each joker + its test. Track completion by flipping the Status table.
   `score__pareidolia_retriggers_every_card_under_sock_and_buskin`. Both fail
   before the hook lands.
 
-- [~] **6c.** **Smeared** wired: new `MPip::SmearedSuits` + new const (Uncommon /
+- [x] **6c.** **Smeared** wired: new `MPip::SmearedSuits` + new const (Uncommon /
   $7 / 🖍, weight 806, `UNCOMMON_JOKERS` 13→14, `ALL_JOKERS` 107→108). Extends the
   `HandRules` seam with a `smeared` flag; `count_largest_same_suit_with` counts
   the largest *merged* colour group (Hearts+Diamonds, Spades+Clubs) so a mixed
@@ -1274,8 +1274,9 @@ Exit criteria (per phase, not the whole EPIC):
    before (new state is inert by default).
 3. The Status table row flips to **Complete** only with cited, tested code.
 
-**All eight phases met all three.** Final state: **586 lib tests** (501 at the
-start of this EPIC, 525 before Phases 3–8), clippy pedantic **0 warnings**,
+**All eight phases met all three.** Final state: **618 lib tests** (501 at the
+start of this EPIC, 525 before Phases 3–8, 586 before the round-loop and
+Stone-card follow-ons), clippy pedantic **0 warnings**,
 `no_std` clean, `fmt` clean, docs **0 warnings**. Every arm landed in this EPIC
 was spot-verified by reverting it and watching its test fail — including the
 negative guards, which pass vacuously by design (they assert an *absence*, so

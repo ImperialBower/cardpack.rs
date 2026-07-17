@@ -1,34 +1,28 @@
 # Backlog
 
 > Index of outstanding work, aggregated from EPIC docs, GitHub issues, and code
-> comments by the `/backlog` skill (last refreshed 2026-07-15, branch `funky`).
+> comments by the `/backlog` skill (last refreshed 2026-07-15, branch `funky`;
+> EPIC-01a section updated 2026-07-16 at its close-out).
 > Detail lives in the linked sources; tech debt detail lives in
 > [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md). Items tagged 🤖 are
 > machine-proposed suggestions, not commitments.
 
 ## EPICs / Features
 
-### EPIC-01a — Joker wiring ([docs/EPIC-01a_Joker_Wiring_Backlog.md](docs/EPIC-01a_Joker_Wiring_Backlog.md)) — in progress, the active EPIC
+### EPIC-01a — Joker wiring ([docs/EPIC-01a_Joker_Wiring_Backlog.md](docs/EPIC-01a_Joker_Wiring_Backlog.md)) — **complete** (closed out 2026-07-16, `e9ceeca`)
 
-Phases 0, 6, 7 complete; 1–5 partially done. Open work items, in the EPIC's own
-leverage order:
+All eight phases landed, plus the round loop and the Stone card as follow-ons;
+618 lib tests, all five gates green. 29 jokers wired across the phases; the 14
+still `MPip::Blank` each carry a test-enforced reason (`BLANK_WITH_REASON`,
+`src/funky/decks/joker.rs`) naming the subsystem they wait on — spectral cards,
+booster packs, the shop, tags, a draw step, in-fold effects, per-hand boss
+abilities. Carried forward, tracked outside the EPIC:
 
-- [ ] **1c — Lifecycle hooks** (`on_round_end`, `on_discard`, `on_scored` payouts):
-  the economy keystone; pays out Golden Joker et al. and unblocks the round loop.
-- [ ] **2c — `on_blind_selected()` hook + `Draws` mutators** (Burglar, Juggler, Drunkard).
-- [ ] **3b/3c — Remaining counter jokers** (growth hooks + ~7 of 13 counter jokers:
-  Vampire, Constellation, Hologram, Lucky Cat, Popcorn, Red Card, Fortune Teller,
-  Flash Card + Canio/Yorick).
-- [ ] **4c — Round-state retriggers**: Dusk (needs final-hand state), Seltzer
-  (needs the 10-hand counter).
-- [ ] **5c/5d/5e — Consumables, packs, blind-select creators** (DNA, Séance,
-  Riff-Raff, Vagabond, …) — blocked on shop/consumable subsystems.
-- [ ] **Phase 8 — Boss blinds** (Madness, Luchador, Matador, Chicot) — self-contained sub-EPIC.
-- [ ] **Data fixes**: Baron rarity/cost (Rare/$8, currently Common/$5), Blackboard/
-  Abstract Joker duplicate `weight: 895`, Stone card scoring (needs chips + hand-type
-  suppression together), Cavendish's missing 1-in-1000 destroy chance (latent, wants
-  the round-end hook first), and the reconciling rarity/cost/pile sweep over ~59
-  defined-but-unpiled joker consts.
+- [ ] The reconciling rarity/cost/pile sweep over the ~50 remaining
+  defined-but-unpiled joker consts (12 fixed piecemeal during the EPIC; see
+  EPIC-01a §Data fixes and TECHNICAL_DEBT).
+- [ ] `BuffoonPile::draw(n)` loses cards when the deck can't supply the full
+  count — sidestepped by `deal_to_hand_size`, tracked in TECHNICAL_DEBT.
 
 ### EPIC-01 — Funky/Balatro engine ([docs/EPIC-01_Funky.md](docs/EPIC-01_Funky.md)) — parent EPIC
 
@@ -40,7 +34,10 @@ Still open beyond EPIC-01a's scope:
 - [ ] Spectral cards (18) and Vouchers (32) — nothing beyond the type tags.
 - [ ] Tests for `decks/planet.rs` (has 2) and `decks/tarot.rs` (has 0).
 - [ ] Editions / seals contributions to scoring (red seal retrigger, foil, holo…).
-- [ ] Blind/ante progression; shop (buy/sell/reroll/packs); round loop consuming `Draws`.
+- [ ] Ante progression (blind state + three boss effects landed via EPIC-01a
+  Phase 8; ante supplies no `blind_target` yet); shop (`sell_joker` landed;
+  buying, rerolls, packs open). The round loop itself landed with EPIC-01a's
+  close-out.
 - [ ] Serde on funky types; CHANGELOG entries for the funky feature.
 - Note: the doc's checkboxes are frozen at 2026-07-05 (`cc1595d`) and several are
   stale — e.g. "Joker-modified hand detection (Smeared)" (line 83) and "Retrigger
