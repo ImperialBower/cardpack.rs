@@ -7,8 +7,8 @@
 > a persistent, run-wide modifier the shop sells once, read live by the round
 > configuration the engine already recomputes each blind.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–3 complete
-(2026-07-17); Phases 4–5 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–4 complete
+(2026-07-17); Phase 5 planned
 
 ---
 
@@ -54,7 +54,7 @@ joker directly** — vouchers are their own reward: a complete, spendable shop.
 | 1 — `Voucher` type, board state, shop slot, redeem | the voucher slot the shop has been missing | **Complete** (2026-07-17) |
 | 2 — Draws vouchers (Grabber/Nacho Tong, Wasteful/Recyclomancy, Paint Brush/Palette) | hands / discards / hand-size, via `recompute_draws` | **Complete** (2026-07-17) |
 | 3 — Slot vouchers (Overstock/Plus, Crystal Ball, Antimatter) | shop card slots, consumable slots, joker slots | **Complete** (2026-07-17) |
-| 4 — Economy vouchers (Reroll Surplus/Glut, Clearance Sale/Liquidation, Seed Money/Money Tree) | reroll cost, buy discount, interest cap | Planned |
+| 4 — Economy vouchers (Reroll Surplus/Glut, Clearance Sale/Liquidation, Seed Money/Money Tree) | reroll cost, buy discount, interest cap | **Complete** (2026-07-17) |
 | 5 — Shop-weight vouchers (Tarot/Planet Merchant + Tycoon) | the 20/4/4 stock roll | Planned |
 
 ---
@@ -315,17 +315,24 @@ Tycoons quadruple — so the roll's denominator and thresholds become voucher-aw
   as Draws-vouchers-vs-board-slots, chosen by whether a persistent field exists
   to hold the effect.
 
-### Phase 4 — Economy vouchers
+### Phase 4 — Economy vouchers — **Complete 2026-07-17**
 
-- [ ] **4a.** `interest_cap()` unifying `board.rs:2047` and `:2224`; Seed
-  Money → $10, Money Tree → $20. Test: $60 held cashes out $10 with Seed Money
-  (was capped at $5), and To the Moon reads the same raised cap.
-- [ ] **4b.** `reroll_discount()` in `reroll_cost`: Reroll Surplus $5 → $3,
-  Reroll Glut → $1, floored at $0. Test at exact values.
-- [ ] **4c.** Clearance multiplier in `stock_price` and pack cost: 25% / 50%
-  off, floored at $1 (never free). Tests: a $6 joker costs $4 with Clearance
-  Sale, $3 with Liquidation; a $4 pack floors at $1 with Liquidation... (verify
-  the wiki's exact floor before pinning).
+- [x] **4a.** `interest_cap()` — the keystone — unifies the two duplicated
+  interest sites (`cash_out` and the `ExtraInterest` payout) onto one reader: $5
+  base, $10 Seed Money, $20 Money Tree. Both `.clamp(0, 5)` became
+  `.clamp(0, self.interest_cap())`, so Seed Money raises the cap in one place and
+  base interest and To the Moon can never disagree. Tests: $60 held with Seed
+  Money cashes out $10 interest (was $5); Money Tree caps $200 at $20; To the
+  Moon reads the same raised cap ($10, not $5), the both-sites pin.
+- [x] **4b.** `reroll_discount()` in `reroll_cost`: $2 per Reroll Surplus / Glut
+  held (Glut requires Surplus, so both = $4), `saturating_sub` flooring at $0.
+  Tests: Surplus makes a $5 reroll $3 (and $6 → $4); Glut makes it $1.
+- [x] **4c.** `discounted(price)` — 25% off with Clearance Sale, 50% with
+  Liquidation (supersedes, not stacks), `((price*(100-pct))/100).max(1)` (floor
+  $1, never free) — applied in `buy_stock` and `open_pack_with_rng`, not to the
+  $10 voucher price. Tests: Blue Joker $5 → $3 / $2; a $4 pack → $3. The `max(1)`
+  floor is defensive — the cheapest in-scope item ($3) at 50% is already $1, so
+  no in-scope card reaches it, but it keeps a future $1–$2 item from going free.
 
 ### Phase 5 — Shop-weight vouchers
 

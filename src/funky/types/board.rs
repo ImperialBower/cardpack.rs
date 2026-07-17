@@ -1712,6 +1712,49 @@ impl BuffoonBoard {
             .count()
     }
 
+    /// The cap on interest earned at cash-out: **$5** base, **$10** with Seed
+    /// Money, **$20** with Money Tree (which requires Seed Money).
+    ///
+    /// The single reader both interest sites share — the base cash-out interest
+    /// ([`cash_out`](Self::cash_out)) and To the Moon's `ExtraInterest` payout —
+    /// so the two can never disagree on the ceiling. Unifying them is what let
+    /// Seed Money raise the cap in one place rather than two.
+    fn interest_cap(&self) -> isize {
+        if self.vouchers.contains(&Voucher::MoneyTree) {
+            20
+        } else if self.vouchers.contains(&Voucher::SeedMoney) {
+            10
+        } else {
+            5
+        }
+    }
+
+    /// How many dollars the Reroll vouchers take off a reroll: **$2** per
+    /// Reroll Surplus / Reroll Glut held (Glut requires Surplus, so both = $4),
+    /// read live. The caller floors the cost at $0.
+    fn reroll_discount(&self) -> usize {
+        2 * self
+            .vouchers
+            .iter()
+            .filter(|voucher| matches!(voucher, Voucher::RerollSurplus | Voucher::RerollGlut))
+            .count()
+    }
+
+    /// `price` after the shop-discount vouchers, floored at **$1** (never free):
+    /// **25% off** with Clearance Sale, **50% off** with Liquidation (which
+    /// requires Clearance Sale and supersedes it — the discounts do not stack).
+    /// Applies to cards and packs; the $10 voucher price is not discounted.
+    fn discounted(&self, price: usize) -> usize {
+        let pct = if self.vouchers.contains(&Voucher::Liquidation) {
+            50
+        } else if self.vouchers.contains(&Voucher::ClearanceSale) {
+            25
+        } else {
+            0
+        };
+        ((price * (100 - pct)) / 100).max(1)
+    }
+
     /// The vouchers the shop may offer: those **not yet redeemed** whose
     /// **base-tier prerequisite** (if any) is already held. Empty once every
     /// modelled voucher is redeemed — the shop then offers no voucher.
@@ -1814,7 +1857,7 @@ impl BuffoonBoard {
         else {
             return false;
         };
-        let price = isize::try_from(Self::stock_price(card)).unwrap_or(isize::MAX);
+        let price = isize::try_from(self.discounted(Self::stock_price(card))).unwrap_or(isize::MAX);
         if self.money.saturating_sub(price) < self.debt_floor() {
             return false;
         }
@@ -1863,7 +1906,8 @@ impl BuffoonBoard {
     pub fn reroll_cost(&self) -> usize {
         let free = self.free_rerolls();
         let used = self.shop.as_ref().map_or(0, |shop| shop.rerolls_used);
-        if used < free { 0 } else { 5 + (used - free) }
+        let base = if used < free { 0 } else { 5 + (used - free) };
+        base.saturating_sub(self.reroll_discount())
     }
 
     /// Reroll the shop's card slots, paying [`reroll_cost`](Self::reroll_cost)
@@ -1935,7 +1979,7 @@ impl BuffoonBoard {
             .shop
             .as_ref()
             .and_then(|shop| shop.packs.get(index).copied())?;
-        let cost = isize::try_from(pack.cost).unwrap_or(isize::MAX);
+        let cost = isize::try_from(self.discounted(pack.cost)).unwrap_or(isize::MAX);
         if self.money.saturating_sub(cost) < self.debt_floor() {
             return None;
         }
@@ -2146,8 +2190,9 @@ impl BuffoonBoard {
         let per_hand = isize::try_from(self.hands_remaining()).unwrap_or(isize::MAX);
         // The same shape as To the Moon's `ExtraInterest` steps in
         // `payout_delta`, deliberately: they are the same rule, and the clamp's
-        // lower bound is what keeps debt from charging negative interest.
-        let interest = (self.money / 5).clamp(0, 5);
+        // lower bound is what keeps debt from charging negative interest; the
+        // upper bound is the voucher-raised cap (Seed Money / Money Tree).
+        let interest = (self.money / 5).clamp(0, self.interest_cap());
         reward.saturating_add(per_hand).saturating_add(interest)
     }
 
@@ -2322,9 +2367,10 @@ impl BuffoonBoard {
                 cash(n * count)
             }
             // To the Moon: $n extra interest per full $5 held, capped at the
-            // base interest cap (5 steps); debt earns nothing.
+            // same [`interest_cap`](Self::interest_cap) the base interest reads
+            // (so Seed Money raises both together); debt earns nothing.
             (MPip::ExtraInterest(n), GrowthEvent::RoundEnd) => {
-                let steps = (self.money / 5).clamp(0, 5);
+                let steps = (self.money / 5).clamp(0, self.interest_cap());
                 cash(n).saturating_mul(steps)
             }
             // Faceless Joker: $cash when enough faces go in a single discard.
@@ -5909,6 +5955,92 @@ mod funky__types__board__buffoon_board_tests {
         board.vouchers.push(Voucher::OverstockPlus);
         board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
         assert_eq!(board.shop.as_ref().unwrap().stock.len(), 4);
+    }
+
+    // ---- Economy vouchers, EPIC-01c Phase 4 -------------------------------
+
+    #[test]
+    fn cash_out__seed_money_raises_the_interest_cap_to_ten() {
+        // Base cap is $5 (money above $25 earns nothing). Seed Money raises it to
+        // $10, so $60 held now earns the full 12 steps capped at 10.
+        let mut board = board_that_won_a_round(0); // Small blind: $3 reward
+        board.money = 60;
+        board.vouchers.push(Voucher::SeedMoney);
+        board.on_round_end();
+        // $60 + $3 reward + $10 interest = $73 (was $68 at the $5 cap).
+        assert_eq!(board.money, 73);
+    }
+
+    #[test]
+    fn cash_out__money_tree_raises_the_cap_to_twenty() {
+        let mut board = board_that_won_a_round(0);
+        board.money = 200;
+        board.vouchers.push(Voucher::SeedMoney);
+        board.vouchers.push(Voucher::MoneyTree);
+        board.on_round_end();
+        // (200/5=40).clamp(0,20) = $20 interest + $3 reward.
+        assert_eq!(board.money, 223);
+    }
+
+    #[test]
+    fn cash_out__to_the_moon_reads_the_same_raised_cap() {
+        // The keystone: both interest readers see one cap. With Seed Money, base
+        // interest AND To the Moon's ExtraInterest both cap at $10, not $5.
+        let mut board = board_that_won_a_round(0);
+        board.money = 60;
+        board.push_joker(card::TO_THE_MOON);
+        board.vouchers.push(Voucher::SeedMoney);
+        board.on_round_end();
+        // $60 + $3 reward + $10 base interest + $10 To the Moon = $83.
+        assert_eq!(board.money, 83);
+    }
+
+    #[test]
+    fn reroll_cost__reroll_surplus_takes_two_dollars_off() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::RerollSurplus);
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.reroll_cost(), 3, "$5 base − $2");
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(board.reroll_cost(), 4, "$6 − $2");
+    }
+
+    #[test]
+    fn reroll_cost__reroll_glut_takes_four_off() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::RerollSurplus);
+        board.vouchers.push(Voucher::RerollGlut);
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.reroll_cost(), 1, "$5 base − $4");
+    }
+
+    #[test]
+    fn buy_stock__clearance_sale_discounts_a_card_and_liquidation_more() {
+        // Blue Joker is $5. Clearance Sale (25% off) → $3; Liquidation (50%) → $2.
+        let mut clearance = board_with_stock(vec![card::BLUE_JOKER]);
+        clearance.money = 20;
+        clearance.vouchers.push(Voucher::ClearanceSale);
+        assert!(clearance.buy_stock(0));
+        assert_eq!(clearance.money, 20 - 3, "$5 → $3 at 25% off");
+
+        let mut liquidation = board_with_stock(vec![card::BLUE_JOKER]);
+        liquidation.money = 20;
+        liquidation.vouchers.push(Voucher::ClearanceSale);
+        liquidation.vouchers.push(Voucher::Liquidation);
+        assert!(liquidation.buy_stock(0));
+        assert_eq!(liquidation.money, 20 - 2, "$5 → $2 at 50% off");
+    }
+
+    #[test]
+    fn open_pack_with_rng__clearance_discounts_the_pack() {
+        // A $4 pack: Clearance Sale → $3, Liquidation → $2.
+        let mut board = board_with_packs(vec![buffoon_pack()]);
+        board.money = 20;
+        board.vouchers.push(Voucher::ClearanceSale);
+        board.open_pack_with_rng(0, &mut StdRng::seed_from_u64(1));
+        assert_eq!(board.money, 20 - 3, "$4 pack → $3 at 25% off");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------
