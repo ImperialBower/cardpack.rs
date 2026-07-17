@@ -290,6 +290,19 @@ pub enum MPip {
     /// rerolls starts at +0, and only climbs on rerolls that happen while it is
     /// held.
     MultPlusPerReroll(usize),
+    /// Red Card: `+n` mult per booster pack **skipped**.
+    ///
+    /// The counter twin of [`MultPlusPerReroll`](Self::MultPlusPerReroll), grown
+    /// on `GrowthEvent::PackSkipped` and read as `+n × skipped` at scoring time.
+    MultPlusPerPackSkipped(usize),
+    /// Hallucination: on each booster pack **opened**, a `numerator`-in-`denominator`
+    /// chance (base 1-in-2) to create a Tarot, "(Must have room)".
+    ///
+    /// A probabilistic *creation*, not a counter — it is rolled immediately when
+    /// a pack is opened (through the shared `probability_numerator`, so Oops! All
+    /// 6s doubles it), the Riff-Raff shape rather than the Green Joker shape.
+    /// Scores nothing on its own.
+    CreateTarotOnPackOpen(usize, usize),
     /// Vampire: gains `rate`/100 ×mult per **enhanced card played**, and strips
     /// the enhancement off each one it counts. Base ×1.
     ///
@@ -562,6 +575,10 @@ impl Display for MPip {
                 write!(f, "MultPlusPerTarotUsedThisRun({n})")
             }
             Self::MultPlusPerReroll(n) => write!(f, "MultPlusPerReroll({n})"),
+            Self::MultPlusPerPackSkipped(n) => write!(f, "MultPlusPerPackSkipped({n})"),
+            Self::CreateTarotOnPackOpen(num, den) => {
+                write!(f, "CreateTarotOnPackOpen({num}, {den})")
+            }
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),

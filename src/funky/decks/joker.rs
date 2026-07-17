@@ -1075,7 +1075,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::MultPlusPerPackSkipped(3),
         resell_value: 2,
         debuffed: false,
     };
@@ -1316,7 +1316,7 @@ pub mod card {
             value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::CreateTarotOnPackOpen(1, 2),
         resell_value: 2,
         debuffed: false,
     };
@@ -2351,9 +2351,11 @@ mod funky__decks__joker_tests {
             // what makes it retroactive. Both add mult once driven.
             | MPip::GainMultTimesPerPlanetUsed(_)
             | MPip::MultPlusPerTarotUsedThisRun(_)
-            // Flash Card: +n mult per shop reroll, grown on ShopRerolled. A
-            // plain counter like Green Joker, inert (+0) until a reroll ticks it.
+            // Flash Card: +n mult per shop reroll, grown on ShopRerolled. Red
+            // Card: +n mult per booster pack skipped, grown on PackSkipped. Both
+            // plain counters like Green Joker, inert (+0) until an event ticks them.
             | MPip::MultPlusPerReroll(_)
+            | MPip::MultPlusPerPackSkipped(_)
             // Madness gains its xmult on every non-boss blind selected, so a
             // grown one scores. (The joker it destroys is a side effect, not its
             // contribution.)
@@ -2453,6 +2455,10 @@ mod funky__decks__joker_tests {
             | MPip::Planet(_)
             | MPip::RandomJoker(_)
             | MPip::RandomTarot(_)
+            // Hallucination creates a Tarot on a rolled 1-in-2 when a pack is
+            // opened — a probabilistic creation like RandomTarot, not a hand
+            // scorer, so it stays out of the reachability guard.
+            | MPip::CreateTarotOnPackOpen(_, _)
             | MPip::SellValueIncrement(_)
             | MPip::Strength
             | MPip::Odds1in(_)
@@ -2608,15 +2614,17 @@ mod funky__decks__joker_tests {
             board.destroy_deck_card(king);
         }
         board.on_discard(&big_discard);
-        // A shop opened and rerolled once (Flash Card). Driven on the seeded
-        // path — a reroll destroys no joker, so unlike Madness it cannot eat the
-        // probe being measured. $20 covers the $5 base cost.
+        // A shop opened and rerolled once (Flash Card), then a booster pack
+        // skipped (Red Card). Driven on the seeded path — neither destroys a
+        // joker, so unlike Madness they cannot eat the probe being measured. $20
+        // covers the $5 reroll.
         {
             use rand::{SeedableRng, rngs::StdRng};
             let mut rng = StdRng::seed_from_u64(0);
             board.money = 20;
             board.open_shop_with_rng(&mut rng);
             board.reroll_with_rng(&mut rng);
+            board.skip_pack(0);
         }
         // One Planet and one Tarot spent (Constellation, Fortune Teller). The
         // Tarot targets nothing, so it only registers as used — all either joker
@@ -2691,7 +2699,7 @@ mod funky__decks__joker_tests {
     /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
     /// shop) that are deliberately outside this crate's current scope. Delete an
     /// entry only when the joker is wired.
-    const BLANK_WITH_REASON: [(BuffoonCard, &str); 13] = [
+    const BLANK_WITH_REASON: [(BuffoonCard, &str); 11] = [
         // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
         (
             card::SIXTH_SENSE,
@@ -2700,14 +2708,6 @@ mod funky__decks__joker_tests {
         (
             card::SEANCE,
             "Spectral cards do not exist — same blocker as Sixth Sense (EPIC-01 Story 3)",
-        ),
-        (
-            card::HALLUCINATION,
-            "needs booster packs, which do not exist",
-        ),
-        (
-            card::RED_CARD,
-            "+3 mult per pack skipped: needs booster packs, which do not exist",
         ),
         (
             card::PERKEO,

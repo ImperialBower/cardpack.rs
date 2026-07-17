@@ -8,7 +8,8 @@
 > `on_round_end` and the next `on_blind_selected`, where money buys jokers and
 > consumables drawn from the (now sound) rarity piles.
 
-**Date:** 2026-07-16 · **Branch:** `funky` · **Status:** planned
+**Date:** 2026-07-16 · **Branch:** `funky` · **Status:** ✅ **Complete
+(2026-07-17)** — all four phases landed; 655 lib tests, five gates green.
 
 ---
 
@@ -49,7 +50,7 @@ in: cash-out, stock, buy, reroll, booster packs.
 | 1 — Cash-out (blind reward + $/hand + interest) | the economy actually cycles; To the Moon gets its base to stack on | **Complete** (2026-07-17) |
 | 2 — Shop state, stock draw, buying | Credit Card (`Credit(20)` debt floor) | **Complete** (2026-07-17) |
 | 3 — Reroll | **Flash Card**; Chaos the Clown (`FreeReroll(1)`) | **Complete** (2026-07-17) |
-| 4 — Booster packs (buy / skip / open) | **Red Card** (skip), **Hallucination** (open) | Planned |
+| 4 — Booster packs (buy / skip / open) | **Red Card** (skip), **Hallucination** (open) | **Complete** (2026-07-17) |
 
 ## Goals
 
@@ -303,16 +304,38 @@ need cards that do not exist and stay out.
   first real construction site). `PackSkipped`/`PackOpened` still wait for
   Phase 4, which constructs them.
 
-### Phase 4 — Booster packs
+### Phase 4 — Booster packs — **Complete 2026-07-17**
 
-- [ ] **4a.** `BoosterPack` + buy/skip: **Red Card** `Blank` →
-  `MultPlusPerPackSkipped(3)`.
-- [ ] **4b.** `open_pack_with_rng` + choose: **Hallucination** `Blank` → its
-  1-in-2 tarot, seeded; three Oops! All 6s make it certain on every seed (the
-  Gros Michel pin, EPIC-01a 1c).
-- [ ] **4c.** `BLANK_WITH_REASON` shrinks by three; the guard
-  (`all_jokers__every_blank_joker_has_a_stated_reason`) fails if a wired joker
-  stays listed, which is the close-out check.
+- [x] **4a.** `PackKind` (Buffoon/Arcana/Celestial) + `BoosterPack { kind, cost }`
+  in `shop.rs`; `Shop.packs`; `open_shop_with_rng` now draws two $4 packs
+  alongside the card slots (`open_shop_with_rng__offers_two_booster_packs`).
+  `skip_pack(index)` removes a pack for free and fires the new
+  `GrowthEvent::PackSkipped`. **Red Card** `Blank` → `MultPlusPerPackSkipped(3)`,
+  a counter grown on that event and read through the merged additive arm;
+  `score__red_card_adds_three_mult_per_pack_skipped` pins +6 mult after two
+  skips. `reroll_with_rng__leaves_the_packs_alone` pins that a reroll redraws
+  only the card slots.
+- [x] **4b.** `open_pack_with_rng(index) -> Option<Vec<BuffoonCard>>` pays the
+  $4 (debt-floor aware), removes the pack, and returns the choices it offers
+  (2 jokers / 3 tarots / 3 planets, drawn from the shop's piles and decks — the
+  *offer*; placing the pick is the caller's, through the existing buy seams, so
+  no half-built choose-flow lands here). **Hallucination** `Blank` →
+  `CreateTarotOnPackOpen(1, 2)`, rolled inline in `hallucinate` through
+  `probability_numerator` and respecting `create_consumable`'s room clause.
+  `open_pack_with_rng__hallucination_creates_tarots_about_half_the_time` pins
+  both outcomes across seeds; `..._three_oops_all_6s_make_hallucination_certain`
+  is the Gros Michel pin.
+- [x] **4c.** `BLANK_WITH_REASON` shrank **13 → 11** (Red Card, Hallucination
+  removed); `all_jokers__every_blank_joker_has_a_stated_reason` stays green, and
+  `drive_events` now fires a seeded `skip_pack` so the reachability guard sees
+  Red Card score.
+- **Refinement to Phase 0a.** Only `PackSkipped` joined `GrowthEvent` (Red
+  Card's counter). **`PackOpened` was not added**: Hallucination is a
+  probabilistic *creation* rolled immediately (the Riff-Raff shape), not a
+  counter that grows, so it is handled inline in `open_pack_with_rng` rather than
+  through the growth seam — which only carries `i32` counter deltas. Adding a
+  dead event nothing reads would only earn a `dead_code` warning, the same
+  reason 0a's premise did not hold in Phase 1.
 
 ## Test Plan
 
@@ -330,8 +353,11 @@ need cards that do not exist and stay out.
 | `src/funky/types/shop.rs` | new — `Shop`, `BoosterPack`, `PackKind` |
 | `src/funky/types/board.rs` | `shop` field, cash-out, buy/reroll/pack methods, new `GrowthEvent` arms |
 | `src/funky/types/mpip.rs` | `MultPlusPerReroll`, `MultPlusPerPackSkipped`, Hallucination's variant (+ `Display`) |
-| `src/funky/decks/joker.rs` | flip Flash Card / Red Card / Hallucination from `Blank`; shrink `BLANK_WITH_REASON` |
-| `src/funky/types/blind.rs` | blind reward values |
+| `src/funky/decks/joker.rs` | flip Flash Card / Red Card / Hallucination from `Blank`; shrink `BLANK_WITH_REASON`; drive reroll + skip in `drive_events` |
+
+*(Blind reward values landed inline as a `match self.blind` in `cash_out`
+rather than in `blind.rs` — the three numbers had no other reader, so a
+`blind.rs` method would have been indirection without a second caller.)*
 
 ## Reuse (do NOT recreate)
 

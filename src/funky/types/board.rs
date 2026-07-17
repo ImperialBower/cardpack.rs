@@ -5,7 +5,7 @@ use crate::funky::decks::tarot::MajorArcana;
 use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
-use crate::funky::types::shop::Shop;
+use crate::funky::types::shop::{BoosterPack, PackKind, Shop};
 use crate::preludes::funky::{
     BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
@@ -49,6 +49,15 @@ enum GrowthEvent<'a> {
     /// [`BuffoonBoard::reroll_with_rng`] — Flash Card's trigger, which gains
     /// `+n` mult on each one.
     ShopRerolled,
+    /// A booster pack was skipped, fired by [`BuffoonBoard::skip_pack`] — Red
+    /// Card's trigger, which gains `+n` mult on each one.
+    ///
+    /// There is deliberately **no `PackOpened` event**: Hallucination, the only
+    /// joker that reads a pack opening, is a probabilistic *creation* rolled
+    /// immediately (the Riff-Raff shape), not a counter that grows — so it is
+    /// handled inline in [`BuffoonBoard::open_pack_with_rng`] rather than through
+    /// this growth seam, which only carries counter deltas.
+    PackSkipped,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -1223,6 +1232,9 @@ impl BuffoonBoard {
             // Flash Card: one tick per shop reroll. Green Joker's shape on a
             // different event — the counter is read as +mult at scoring time.
             (MPip::MultPlusPerReroll(_), GrowthEvent::ShopRerolled) => 1,
+            // Red Card: one tick per booster pack skipped, the same counter
+            // shape on the skip event.
+            (MPip::MultPlusPerPackSkipped(_), GrowthEvent::PackSkipped) => 1,
             _ => 0,
         }
     }
@@ -1596,25 +1608,30 @@ impl BuffoonBoard {
         }
     }
 
-    /// Draw one card slot at Balatro's shop weights.
-    ///
-    /// The card-slot roll is **Joker 20 / Tarot 4 / Planet 4** (out of 28); a
-    /// joker slot then rolls rarity **70% Common / 25% Uncommon / 5% Rare**, and
-    /// **Legendary never appears in the shop**. Every pick comes from the rarity
-    /// piles the 2026-07-16 sweep made a trustworthy partition, so a drawn joker
-    /// is always a piled one — never a parallel catalog.
+    /// Draw one joker at the shop's rarity odds — **70% Common / 25% Uncommon /
+    /// 5% Rare**, Legendary never. Every pick comes from the rarity piles the
+    /// 2026-07-16 sweep made a trustworthy partition, so a drawn joker is always
+    /// a piled one — never a parallel catalog. Shared by the card slots and by a
+    /// Buffoon pack's choices.
+    fn draw_shop_joker<R: Rng + ?Sized>(rng: &mut R) -> BuffoonCard {
+        let rarity = rng.random_range(0..100);
+        let pool: &[BuffoonCard] = if rarity < 70 {
+            &Joker::COMMON_JOKERS
+        } else if rarity < 95 {
+            &Joker::UNCOMMON_JOKERS
+        } else {
+            &Joker::RARE_JOKERS
+        };
+        pool[rng.random_range(0..pool.len())]
+    }
+
+    /// Draw one card slot at Balatro's shop weights: **Joker 20 / Tarot 4 /
+    /// Planet 4** (out of 28), a joker slot then rolled through
+    /// [`draw_shop_joker`](Self::draw_shop_joker).
     fn draw_stock_card<R: Rng + ?Sized>(rng: &mut R) -> BuffoonCard {
         let slot = rng.random_range(0..28);
         if slot < 20 {
-            let rarity = rng.random_range(0..100);
-            let pool: &[BuffoonCard] = if rarity < 70 {
-                &Joker::COMMON_JOKERS
-            } else if rarity < 95 {
-                &Joker::UNCOMMON_JOKERS
-            } else {
-                &Joker::RARE_JOKERS
-            };
-            pool[rng.random_range(0..pool.len())]
+            Self::draw_shop_joker(rng)
         } else if slot < 24 {
             MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK.len())]
         } else {
@@ -1622,14 +1639,35 @@ impl BuffoonBoard {
         }
     }
 
-    /// Open the [`Shop`], drawing its two card slots at the wiki weights.
+    /// Draw one booster-pack slot: a uniformly-chosen [`PackKind`] at the base
+    /// **$4** tier.
+    ///
+    /// Balatro's real pack-appearance weights differ by kind and tier; this
+    /// engine draws the three base packs it can fill (Buffoon / Arcana /
+    /// Celestial) with equal odds, which is enough for a run loop to spend in.
+    fn draw_pack<R: Rng + ?Sized>(rng: &mut R) -> BoosterPack {
+        let kind = match rng.random_range(0..3) {
+            0 => PackKind::Buffoon,
+            1 => PackKind::Arcana,
+            _ => PackKind::Celestial,
+        };
+        BoosterPack { kind, cost: 4 }
+    }
+
+    /// Open the [`Shop`], drawing its two card slots and two pack slots at the
+    /// wiki weights.
     ///
     /// There is deliberately **no pure `open_shop`** — a shop without RNG has no
     /// stock to draw, exactly as [`on_blind_selected_with_rng`](Self::on_blind_selected_with_rng)
     /// exists for Riff-Raff. A fresh shop has rerolled nothing.
     pub fn open_shop_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
         let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
-        self.shop = Some(Shop::with_stock(stock));
+        let packs = vec![Self::draw_pack(rng), Self::draw_pack(rng)];
+        self.shop = Some(Shop {
+            stock,
+            packs,
+            rerolls_used: 0,
+        });
     }
 
     /// The lowest [`money`](Self::money) a purchase may leave the board at.
@@ -1749,6 +1787,108 @@ impl BuffoonBoard {
         }
         self.apply_growth(&GrowthEvent::ShopRerolled);
         true
+    }
+
+    /// Skip the booster pack at `index`, taking it off the shop for free.
+    /// Returns whether there was a pack to skip.
+    ///
+    /// Fires the `PackSkipped` growth event — where **Red Card** gains its `+3`
+    /// mult. Skipping costs nothing (unlike opening); it is the free way to
+    /// clear a pack slot.
+    pub fn skip_pack(&mut self, index: usize) -> bool {
+        let present = self
+            .shop
+            .as_ref()
+            .is_some_and(|shop| index < shop.packs.len());
+        if !present {
+            return false;
+        }
+        if let Some(shop) = self.shop.as_mut() {
+            shop.packs.remove(index);
+        }
+        self.apply_growth(&GrowthEvent::PackSkipped);
+        true
+    }
+
+    /// Open the booster pack at `index`, paying its cost and returning the
+    /// choices it offers — jokers for a Buffoon pack, tarots for Arcana, planets
+    /// for Celestial. `None` if there is no such pack or the cost would drop
+    /// [`money`](Self::money) below the debt floor.
+    ///
+    /// The returned cards are the pack's *offer*; placing the player's pick is
+    /// the caller's, through the same [`push_joker`](Self::push_joker) /
+    /// [`create_consumable`](Self::create_consumable) seams buying uses — a full
+    /// choose-and-place flow is a feature of its own and is not built here.
+    ///
+    /// **Hallucination** fires as a side effect: for each one held, a rolled
+    /// `1-in-2` (scaled by the board's shared odds seam, so Oops! All 6s doubles
+    /// it) creates a Tarot when there is consumable room.
+    pub fn open_pack_with_rng<R: Rng + ?Sized>(
+        &mut self,
+        index: usize,
+        rng: &mut R,
+    ) -> Option<Vec<BuffoonCard>> {
+        let pack = self
+            .shop
+            .as_ref()
+            .and_then(|shop| shop.packs.get(index).copied())?;
+        let cost = isize::try_from(pack.cost).unwrap_or(isize::MAX);
+        if self.money.saturating_sub(cost) < self.debt_floor() {
+            return None;
+        }
+        self.money = self.money.saturating_sub(cost);
+        if let Some(shop) = self.shop.as_mut() {
+            shop.packs.remove(index);
+        }
+        let choices = Self::draw_pack_choices(pack.kind, rng);
+        self.hallucinate(rng);
+        Some(choices)
+    }
+
+    /// The cards a pack of `kind` offers: two jokers for a Buffoon pack, three
+    /// tarots for Arcana, three planets for Celestial — the base-tier choice
+    /// counts, drawn from the same piles and decks the shop stocks.
+    fn draw_pack_choices<R: Rng + ?Sized>(kind: PackKind, rng: &mut R) -> Vec<BuffoonCard> {
+        match kind {
+            PackKind::Buffoon => (0..2).map(|_| Self::draw_shop_joker(rng)).collect(),
+            PackKind::Arcana => (0..3)
+                .map(|_| MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK.len())])
+                .collect(),
+            PackKind::Celestial => (0..3)
+                .map(|_| Planet::DECK[rng.random_range(0..Planet::DECK.len())])
+                .collect(),
+        }
+    }
+
+    /// Roll every held Hallucination's tarot chance for one pack opening.
+    ///
+    /// Each `MPip::CreateTarotOnPackOpen(num, den)` rolls `num`-in-`den`, scaled
+    /// by [`probability_numerator`](Self::probability_numerator) so Oops! All 6s
+    /// doubles it (capped at certainty); a win creates a random Tarot when there
+    /// is consumable room, refusing silently when there is not — the "(Must have
+    /// room)" clause [`create_consumable`](Self::create_consumable) already
+    /// enforces. Handled inline rather than through the growth seam because it is
+    /// an immediate creation, not a counter (the Riff-Raff pattern).
+    fn hallucinate<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        let scale = self.probability_numerator();
+        let rolls: Vec<(usize, usize)> = self
+            .jokers
+            .iter()
+            .filter_map(|joker| match joker.enhancement {
+                MPip::CreateTarotOnPackOpen(num, den) => Some((num, den)),
+                _ => None,
+            })
+            .collect();
+        for (num, den) in rolls {
+            if den == 0 {
+                continue;
+            }
+            let wins = num.saturating_mul(scale).min(den);
+            if rng.random_range(0..den) < wins && self.has_consumable_room() {
+                let tarot = MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK.len())];
+                self.create_consumable(tarot);
+            }
+        }
     }
 
     /// The playing card a `BCardType` names, or `None` if this engine has no
@@ -2326,11 +2466,13 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
             }
-            // Spare Trousers gains +rate mult per two-pair hand; Flash Card gains
-            // +rate mult per reroll. Different events grow the counter
-            // (`growth_delta` keeps them apart), but the read is one additive
-            // rule, so it is written once.
-            MPip::GainMultPerTwoPairHand(rate) | MPip::MultPlusPerReroll(rate) =>
+            // Spare Trousers gains +rate mult per two-pair hand; Flash Card per
+            // reroll; Red Card per pack skipped. Different events grow the
+            // counter (`growth_delta` keeps them apart), but the read is one
+            // additive rule, so it is written once.
+            MPip::GainMultPerTwoPairHand(rate)
+            | MPip::MultPlusPerReroll(rate)
+            | MPip::MultPlusPerPackSkipped(rate) =>
             {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddMult(rate * counter.max(0) as usize))
@@ -5356,6 +5498,161 @@ mod funky__types__board__buffoon_board_tests {
         let after = board.score();
 
         assert_eq!(after.mult, base.mult + 4, "two rerolls add +4 mult (2 x 2)");
+    }
+
+    // ---- Booster packs, Phase 4 -------------------------------------------
+
+    /// A board whose shop offers exactly `packs`, and nothing else.
+    fn board_with_packs(packs: Vec<BoosterPack>) -> BuffoonBoard {
+        let mut board = board_for_a_round();
+        let mut shop = crate::funky::types::shop::Shop::with_stock(vec![]);
+        shop.packs = packs;
+        board.shop = Some(shop);
+        board
+    }
+
+    fn buffoon_pack() -> BoosterPack {
+        BoosterPack {
+            kind: crate::funky::types::shop::PackKind::Buffoon,
+            cost: 4,
+        }
+    }
+
+    #[test]
+    fn open_shop_with_rng__offers_two_booster_packs() {
+        let mut board = board_for_a_round();
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        let packs = &board.shop.as_ref().unwrap().packs;
+        assert_eq!(packs.len(), 2, "two pack slots");
+        assert!(packs.iter().all(|p| p.cost == 4), "base tier is $4");
+    }
+
+    #[test]
+    fn skip_pack__removes_the_pack() {
+        let mut board = board_with_packs(vec![buffoon_pack(), buffoon_pack()]);
+        assert!(board.skip_pack(0));
+        assert_eq!(board.shop.as_ref().unwrap().packs.len(), 1, "one skipped");
+    }
+
+    #[test]
+    fn skip_pack__refuses_a_bad_index() {
+        let mut board = board_with_packs(vec![buffoon_pack()]);
+        assert!(!board.skip_pack(3), "no such pack");
+        assert_eq!(board.shop.as_ref().unwrap().packs.len(), 1);
+    }
+
+    #[test]
+    fn score__red_card_adds_three_mult_per_pack_skipped() {
+        // Red Card: MPip::MultPlusPerPackSkipped(3), +3 mult per skip.
+        let mut board = board_playing("2S 5D 8C TS KH"); // high card
+        board.push_joker(card::RED_CARD);
+        let mut shop = crate::funky::types::shop::Shop::with_stock(vec![]);
+        shop.packs = vec![buffoon_pack(), buffoon_pack()];
+        board.shop = Some(shop);
+
+        let base = board.score();
+        board.skip_pack(0);
+        board.skip_pack(0);
+        let after = board.score();
+
+        assert_eq!(after.mult, base.mult + 6, "two skips add +6 mult (2 x 3)");
+    }
+
+    #[test]
+    fn open_pack_with_rng__pays_and_returns_the_choices() {
+        // A Buffoon pack costs $4 and offers two jokers to choose from.
+        let mut board = board_with_packs(vec![buffoon_pack()]);
+        board.money = 10;
+
+        let choices = board
+            .open_pack_with_rng(0, &mut StdRng::seed_from_u64(1))
+            .expect("an affordable pack");
+        assert_eq!(board.money, 6, "charged the $4");
+        assert_eq!(choices.len(), 2, "choose 1 of 2 jokers");
+        assert!(choices.iter().all(BuffoonCard::is_joker), "a Buffoon pack");
+        assert!(
+            board.shop.as_ref().unwrap().packs.is_empty(),
+            "pack consumed"
+        );
+    }
+
+    #[test]
+    fn open_pack_with_rng__refuses_without_the_money() {
+        let mut board = board_with_packs(vec![buffoon_pack()]);
+        board.money = 2; // a pack is $4
+
+        assert!(
+            board
+                .open_pack_with_rng(0, &mut StdRng::seed_from_u64(1))
+                .is_none()
+        );
+        assert_eq!(board.money, 2, "no charge on a refused open");
+        assert_eq!(
+            board.shop.as_ref().unwrap().packs.len(),
+            1,
+            "still on offer"
+        );
+    }
+
+    #[test]
+    fn open_pack_with_rng__hallucination_creates_tarots_about_half_the_time() {
+        // Hallucination: 1-in-2 to create a Tarot on any pack opened. Across
+        // seeds both outcomes occur, deterministically per seed.
+        let mut made = 0;
+        let mut skipped = 0;
+        for seed in 0..64 {
+            let mut board = board_with_packs(vec![buffoon_pack()]);
+            board.money = 10;
+            board.push_joker(card::HALLUCINATION);
+            board.open_pack_with_rng(0, &mut StdRng::seed_from_u64(seed));
+            if board.consumables.is_empty() {
+                skipped += 1;
+            } else {
+                assert_eq!(board.consumables.len(), 1);
+                assert_eq!(
+                    board.consumables.get(0).unwrap().card_type,
+                    BCardType::Tarot,
+                    "it makes a Tarot"
+                );
+                made += 1;
+            }
+        }
+        assert!(
+            made > 0 && skipped > 0,
+            "both outcomes occur ({made} made, {skipped} not)"
+        );
+    }
+
+    #[test]
+    fn open_pack_with_rng__three_oops_all_6s_make_hallucination_certain() {
+        // The Gros Michel pin: enough Oops! All 6s caps the 1-in-2 at certainty,
+        // so a Tarot is made on every seed.
+        for seed in 0..32 {
+            let mut board = board_with_packs(vec![buffoon_pack()]);
+            board.money = 10;
+            board.push_joker(card::HALLUCINATION);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.push_joker(card::OOPS_ALL_6S);
+            board.open_pack_with_rng(0, &mut StdRng::seed_from_u64(seed));
+            assert_eq!(board.consumables.len(), 1, "certain on seed {seed}");
+        }
+    }
+
+    #[test]
+    fn reroll_with_rng__leaves_the_packs_alone() {
+        // A reroll redraws only the card slots; the pack slots are untouched.
+        let mut board = board_for_a_round();
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        let packs_before = board.shop.as_ref().unwrap().packs.clone();
+
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(
+            board.shop.as_ref().unwrap().packs,
+            packs_before,
+            "the reroll left the packs alone"
+        );
     }
 
     #[test]

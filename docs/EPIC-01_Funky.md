@@ -22,6 +22,7 @@
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
 | Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
 | Voucher | `BCardType::Voucher` tag only | ❌ no cards |
+| Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟡 Buffoon/Arcana/Celestial buy/skip/open; contents-choosing is caller's (EPIC-01b Phase 4) |
 | Enhancements (Glass/Steel/Gold/Stone…) | `MPip` variants + `enhance()` | 🟡 partial |
 | Editions (foil/holo/polychrome/negative) | — | ❌ absent |
 | Seals | — | ❌ absent |
@@ -120,8 +121,12 @@
   **Rerolls landed too** (EPIC-01b Phase 3): `reroll_cost` ($5 climbing $1,
   reset per shop, free rerolls from Chaos the Clown) and `reroll_with_rng`,
   which fires `GrowthEvent::ShopRerolled` — the event Flash Card
-  (`MultPlusPerReroll(2)`) counts. Booster packs are still not modelled.
-  (EPIC-01a Phase 8, EPIC-01b Phases 2–3)
+  (`MultPlusPerReroll(2)`) counts. **Booster packs landed** (EPIC-01b Phase 4):
+  `PackKind`/`BoosterPack`, `skip_pack` (fires `PackSkipped` → Red Card
+  `MultPlusPerPackSkipped(3)`), and `open_pack_with_rng` (pays $4, returns the
+  pack's choices, and rolls Hallucination's `CreateTarotOnPackOpen(1, 2)`
+  inline). **EPIC-01b is complete** — cash-out, stock/buying, reroll, and packs.
+  Vouchers remain unmodelled. (EPIC-01a Phase 8, EPIC-01b Phases 2–4)
 - [x] **Money/economy state on the board** — `money: isize` plus the round-end /
   discard payout seam. (EPIC-01a Phase 1)
 - [x] **Cash-out** — a won round pays Balatro's three lines: blind reward
