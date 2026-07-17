@@ -1684,18 +1684,65 @@ impl BuffoonBoard {
         }
     }
 
-    /// End-of-round lifecycle, the deterministic half: tick the round counters
-    /// (Popcorn's decay, Rocket's boss tally), pay the round-end `+$` jokers into
-    /// [`money`](Self::money), grow each Egg's resell value, destroy anything the
-    /// decay emptied, and reset the round's counters. Inert on a board without
-    /// those jokers.
+    /// The round's **Cash Out** income, or `0` for a round that was not won.
     ///
-    /// The order is load-bearing at both ends:
+    /// Balatro's three cash-out lines, at their wiki values:
+    ///
+    /// * **blind reward** — $3 / $4 / $5 for Small / Big / Boss;
+    /// * **$1 per unused hand** — [`hands_remaining`](Self::hands_remaining);
+    /// * **interest** — $1 per full $5 held, capped at $5, so money above $25
+    ///   earns nothing and debt earns nothing.
+    ///
+    /// **Gated on [`round_is_won`](Self::round_is_won)** — all three lines or
+    /// none. In Balatro you cash out by *beating* a blind; a round that merely
+    /// runs out of hands is a loss, and losses pay nothing. Since `round_is_won`
+    /// is false whenever [`blind_target`](Self::blind_target) is 0, an
+    /// untargeted round — the mode every board ran in before the shop existed —
+    /// is unaffected, and cash-out is opt-in through the target that ante
+    /// progression will one day set.
+    ///
+    /// Takes `&self` and returns the delta rather than paying itself, so
+    /// [`on_round_end`](Self::on_round_end) can apply it against the **same
+    /// pre-cash-out balance** the `+$` jokers are paid from — see the ordering
+    /// note there.
+    fn cash_out(&self) -> isize {
+        if !self.round_is_won() {
+            return 0;
+        }
+        let reward: isize = match self.blind {
+            Blind::Small => 3,
+            Blind::Big => 4,
+            Blind::Boss(_) => 5,
+        };
+        let per_hand = isize::try_from(self.hands_remaining()).unwrap_or(isize::MAX);
+        // The same shape as To the Moon's `ExtraInterest` steps in
+        // `payout_delta`, deliberately: they are the same rule, and the clamp's
+        // lower bound is what keeps debt from charging negative interest.
+        let interest = (self.money / 5).clamp(0, 5);
+        reward.saturating_add(per_hand).saturating_add(interest)
+    }
+
+    /// End-of-round lifecycle, the deterministic half: tick the round counters
+    /// (Popcorn's decay, Rocket's boss tally), pay the round-end `+$` jokers and
+    /// the round's cash-out into [`money`](Self::money), grow each Egg's resell
+    /// value, destroy anything the decay emptied, and reset the round's
+    /// counters. Inert on a board without those jokers.
+    ///
+    /// The order is load-bearing at three points:
     ///
     /// * **Growth before payouts** — Rocket's increment for defeating a Boss
     ///   Blind lands *before* the payout of the round that defeated it, so the
     ///   boss round pays the already-raised amount. Nothing else reads a counter
     ///   to pay, so nothing else notices.
+    /// * **Cash-out from the pre-event balance** — the round's cash-out (blind
+    ///   reward, $1 per unused hand, interest — gated on
+    ///   [`round_is_won`](Self::round_is_won)) is computed at the top and
+    ///   applied after the payouts, so its interest line and To the Moon's
+    ///   `ExtraInterest` read the *same* money the round was walked into with.
+    ///   Balatro's cash-out screen computes every line from that one balance;
+    ///   paying either first would let the two compound off each other. This is
+    ///   the same rule the `+$` payouts already follow internally — cash-out is
+    ///   a third reader of it, not a new one.
     /// * **Payouts before destruction** — the cash-out-then-cleanup order
     ///   [`on_round_end_with_rng`](Self::on_round_end_with_rng) also uses for its
     ///   rolls: a joker that both pays and dies this round still pays.
@@ -1706,8 +1753,12 @@ impl BuffoonBoard {
     /// `score`/`score_with_rng` split: with no RNG the rolls are simply
     /// skipped, the way a Lucky card stays inert in the pure [`score`](Self::score).
     pub fn on_round_end(&mut self) {
+        // Read before anything mutates `money`; applied below, after the payouts
+        // have read that same balance.
+        let cash_out = self.cash_out();
         self.apply_growth(&GrowthEvent::RoundEnd);
         self.apply_payouts(&GrowthEvent::RoundEnd);
+        self.money = self.money.saturating_add(cash_out);
         self.melt_emptied_jokers();
         // Egg: its own resell value grows in place, every round.
         for index in 0..self.jokers.len() {
@@ -4382,6 +4433,67 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
+    fn round_loop__a_won_round_cashes_out() {
+        // EPIC-01b 1b: the economy cycles. A real round — blind selected, hand
+        // dealt, hand played, target cleared — pays all three cash-out lines
+        // *and* a joker payout, every one of them read off the balance the round
+        // was walked into with.
+        let mut board = board_for_a_round();
+        board.blind = Blind::Small;
+        board.blind_target = 1; // any score clears it
+        board.money = 10;
+        board.push_joker(card::GOLDEN_JOKER); // a flat $4 every round
+
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+        assert!(!board.round_is_won(), "nothing played yet");
+
+        board.play_hand(&[0, 1, 2, 3, 4]).expect("a legal hand");
+        assert!(board.round_is_won(), "the target is cleared");
+        assert_eq!(board.hands_remaining(), 3, "of 4 granted, 1 spent");
+
+        board.on_round_end();
+
+        // $10 walked in with:
+        //   + $3  Small Blind reward
+        //   + $3  one per unused hand (3 left)
+        //   + $2  interest, two full $5 steps on the pre-cash-out $10
+        //   + $4  Golden Joker
+        //   = $22
+        // Interest computed after the payouts would read $14 and pay $2 still,
+        // but after the reward too it would read $16 and pay $3 — which is why
+        // the delta is taken before either lands.
+        assert_eq!(board.money, 22);
+        assert_eq!(board.hands_played, 0, "and the round reset behind it");
+        assert_eq!(board.round_score, 0);
+    }
+
+    #[test]
+    fn round_loop__a_lost_round_ends_with_nothing() {
+        // The mirror of the above, and the reason the gate is on `round_is_won`
+        // rather than "the round ended": a round whose hands run out short of
+        // its target pays no reward, no per-hand, and no interest. The joker
+        // payout is not cash-out and still lands — Golden Joker pays every
+        // round, won or lost.
+        let mut board = board_for_a_round();
+        board.blind = Blind::Small;
+        board.blind_target = usize::MAX; // unreachable
+        board.money = 10;
+        board.push_joker(card::GOLDEN_JOKER);
+
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+        for _ in 0..4 {
+            board.play_hand(&[0, 1, 2, 3, 4]);
+        }
+        assert_eq!(board.hands_remaining(), 0, "the hands are spent");
+        assert!(!board.round_is_won(), "and the target was never met");
+
+        board.on_round_end();
+        assert_eq!(board.money, 14, "$10 + Golden Joker's $4, and nothing else");
+    }
+
+    #[test]
     fn round_loop__vampire_eats_across_a_real_round() {
         // Vampire's ordering, driven through the loop rather than by hand: the
         // enhancement is gone from the *roster*, so the card stays eaten when it
@@ -4636,6 +4748,114 @@ mod funky__types__board__buffoon_board_tests {
         board.on_round_end();
         board.on_round_end_with_rng(&mut StdRng::seed_from_u64(7));
         assert_eq!(board, before);
+    }
+
+    /// A board that has **won** its round: a target of 1, cleared by a played
+    /// hand, with `hands` of the 4 granted still unspent.
+    ///
+    /// Cash-out is gated on [`round_is_won`](BuffoonBoard::round_is_won), so
+    /// every test below must go through a real win rather than poking `money` —
+    /// that gate is half of what these tests exist to pin.
+    fn board_that_won_a_round(hands_left: usize) -> BuffoonBoard {
+        let mut board = board_for_a_round();
+        board.blind_target = 1;
+        board.round_score = 1;
+        board.hands_played = board.draws.hands_to_play - hands_left;
+        assert!(board.round_is_won(), "the fixture must be a won round");
+        assert_eq!(board.hands_remaining(), hands_left);
+        board
+    }
+
+    #[test]
+    fn cash_out__pays_the_blind_reward_for_each_blind() {
+        // Wiki: Small $3, Big $4, Boss $5. Isolated from the other two
+        // components: 0 hands left, $0 held -> no per-hand pay, no interest.
+        for (blind, reward) in [
+            (Blind::Small, 3),
+            (Blind::Big, 4),
+            (Blind::Boss(BossBlind::TheNeedle), 5),
+        ] {
+            let mut board = board_that_won_a_round(0);
+            board.blind = blind;
+            board.on_round_end();
+            assert_eq!(board.money, reward, "{blind} pays ${reward}");
+        }
+    }
+
+    #[test]
+    fn cash_out__pays_one_per_unused_hand() {
+        // $1 per hand left unplayed. Small blind's $3 is the constant beneath.
+        for hands_left in 0..=4 {
+            let mut board = board_that_won_a_round(hands_left);
+            board.on_round_end();
+            assert_eq!(
+                board.money,
+                3 + isize::try_from(hands_left).unwrap(),
+                "{hands_left} unused hands pay ${hands_left} over the $3 reward"
+            );
+        }
+    }
+
+    #[test]
+    fn cash_out__pays_interest_of_one_per_five_held_capped_at_five() {
+        // $1 per full $5 held, capped at $5 — money above $25 earns nothing.
+        for (held, interest) in [(0, 0), (4, 0), (5, 1), (9, 1), (23, 4), (25, 5), (60, 5)] {
+            let mut board = board_that_won_a_round(0);
+            board.money = held;
+            board.on_round_end();
+            assert_eq!(
+                board.money,
+                held + 3 + interest,
+                "${held} held earns ${interest} interest"
+            );
+        }
+    }
+
+    #[test]
+    fn cash_out__debt_earns_no_interest() {
+        // A negative balance must not charge negative interest.
+        let mut board = board_that_won_a_round(0);
+        board.money = -20;
+        board.on_round_end();
+        assert_eq!(board.money, -20 + 3, "the reward lands, interest does not");
+    }
+
+    #[test]
+    fn cash_out__interest_and_to_the_moon_read_the_same_pre_cash_out_balance() {
+        // The ordering trap (EPIC-01b Phase 1): every cash-out line is computed
+        // from the balance walked in with. $23 held -> base interest $4 (four
+        // full $5 steps) and To the Moon's ExtraInterest(1) -> $4, never
+        // compounding off each other's payout.
+        let mut board = board_that_won_a_round(0);
+        board.push_joker(card::TO_THE_MOON);
+        board.money = 23;
+
+        board.on_round_end();
+
+        // $23 + $3 reward + $4 interest + $4 To the Moon = $34.
+        // Compounding would pay To the Moon on $27 ($5) or interest on $27 ($5).
+        assert_eq!(board.money, 34);
+    }
+
+    #[test]
+    fn cash_out__an_unwon_round_pays_nothing() {
+        // The gate: cash-out fires only on a won round. An untargeted round
+        // (blind_target 0 — every pre-EPIC-01b board) is never won, so it keeps
+        // paying exactly what it paid before the shop existed.
+        let mut board = board_for_a_round();
+        board.money = 23;
+        assert!(!board.round_is_won());
+
+        board.on_round_end();
+        assert_eq!(board.money, 23, "no reward, no per-hand, no interest");
+
+        // And a targeted round that fell short pays nothing either.
+        let mut lost = board_for_a_round();
+        lost.blind_target = 100;
+        lost.round_score = 99;
+        lost.money = 23;
+        lost.on_round_end();
+        assert_eq!(lost.money, 23);
     }
 
     #[test]

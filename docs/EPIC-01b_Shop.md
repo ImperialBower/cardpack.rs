@@ -46,7 +46,7 @@ in: cash-out, stock, buy, reroll, booster packs.
 
 | Component (phase) | Unblocks | Status |
 |---|---|---|
-| 1 — Cash-out (blind reward + $/hand + interest) | the economy actually cycles; To the Moon gets its base to stack on | Planned |
+| 1 — Cash-out (blind reward + $/hand + interest) | the economy actually cycles; To the Moon gets its base to stack on | **Complete** (2026-07-17) |
 | 2 — Shop state, stock draw, buying | Credit Card (`Credit(20)` debt floor) | Planned |
 | 3 — Reroll | **Flash Card**; Chaos the Clown (`FreeReroll(1)`) | Planned |
 | 4 — Booster packs (buy / skip / open) | **Red Card** (skip), **Hallucination** (open) | Planned |
@@ -126,10 +126,19 @@ screen shows every line computed from the money you walked in with. Rocket's
 grow-then-pay ordering (EPIC-01a item 8) is untouched: growth, then payouts
 *and* cash-out from the pre-event board, then destruction.
 
-Cash-out fires only when the round is won (`round_is_won`, `board.rs:1282`);
-an untargeted round (`blind_target == 0`, the current caller mode) pays no
-blind reward but still cashes out hands and interest — stated here so the
-decision is a decision, not drift.
+**Cash-out fires only when the round is won** (`round_is_won`, `board.rs:1282`)
+— all three components or none. An untargeted round (`blind_target == 0`, the
+current caller mode) pays **nothing**: `round_is_won` is `blind_target > 0 &&
+round_score >= blind_target`, so it is false by construction there.
+
+*(Resolved 2026-07-17. The first draft of this section said untargeted rounds
+"still cash out hands and interest", which contradicted the sentence it was in
+and this EPIC's own Compatibility promise: every existing test builds its board
+through `board_playing` (`board.rs:2356`) at `blind_target = 0`, so paying them
+would move ~18 asserted payout balances. It is also unfaithful — in Balatro you
+cash out by **beating** a blind; a round that merely runs out of hands is a
+loss, and losses pay nothing. Gating strictly on `round_is_won` makes cash-out
+opt-in via `blind_target`, which is the seam ante progression will set later.)*
 
 ### Phase 2 — `Shop` (new `src/funky/types/shop.rs`)
 
@@ -196,21 +205,47 @@ need cards that do not exist and stay out.
 
 ### Phase 0 — Prerequisites
 
-- [ ] **0a.** Extend the `GrowthEvent` seam (`board.rs:20`) with `ShopRerolled`,
+- [~] **0a.** ~~Extend the `GrowthEvent` seam (`board.rs:20`) with `ShopRerolled`,
   `PackSkipped`, `PackOpened`. The exhaustive matches in `growth_delta`
   (`board.rs:1142`) / `payout_delta` (`board.rs:1809`) will not compile until
-  every arm decides, which is the point.
+  every arm decides, which is the point.~~ **Deferred to Phases 3–4 — the stated
+  mechanism does not exist.** Both functions match on the *tuple*
+  `(enhancement, event)` and end in `_ => 0` (`board.rs:1858` and its
+  `growth_delta` twin); a tuple match over an open-ended enum pair cannot be
+  written exhaustively without enumerating all 69 × N combinations, so the
+  catchall is structural, not laziness. Adding the variants early compiles
+  silently and only earns three `dead_code` warnings under `-Dpedantic` — the
+  opposite of a forcing function. They land in the phase that constructs them.
+  *(That catchall is exactly the silent-zero hazard this EPIC's Gold Standard
+  test rule exists to cover: the compiler will never flag a missing arm, so a
+  failing-first test is the only thing that does.)*
 - [ ] **0b.** Triage test for the two inert consts: pin that `Credit(20)` and
   `FreeReroll(1)` currently change nothing (the characterization that fails
-  the day they wire, EPIC-01a's Splash discipline).
+  the day they wire, EPIC-01a's Splash discipline). *(Folds into Phases 2–3,
+  where each const's reader lands.)*
 
-### Phase 1 — Cash-out *(keystone)*
+### Phase 1 — Cash-out *(keystone)* — **Complete 2026-07-17**
 
-- [ ] **1a.** `cash_out()` + its application in `on_round_end`; blind reward
-  read from `self.blind`. Tests per component and one for the pre-balance rule:
-  interest on $23 with To the Moon held pays $4 + $4, never compounding.
-- [ ] **1b.** Round-loop integration: `round_loop__a_won_round_cashes_out`
-  extends the EPIC-01a composition test through a full earn→spend cycle.
+- [x] **1a.** `cash_out()` (`board.rs:1687`) + its application in `on_round_end`;
+  blind reward read from `self.blind` ($3/$4/$5 Small/Big/Boss), $1 per unused
+  hand from `hands_remaining()`, interest `(money / 5).clamp(0, 5)` — the same
+  shape as To the Moon's `ExtraInterest` steps, whose lower clamp is what keeps
+  debt from charging negative interest. Gated on `round_is_won()`; the delta is
+  computed before `apply_growth`/`apply_payouts` and applied after them, so both
+  interest readers see one pre-cash-out balance. **6 tests**, five of which
+  failed before the arm landed: per-blind reward, per-unused-hand, the interest
+  table (`$0/$4/$5/$9/$23/$25/$60`), debt earns nothing, the pre-balance rule
+  ($23 + To the Moon = $3 + $4 + $4 → $34, never $27 + $5), and the unwon gate.
+- [x] **1b.** Round-loop integration: `round_loop__a_won_round_cashes_out` plays
+  a real round (blind select → deal → play → win) and pins $10 → $22 = $3 reward
+  + $3 unused hands + $2 interest + $4 Golden Joker, all off the walked-in
+  balance. Verified to bite by stubbing `cash_out` to 0 (fails `14 != 22` —
+  i.e. exactly $10 + Golden's $4). Its mirror
+  `round_loop__a_lost_round_ends_with_nothing` pins that a spent-hands round
+  pays only the joker's $4 and no cash-out line; it passes with or without the
+  arm by design, as a regression guard on the gate rather than a driver.
+- **Not done here:** the earn→spend cycle stops at *earn* — spending needs the
+  shop (Phase 2). 1b closes the loop the moment `buy_stock` exists.
 
 ### Phase 2 — Shop & buying
 

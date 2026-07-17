@@ -115,6 +115,13 @@
   not modelled. (EPIC-01a Phase 8)
 - [x] **Money/economy state on the board** — `money: isize` plus the round-end /
   discard payout seam. (EPIC-01a Phase 1)
+- [x] **Cash-out** — a won round pays Balatro's three lines: blind reward
+  ($3/$4/$5 Small/Big/Boss) + $1 per unused hand + interest ($1 per $5 held,
+  capped at $5). Gated on `round_is_won()`, so it is opt-in through
+  `blind_target` and every untargeted board pays exactly what it always did.
+  Its delta is computed from the pre-cash-out balance and applied after the `+$`
+  payouts, so its interest and To the Moon's `ExtraInterest` cannot compound off
+  each other. (EPIC-01b Phase 1)
 - [x] **Round loop: play/discard cycle consuming `Draws`** — `deal_to_hand_size`,
   `play_hand` / `play_hand_with_rng`, `discard_cards`, `hands_remaining`,
   `round_is_over` / `round_is_won`, plus the `discarded` pile the board never
