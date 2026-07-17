@@ -7,4 +7,5 @@ pub mod effect;
 pub mod hands;
 pub mod mpip;
 pub mod score;
+pub mod shop;
 pub mod toggle;

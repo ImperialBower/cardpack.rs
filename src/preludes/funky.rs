@@ -18,6 +18,7 @@ pub use crate::funky::types::effect::{Effect, EffectRegistry, ScoreOp, ScoringCo
 pub use crate::funky::types::hands::{HandType, PokerHand, PokerHands};
 pub use crate::funky::types::mpip::*;
 pub use crate::funky::types::score::Score;
+pub use crate::funky::types::shop::Shop;
 pub use crate::funky::types::toggle::{Toggle, ToggleCard};
 
 pub use crate::bcard;

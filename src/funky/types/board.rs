@@ -1,9 +1,11 @@
 use crate::funky::decks::basic;
 use crate::funky::decks::joker::Joker;
+use crate::funky::decks::planet::Planet;
 use crate::funky::decks::tarot::MajorArcana;
 use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
+use crate::funky::types::shop::Shop;
 use crate::preludes::funky::{
     BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
@@ -181,6 +183,12 @@ pub struct BuffoonBoard {
     /// Recorded rather than assumed to be 52, since alternate decks start at
     /// other sizes. Erosion scores the shortfall against this.
     pub starting_deck_size: usize,
+    /// The open [`Shop`], or `None` while it is closed.
+    ///
+    /// `None` is the default and the state every board is in until
+    /// [`open_shop_with_rng`](Self::open_shop_with_rng) draws one — so a run
+    /// that never shops behaves exactly as it did before the shop existed.
+    pub shop: Option<Shop>,
 }
 
 /// An empty board with Balatro's base slot counts.
@@ -232,6 +240,7 @@ impl BuffoonBoard {
             blind: Blind::default(),
             boss_disabled: false,
             joker_state: Vec::new(),
+            shop: None,
         }
     }
 
@@ -1563,6 +1572,122 @@ impl BuffoonBoard {
         }
         self.recompute_draws();
         Some(joker)
+    }
+
+    // ---- Shop (EPIC-01b Phase 2) -----------------------------------------
+
+    /// What a stock card costs to buy.
+    ///
+    /// Tarots and Planets are a flat **$3** (Balatro's base consumable price);
+    /// every joker is priced by its [`rank.value`](crate::prelude::Pip::value),
+    /// the same number [`sell_joker`](Self::sell_joker) halves for the resale.
+    #[must_use]
+    fn stock_price(card: BuffoonCard) -> usize {
+        match card.card_type {
+            BCardType::Tarot | BCardType::Planet => 3,
+            _ => card.rank.value,
+        }
+    }
+
+    /// Draw one card slot at Balatro's shop weights.
+    ///
+    /// The card-slot roll is **Joker 20 / Tarot 4 / Planet 4** (out of 28); a
+    /// joker slot then rolls rarity **70% Common / 25% Uncommon / 5% Rare**, and
+    /// **Legendary never appears in the shop**. Every pick comes from the rarity
+    /// piles the 2026-07-16 sweep made a trustworthy partition, so a drawn joker
+    /// is always a piled one — never a parallel catalog.
+    fn draw_stock_card<R: Rng + ?Sized>(rng: &mut R) -> BuffoonCard {
+        let slot = rng.random_range(0..28);
+        if slot < 20 {
+            let rarity = rng.random_range(0..100);
+            let pool: &[BuffoonCard] = if rarity < 70 {
+                &Joker::COMMON_JOKERS
+            } else if rarity < 95 {
+                &Joker::UNCOMMON_JOKERS
+            } else {
+                &Joker::RARE_JOKERS
+            };
+            pool[rng.random_range(0..pool.len())]
+        } else if slot < 24 {
+            MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK.len())]
+        } else {
+            Planet::DECK[rng.random_range(0..Planet::DECK.len())]
+        }
+    }
+
+    /// Open the [`Shop`], drawing its two card slots at the wiki weights.
+    ///
+    /// There is deliberately **no pure `open_shop`** — a shop without RNG has no
+    /// stock to draw, exactly as [`on_blind_selected_with_rng`](Self::on_blind_selected_with_rng)
+    /// exists for Riff-Raff. A fresh shop has rerolled nothing.
+    pub fn open_shop_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
+        self.shop = Some(Shop::with_stock(stock));
+    }
+
+    /// The lowest [`money`](Self::money) a purchase may leave the board at.
+    ///
+    /// **$0** normally; each **Credit Card** held lowers it by its
+    /// `MPip::Credit(n)` allowance (base $20), read **live** from `jokers` — the
+    /// Chicot pattern, so selling the card restores the floor with no stored
+    /// flag. Two Credit Cards stack, as in Balatro.
+    #[must_use]
+    fn debt_floor(&self) -> isize {
+        let credit: usize = self
+            .jokers
+            .iter()
+            .filter_map(|joker| match joker.enhancement {
+                MPip::Credit(n) => Some(n),
+                _ => None,
+            })
+            .sum();
+        -isize::try_from(credit).unwrap_or(0)
+    }
+
+    /// Buy the stock at `index`, routing it onto the board. Returns whether the
+    /// purchase happened.
+    ///
+    /// Refused — leaving the board untouched — when there is no such slot, when
+    /// the price would drop [`money`](Self::money) below the debt floor (`$0`,
+    /// or lower while a Credit Card is held), or when the destination is full: a
+    /// joker needs [`has_joker_room`](Self::has_joker_room), a consumable a slot
+    /// from [`create_consumable`](Self::create_consumable). The card is placed
+    /// first and charged only once it lands, so a refusal for room never spends
+    /// money.
+    ///
+    /// A bought joker goes through [`push_joker`](Self::push_joker), **not**
+    /// [`add_card_to_deck`](Self::add_card_to_deck): it is not a playing card
+    /// joining the deck, so no `CardAdded` fires and Hologram stays still.
+    pub fn buy_stock(&mut self, index: usize) -> bool {
+        let Some(card) = self
+            .shop
+            .as_ref()
+            .and_then(|shop| shop.stock.get(index).copied())
+        else {
+            return false;
+        };
+        let price = isize::try_from(Self::stock_price(card)).unwrap_or(isize::MAX);
+        if self.money.saturating_sub(price) < self.debt_floor() {
+            return false;
+        }
+        let placed = if card.is_joker() {
+            if self.has_joker_room() {
+                self.push_joker(card);
+                true
+            } else {
+                false
+            }
+        } else {
+            self.create_consumable(card)
+        };
+        if !placed {
+            return false;
+        }
+        self.money = self.money.saturating_sub(price);
+        if let Some(shop) = self.shop.as_mut() {
+            shop.stock.remove(index);
+        }
+        true
     }
 
     /// The playing card a `BCardType` names, or `None` if this engine has no
@@ -4494,6 +4619,34 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
+    fn round_loop__the_economy_cycles_from_cash_out_into_a_buy() {
+        // EPIC-01b's headline: the economy closes. A won round cashes out, the
+        // shop opens, and that cash-out money buys a joker onto the board — earn
+        // then spend, in one loop.
+        let mut board = board_for_a_round();
+        board.blind = Blind::Small;
+        board.blind_target = 1;
+        board.money = 0; // start broke — everything spent is earned this round
+
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+        board.play_hand(&[0, 1, 2, 3, 4]).expect("a legal hand");
+        assert!(board.round_is_won());
+
+        board.on_round_end();
+        // $3 Small reward + $3 for three unused hands (4 granted, 1 played) +
+        // $0 interest on a $0 balance = $6 earned from nothing.
+        assert_eq!(board.money, 6, "the round paid for the shopping");
+
+        // Open a shop and put a known joker in a slot to buy deterministically.
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(9));
+        board.shop.as_mut().unwrap().stock = vec![card::BLUE_JOKER]; // $5
+        assert!(board.buy_stock(0), "the $6 covers the $5 joker");
+        assert_eq!(board.money, 1, "and $1 change is left");
+        assert_eq!(board.jokers.get(0).copied(), Some(card::BLUE_JOKER));
+    }
+
+    #[test]
     fn round_loop__vampire_eats_across_a_real_round() {
         // Vampire's ordering, driven through the loop rather than by hand: the
         // enhancement is gone from the *roster*, so the card stays eaten when it
@@ -4835,6 +4988,206 @@ mod funky__types__board__buffoon_board_tests {
         // $23 + $3 reward + $4 interest + $4 To the Moon = $34.
         // Compounding would pay To the Moon on $27 ($5) or interest on $27 ($5).
         assert_eq!(board.money, 34);
+    }
+
+    // ---- Shop, Phase 2 ----------------------------------------------------
+
+    /// A board holding a shop whose card slots are exactly `stock` — the
+    /// deterministic fixture the buying tests use, skipping the random draw so
+    /// the assertions do not depend on a seed.
+    fn board_with_stock(stock: Vec<BuffoonCard>) -> BuffoonBoard {
+        let mut board = board_for_a_round();
+        board.shop = Some(crate::funky::types::shop::Shop::with_stock(stock));
+        board
+    }
+
+    #[test]
+    fn open_shop_with_rng__fills_two_card_slots() {
+        let mut board = board_for_a_round();
+        assert!(board.shop.is_none(), "closed until opened");
+
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        let shop = board.shop.as_ref().expect("the shop is open");
+        assert_eq!(shop.stock.len(), 2, "two card slots");
+        assert_eq!(shop.rerolls_used, 0, "a fresh shop has rerolled nothing");
+    }
+
+    #[test]
+    fn open_shop_with_rng__draws_only_shoppable_cards() {
+        // The distribution *shape*, not exact draws: every stock card is a shop
+        // joker (Common/Uncommon/Rare, never Legendary), a Tarot, or a Planet;
+        // and across enough seeds all three categories and all three joker
+        // rarities appear, while Legendary never does.
+        use crate::funky::types::buffoon_card::BCardType;
+        let mut saw_common = false;
+        let mut saw_uncommon = false;
+        let mut saw_rare = false;
+        let mut saw_tarot = false;
+        let mut saw_planet = false;
+        let mut jokers = 0;
+        let mut total = 0;
+
+        for seed in 0..400 {
+            let mut board = board_for_a_round();
+            board.open_shop_with_rng(&mut StdRng::seed_from_u64(seed));
+            for card in &board.shop.as_ref().unwrap().stock {
+                total += 1;
+                match card.card_type {
+                    BCardType::CommonJoker => {
+                        jokers += 1;
+                        saw_common = true;
+                        assert!(Joker::COMMON_JOKERS.contains(card), "{card} not piled");
+                    }
+                    BCardType::UncommonJoker => {
+                        jokers += 1;
+                        saw_uncommon = true;
+                        assert!(Joker::UNCOMMON_JOKERS.contains(card), "{card} not piled");
+                    }
+                    BCardType::RareJoker => {
+                        jokers += 1;
+                        saw_rare = true;
+                        assert!(Joker::RARE_JOKERS.contains(card), "{card} not piled");
+                    }
+                    BCardType::LegendaryJoker => panic!("Legendary never appears in the shop"),
+                    BCardType::Tarot => saw_tarot = true,
+                    BCardType::Planet => saw_planet = true,
+                    other => panic!("{other:?} is not shop stock"),
+                }
+            }
+        }
+
+        assert!(
+            saw_common && saw_uncommon && saw_rare,
+            "all rarities reachable"
+        );
+        assert!(saw_tarot && saw_planet, "consumables reachable");
+        // Jokers are the 20-of-28 weight: a clear majority over a large sample.
+        assert!(
+            jokers * 2 > total,
+            "jokers should dominate stock ({jokers}/{total})"
+        );
+    }
+
+    #[test]
+    fn buy_stock__puts_a_joker_on_the_board_for_its_rank_value() {
+        // Blue Joker costs its rank value; buying it deducts exactly that and
+        // routes it into a joker slot.
+        let price = isize::try_from(card::BLUE_JOKER.rank.value).unwrap();
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 10;
+
+        assert!(board.buy_stock(0), "affordable, room to spare");
+        assert_eq!(board.money, 10 - price);
+        assert_eq!(board.jokers.len(), 1);
+        assert_eq!(board.jokers.get(0).copied(), Some(card::BLUE_JOKER));
+        assert_eq!(board.joker_state.len(), 1, "its counter came with it");
+        assert!(
+            board.shop.as_ref().unwrap().stock.is_empty(),
+            "slot consumed"
+        );
+    }
+
+    #[test]
+    fn buy_stock__routes_a_consumable_through_the_consumable_slots_for_three() {
+        // A Tarot or Planet costs a flat $3 and lands in a consumable slot, not
+        // a joker slot.
+        let mut board = board_with_stock(vec![tarot_card::FOOL]);
+        board.money = 10;
+
+        assert!(board.buy_stock(0));
+        assert_eq!(board.money, 7, "flat $3, not the card's rank value");
+        assert_eq!(board.consumables.len(), 1);
+        assert_eq!(board.jokers.len(), 0, "a consumable is not a joker");
+    }
+
+    #[test]
+    fn buy_stock__refuses_without_the_money() {
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 1; // Blue Joker costs $5
+
+        assert!(!board.buy_stock(0), "cannot afford it");
+        assert_eq!(board.money, 1, "no charge on a refused buy");
+        assert_eq!(board.jokers.len(), 0);
+        assert_eq!(
+            board.shop.as_ref().unwrap().stock.len(),
+            1,
+            "still on offer"
+        );
+    }
+
+    #[test]
+    fn buy_stock__refuses_without_a_joker_slot() {
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 100;
+        for _ in 0..board.joker_slots {
+            board.push_joker(card::JOKER);
+        }
+        assert!(!board.has_joker_room(), "the fixture fills every slot");
+
+        assert!(!board.buy_stock(0), "no room refuses the buy");
+        assert_eq!(board.money, 100, "and charges nothing");
+        assert_eq!(board.shop.as_ref().unwrap().stock.len(), 1);
+    }
+
+    #[test]
+    fn buy_stock__refuses_an_index_off_the_end() {
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 100;
+        assert!(!board.buy_stock(5), "no such slot");
+        assert_eq!(board.money, 100);
+    }
+
+    #[test]
+    fn buy_stock__credit_card_lets_a_buy_go_into_debt() {
+        // Credit Card carries MPip::Credit(20): the buy floor drops to -$20, so
+        // a purchase that ends at -$19 succeeds — and refuses without it.
+        let price = isize::try_from(card::BLUE_JOKER.rank.value).unwrap();
+
+        let mut without = board_with_stock(vec![card::BLUE_JOKER]);
+        without.money = price - 19; // ends at -$19, below the $0 floor
+        assert!(!without.buy_stock(0), "no Credit Card, no debt");
+        assert_eq!(without.money, price - 19);
+
+        let mut with = board_with_stock(vec![card::BLUE_JOKER]);
+        with.push_joker(card::CREDIT_CARD);
+        with.money = price - 19;
+        assert!(with.buy_stock(0), "Credit Card allows the debt");
+        assert_eq!(with.money, -19);
+        assert_eq!(with.jokers.len(), 2, "Credit Card plus the bought joker");
+    }
+
+    #[test]
+    fn shop__a_board_that_never_opens_one_is_unchanged() {
+        // Exit criterion 2: the shop field defaults to None and nothing new
+        // fires on a board that never opens it — a full round is byte-identical
+        // to before the shop existed.
+        let mut board = board_for_a_round();
+        board.blind_target = 1;
+        board.push_joker(card::GOLDEN_JOKER);
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+        board.play_hand(&[0, 1, 2, 3, 4]);
+        board.on_round_end();
+
+        assert!(board.shop.is_none(), "no shop was ever opened");
+    }
+
+    #[test]
+    fn buy_stock__buying_a_joker_fires_no_card_added() {
+        // Hologram counts playing cards added to the deck; a bought joker is not
+        // one, so its ×0.25 counter must not tick.
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 10;
+        board.push_joker(card::HOLOGRAM);
+        let hologram_slot = board.jokers.len() - 1;
+        assert_eq!(board.joker_state[hologram_slot], 0);
+
+        assert!(board.buy_stock(0));
+        assert_eq!(
+            board.joker_state[hologram_slot], 0,
+            "Hologram did not see a card added"
+        );
+        assert_eq!(board.full_deck.len(), 52, "the deck did not grow");
     }
 
     #[test]

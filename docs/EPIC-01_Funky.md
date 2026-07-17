@@ -29,7 +29,7 @@
 | Poker hands + levels | `HandType`/`PokerHand`/`PokerHands` (`hands.rs`) | ✅ done, incl. FiveOfAKind/FlushHouse/FlushFive |
 | Chips × mult scoring | `Score` (`score.rs`), 4-phase `BuffoonBoard` scoring + `score()` aggregate | 🟢 all 4 phases done (base + played cards + held ×mult + jokers); jokers still additive-only |
 | Blinds / antes / boss blinds | `MPip::AddCardTypeWhenBlindSelected` stub | ❌ absent |
-| Shop / economy | `resell_value` field, `MPip::SellValueIncrement` | ❌ no shop engine |
+| Shop / economy | `money`, cash-out, `Shop` (stock draw + `buy_stock`), `sell_joker`, `resell_value` | 🟡 cash-out + buying + selling done; rerolls/packs/vouchers open (EPIC-01b) |
 | Hand/discard counts | `Draws` (`draws.rs`) | ✅ done (not exported) |
 | Card selection | `ToggleCard` (`toggle.rs`, `RefCell<bool>`) | ✅ done (not exported) |
 
@@ -111,8 +111,13 @@
   (EPIC-01a Phase 8)
 - [~] Shop: buying, selling (consume `resell_value`), rerolls, packs —
   **`sell_joker` landed** (it pays out `resell_value` and recomputes the round's
-  draws, which is what makes Luchador observable). Buying, rerolls and packs are
-  not modelled. (EPIC-01a Phase 8)
+  draws, which is what makes Luchador observable). **The shop and buying landed
+  too** (EPIC-01b Phase 2): `Shop { stock, rerolls_used }` on the board,
+  `open_shop_with_rng` draws two card slots at Balatro's 20/4/4 · 70/25/5
+  weights from the rarity piles, and `buy_stock` routes a joker to `push_joker`
+  or a consumable to `create_consumable`, charging its price (joker `rank.value`,
+  consumable $3) against a debt floor that reads held Credit Cards live. Rerolls
+  and packs are still not modelled. (EPIC-01a Phase 8, EPIC-01b Phase 2)
 - [x] **Money/economy state on the board** — `money: isize` plus the round-end /
   discard payout seam. (EPIC-01a Phase 1)
 - [x] **Cash-out** — a won round pays Balatro's three lines: blind reward

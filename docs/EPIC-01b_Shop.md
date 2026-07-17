@@ -47,7 +47,7 @@ in: cash-out, stock, buy, reroll, booster packs.
 | Component (phase) | Unblocks | Status |
 |---|---|---|
 | 1 — Cash-out (blind reward + $/hand + interest) | the economy actually cycles; To the Moon gets its base to stack on | **Complete** (2026-07-17) |
-| 2 — Shop state, stock draw, buying | Credit Card (`Credit(20)` debt floor) | Planned |
+| 2 — Shop state, stock draw, buying | Credit Card (`Credit(20)` debt floor) | **Complete** (2026-07-17) |
 | 3 — Reroll | **Flash Card**; Chaos the Clown (`FreeReroll(1)`) | Planned |
 | 4 — Booster packs (buy / skip / open) | **Red Card** (skip), **Hallucination** (open) | Planned |
 
@@ -247,15 +247,38 @@ need cards that do not exist and stay out.
 - **Not done here:** the earn→spend cycle stops at *earn* — spending needs the
   shop (Phase 2). 1b closes the loop the moment `buy_stock` exists.
 
-### Phase 2 — Shop & buying
+### Phase 2 — Shop & buying — **Complete 2026-07-17**
 
-- [ ] **2a.** `Shop` type, `BuffoonBoard.shop`, `open_shop_with_rng` at the
-  20/4/4 and 70/25/5 weights (seeded tests pin the distribution shape, not
-  exact draws).
-- [ ] **2b.** `buy_stock`: money check (with `debt_floor`), slot check, routing.
-  **Credit Card** wired — buying at −$19 succeeds with it, refuses without it.
-- [ ] **2c.** Negative guard: buying a joker fires no `CardAdded` (Hologram
-  stays still).
+- [x] **2a.** New `src/funky/types/shop.rs` — `Shop { stock, rerolls_used }`
+  (packs deferred to Phase 4, TDD-minimal); `BuffoonBoard.shop: Option<Shop>`
+  defaulting to `None`; `open_shop_with_rng` draws two card slots via
+  `draw_stock_card` at the wiki weights (20/4/4 card-slot roll, then 70/25/5
+  joker rarity, Legendary never). `open_shop_with_rng__draws_only_shoppable_cards`
+  pins the distribution *shape* over 400 seeds: every drawn card is a piled
+  joker (Common/Uncommon/Rare, asserted `contains`), Tarot, or Planet; all three
+  categories and all three rarities are reachable; Legendary never appears; and
+  jokers are a clear majority (>50%). No pure `open_shop` — a shop without RNG
+  has no stock, the `on_blind_selected_with_rng` precedent.
+- [x] **2b.** `buy_stock(index) -> bool` (`board.rs`): looks up the slot, checks
+  `money.saturating_sub(price) >= debt_floor()`, checks room (joker →
+  `has_joker_room`, consumable → `create_consumable`), then charges and removes
+  the slot — placed before charged, so a room refusal never spends. `stock_price`
+  is $3 flat for Tarot/Planet, else the joker's `rank.value`. `debt_floor` sums
+  each held `MPip::Credit(n)` live (the Chicot pattern) and negates it — base $0,
+  −$20 per Credit Card, stacking. **Credit Card wired**: `buy_stock` at −$19
+  succeeds holding it, refuses without (`buy_stock__credit_card_lets_a_buy_go_into_debt`).
+  Six more tests: joker buy at `rank.value`, consumable at $3, refuse-no-money,
+  refuse-no-room, refuse-bad-index.
+- [x] **2c.** Negative guard: `buy_stock__buying_a_joker_fires_no_card_added` —
+  a bought joker routes through `push_joker`, not `add_card_to_deck`, so no
+  `CardAdded` fires; Hologram's counter and `full_deck.len()` both stay put.
+- [x] **Loop close & inertness.** `round_loop__the_economy_cycles_from_cash_out_into_a_buy`
+  earns $6 from a won round from a $0 start and spends $5 of it on a joker —
+  the earn→spend cycle Phase 1b left open. `shop__a_board_that_never_opens_one_is_unchanged`
+  pins exit criterion 2: `shop` stays `None` across a full round.
+- **Deferred to their phases:** `Shop.packs` / `BoosterPack` (Phase 4);
+  `Shop.rerolls_used` exists but is read only in Phase 3. Chaos the Clown's
+  `FreeReroll(1)` stays inert until Phase 3, as planned.
 
 ### Phase 3 — Reroll
 
