@@ -283,6 +283,13 @@ pub enum MPip {
     /// per-joker accumulator — Balatro's Fortune Teller is retroactive, so one
     /// bought after ten Tarots is immediately worth +10.
     MultPlusPerTarotUsedThisRun(usize),
+    /// Flash Card: `+n` mult per shop **reroll**.
+    ///
+    /// A plain per-joker counter grown on `GrowthEvent::ShopRerolled` — the
+    /// Green Joker shape, *not* retroactive: a Flash Card bought after five
+    /// rerolls starts at +0, and only climbs on rerolls that happen while it is
+    /// held.
+    MultPlusPerReroll(usize),
     /// Vampire: gains `rate`/100 ×mult per **enhanced card played**, and strips
     /// the enhancement off each one it counts. Base ×1.
     ///
@@ -554,6 +561,7 @@ impl Display for MPip {
             Self::MultPlusPerTarotUsedThisRun(n) => {
                 write!(f, "MultPlusPerTarotUsedThisRun({n})")
             }
+            Self::MultPlusPerReroll(n) => write!(f, "MultPlusPerReroll({n})"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),

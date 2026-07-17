@@ -116,8 +116,12 @@
   `open_shop_with_rng` draws two card slots at Balatro's 20/4/4 · 70/25/5
   weights from the rarity piles, and `buy_stock` routes a joker to `push_joker`
   or a consumable to `create_consumable`, charging its price (joker `rank.value`,
-  consumable $3) against a debt floor that reads held Credit Cards live. Rerolls
-  and packs are still not modelled. (EPIC-01a Phase 8, EPIC-01b Phase 2)
+  consumable $3) against a debt floor that reads held Credit Cards live.
+  **Rerolls landed too** (EPIC-01b Phase 3): `reroll_cost` ($5 climbing $1,
+  reset per shop, free rerolls from Chaos the Clown) and `reroll_with_rng`,
+  which fires `GrowthEvent::ShopRerolled` — the event Flash Card
+  (`MultPlusPerReroll(2)`) counts. Booster packs are still not modelled.
+  (EPIC-01a Phase 8, EPIC-01b Phases 2–3)
 - [x] **Money/economy state on the board** — `money: isize` plus the round-end /
   discard payout seam. (EPIC-01a Phase 1)
 - [x] **Cash-out** — a won round pays Balatro's three lines: blind reward

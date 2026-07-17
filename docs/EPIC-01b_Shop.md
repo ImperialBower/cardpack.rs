@@ -48,7 +48,7 @@ in: cash-out, stock, buy, reroll, booster packs.
 |---|---|---|
 | 1 — Cash-out (blind reward + $/hand + interest) | the economy actually cycles; To the Moon gets its base to stack on | **Complete** (2026-07-17) |
 | 2 — Shop state, stock draw, buying | Credit Card (`Credit(20)` debt floor) | **Complete** (2026-07-17) |
-| 3 — Reroll | **Flash Card**; Chaos the Clown (`FreeReroll(1)`) | Planned |
+| 3 — Reroll | **Flash Card**; Chaos the Clown (`FreeReroll(1)`) | **Complete** (2026-07-17) |
 | 4 — Booster packs (buy / skip / open) | **Red Card** (skip), **Hallucination** (open) | Planned |
 
 ## Goals
@@ -280,15 +280,28 @@ need cards that do not exist and stay out.
   `Shop.rerolls_used` exists but is read only in Phase 3. Chaos the Clown's
   `FreeReroll(1)` stays inert until Phase 3, as planned.
 
-### Phase 3 — Reroll
+### Phase 3 — Reroll — **Complete 2026-07-17**
 
-- [ ] **3a.** `reroll_cost` / `reroll_with_rng`: $5, $6, $7…; resets on the
-  next `open_shop_with_rng`; packs untouched by redraw.
-- [ ] **3b.** **Chaos the Clown** wired: first reroll $0, second $5. Two Chaos
-  = two free (the Stencil per-copy rule, verified against source before
-  wiring).
-- [ ] **3c.** **Flash Card** wired: `Blank` → `MultPlusPerReroll(2)`, +2 mult
-  per reroll, exact-value test.
+- [x] **3a.** `reroll_cost` / `reroll_with_rng` (`board.rs`). Cost: the first
+  `free_rerolls` cost $0, paid ones start at $5 and climb $1 (`5 + (used −
+  free)`); resets to $5 on the next `open_shop_with_rng` because a fresh `Shop`
+  starts at `rerolls_used == 0`. `reroll_with_rng` refuses below the debt floor,
+  charges, redraws only the two card slots, increments `rerolls_used`, and fires
+  the new `GrowthEvent::ShopRerolled`. Four tests: $5→$6→$7 climb, charge +
+  count, per-shop reset, refuse-no-money.
+- [x] **3b.** **Chaos the Clown** wired via `free_rerolls` (Σ `MPip::FreeReroll`
+  read live, the Credit-Card pattern). One Chaos: first reroll $0, second $5.
+  **Two Chaos = two free**, then $5 — the per-copy stacking, tested.
+- [x] **3c.** **Flash Card** wired: `Blank` → `MultPlusPerReroll(2)` (new `MPip`
+  variant + `Display`); grows on `ShopRerolled` in `growth_delta`, read as
+  `AddMult(2 × counter)` in `counter_joker_op` (merged with Spare Trousers'
+  identical additive read). `score__flash_card_adds_two_mult_per_reroll` pins +4
+  mult after two rerolls. Removed from `BLANK_WITH_REASON` (14 → 13); `drive_events`
+  now fires a seeded reroll so the reachability guard sees Flash Card score, and
+  `scores_hand` classifies `MultPlusPerReroll` as a scoring effect.
+- **Phase 0a landed here, as planned:** `GrowthEvent` gained `ShopRerolled` (its
+  first real construction site). `PackSkipped`/`PackOpened` still wait for
+  Phase 4, which constructs them.
 
 ### Phase 4 — Booster packs
 

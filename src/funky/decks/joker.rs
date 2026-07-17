@@ -1479,7 +1479,7 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::MultPlusPerReroll(2),
         resell_value: 2,
         debuffed: false,
     };
@@ -2351,6 +2351,9 @@ mod funky__decks__joker_tests {
             // what makes it retroactive. Both add mult once driven.
             | MPip::GainMultTimesPerPlanetUsed(_)
             | MPip::MultPlusPerTarotUsedThisRun(_)
+            // Flash Card: +n mult per shop reroll, grown on ShopRerolled. A
+            // plain counter like Green Joker, inert (+0) until a reroll ticks it.
+            | MPip::MultPlusPerReroll(_)
             // Madness gains its xmult on every non-boss blind selected, so a
             // grown one scores. (The joker it destroys is a side effect, not its
             // contribution.)
@@ -2605,6 +2608,16 @@ mod funky__decks__joker_tests {
             board.destroy_deck_card(king);
         }
         board.on_discard(&big_discard);
+        // A shop opened and rerolled once (Flash Card). Driven on the seeded
+        // path — a reroll destroys no joker, so unlike Madness it cannot eat the
+        // probe being measured. $20 covers the $5 base cost.
+        {
+            use rand::{SeedableRng, rngs::StdRng};
+            let mut rng = StdRng::seed_from_u64(0);
+            board.money = 20;
+            board.open_shop_with_rng(&mut rng);
+            board.reroll_with_rng(&mut rng);
+        }
         // One Planet and one Tarot spent (Constellation, Fortune Teller). The
         // Tarot targets nothing, so it only registers as used — all either joker
         // reads.
@@ -2678,7 +2691,7 @@ mod funky__decks__joker_tests {
     /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
     /// shop) that are deliberately outside this crate's current scope. Delete an
     /// entry only when the joker is wired.
-    const BLANK_WITH_REASON: [(BuffoonCard, &str); 14] = [
+    const BLANK_WITH_REASON: [(BuffoonCard, &str); 13] = [
         // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
         (
             card::SIXTH_SENSE,
@@ -2699,10 +2712,6 @@ mod funky__decks__joker_tests {
         (
             card::PERKEO,
             "needs the shop and Negative editions, neither of which exists",
-        ),
-        (
-            card::FLASH_CARD,
-            "+2 mult per reroll: needs the shop, which does not exist",
         ),
         (
             card::DNA,

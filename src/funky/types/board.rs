@@ -45,6 +45,10 @@ enum GrowthEvent<'a> {
     /// A blind was selected, fired by [`BuffoonBoard::on_blind_selected`] with
     /// the blind — Madness's trigger, which fires on everything *except* a boss.
     BlindSelected(Blind),
+    /// The shop's card slots were rerolled, fired by
+    /// [`BuffoonBoard::reroll_with_rng`] — Flash Card's trigger, which gains
+    /// `+n` mult on each one.
+    ShopRerolled,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -1216,6 +1220,9 @@ impl BuffoonBoard {
             {
                 1
             }
+            // Flash Card: one tick per shop reroll. Green Joker's shape on a
+            // different event — the counter is read as +mult at scoring time.
+            (MPip::MultPlusPerReroll(_), GrowthEvent::ShopRerolled) => 1,
             _ => 0,
         }
     }
@@ -1687,6 +1694,60 @@ impl BuffoonBoard {
         if let Some(shop) = self.shop.as_mut() {
             shop.stock.remove(index);
         }
+        true
+    }
+
+    /// How many free rerolls the board is granted this shop — the sum of every
+    /// held `MPip::FreeReroll(n)` (Chaos the Clown's `1`), read **live** so two
+    /// Chaos grant two, and selling one gives its free reroll back.
+    #[must_use]
+    fn free_rerolls(&self) -> usize {
+        self.jokers
+            .iter()
+            .filter_map(|joker| match joker.enhancement {
+                MPip::FreeReroll(n) => Some(n),
+                _ => None,
+            })
+            .sum()
+    }
+
+    /// What the next reroll of the shop's card slots costs.
+    ///
+    /// The shop's free rerolls (one per held `MPip::FreeReroll`, i.e. Chaos the
+    /// Clown) cost **$0**; each paid reroll after them starts at **$5** and
+    /// climbs **$1** apiece. The count resets every time
+    /// [`open_shop_with_rng`](Self::open_shop_with_rng) draws a fresh shop, since
+    /// a new `Shop` starts at `rerolls_used == 0`.
+    #[must_use]
+    pub fn reroll_cost(&self) -> usize {
+        let free = self.free_rerolls();
+        let used = self.shop.as_ref().map_or(0, |shop| shop.rerolls_used);
+        if used < free { 0 } else { 5 + (used - free) }
+    }
+
+    /// Reroll the shop's card slots, paying [`reroll_cost`](Self::reroll_cost)
+    /// and redrawing the two card slots. Returns whether it happened.
+    ///
+    /// Refused — untouched — with no shop open, or when the cost would drop
+    /// [`money`](Self::money) below the debt floor (a free reroll is always
+    /// affordable). Only the card slots are redrawn; a future pack slot is left
+    /// alone. Fires the `ShopRerolled` growth event, which is where **Flash
+    /// Card** gains its `+2` mult.
+    pub fn reroll_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) -> bool {
+        if self.shop.is_none() {
+            return false;
+        }
+        let cost = isize::try_from(self.reroll_cost()).unwrap_or(isize::MAX);
+        if self.money.saturating_sub(cost) < self.debt_floor() {
+            return false;
+        }
+        self.money = self.money.saturating_sub(cost);
+        let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
+        if let Some(shop) = self.shop.as_mut() {
+            shop.stock = stock;
+            shop.rerolls_used += 1;
+        }
+        self.apply_growth(&GrowthEvent::ShopRerolled);
         true
     }
 
@@ -2265,7 +2326,11 @@ impl BuffoonBoard {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddChips(rate * counter.max(0) as usize))
             }
-            MPip::GainMultPerTwoPairHand(rate) =>
+            // Spare Trousers gains +rate mult per two-pair hand; Flash Card gains
+            // +rate mult per reroll. Different events grow the counter
+            // (`growth_delta` keeps them apart), but the read is one additive
+            // rule, so it is written once.
+            MPip::GainMultPerTwoPairHand(rate) | MPip::MultPlusPerReroll(rate) =>
             {
                 #[allow(clippy::cast_sign_loss)]
                 Some(ScoreOp::AddMult(rate * counter.max(0) as usize))
@@ -5188,6 +5253,109 @@ mod funky__types__board__buffoon_board_tests {
             "Hologram did not see a card added"
         );
         assert_eq!(board.full_deck.len(), 52, "the deck did not grow");
+    }
+
+    // ---- Reroll, Phase 3 --------------------------------------------------
+
+    #[test]
+    fn reroll_cost__starts_at_five_and_climbs_by_one() {
+        let mut board = board_for_a_round();
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        board.money = 100;
+
+        assert_eq!(board.reroll_cost(), 5, "the first paid reroll is $5");
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(board.reroll_cost(), 6, "then $6");
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(3));
+        assert_eq!(board.reroll_cost(), 7, "then $7");
+    }
+
+    #[test]
+    fn reroll_with_rng__charges_and_counts_the_reroll() {
+        let mut board = board_for_a_round();
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        board.money = 20;
+
+        assert!(board.reroll_with_rng(&mut StdRng::seed_from_u64(2)));
+        assert_eq!(board.money, 15, "charged the $5 base");
+        let shop = board.shop.as_ref().unwrap();
+        assert_eq!(shop.rerolls_used, 1);
+        assert_eq!(shop.stock.len(), 2, "the two card slots were redrawn");
+    }
+
+    #[test]
+    fn reroll_cost__resets_when_a_new_shop_opens() {
+        let mut board = board_for_a_round();
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(3));
+        assert_eq!(board.reroll_cost(), 7, "climbed to $7");
+
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(4));
+        assert_eq!(board.reroll_cost(), 5, "a fresh shop is back to $5");
+    }
+
+    #[test]
+    fn reroll_with_rng__refuses_without_the_money() {
+        let mut board = board_for_a_round();
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        board.money = 3; // a reroll is $5
+
+        assert!(!board.reroll_with_rng(&mut StdRng::seed_from_u64(2)));
+        assert_eq!(board.money, 3, "no charge on a refused reroll");
+        assert_eq!(board.shop.as_ref().unwrap().rerolls_used, 0);
+    }
+
+    #[test]
+    fn reroll_cost__chaos_the_clown_grants_one_free_reroll_per_shop() {
+        let mut board = board_for_a_round();
+        board.push_joker(card::CHAOS_THE_CLOWN); // MPip::FreeReroll(1)
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.reroll_cost(), 0, "the first reroll is free");
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(board.money, 100, "and cost nothing");
+        assert_eq!(board.reroll_cost(), 5, "the second is the $5 base");
+
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(3));
+        assert_eq!(board.money, 95);
+        assert_eq!(board.reroll_cost(), 6);
+    }
+
+    #[test]
+    fn reroll_cost__two_chaos_the_clowns_grant_two_free_rerolls() {
+        let mut board = board_for_a_round();
+        board.push_joker(card::CHAOS_THE_CLOWN);
+        board.push_joker(card::CHAOS_THE_CLOWN);
+        board.money = 100;
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.reroll_cost(), 0);
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(board.reroll_cost(), 0, "the second is also free");
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(3));
+        assert_eq!(board.reroll_cost(), 5, "the third is the $5 base");
+        assert_eq!(board.money, 100, "nothing spent on the two free rerolls");
+    }
+
+    #[test]
+    fn score__flash_card_adds_two_mult_per_reroll() {
+        // Flash Card: MPip::MultPlusPerReroll(2). It grows on each reroll and
+        // adds +2 mult per reroll at score time — the Green Joker shape.
+        let mut board = board_playing("2S 5D 8C TS KH"); // a high card
+        board.push_joker(card::FLASH_CARD);
+        board.shop = Some(crate::funky::types::shop::Shop::with_stock(vec![]));
+        board.money = 100;
+
+        let base = board.score();
+
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(1));
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        let after = board.score();
+
+        assert_eq!(after.mult, base.mult + 4, "two rerolls add +4 mult (2 x 2)");
     }
 
     #[test]
