@@ -1,4 +1,5 @@
 use crate::funky::types::buffoon_card::BuffoonCard;
+use crate::funky::types::voucher::Voucher;
 use serde::{Deserialize, Serialize};
 
 /// Which family of cards a [`BoosterPack`] opens into.
@@ -49,6 +50,10 @@ pub struct Shop {
     /// skipped, then removed; a reroll leaves them alone (it redraws only
     /// `stock`).
     pub packs: Vec<BoosterPack>,
+    /// The single **voucher** on offer this shop ($10), or `None` if none is
+    /// offered or it has been redeemed. Drawn from the vouchers not yet held
+    /// whose base-tier prerequisite (if any) is already met.
+    pub voucher: Option<Voucher>,
     /// How many times the card slots have been rerolled this shop. Base 0, reset
     /// each time a shop opens; read by the escalating reroll cost.
     pub rerolls_used: usize,
@@ -62,6 +67,7 @@ impl Shop {
         Self {
             stock,
             packs: Vec::new(),
+            voucher: None,
             rerolls_used: 0,
         }
     }

@@ -6,6 +6,7 @@ use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::funky::types::shop::{BoosterPack, PackKind, Shop};
+use crate::funky::types::voucher::Voucher;
 use crate::preludes::funky::{
     BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
@@ -202,6 +203,14 @@ pub struct BuffoonBoard {
     /// [`open_shop_with_rng`](Self::open_shop_with_rng) draws one — so a run
     /// that never shops behaves exactly as it did before the shop existed.
     pub shop: Option<Shop>,
+    /// The **vouchers** redeemed this run — run-permanent, redeemed once each.
+    ///
+    /// Defaults empty, and an empty set is inert: it contributes nothing to the
+    /// draw recompute, the slot limits, or the shop's prices and weights, so a
+    /// run that redeems nothing behaves exactly as it did before vouchers
+    /// existed. Read live by the draw recompute and the shop's cost/weight
+    /// readers (EPIC-01c Phases 2–5).
+    pub vouchers: Vec<Voucher>,
 }
 
 /// An empty board with Balatro's base slot counts.
@@ -254,6 +263,7 @@ impl BuffoonBoard {
             boss_disabled: false,
             joker_state: Vec::new(),
             shop: None,
+            vouchers: Vec::new(),
         }
     }
 
@@ -1663,11 +1673,66 @@ impl BuffoonBoard {
     pub fn open_shop_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
         let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
         let packs = vec![Self::draw_pack(rng), Self::draw_pack(rng)];
+        let eligible = self.eligible_vouchers();
+        let voucher = if eligible.is_empty() {
+            None
+        } else {
+            Some(eligible[rng.random_range(0..eligible.len())])
+        };
         self.shop = Some(Shop {
             stock,
             packs,
+            voucher,
             rerolls_used: 0,
         });
+    }
+
+    /// The vouchers the shop may offer: those **not yet redeemed** whose
+    /// **base-tier prerequisite** (if any) is already held. Empty once every
+    /// modelled voucher is redeemed — the shop then offers no voucher.
+    fn eligible_vouchers(&self) -> Vec<Voucher> {
+        Voucher::ALL
+            .into_iter()
+            .filter(|voucher| !self.vouchers.contains(voucher))
+            .filter(|voucher| {
+                voucher
+                    .requires()
+                    .is_none_or(|base| self.vouchers.contains(&base))
+            })
+            .collect()
+    }
+
+    /// Redeem the shop's offered voucher into [`vouchers`](Self::vouchers) for
+    /// **$10**. Returns whether it happened.
+    ///
+    /// Refused — leaving the board untouched — when no voucher is offered, when
+    /// it is already held, when its base-tier prerequisite is unmet, or when the
+    /// $10 would drop [`money`](Self::money) below the debt floor (`buy_stock`'s
+    /// floor, so a Credit Card lets a voucher go into debt too). On success the
+    /// voucher joins the run and the slot is cleared — a voucher is redeemed once
+    /// and never returns to the pool.
+    pub fn redeem_shop_voucher(&mut self) -> bool {
+        let Some(voucher) = self.shop.as_ref().and_then(|shop| shop.voucher) else {
+            return false;
+        };
+        if self.vouchers.contains(&voucher) {
+            return false;
+        }
+        if let Some(base) = voucher.requires() {
+            if !self.vouchers.contains(&base) {
+                return false;
+            }
+        }
+        let price = 10;
+        if self.money.saturating_sub(price) < self.debt_floor() {
+            return false;
+        }
+        self.money = self.money.saturating_sub(price);
+        self.vouchers.push(voucher);
+        if let Some(shop) = self.shop.as_mut() {
+            shop.voucher = None;
+        }
+        true
     }
 
     /// The lowest [`money`](Self::money) a purchase may leave the board at.
@@ -5498,6 +5563,142 @@ mod funky__types__board__buffoon_board_tests {
         let after = board.score();
 
         assert_eq!(after.mult, base.mult + 4, "two rerolls add +4 mult (2 x 2)");
+    }
+
+    // ---- Vouchers, EPIC-01c Phase 1 ---------------------------------------
+
+    use crate::funky::types::voucher::Voucher;
+
+    /// A board whose shop offers exactly `voucher` and nothing else.
+    fn board_offering_voucher(voucher: Voucher) -> BuffoonBoard {
+        let mut board = board_for_a_round();
+        let mut shop = crate::funky::types::shop::Shop::with_stock(vec![]);
+        shop.voucher = Some(voucher);
+        board.shop = Some(shop);
+        board
+    }
+
+    #[test]
+    fn vouchers__an_empty_set_is_inert_in_the_recompute() {
+        // Phase 0a, the guard every later phase keeps green: with no vouchers
+        // (and no jokers), a blind's recompute leaves the draws at the baseline.
+        let mut board = board_for_a_round();
+        assert!(board.vouchers.is_empty());
+        board.on_blind_selected();
+        assert_eq!(
+            board.draws, board.starting_draws,
+            "an empty set adds nothing"
+        );
+        assert_eq!(board.joker_slots, BuffoonBoard::DEFAULT_JOKER_SLOTS);
+        assert_eq!(
+            board.consumable_slots,
+            BuffoonBoard::DEFAULT_CONSUMABLE_SLOTS
+        );
+    }
+
+    #[test]
+    fn redeem_shop_voucher__adds_it_and_charges_ten() {
+        let mut board = board_offering_voucher(Voucher::Grabber);
+        board.money = 15;
+
+        assert!(board.redeem_shop_voucher(), "affordable at $10");
+        assert_eq!(board.money, 5);
+        assert_eq!(board.vouchers, vec![Voucher::Grabber]);
+        assert_eq!(
+            board.shop.as_ref().unwrap().voucher,
+            None,
+            "the slot is cleared once redeemed"
+        );
+    }
+
+    #[test]
+    fn redeem_shop_voucher__refuses_without_the_money() {
+        let mut board = board_offering_voucher(Voucher::Grabber);
+        board.money = 9; // a voucher is $10
+
+        assert!(!board.redeem_shop_voucher());
+        assert_eq!(board.money, 9, "no charge on a refused redeem");
+        assert!(board.vouchers.is_empty());
+        assert!(
+            board.shop.as_ref().unwrap().voucher.is_some(),
+            "still offered"
+        );
+    }
+
+    #[test]
+    fn redeem_shop_voucher__an_upgrade_needs_its_base() {
+        // Overstock Plus requires Overstock. Refused without it, even with money.
+        let mut without = board_offering_voucher(Voucher::OverstockPlus);
+        without.money = 100;
+        assert!(!without.redeem_shop_voucher(), "no base, no upgrade");
+        assert_eq!(without.money, 100, "and no charge");
+
+        let mut with = board_offering_voucher(Voucher::OverstockPlus);
+        with.money = 100;
+        with.vouchers.push(Voucher::Overstock);
+        assert!(with.redeem_shop_voucher(), "the base is held");
+        assert!(with.vouchers.contains(&Voucher::OverstockPlus));
+    }
+
+    #[test]
+    fn redeem_shop_voucher__refuses_an_empty_slot() {
+        let mut board = board_for_a_round();
+        board.shop = Some(crate::funky::types::shop::Shop::with_stock(vec![]));
+        assert!(!board.redeem_shop_voucher(), "no voucher on offer");
+    }
+
+    #[test]
+    fn open_shop_with_rng__offers_an_eligible_voucher() {
+        // A fresh shop offers a voucher, and it is always an eligible one — a
+        // base, or an upgrade whose base is held. With nothing held, only bases
+        // are eligible, so the offer's `requires()` is None.
+        let mut board = board_for_a_round();
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        let offered = board
+            .shop
+            .as_ref()
+            .unwrap()
+            .voucher
+            .expect("a voucher offered");
+        assert_eq!(offered.requires(), None, "an upgrade cannot be offered yet");
+    }
+
+    #[test]
+    fn open_shop_with_rng__never_offers_a_redeemed_voucher() {
+        // Once Grabber is held, no shop offers it again.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Grabber);
+        for seed in 0..64 {
+            board.open_shop_with_rng(&mut StdRng::seed_from_u64(seed));
+            assert_ne!(
+                board.shop.as_ref().unwrap().voucher,
+                Some(Voucher::Grabber),
+                "a redeemed voucher never re-offers (seed {seed})"
+            );
+        }
+    }
+
+    #[test]
+    fn open_shop_with_rng__offers_an_upgrade_once_its_base_is_held() {
+        // With Grabber held, Nacho Tong becomes eligible; across seeds it does
+        // get offered, and no other upgrade whose base is unheld ever does.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Grabber);
+        let mut saw_nacho = false;
+        for seed in 0..256 {
+            board.open_shop_with_rng(&mut StdRng::seed_from_u64(seed));
+            let offered = board.shop.as_ref().unwrap().voucher.unwrap();
+            if let Some(base) = offered.requires() {
+                assert!(
+                    board.vouchers.contains(&base),
+                    "{offered} offered without its base {base} (seed {seed})"
+                );
+            }
+            if offered == Voucher::NachoTong {
+                saw_nacho = true;
+            }
+        }
+        assert!(saw_nacho, "Nacho Tong is reachable once Grabber is held");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------

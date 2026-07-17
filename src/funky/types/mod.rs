@@ -9,3 +9,4 @@ pub mod mpip;
 pub mod score;
 pub mod shop;
 pub mod toggle;
+pub mod voucher;

@@ -20,6 +20,7 @@ pub use crate::funky::types::mpip::*;
 pub use crate::funky::types::score::Score;
 pub use crate::funky::types::shop::{BoosterPack, PackKind, Shop};
 pub use crate::funky::types::toggle::{Toggle, ToggleCard};
+pub use crate::funky::types::voucher::Voucher;
 
 pub use crate::bcard;
 pub use crate::bcards;
