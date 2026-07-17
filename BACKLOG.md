@@ -25,6 +25,14 @@ abilities. Carried forward, tracked outside the EPIC:
 - [ ] `BuffoonPile::draw(n)` loses cards when the deck can't supply the full
   count — sidestepped by `deal_to_hand_size`, tracked in TECHNICAL_DEBT.
 
+### EPIC-01b — The Shop ([docs/EPIC-01b_Shop.md](docs/EPIC-01b_Shop.md)) — planned, the next EPIC
+
+Cash-out (blind reward + $/hand + interest), shop stock drawn from the
+now-reconciled rarity piles, buying (Credit Card debt floor), reroll (Flash
+Card, Chaos the Clown), booster packs (Red Card, Hallucination). Four phases,
+all open; unblocks 3 of the 14 `Blank` jokers and wires the 2 silently-inert
+money consts.
+
 ### EPIC-01 — Funky/Balatro engine ([docs/EPIC-01_Funky.md](docs/EPIC-01_Funky.md)) — parent EPIC
 
 Still open beyond EPIC-01a's scope:
