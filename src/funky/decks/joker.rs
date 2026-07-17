@@ -3,9 +3,12 @@ use crate::preludes::funky::{BuffoonCard, BuffoonPile};
 pub struct Joker {}
 
 impl Joker {
-    pub const COMMON_JOKERS_SIZE: usize = 23;
+    pub const COMMON_JOKERS_SIZE: usize = 26;
 
     pub const COMMON_JOKERS: [BuffoonCard; Self::COMMON_JOKERS_SIZE] = [
+        card::SUPERPOSITION,
+        card::RIFF_RAFF,
+        card::FORTUNE_TELLER,
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -36,7 +39,7 @@ impl Joker {
         BuffoonPile::from(&Self::COMMON_JOKERS[..])
     }
 
-    pub const UNCOMMON_JOKERS_SIZE: usize = 17;
+    pub const UNCOMMON_JOKERS_SIZE: usize = 26;
 
     pub const UNCOMMON_JOKERS: [BuffoonCard; Self::UNCOMMON_JOKERS_SIZE] = [
         card::JOKER_STENCIL,
@@ -56,6 +59,15 @@ impl Joker {
         card::OOPS_ALL_6S,
         card::EROSION,
         card::STONE_JOKER,
+        card::SELTZER,
+        card::HOLOGRAM,
+        card::CONSTELLATION,
+        card::VAMPIRE,
+        card::LUCHADOR,
+        card::MATADOR,
+        card::MADNESS,
+        card::CARD_SHARP,
+        card::ROCKET,
     ];
 
     #[must_use]
@@ -63,9 +75,11 @@ impl Joker {
         BuffoonPile::from(&Self::UNCOMMON_JOKERS[..])
     }
 
-    pub const RARE_JOKERS_SIZE: usize = 6;
+    pub const RARE_JOKERS_SIZE: usize = 8;
 
     pub const RARE_JOKERS: [BuffoonCard; Self::RARE_JOKERS_SIZE] = [
+        card::VAGABOND,
+        card::ANCIENT_JOKER,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -881,6 +895,7 @@ pub mod card {
         resell_value: 0,
         debuffed: false,
     };
+    // 55 Constellation — Uncommon, $6. Was tagged Common / $5 and unpiled.
     pub const CONSTELLATION: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
@@ -888,11 +903,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∧',
             symbol: '∧',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Constellation: gains ×0.1 mult per Planet card used.
+        enhancement: MPip::GainMultTimesPerPlanetUsed(10),
+        resell_value: 3,
         debuffed: false,
     };
     pub const HIKER: BuffoonCard = BuffoonCard {
@@ -948,11 +964,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∫',
             symbol: '∫',
-            value: 5,
+            value: 4,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        // Superposition: create a Tarot when the hand is a Straight holding an Ace.
+        enhancement: MPip::CreateTarotOnAceStraight,
+        resell_value: 2,
         debuffed: false,
     };
     pub const TO_DO_LIST: BuffoonCard = BuffoonCard {
@@ -993,11 +1010,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∮',
             symbol: '∮',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Card Sharp: x3 mult if this hand type was already played this round.
+        enhancement: MPip::MultTimesOnRepeatedHandThisRound(3),
+        resell_value: 3,
         debuffed: false,
     };
     pub const RED_CARD: BuffoonCard = BuffoonCard {
@@ -1021,11 +1039,13 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∰',
             symbol: '∰',
-            value: 5,
+            value: 7,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Madness: on a Small or Big Blind (never a Boss), gain x0.5 mult and
+        // destroy a random other joker.
+        enhancement: MPip::GainMultTimesOnNonBossBlindDestroyingJoker(50),
+        resell_value: 3,
         debuffed: false,
     };
     pub const SQUARE_JOKER: BuffoonCard = BuffoonCard {
@@ -1064,13 +1084,16 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∳',
             symbol: '∳',
-            value: 5,
+            value: 6,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        // Riff-Raff: create 2 Common Jokers when a Blind is selected.
+        enhancement: MPip::CreateJokersWhenBlindSelected(2, BCardType::CommonJoker),
+        resell_value: 3,
         debuffed: false,
     };
+    // 68 Vampire — Uncommon, $7. The Baron/Erosion data-fix pattern again: it was
+    // tagged Common / $5 and sat in no rarity pile.
     pub const VAMPIRE: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
@@ -1078,11 +1101,13 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∴',
             symbol: '∴',
-            value: 5,
+            value: 7,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Vampire: gains ×0.1 mult per enhanced card played, eating the
+        // enhancement as it goes.
+        enhancement: MPip::GainMultTimesPerEnhancedPlayed(10),
+        resell_value: 3,
         debuffed: false,
     };
     pub const SHORTCUT: BuffoonCard = BuffoonCard {
@@ -1099,6 +1124,8 @@ pub mod card {
         resell_value: 0,
         debuffed: false,
     };
+    // 70 Hologram — Uncommon, $7. The Baron/Erosion data-fix pattern: it was
+    // tagged Common / $5 and sat in no rarity pile.
     pub const HOLOGRAM: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
@@ -1106,11 +1133,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∶',
             symbol: '∶',
-            value: 5,
+            value: 7,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Hologram: gains ×0.25 mult per playing card added to the deck.
+        enhancement: MPip::GainMultTimesPerCardAdded(25),
+        resell_value: 3,
         debuffed: false,
     };
     pub const VAGABOND: BuffoonCard = BuffoonCard {
@@ -1120,11 +1148,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∷',
             symbol: '∷',
-            value: 5,
+            value: 8,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::RareJoker,
+        // Vagabond: create a Tarot when a hand is played holding $4 or less.
+        enhancement: MPip::CreateTarotOnLowMoney(4),
+        resell_value: 4,
         debuffed: false,
     };
     pub const BARON: BuffoonCard = BuffoonCard {
@@ -1164,11 +1193,12 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '∺',
             symbol: '∺',
-            value: 5,
+            value: 6,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::UncommonJoker,
+        // Rocket: $1 at end of round, +$2 more per Boss Blind defeated.
+        enhancement: MPip::CashOnRoundEndGrowingOnBossDefeat(1, 2),
+        resell_value: 3,
         debuffed: false,
     };
     pub const EROSION: BuffoonCard = BuffoonCard {
@@ -1243,6 +1273,7 @@ pub mod card {
         resell_value: 0,
         debuffed: false,
     };
+    // 86 Fortune Teller — Common, $6. Cost was $5.
     pub const FORTUNE_TELLER: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {
@@ -1250,11 +1281,13 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≀',
             symbol: '≀',
-            value: 5,
+            value: 6,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        // Fortune Teller: +1 mult per Tarot used this run — retroactive, so it
+        // reads the board's run-wide tally rather than its own counter.
+        enhancement: MPip::MultPlusPerTarotUsedThisRun(1),
+        resell_value: 3,
         debuffed: false,
     };
     pub const JUGGLER: BuffoonCard = BuffoonCard {
@@ -1413,7 +1446,9 @@ pub mod card {
             value: 5,
         },
         card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
+        // Popcorn: +20 mult, losing 4 per round played — spent after 5 rounds,
+        // when the round that empties it destroys it.
+        enhancement: MPip::LoseMultPerRound(20, 4),
         resell_value: 0,
         debuffed: false,
     };
@@ -1439,11 +1474,13 @@ pub mod card {
             pip_type: PipType::Joker,
             index: '≍',
             symbol: '≍',
-            value: 5,
+            value: 8,
         },
-        card_type: BCardType::CommonJoker,
-        enhancement: MPip::Blank,
-        resell_value: 0,
+        card_type: BCardType::RareJoker,
+        // Ancient Joker: x1.5 mult per played card of the round's ancient suit,
+        // which re-rolls at every round end.
+        enhancement: MPip::MultTimesPerScoredAncientSuit(15),
+        resell_value: 4,
         debuffed: false,
     };
     pub const RAMEN: BuffoonCard = BuffoonCard {
@@ -1489,6 +1526,61 @@ pub mod card {
         },
         card_type: BCardType::UncommonJoker,
         enhancement: MPip::RetriggerPlayedFaces(1),
+        resell_value: 3,
+        debuffed: false,
+    };
+
+    // 77 Luchador — Uncommon, $5. Sell it to disable the current Boss Blind.
+    pub const LUCHADOR: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 809,
+            pip_type: PipType::Joker,
+            index: '🤼',
+            symbol: '🤼',
+            value: 5,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::DisableBossBlindOnSell,
+        resell_value: 2,
+        debuffed: false,
+    };
+
+    // 129 Matador — Uncommon, $7. "Earn $8 if played hand triggers the Boss
+    // Blind ability." Deliberately left `Blank`: this engine models the Boss
+    // Blinds whose ability is a `Draws` mutation applied once at blind select
+    // (The Needle, The Water, The Manacle), and none of them is *triggered by a
+    // played hand* — so there is no event for Matador to read. Paying on every
+    // boss hand instead would be the plausible-but-wrong value EPIC-01a exists
+    // to keep out. It needs per-hand boss abilities, which are their own EPIC.
+    pub const MATADOR: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 811,
+            pip_type: PipType::Joker,
+            index: '🐂',
+            symbol: '🐂',
+            value: 7,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::Blank,
+        resell_value: 3,
+        debuffed: false,
+    };
+
+    // 102 Seltzer — Uncommon, $6. Retrigger all cards played for the next 10
+    // hands, then it is destroyed ("Drank!").
+    pub const SELTZER: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::JOKER,
+        rank: Pip {
+            weight: 808,
+            pip_type: PipType::Joker,
+            index: '🥤',
+            symbol: '🥤',
+            value: 6,
+        },
+        card_type: BCardType::UncommonJoker,
+        enhancement: MPip::RetriggerAllPlayedForHands(1, 10),
         resell_value: 3,
         debuffed: false,
     };
@@ -1634,7 +1726,8 @@ pub mod card {
             value: 0,
         },
         card_type: BCardType::LegendaryJoker,
-        enhancement: MPip::Blank, // gains ×1 mult when a face card is destroyed
+        // Canio: gains ×1 mult when a face card is destroyed.
+        enhancement: MPip::GainMultTimesPerFaceDestroyed(100),
         resell_value: 0,
         debuffed: false,
     };
@@ -1665,7 +1758,8 @@ pub mod card {
             value: 0,
         },
         card_type: BCardType::LegendaryJoker,
-        enhancement: MPip::Blank, // gains ×1 mult every 23 cards discarded
+        // Yorick: gains ×1 mult every 23 cards discarded.
+        enhancement: MPip::GainMultTimesPerDiscardedCards(100, 23),
         resell_value: 0,
         debuffed: false,
     };
@@ -1680,7 +1774,8 @@ pub mod card {
             value: 0,
         },
         card_type: BCardType::LegendaryJoker,
-        enhancement: MPip::Blank, // disables the effect of every Boss Blind
+        // Chicot: disables the ability of every Boss Blind while held.
+        enhancement: MPip::DisablesAllBossBlinds,
         resell_value: 0,
         debuffed: false,
     };
@@ -1780,19 +1875,21 @@ mod funky__decks__joker_tests {
     use super::*;
     use crate::bcards;
     use crate::funky::decks::basic::card as basic;
+    use crate::funky::decks::planet::card as planet_card;
     use crate::funky::decks::tarot::MajorArcana;
+    use crate::funky::decks::tarot::card as tarot_card;
     use crate::funky::types::board::BuffoonBoard;
     use crate::funky::types::draws::Draws;
     use crate::funky::types::mpip::MPip;
-    use crate::preludes::funky::{BCardType, BuffoonPile, Deck};
-    use std::collections::HashSet;
+    use crate::preludes::funky::{BCardType, Blind, BuffoonPile, Deck, Score};
+    use std::collections::{HashMap, HashSet};
 
     /// Every joker const defined in this file, in declaration order. The single
     /// iteration point for crate-wide data invariants (weight uniqueness, the
     /// scoring-reachability guard). A joker is only protected by those guards
     /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
     /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 109] = [
+    const ALL_JOKERS: [BuffoonCard; 112] = [
         card::JOKER,
         card::GREEDY_JOKER,
         card::LUSTY_JOKER,
@@ -1892,6 +1989,9 @@ mod funky__decks__joker_tests {
         card::HANGING_CHAD,
         card::SMEARED_JOKER,
         card::OOPS_ALL_6S,
+        card::LUCHADOR,
+        card::MATADOR,
+        card::SELTZER,
         card::THE_DUO,
         card::THE_TRIO,
         card::THE_FAMILY,
@@ -1981,6 +2081,73 @@ mod funky__decks__joker_tests {
         }
     }
 
+    #[test]
+    fn hologram_and_vampire__are_uncommon_dollar_seven_and_piled() {
+        // The same drift again, found while wiring them in Phase 3: both were
+        // tagged Common / $5 and left out of every rarity pile. Balatro has both
+        // at Uncommon / $7 (sell $3).
+        for (joker, name) in [(card::HOLOGRAM, "Hologram"), (card::VAMPIRE, "Vampire")] {
+            assert_eq!(
+                joker.card_type,
+                BCardType::UncommonJoker,
+                "{name} is an Uncommon joker in Balatro"
+            );
+            assert_eq!(joker.rank.value, 7, "{name} costs $7 in Balatro");
+            assert_eq!(joker.resell_value, 3, "{name} sells for $3 in Balatro");
+            assert!(
+                Joker::UNCOMMON_JOKERS.contains(&joker),
+                "{name} belongs in UNCOMMON_JOKERS"
+            );
+        }
+    }
+
+    #[test]
+    fn phase_8_jokers__have_their_balatro_rarity_and_cost() {
+        // Madness and Rocket were tagged Common / $5 and unpiled; Luchador and
+        // Matador are new consts. Balatro: Madness U/$7, Rocket U/$6,
+        // Luchador U/$5, Matador U/$7.
+        for (joker, name, cost) in [
+            (card::MADNESS, "Madness", 7),
+            (card::ROCKET, "Rocket", 6),
+            (card::LUCHADOR, "Luchador", 5),
+            (card::MATADOR, "Matador", 7),
+        ] {
+            assert_eq!(
+                joker.card_type,
+                BCardType::UncommonJoker,
+                "{name} is an Uncommon joker in Balatro"
+            );
+            assert_eq!(joker.rank.value, cost, "{name} costs ${cost} in Balatro");
+            assert!(
+                Joker::UNCOMMON_JOKERS.contains(&joker),
+                "{name} belongs in UNCOMMON_JOKERS"
+            );
+        }
+    }
+
+    #[test]
+    fn matador__stays_blank_because_no_boss_ability_fires_on_a_played_hand() {
+        // A characterization, not an aspiration. Matador pays "if played hand
+        // triggers the Boss Blind ability", and every boss this engine models
+        // applies its ability once at blind select as a `Draws` mutation — none
+        // is triggered by a hand. There is no event to read, so it stays `Blank`
+        // rather than take a plausible-but-wrong value (paying on every boss
+        // hand). Wire it when per-hand boss abilities land, and delete this.
+        assert_eq!(card::MATADOR.enhancement, MPip::Blank);
+        assert!(
+            !scores_hand(card::MATADOR.enhancement),
+            "so the reachability guard rightly ignores it"
+        );
+    }
+
+    #[test]
+    fn seltzer__is_uncommon_dollar_six_and_piled() {
+        assert_eq!(card::SELTZER.card_type, BCardType::UncommonJoker);
+        assert_eq!(card::SELTZER.rank.value, 6, "Seltzer costs $6 in Balatro");
+        assert_eq!(card::SELTZER.resell_value, 3);
+        assert!(Joker::UNCOMMON_JOKERS.contains(&card::SELTZER));
+    }
+
     /// Does this `MPip` variant *intend* to add a deterministic contribution to
     /// the hand score — a pure function of the current played hand, held cards,
     /// or on-board resources (money, discards, deck, jokers)? This is the
@@ -2045,6 +2212,11 @@ mod funky__decks__joker_tests {
             | MPip::MultTimesOnFlush(_)
             | MPip::MultTimesPerScoredRank(_, _)
             | MPip::MultTimesPerHeldRank(_, _)
+            // Card Sharp reads the round's per-hand-type tally; Ancient Joker
+            // reads the run's current suit. Both are board state rather than
+            // counters, and both are ×mult conditionals once driven.
+            | MPip::MultTimesOnRepeatedHandThisRound(_)
+            | MPip::MultTimesPerScoredAncientSuit(_)
             | MPip::MultTimesPerUncommonJoker(_)
             | MPip::MultTimesPlusPerFullDeckSteel(_)
             | MPip::MultTimesIfHeldAllSuits(_, _)
@@ -2054,17 +2226,42 @@ mod funky__decks__joker_tests {
             | MPip::GainChipsPerCardCountHand(_, _)
             | MPip::GainMultPerTwoPairHand(_)
             | MPip::GainChipsPerStraightHand(_)
+            // The remaining per-run counters. Each reads its accumulator at
+            // scoring time, so a grown one changes the score: Popcorn's mult
+            // decays per round (Ice Cream's shape), and Yorick / Hologram /
+            // Canio gain xmult per cards discarded / card added / face
+            // destroyed. Ungrown they are inert (+0 mult, x1) -- the probe
+            // boards drive their events so the guard sees them grown.
+            | MPip::LoseMultPerRound(_, _)
+            | MPip::GainMultTimesPerDiscardedCards(_, _)
+            | MPip::GainMultTimesPerCardAdded(_)
+            | MPip::GainMultTimesPerFaceDestroyed(_)
+            // Vampire grows on the `Scored` event, i.e. before the fold reads
+            // it, so a hand of enhanced cards moves the score on that same hand.
+            | MPip::GainMultTimesPerEnhancedPlayed(_)
+            // Constellation is a plain counter (xmult per Planet used); Fortune
+            // Teller reads the board's run-wide Tarot tally instead, which is
+            // what makes it retroactive. Both add mult once driven.
+            | MPip::GainMultTimesPerPlanetUsed(_)
+            | MPip::MultPlusPerTarotUsedThisRun(_)
+            // Madness gains its xmult on every non-boss blind selected, so a
+            // grown one scores. (The joker it destroys is a side effect, not its
+            // contribution.)
+            | MPip::GainMultTimesOnNonBossBlindDestroyingJoker(_)
             // Hiker fattens the cards rather than itself, but the boost lands on
             // the hand that triggers it, so it does change the score.
             | MPip::GainChipsOnScored(_)
             // Retriggers re-score cards, so they score (Hack: each played 2-5;
             // Sock and Buskin: each played face; Hanging Chad: the first played
-            // card twice more; Mime: held-card abilities). Dusk retrigger stays
-            // non-scoring below until its final-round path lands.
+            // card twice more; Mime: held-card abilities; Dusk: every played
+            // card on the round's final hand; Seltzer: every played card, for
+            // its first 10 hands).
             | MPip::RetriggerPlayedRanks(_, _)
             | MPip::RetriggerPlayedFaces(_)
             | MPip::RetriggerFirstPlayed(_)
             | MPip::RetriggerCardsInHand(_)
+            | MPip::RetriggerPlayedCardsInFinalRound
+            | MPip::RetriggerAllPlayedForHands(_, _)
             // Rule modifiers change hand classification (Four Fingers: 4-card
             // straights/flushes; Shortcut: gapped straights; Smeared: merged-suit
             // flushes), so they change the base hand score and can enable
@@ -2083,7 +2280,25 @@ mod funky__decks__joker_tests {
             // --- sentinel / non-scoring (economy, counters, retrigger, create,
             //     detection, probabilistic) ---
             MPip::Blank
+            // The creators add a card or a joker to the run; none of them adds
+            // anything to the hand in front of them. Marble Joker's Stone card
+            // and Riff-Raff's Common Jokers may well score *later* — but that is
+            // the created card's arm, not the creator's, the same way Pareidolia
+            // only ever scores through the jokers it amplifies.
             | MPip::AddCardTypeWhenBlindSelected(_)
+            | MPip::CreateJokersWhenBlindSelected(_, _)
+            | MPip::CreateTarotOnAceStraight
+            | MPip::CreateTarotOnLowMoney(_)
+            // The Boss Blind pair act on the *blind*, never on the hand.
+            // Luchador and Chicot switch a boss's ability off, which reaches the
+            // score only through what that ability was doing to the round's
+            // draws — Banner and Mystic Summit read the result, through their own
+            // arms, exactly as they do for the draw-modifier jokers.
+            | MPip::DisableBossBlindOnSell
+            | MPip::DisablesAllBossBlinds
+            // Rocket pays money at round end; Bull is what turns money into
+            // chips, and that is Bull's arm.
+            | MPip::CashOnRoundEndGrowingOnBossDefeat(_, _)
             | MPip::ChanceDestroyed(_, _)
             // The `+$` payouts move money at lifecycle events (round end,
             // discard), never the hand score. Bull turns money into chips,
@@ -2128,7 +2343,6 @@ mod funky__decks__joker_tests {
             | MPip::Planet(_)
             | MPip::RandomJoker(_)
             | MPip::RandomTarot(_)
-            | MPip::RetriggerPlayedCardsInFinalRound
             | MPip::SellValueIncrement(_)
             | MPip::Strength
             | MPip::Odds1in(_)
@@ -2158,7 +2372,15 @@ mod funky__decks__joker_tests {
             // An Uncommon joker so Baseball Card (×per-Uncommon) has something to
             // count; its own effect is present in both baseline and probe, so it
             // cancels out of the marginal.
-            b.jokers.push(card::MYSTIC_SUMMIT);
+            //
+            // It must be one that reads **only the played hand** — Fibonacci
+            // (+8 mult per played A/2/3/5/8) does. A resident that reads round
+            // state would silently make every *modifier* look like a scorer: with
+            // Mystic Summit here (+15 mult at zero discards), Burglar and
+            // Drunkard move the score through it and the guard reports them as
+            // misclassified, when in truth they are modifiers of exactly
+            // Pareidolia's kind.
+            b.jokers.push(card::FIBONACCI);
             b
         };
         // A board holding a Steel card (×1.5 while held), so held-card
@@ -2171,6 +2393,21 @@ mod funky__decks__joker_tests {
             ..bcards!("KS").iter().next().copied().unwrap()
         };
         steel_held.in_hand.push(steel_king);
+        // A board **playing** enhanced cards. Every other probe plays plain
+        // cards, so this is the only one where Vampire has an enhancement to
+        // count and eat. Bonus (+30 chips) is enough: Vampire keys off the
+        // presence of the enhancement, not what it does.
+        let mut enhanced_played = mk("AH KH QH JH TH", "KS KC", 0, 3);
+        for index in 0..2 {
+            let card = enhanced_played.played.remove(index);
+            enhanced_played.played.insert(
+                index,
+                BuffoonCard {
+                    enhancement: MPip::BONUS,
+                    ..card
+                },
+            );
+        }
         // A worn deck: cards enhanced to Steel and Stone, and cards destroyed
         // outright. Only the full-deck *roster* moves here — `deck` (the undealt
         // remainder) is left alone, since that is the distinction the "in full
@@ -2209,15 +2446,18 @@ mod funky__decks__joker_tests {
             // straight: a High Card normally, a Flush under Smeared — so its
             // modifier is reachable.
             mk("AH KH 9H QD JD", "KS KC", 0, 3),
+            enhanced_played,
             worn_deck,
         ]
     }
 
-    /// A joker is *reachable* if adding it to some probe board changes the score.
-    /// In-round events are fired after the joker is added so counter jokers
-    /// (Green Joker, Ramen, …) accumulate — and the scored-card mutations (Hiker)
-    /// land — before the score is read.
-    fn is_reachable(joker: BuffoonCard) -> bool {
+    /// Drive one probe board through every growth event, optionally with `joker`
+    /// on it, and return what it scores.
+    ///
+    /// The event order is chosen so the board ends up **mid-round on its final
+    /// hand** — the state Dusk needs — so anything that resets the round has to
+    /// come first.
+    fn drive_events(board: &mut BuffoonBoard, joker: Option<BuffoonCard>) -> Score {
         // Hands that satisfy every growth condition across the slice: a 4-card
         // straight (Square + Runner), a two-pair hand (Spare Trousers), and a
         // generic hand (Green Joker, Ice Cream).
@@ -2226,15 +2466,69 @@ mod funky__decks__joker_tests {
             bcards!("KH KS QD QC 4S"),
             bcards!("AH KH QH JH TH"),
         ];
+        // One discard action carrying 23 cards: enough for Yorick to complete a
+        // block, while staying a *single* action so Green Joker's net (hands −
+        // discards) is unchanged.
+        let big_discard =
+            bcards!("2C 3C 4C 5C 6C 7C 8C 9C TC JC QC KC AC 2D 3D 4D 5D 6D 7D 8D 9D TD JD");
+
+        if let Some(joker) = joker {
+            board.push_joker(joker);
+        }
+        // A Small Blind is selected (Madness, which refuses to grow on a boss).
+        // The pure hook, so Madness's random destruction pass never fires and
+        // cannot eat the joker being probed.
+        board.blind = Blind::Small;
+        board.on_blind_selected();
+        // A rolled ancient suit (Ancient Joker). Poked rather than rolled,
+        // because the roll lives on the `_with_rng` path and this battery drives
+        // the pure hooks — the probe boards play Hearts, so this is a suit their
+        // hands actually match.
+        board.ancient_suit = Some('H');
+        // Exactly one round end: enough for Popcorn to decay (+20 → +16), and
+        // fewer than the five that would empty and destroy it.
+        board.on_round_end();
+        // A card joins the run's deck (Hologram) …
+        board.add_card_to_deck(bcards!("7D").iter().next().copied().unwrap());
+        // … and a face card leaves it (Canio). Skipped on a board whose roster no
+        // longer holds that King (the worn deck enhanced it), which is fine —
+        // reachability is an `any` across the battery.
+        if let Some(king) = board.full_deck_index_of(bcards!("KS").iter().next().copied().unwrap())
+        {
+            board.destroy_deck_card(king);
+        }
+        board.on_discard(&big_discard);
+        // One Planet and one Tarot spent (Constellation, Fortune Teller). The
+        // Tarot targets nothing, so it only registers as used — all either joker
+        // reads.
+        board.create_consumable(planet_card::PLUTO);
+        board.use_consumable(0, &[]);
+        board.create_consumable(tarot_card::JUSTICE);
+        board.use_consumable(0, &[]);
+        // Three hands into a four-hand round: leaves `hands_played == 3`, so the
+        // hand being scored is the fourth and last (Dusk), and Seltzer still has
+        // 7 of its 10 unspent.
+        for hand in &growth_hands {
+            board.on_hand_played(hand);
+        }
+        board.on_scored();
+        board.score()
+    }
+
+    /// A joker is *reachable* if adding it to some probe board changes the score.
+    ///
+    /// **Both** sides of the comparison are driven through the identical event
+    /// sequence — the baseline board simply has no probed joker on it. That is
+    /// what makes the difference attributable to the joker and nothing else.
+    /// Taking the baseline *before* the events instead would fold every
+    /// event's own effect into the marginal: using a Planet levels the hand type
+    /// for everyone, so every joker on the board would look "reachable" and the
+    /// guard would pass vacuously for all of them.
+    fn is_reachable(joker: BuffoonCard) -> bool {
         probe_boards().into_iter().any(|mut board| {
-            let baseline = board.score();
-            board.jokers.push(joker);
-            for hand in &growth_hands {
-                board.on_hand_played(hand);
-            }
-            board.on_discard(&bcards!("2C 3C 4C"));
-            board.on_scored();
-            board.score() != baseline
+            let baseline = drive_events(&mut board.clone(), None);
+            let probed = drive_events(&mut board, Some(joker));
+            probed != baseline
         })
     }
 
@@ -2244,12 +2538,186 @@ mod funky__decks__joker_tests {
     /// stays green while the debt stays visible. **Remove an entry when you wire
     /// it** — the guard fails if a listed joker starts scoring, forcing the
     /// cleanup, and fails if a *new* unlisted joker silently scores 0.
-    const KNOWN_UNWIRED: [BuffoonCard; 1] = [
-        // MultTimesOnEmptyJokerSlots(1): ×1 per empty joker slot needs a real
-        // joker-slot *limit* on the board (Vec capacity is not the game's 5-slot
-        // rule), so it waits on that Phase 3/8 state.
-        card::JOKER_STENCIL,
+    ///
+    /// **Empty, as of EPIC-01a Phase 8** — every joker that intends to score now
+    /// does. Its last entry was Joker Stencil, which waited on a real joker-slot
+    /// *limit* (a `Vec`'s capacity is not the game's 5-slot rule); Phase 5c added
+    /// `BuffoonBoard::joker_slots` for Riff-Raff's "(Must have room)", which
+    /// unblocked it for free.
+    ///
+    /// Keep the list, and keep it empty: a joker that stops scoring lands here
+    /// with a reason, or it is a bug. Jokers that legitimately do *not* score are
+    /// classified in [`scores_hand`] instead, and never belong here.
+    const KNOWN_UNWIRED: [BuffoonCard; 0] = [];
+
+    /// Every joker still carrying [`MPip::Blank`], each with the reason it does.
+    ///
+    /// The third guard, and the one that closes the last silent failure mode in
+    /// the crate. Its two siblings ([`KNOWN_UNWIRED`] and
+    /// `KNOWN_UNWIRED_CARD_ENHANCEMENTS`) catch a card that *intends* to score
+    /// and doesn't — but a `Blank` joker legitimately scores nothing, so neither
+    /// guard can see it. That left "`Blank` because we haven't got to it" and
+    /// "`Blank` because it needs a subsystem that does not exist"
+    /// indistinguishable, and EPIC-01a's whole premise is that the difference
+    /// must be written down.
+    ///
+    /// The reason is **data, not a comment**, on purpose: a comment cannot be
+    /// asserted, and rots silently. This one is checked — see
+    /// [`all_jokers__every_blank_joker_has_a_stated_reason`], which fails if a
+    /// `Blank` joker is missing from this list, if a listed joker gets wired, or
+    /// if a reason is too thin to be a reason.
+    ///
+    /// **Not a to-do list.** An entry here is a *decision*, and several of these
+    /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
+    /// shop) that are deliberately outside this crate's current scope. Delete an
+    /// entry only when the joker is wired.
+    const BLANK_WITH_REASON: [(BuffoonCard, &str); 14] = [
+        // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
+        (
+            card::SIXTH_SENSE,
+            "Spectral cards do not exist — `BCardType::Spectral` is a bare tag with no deck (EPIC-01 Story 3)",
+        ),
+        (
+            card::SEANCE,
+            "Spectral cards do not exist — same blocker as Sixth Sense (EPIC-01 Story 3)",
+        ),
+        (
+            card::HALLUCINATION,
+            "needs booster packs, which do not exist",
+        ),
+        (
+            card::RED_CARD,
+            "+3 mult per pack skipped: needs booster packs, which do not exist",
+        ),
+        (
+            card::PERKEO,
+            "needs the shop and Negative editions, neither of which exists",
+        ),
+        (
+            card::FLASH_CARD,
+            "+2 mult per reroll: needs the shop, which does not exist",
+        ),
+        (
+            card::DNA,
+            "needs a draw step (it copies a card into hand); its other half, \
+             'first hand of round', is expressible now via `hands_played`",
+        ),
+        // --- Blocked on state this EPIC deliberately scoped out (item 1c) ---
+        (
+            card::TO_DO_LIST,
+            "needs a per-round random target hand type",
+        ),
+        (card::MAIL_IN_REBATE, "needs a per-round random target rank"),
+        (card::TRADING_CARD, "needs card destruction on discard"),
+        (
+            card::RESERVED_PARKING,
+            "a probabilistic held-card payout — deferred rather than blocked; it \
+             could ride the existing seeded-RNG path today",
+        ),
+        // --- Blocked on the pure-fold boundary ---
+        (
+            card::LUCKY_CAT,
+            "needs scoring to be mutating: it gains x0.25 per Lucky *proc*, which \
+             happens inside the pure `&self` fold, so no `&mut` hook can see it \
+             without re-rolling the RNG. The same gap `on_scored` already \
+             characterizes for Hiker",
+        ),
+        // --- Blocked on boss blind abilities (item 8) ---
+        (
+            card::MATADOR,
+            "pays when a played hand triggers the Boss Blind ability; every boss \
+             modelled here applies its ability once at blind select, so there is \
+             no per-hand trigger to read",
+        ),
+        // --- Blocked on Tags, which do not exist ---
+        (
+            card::DIET_COLA,
+            "sell it to create a free Double Tag: needs Tags, which do not exist \
+             — there is no object to create, and Double Tag's own effect ('copy \
+             the next selected Tag') needs the skip-blind tag-selection flow too. \
+             Its `selling_self` trigger also wants the shop. Tags first",
+        ),
     ];
+
+    /// Every `Blank` joker must say why it is `Blank`.
+    ///
+    /// This is the guard the other two structurally cannot be: a `Blank` joker
+    /// scores nothing *correctly*, so reachability has nothing to catch it with.
+    /// Without this, "not got to it yet" and "waiting on spectral cards" look
+    /// identical in the source.
+    #[test]
+    fn all_jokers__every_blank_joker_has_a_stated_reason() {
+        let listed: HashMap<_, _> = BLANK_WITH_REASON.iter().copied().collect();
+        let mut unexplained = Vec::new();
+        let mut wired_but_listed = Vec::new();
+
+        for joker in ALL_JOKERS {
+            let is_blank = joker.enhancement == MPip::Blank;
+            let has_reason = listed.contains_key(&joker);
+            if is_blank && !has_reason {
+                unexplained.push(format!("{joker}"));
+            }
+            if !is_blank && has_reason {
+                wired_but_listed.push(format!("{joker}"));
+            }
+        }
+
+        assert!(
+            wired_but_listed.is_empty(),
+            "these are wired now — remove them from BLANK_WITH_REASON: {wired_but_listed:?}"
+        );
+        assert!(
+            unexplained.is_empty(),
+            "these jokers are Blank with no stated reason. Wire them, or add them \
+             to BLANK_WITH_REASON saying what they are waiting on — `Blank` by \
+             omission is indistinguishable from `Blank` by decision, and no other \
+             guard can tell them apart: {unexplained:?}"
+        );
+
+        for (joker, reason) in BLANK_WITH_REASON {
+            assert!(
+                reason.len() > 20,
+                "{joker} needs a real reason, not `{reason}`"
+            );
+        }
+    }
+
+    /// Every `Blank` joker's reason names something concrete.
+    ///
+    /// The reason guard only checks that a reason exists and is not a stub; this
+    /// checks it is a *decision* rather than a shrug. Three jokers (Card Sharp,
+    /// Diet Cola, Ancient Joker) were once `Blank` purely by omission — never
+    /// assigned to a phase, no reason recorded — and the fix for two of them was
+    /// simply to wire them, because nothing had ever been blocking them. This is
+    /// what stops that state coming back under a vaguer name.
+    #[test]
+    fn blank_jokers__every_reason_names_a_blocker() {
+        // A real reason says what is missing. This is a coarse check — it cannot
+        // tell a true reason from a plausible one — but it does catch "TODO",
+        // "not done yet", and their relatives, which is the failure that let
+        // three jokers sit untriaged through eight phases.
+        const BLOCKER_WORDS: [&str; 8] = [
+            "needs",
+            "not exist",
+            "deferred",
+            "no ",
+            "cannot",
+            "wants",
+            "blocked",
+            "first hand",
+        ];
+        for (joker, reason) in BLANK_WITH_REASON {
+            let lower = reason.to_lowercase();
+            assert!(
+                BLOCKER_WORDS.iter().any(|word| lower.contains(word)),
+                "{joker}'s reason does not name what is missing: `{reason}`"
+            );
+            assert!(
+                !lower.contains("untriaged") && !lower.contains("todo"),
+                "{joker} is not triaged — decide what it needs, then wire it or say why not: `{reason}`"
+            );
+        }
+    }
 
     /// Crate-wide silent-zero guard. Every joker whose enhancement *intends* to
     /// score (per [`scores_hand`]) must actually change the score on some probe
@@ -2349,15 +2817,14 @@ mod funky__decks__joker_tests {
     /// Card enhancements that *intend* to score but have no wiring yet. The
     /// card-level twin of [`KNOWN_UNWIRED`] — same contract: remove an entry when
     /// you wire it, and the guard fails if a listed one starts scoring.
-    const KNOWN_UNWIRED_CARD_ENHANCEMENTS: [MPip; 1] = [
-        // Stone card (TOWER): +50 chips, and no rank or suit for detection
-        // purposes. The chips are trivial, but the rank/suit suppression is not
-        // — a Stone card must not count toward a straight or flush, which needs
-        // a detection hook rather than a scoring arm. Wiring only the chips
-        // would trade a silent zero for a silently *wrong* hand type, so it
-        // waits for both halves to land together.
-        MPip::TOWER,
-    ];
+    ///
+    /// **Empty.** Its last entry was the Stone card (`TOWER`), which waited on
+    /// *both* halves landing together: +50 chips **and** rank/suit suppression,
+    /// because chips alone would have traded a silent zero for a silently wrong
+    /// hand type. Both are in — `BuffoonCard::is_stone` masks the chips flat and
+    /// `BuffoonPile::detectable` drops it from classification — so a Stone card
+    /// scores its 50 and pairs, connects and flushes with nothing.
+    const KNOWN_UNWIRED_CARD_ENHANCEMENTS: [MPip; 0] = [];
 
     /// The card-level silent-zero guard — the twin of
     /// [`all_jokers__intended_hand_scorers_are_reachable`], which iterates

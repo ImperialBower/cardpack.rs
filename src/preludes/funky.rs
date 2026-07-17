@@ -9,6 +9,7 @@ pub use crate::funky::decks::planet::Planet;
 pub use crate::funky::decks::planet::card::*;
 pub use crate::funky::decks::tarot::MajorArcana;
 pub use crate::funky::decks::tarot::card::*;
+pub use crate::funky::types::blind::{Blind, BossBlind};
 pub use crate::funky::types::board::BuffoonBoard;
 pub use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
 pub use crate::funky::types::buffoon_pile::{BuffoonPile, HandRules};

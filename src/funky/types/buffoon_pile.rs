@@ -132,9 +132,23 @@ impl BuffoonPile {
     ///
     ///
     /// assert_eq!(bcards!("AS KS QS JS TS AC 3D 5S").connectors(1), 4);
+    ///
+    /// // A Stone card has no rank, so it is not a link in a straight.
+    /// let mut stony = bcards!("3C 4D 5S 6H");
+    /// stony.push(STONE_CARD);
+    /// assert_eq!(stony.connectors(1), 3);
+    /// assert!(!stony.has_straight());
+    /// ```
+    ///
+    /// Stone cards are skipped — see [`detectable`](Self::detectable).
     #[must_use]
     pub fn connectors(&self, distance: usize) -> usize {
-        let mut ranks = self.0.iter().map(|card| card.rank).collect::<Vec<_>>();
+        let mut ranks = self
+            .detectable()
+            .0
+            .iter()
+            .map(|card| card.rank)
+            .collect::<Vec<_>>();
         ranks.sort();
 
         let mut count = 0;
@@ -158,9 +172,43 @@ impl BuffoonPile {
         self.0.contains(card)
     }
 
+    /// The cards hand detection can **see**: everything but the Stone cards.
+    ///
+    /// A Stone card has no rank and no suit, so it takes part in no hand type —
+    /// it cannot pair, cannot connect a straight, and cannot size a flush. It
+    /// still occupies one of the five played slots, and dropping it here is
+    /// exactly that: the hand is classified from four cards instead of five, so
+    /// `3-4-5-6` + Stone is a High Card rather than a Straight, and four Hearts
+    /// plus a Stone is not a Flush. (Four Fingers rescues both, by asking for
+    /// four rather than five — which falls out for free.)
+    ///
+    /// Filtering on the **enhancement** is the load-bearing part. The tempting
+    /// alternative — blanking the card's rank and suit pips — is wrong twice
+    /// over: it breaks Balatro's mask-don't-erase model (Vampire eats the
+    /// enhancement and the rank must come back), and every blanked card is
+    /// identical, so two Stone cards would pair with each other. They must never
+    /// pair, not even with one another.
+    ///
+    /// This is the "hand-type suppression" EPIC-01a required before the Stone
+    /// card's +50 chips could be wired without trading a silent zero for a
+    /// silently wrong hand type.
+    #[must_use]
+    pub fn detectable(&self) -> Self {
+        Self(
+            self.0
+                .iter()
+                .filter(|card| !card.is_stone())
+                .copied()
+                .collect(),
+        )
+    }
+
     #[must_use]
     pub fn count_largest_same_suit(&self) -> usize {
-        self.combos_by_suit().first().map_or(0, BasicPile::len)
+        self.detectable()
+            .combos_by_suit()
+            .first()
+            .map_or(0, BasicPile::len)
     }
 
     /// [`count_largest_same_suit`](Self::count_largest_same_suit), but under
@@ -171,11 +219,13 @@ impl BuffoonPile {
         if !rules.smeared {
             return self.count_largest_same_suit();
         }
-        let red = self
+        // Suitless (Stone) cards belong to neither colour.
+        let seen = self.detectable();
+        let red = seen
             .iter()
             .filter(|c| matches!(c.suit.index, 'H' | 'D'))
             .count();
-        let black = self
+        let black = seen
             .iter()
             .filter(|c| matches!(c.suit.index, 'S' | 'C'))
             .count();
@@ -329,8 +379,11 @@ impl BuffoonPile {
     }
 
     #[must_use]
+    /// Stone cards are rankless, so they match nothing — see
+    /// [`detectable`](Self::detectable).
     pub fn has_x_of_a_kind(&self, x: usize) -> bool {
-        self.combos_by_rank()
+        self.detectable()
+            .combos_by_rank()
             .first()
             .is_some_and(|combo| combo.len() >= x)
     }

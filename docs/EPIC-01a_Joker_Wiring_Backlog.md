@@ -4,9 +4,14 @@
 > defines the work left to give the ~43 still-`MPip::Blank` jokers real scoring
 > behaviour. It groups every remaining joker by the **subsystem it needs**, gives
 > its exact Balatro effect, and says where it plugs into the current pipeline.
-> It is a work definition, not an implementation — nothing here has landed yet.
+>
+> **All eight phases have landed.** Every subsystem this EPIC set out to build
+> exists, and 19 of the 43 jokers are `Blank` no longer. The rest stay `Blank`
+> **with a stated reason** rather than a plausible-but-wrong value, which was
+> always the goal — see [Remaining `Blank`](#remaining-blank) for the full list
+> and what each one is actually waiting on.
 
-**Date:** 2026-07-12 · **Branch:** `funky`
+**Date:** 2026-07-12 (closed out 2026-07-16) · **Branch:** `funky`
 
 ---
 
@@ -57,14 +62,14 @@ was careful to avoid), so each is gated behind building the real mechanism.
 
 | Subsystem (phase) | Unblocks (declared Blank jokers) | Status |
 |---|---|---|
-| 1 — Economy / money | Bull + all `+$` jokers | **Complete** — money field + Bull (1a/1b); round-end/discard payout seam: Golden Joker, Delayed Gratification, Cloud 9, To the Moon, Faceless Joker, Egg, plus the Gros Michel/Cavendish destruction rolls and Ice Cream's melt (1c). Still `Blank` with reasons: To Do List, Mail-In Rebate, Rocket, Trading Card, Reserved Parking |
+| 1 — Economy / money | Bull + all `+$` jokers | **Complete** — money field + Bull (1a/1b); round-end/discard payout seam: Golden Joker, Delayed Gratification, Cloud 9, To the Moon, Faceless Joker, Egg, plus the Gros Michel/Cavendish destruction rolls and Ice Cream's melt (1c). **Rocket** landed later, with the boss blinds it was waiting on (Phase 8). Still `Blank` with reasons: To Do List, Mail-In Rebate, Trading Card, Reserved Parking |
 | 2 — Round & hand state | Banner + Mystic Summit (**assigned-but-unscored → silently 0**), Burglar, Juggler, Drunkard | **Complete** — Banner + Mystic wired (2a/2b); `on_blind_selected()` recomputes `Draws` from a recorded baseline: Juggler (+1 hand size), Drunkard (+1 discard), Burglar (+3 hands, wipes all discards) (2c) |
-| 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **In progress** — store + hand-played/discard events; Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner wired |
-| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **In progress** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** wired; only round-state ones (Dusk final-round, Seltzer 10-hand counter) remain |
-| 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | **In progress** — mutation seam (`add_card_to_deck` / `destroy_deck_card` / `replace_deck_card`) + `on_scored`; **Hiker** wired (the phase's only scoring joker). The rest need consumables, packs, blinds, or the shop |
+| 3 — Per-run joker counters | Green Joker, Vampire, Constellation, Hologram, Lucky Cat, Ramen, Popcorn, Square Joker, Spare Trousers, Red Card, Fortune Teller, Flash Card, Runner | **Complete** — store + the six growth events. Wired: Green Joker, Ramen, Ice Cream, Square Joker, Spare Trousers, Runner (3a); **Popcorn**, **Yorick**, **Hologram**, **Canio**, **Vampire** (3b); **Constellation**, **Fortune Teller** (3c). Still `Blank` with reasons: Lucky Cat (needs the in-fold Lucky proc), Red Card (booster packs), Flash Card (shop rerolls) |
+| 4 — Retriggers | Hack, Mime, Dusk, Sock and Buskin, Seltzer, Hanging Chad | **Complete** — retrigger loops in `fold_played_cards` (played) + `fold_held_cards` (held); **Hack**, **Sock and Buskin**, **Hanging Chad**, **Mime** (4a/4b), plus **Dusk** and **Seltzer** on the new per-round `hands_played` state (4c) |
+| 5 — Deck mutation / create / consumables | DNA, Séance, Superposition, Riff-Raff, Vagabond, Sixth Sense, Hallucination, Marble Joker, Hiker, Perkeo | **Complete** — mutation seam + `on_scored` (5a/5b, **Hiker**); the consumable seam `create_consumable`/`use_consumable` with real slot limits, then **Superposition**, **Vagabond** (5c) and **Marble Joker**, **Riff-Raff** (5d). Still `Blank` (5e, subsystems outside this EPIC): DNA, Sixth Sense, Séance, Hallucination, Perkeo |
 | 6 — Rule modifiers (detection hooks) | Pareidolia, Splash, Shortcut, Four Fingers, Smeared, Oops! All 6s | **Complete** — `HandRules` seam (straight/flush/smeared), face-predicate hook, and RNG odds-numerator; all six wired (Four Fingers, Shortcut, Pareidolia, Smeared, Splash [no-op], Oops! All 6s) |
 | 7 — Full-deck view | Steel Joker, Stone Joker, Erosion | **Complete** — `full_deck` roster + `starting_deck_size` on the board; all three wired |
-| 8 — Boss blinds | Madness, Luchador, Matador, Chicot | Planned |
+| 8 — Boss blinds | Madness, Luchador, Matador, Chicot | **Complete** — `Blind`/`BossBlind` plus the three bosses whose ability is a pure `Draws` mutation (The Needle, The Water, The Manacle); **Madness**, **Luchador**, **Chicot** wired, and **Rocket** unblocked from Phase 1. **Matador** stays `Blank`: no modelled boss ability is triggered *by a played hand*, so it has no event to read |
 | 0 — Prerequisites (data fixes + guard) | Baron rarity/cost, weight uniqueness, silent-zero guard, Gros Michel, Glass | **Complete** — 0c fixed Gros Michel's missing +15 mult; 0d wired the **Glass** card and added the **card-level** silent-zero guard, which promptly found the **Stone** card scoring 0 (tracked, needs a detection hook too). **Cavendish** remains latently short its destroy chance |
 
 ---
@@ -104,6 +109,26 @@ was careful to avoid), so each is gated behind building the real mechanism.
 | "in full deck" | every card ever | a full-deck accessor |
 | "Boss Blind" | blind state | `BuffoonBoard.blind` |
 | "When Blind is selected" | a lifecycle hook | `on_blind_selected()` |
+| "…this run" (retroactive) | a run-wide statistic | a board field, **not** a counter |
+| "(Must have room)" | a real slot limit | `joker_slots` / `consumable_slots` |
+| "final hand of round" | per-round hand count | `hands_played` + `is_final_hand()` |
+| "Sell this card to …" | a sell operation | `sell_joker()` |
+
+**The state model, in one line each.** Three kinds of joker memory turned out to
+be genuinely distinct, and picking the wrong one is silently wrong scoring:
+
+- **Per-joker counter** (`joker_state`) — grows from when the joker arrived.
+  Constellation. *Not* retroactive.
+- **Run-wide statistic** (a board field) — true regardless of who is watching.
+  Fortune Teller, which Balatro makes retroactive.
+- **Per-round state** (a board field, reset by the round) — `hands_played`.
+  Dusk's "final hand of round" resets; Seltzer's 10 hands do not, which is why
+  one is a board field and the other a counter.
+
+**When an event fires matters as much as that it fires.** `Scored` (before the
+fold) and `HandPlayed` (after it) are the same hand seen twice: a counter grown
+on the first is read by the hand that grew it, one grown on the second is not.
+Vampire needs the first, Ice Cream the second.
 
 ---
 
@@ -253,8 +278,20 @@ economy), Legendary **Chicot** (#149, disables all boss blinds).
   are display/sort order and should be unique; re-weight one.
 - ~~**Erosion** and **Stone Joker** are tagged `CommonJoker` / `value: 5` and sit
   in no rarity pile; Balatro has both at **Uncommon / $6**.~~ Fixed in Phase 7 —
-  see 7c. The remaining ~59 defined-but-unpiled consts still want one reconciling
-  sweep across rarity/cost/pile.
+  see 7c.
+
+  **The sweep is still open, and the drift is now measured rather than
+  estimated.** Every joker Phases 3–8 touched needed the *same* fix — the const
+  had been left at the `CommonJoker` / `value: 5` / `resell_value: 0` default and
+  adrift from every pile. Nine more were corrected in passing (Hologram, Vampire,
+  Constellation, Fortune Teller, Superposition, Vagabond, Riff-Raff, Madness,
+  Rocket), bringing the tally to **twelve** across 0a/7c and Phases 3–8. That is
+  a pattern, not a coincidence: `CommonJoker`/$5 is what an unwired const looks
+  like, so **rarity drift and `MPip::Blank` are the same debt seen twice**, and
+  wiring a joker is when its data gets checked. The remaining ~50 unpiled consts
+  will each want the same three-line fix. Worth one sweep against the wiki rather
+  than piecemeal, but the piecemeal route is at least self-correcting: nothing
+  gets wired without being looked up.
 - ~~**Glass card scores nothing** (`decks/tarot.rs`, the `JUSTICE` const →
   `MPip::Glass(2, 4)`).~~ Fixed in 0d.
 - ~~**The silent-zero guard is joker-only**, so no *card* enhancement is
@@ -448,9 +485,12 @@ each joker + its test. Track completion by flipping the Status table.
   (`on_round_end__is_inert_on_a_plain_board`).
 
   Still `Blank` with reasons (the design's scope cut): **To Do List** and
-  **Mail-In Rebate** (need a per-round random target), **Rocket** (boss
-  blinds), **Trading Card** (discard destruction), **Reserved Parking**
+  **Mail-In Rebate** (need a per-round random target), ~~**Rocket** (boss
+  blinds)~~, **Trading Card** (discard destruction), **Reserved Parking**
   (probabilistic held-card payout — deferred, not blocked).
+
+  **Rocket** is wired as of Phase 8, exactly as this item predicted: the boss
+  blinds were the only thing it needed. See item 8.
 
 ### Phase 2 — Round & hand state
 
@@ -494,9 +534,66 @@ each joker + its test. Track completion by flipping the Status table.
   Lucky Cat, Popcorn, Red Card, Fortune Teller, Flash Card) still await their
   triggering events — round-end, shop, consumables, etc. — before they can be
   wired.
-- [ ] **3b.** Growth hooks per trigger event; **read**-side `MPip` variants +
-  `joker_x_mult`/`builtin_joker_op` arms.
-- [ ] **3c.** Wire the 13 counter jokers + Canio/Yorick; one test each.
+- [x] **3b.** The growth seam grew three events — `CardAdded` (fired by
+  `add_card_to_deck`), `CardDestroyed` (by `destroy_deck_card`) and `Scored`
+  (by `on_scored`) — and `growth_delta` took `&self`, the `payout_delta` shape,
+  so growth can read the board. Five jokers wired, one exact-value test each:
+  - **Popcorn** → `LoseMultPerRound(20, 4)` (+20 mult, −4 a round). Ice Cream's
+    decay on the mult side, which generalised `melt_emptied_jokers` into a shared
+    `is_decayed_to_nothing` now called from `on_round_end` too — a decaying joker
+    is destroyed **by the event that empties it**, and each is only ever emptied
+    by its own event, so the other hook's call is a no-op for it.
+  - **Yorick** → `GainMultTimesPerDiscardedCards(100, 23)`, counting **cards**
+    discarded rather than discard *actions*; the distinguishing test discards 23
+    in one action and expects ×2.
+  - **Hologram** → `GainMultTimesPerCardAdded(25)`. Additive (`1 + 0.25×n`), the
+    Steel Joker rule — pinned at ×2 on four cards, which compounding (×0.25⁴)
+    would fail. A paired negative test holds `replace_deck_card` to *not* being
+    an add, so Hiker's per-card bump cannot silently feed it.
+  - **Canio** → `GainMultTimesPerFaceDestroyed(100)`, classified through
+    `is_face_card` — so Pareidolia makes every destroyed card feed it, the same
+    amplification it already gives Faceless Joker (interaction test).
+  - **Vampire** → `GainMultTimesPerEnhancedPlayed(10)`. The wiki settles the
+    ordering question this was blocked on: *"Vampire removes Enhancements before
+    their effect occurs, meaning that the enhancement will not affect your hand's
+    score."* That is exactly what `on_scored` already does, so both halves live
+    there — it grows on the new `Scored` event (which is why its ×mult lands on
+    the hand it ate, unlike a `HandPlayed` counter) and strips as it goes.
+    Pinned by the headline Glass interaction: two Glass cards give mult 4 alone
+    and mult 2 once Vampire eats them.
+
+  *Finding — the Wild caveat does not apply here.* The wiki notes Vampire cannot
+  retroactively change a hand type, since eating a Wild leaves the hand a Flush.
+  This engine never wires `MPip::Wild` into detection at all (it appears only on
+  the tarot const and in the non-scoring classification), so there is no
+  detection effect for Vampire to remove. That is a separate pre-existing gap,
+  not one Vampire introduces.
+
+  *Data fix (the Baron/Erosion pattern, 4th and 5th instance):* **Hologram** and
+  **Vampire** were tagged Common / $5 and adrift from every rarity pile; Balatro
+  has both at **Uncommon / $7** (sell $3). Test
+  `hologram_and_vampire__are_uncommon_dollar_seven_and_piled`.
+
+- [x] **3c.** The last two counter jokers, once 5c's consumable seam gave them an
+  event — and they are the phase's most interesting pair, because they are the
+  *same* effect shape with opposite state models:
+  - **Constellation** → `GainMultTimesPerPlanetUsed(10)`, a plain `joker_state`
+    counter. Balatro's does **not** scale retroactively, and
+    `score__constellation_does_not_scale_retroactively` pins that: five Planets
+    spent before it arrives are worth nothing to it.
+  - **Fortune Teller** → `MultPlusPerTarotUsedThisRun(1)`, which is deliberately
+    **not** a counter. Balatro's is retroactive — it reads a run-wide statistic —
+    so it reads the new `BuffoonBoard.tarots_used` through `builtin_joker_op`
+    like any other board reader. A per-joker counter would start it at zero and
+    be wrong; `score__fortune_teller_is_retroactive` is the test that would catch
+    that.
+
+  Data fixes: **Constellation** Common/$5 → **Uncommon / $6**; **Fortune
+  Teller**'s cost $5 → **$6**.
+
+  Still `Blank` with reasons: **Lucky Cat** (needs the Lucky proc, which happens
+  *inside* the pure `&self` fold — the gap `on_scored` already characterizes for
+  Hiker), **Red Card** (booster packs), **Flash Card** (shop rerolls).
 
 ### Phase 4 — Retriggers
 
@@ -526,9 +623,28 @@ each joker + its test. Track completion by flipping the Status table.
   reachability guard exercises it. Test `score__mime_retriggers_held_steel_card`
   (held Steel King, 8→12→18; fails before the arm lands).
 
-- [ ] **4c.** Round-state retriggers, still blocked: **Dusk** (final-round — needs
-  Phase 2 "final hand" state), **Seltzer** (retrigger all played for 10 hands —
-  needs a Phase 3 per-run counter + round-end decrement).
+- [x] **4c.** Round-state retriggers, on one new field: `BuffoonBoard.hands_played`,
+  the per-**round** count of hands *completed* (reset by `on_blind_selected` and
+  `on_round_end`). It counts hands behind the board rather than the one in front
+  of it — the convention every counter joker already follows, since Ice Cream
+  scores its full +100 on the first hand and only then decays.
+  - **Dusk** — the const already carried `RetriggerPlayedCardsInFinalRound` and
+    was classified **non-scoring**, i.e. one silent zero away from the
+    Banner/Mystic Summit class; reclassified and wired to a new `is_final_hand()`
+    (`hands_played + 1 >= draws.hands_to_play`). It reads the round's *granted*
+    allowance rather than a hardcoded four, so Burglar's +3 hands pushes the
+    final hand out — pinned by
+    `score__dusk_follows_the_hand_allowance_rather_than_a_fixed_count`.
+  - **Seltzer** — new const (Uncommon / $6 / 🥤, weight 808), variant
+    `RetriggerAllPlayedForHands(1, 10)`. Its counter is hands *completed*, which
+    is exactly what makes the tenth hand still retrigger and the joker die
+    straight after it; counting hands *started* would silently give nine. It
+    joins `is_decayed_to_nothing` as a third instance of the same shape — a
+    resource spent at a fixed rate per event, destroyed at 0 — alongside Ice
+    Cream's chips and Popcorn's mult.
+
+  *Guard change:* `played_retriggers` now walks jokers with their `joker_state`
+  slot, since Seltzer's retrigger reads a counter.
 
 ### Phase 6 — Rule modifiers (detection hooks)
 
@@ -707,14 +823,61 @@ each joker + its test. Track completion by flipping the Status table.
   Balatro gives 96/3), which will fail the day scoring becomes mutating and the
   gap can be closed properly.
 
-- [ ] **5c.** Consumable create: a `create_consumable` path honouring the cap-2
-  slot, then **Superposition** (#59, Tarot on an Ace + Straight) and **Vagabond**
-  (#71, Tarot on a hand played with ≤$4 — money already exists from Phase 1).
-  Both draw from the existing 22-card `MajorArcana::DECK` via the seeded-RNG path.
+- [x] **5c.** The consumable seam, plus **real slot limits**.
 
-- [ ] **5d.** Blind-select creators, shared with 2c/Phase 8's `on_blind_selected()`:
-  **Marble Joker** (#24, add a Stone card to the deck — 5a's `add_card_to_deck`)
-  and **Riff-Raff** (#67, create 2 Common Jokers).
+  *Finding:* `consumables` was a **dead field** — declared on the board and
+  neither read nor written anywhere, so there was no "use a consumable" path at
+  all. That, not counters, was what blocked Constellation and Fortune Teller.
+  And `BuffoonPile::new_with_capacity(2)` was never a cap: it is a `Vec`
+  reallocation hint that bounds nothing — the very thing `KNOWN_UNWIRED` had
+  flagged for Joker Stencil ("Vec capacity is not the game's 5-slot rule").
+
+  So the board gained `joker_slots` (5) and `consumable_slots` (2) as real
+  limits, and:
+  - `create_consumable(card) -> bool` — refuses when full, which is the
+    "(Must have room)" every creator card carries: it does not queue and does not
+    evict.
+  - `use_consumable(index, targets) -> Option<BuffoonCard>` — a **Planet** levels
+    its hand type through the existing `PokerHands::increment`; a **Tarot**
+    enhances the roster cards named by `targets` through `BuffoonCard::enhance`
+    and 5a's `replace_deck_card`. Either way it fires the `ConsumableUsed` event.
+  - `BuffoonBoard::default()` is now hand-written, delegating to `new()`. The
+    derived one would have given the slot fields `0` — a board with room for
+    nothing, which is a trap rather than a neutral starting point.
+
+  Two jokers wired, both on the seeded-RNG path (`on_scored_with_rng`, the split
+  that leaves them inert in the pure `on_scored` the way Lucky is inert in
+  `score()`): **Superposition** → `CreateTarotOnAceStraight` (both conditions
+  required; it reads the straight through `HandRules`, so Four Fingers and
+  Shortcut widen it) and **Vagabond** → `CreateTarotOnLowMoney(4)`.
+
+  Data fixes: **Superposition** cost $5 → **$4**; **Vagabond** Common/$5 →
+  **Rare / $8** (1.0.1f moved it, and the wiki's update history reads
+  newest-first, which is easy to misread as the threshold reverting to $3 — it is
+  $4, confirmed against the infobox, the in-game text, and the source config).
+
+  *Known gap, characterized:* `use_consumable` applies the **card-enhancing**
+  tarots. The run-level ones (Death, Judgement, The Hermit, The Wheel of Fortune)
+  pass through `enhance` unchanged, so they count as used — correctly, for
+  Fortune Teller — while their real effects stay 5e's business. Using one is a
+  no-op rather than a wrong effect.
+
+- [x] **5d.** Blind-select creators, on 2c's `on_blind_selected()`:
+  - **Marble Joker** — the const already carried
+    `AddCardTypeWhenBlindSelected(BCardType::Stone)`; wired via a new
+    `mint_card`, which returns `None` for every type but Stone rather than
+    minting an arbitrary stand-in. Its Stone card is a new
+    `basic::card::STONE_CARD` whose **both pips are blank** (`PipType::Blank`,
+    weight 0, value 0) — "no rank and no suit" is the whole of what a Stone card
+    is, and borrowing some arbitrary rank would have let it connect straights it
+    must not. Worth something today because the roster count behind **Stone
+    Joker** is wired: `on_blind_selected__marble_joker_feeds_stone_joker_and_hologram`
+    pins +25 chips and Hologram's ×1.25 off one selection.
+  - **Riff-Raff** → `CreateJokersWhenBlindSelected(2, BCardType::CommonJoker)`,
+    drawing from `Joker::COMMON_JOKERS` in the new
+    `on_blind_selected_with_rng`. Room is checked **per joker**, not
+    all-or-nothing: a board with one free slot gets one of the two, a full board
+    gets none. Data fix: cost $5 → **$6**.
 
 - [ ] **5e.** Blocked on subsystems outside this EPIC, each with its reason:
   **Sixth Sense** (#54) and **Séance** (#66) need **Spectral cards, which do not
@@ -723,12 +886,329 @@ each joker + its test. Track completion by flipping the Status table.
   and Negative editions. **DNA** (#51) needs "first hand of round" state and a
   draw step. All stay `Blank` rather than take a plausible-but-wrong value.
 
-### Phase 8
+### Phase 8 — Boss blinds
 
-- [ ] **8.** Boss blinds — a self-contained sub-EPIC; see Design. Wire jokers as
-  the mechanism lands.
+- [x] **8.** Boss blinds, at the **smallest honest** size.
+
+  *Design finding — "identity only" does not work.* The obvious minimum is a
+  blind enum and nothing else: enough for Madness (which only asks *not a boss?*)
+  and Rocket (*is a boss?*). But it cannot carry the other three, and the reason
+  is structural: **Luchador, Chicot and Matador all act on boss *abilities***.
+  With no abilities modelled, "disable the current Boss Blind" sets a flag
+  nothing reads — a no-op that *looks* wired, which is a worse failure than a
+  silent zero, because no guard can see it. (Splash is a genuine no-op: the
+  engine really does already score every played card. This would not have been.)
+
+  So the model is identity **plus the boss abilities that are pure `Draws`
+  mutations** — new `src/funky/types/blind.rs`, with `Blind::{Small, Big,
+  Boss(BossBlind)}` and three bosses that ride 2c's recompute and need no new
+  machinery at all:
+  - **The Needle** — play only 1 hand;
+  - **The Water** — start with 0 discards;
+  - **The Manacle** — −1 hand size.
+
+  These pay for themselves as tests: The Needle makes the first hand the *final*
+  hand, so **Dusk** always triggers under it (the pairing the wiki calls out),
+  and The Water switches **Mystic Summit** on. Both are real interactions, not
+  contrivances. The rest of the ~20-boss roster stays out, and the omission is
+  the point: The Wall needs a blind score target and the suit-debuff bosses need
+  debuffs threaded into scoring — neither exists, and half of either is silently
+  wrong scoring.
+
+  The load-bearing distinction is **identity vs ability**:
+  - `Blind::is_boss()` — identity. A boss disabled by Luchador or Chicot is still
+    a boss, so Madness still refuses to grow on it and Rocket still counts it
+    defeated.
+  - `BuffoonBoard::boss_ability_active()` — identity **and** not disabled **and**
+    no Chicot held.
+
+  Four jokers wired:
+  - **Madness** → `GainMultTimesOnNonBossBlindDestroyingJoker(50)`. The halves
+    are split across the `_with_rng` seam on purpose, because Balatro splits
+    them: the ×0.5 is deterministic and lands in the pure hook (it is granted
+    **whether or not anything was destroyed** — coupling the two is the easy bug,
+    pinned by `madness_gains_even_with_nothing_to_destroy`), while the random
+    destruction lives in `on_blind_selected_with_rng`. It never destroys itself,
+    and never fires on a boss. The destruction resolves against the board's
+    *original* slots and applies removals once, so a Madness eaten by an earlier
+    Madness does not still get a turn.
+  - **Luchador** → new const (Uncommon / $5 / 🤼, weight 809),
+    `DisableBossBlindOnSell`, on a new `sell_joker`. The disable is *observable*
+    because selling recomputes the round's draws and the boss's grip lifts —
+    which also, for free, makes selling Juggler or Drunkard take its bonus with
+    it, exactly as 2c's recompute-from-baseline design intends. The round's own
+    counters are left alone: a sale happens mid-round.
+  - **Chicot** → `DisablesAllBossBlinds`, read **live** from `jokers` rather than
+    through a flag — it disables by being held, so selling it hands the boss back
+    automatically.
+  - **Rocket** → `CashOnRoundEndGrowingOnBossDefeat(1, 2)`, the last of Phase 1's
+    boss-blocked `+$` jokers. Its increment lands **before** the payout of the
+    round that earned it, so the boss round itself pays the raised amount — which
+    is why `on_round_end` now grows *then* pays. Nothing else reads a counter to
+    pay, so nothing else notices; payouts still precede destruction.
+
+  Data fixes: **Madness** Common/$5 → **Uncommon / $7**; **Rocket** Common/$5 →
+  **Uncommon / $6**.
+
+  **`KNOWN_UNWIRED` is now empty, and 0b's last debt is paid.** Its sole
+  remaining entry was **Joker Stencil**, whose stated blocker was "needs a real
+  joker-slot *limit* on the board (Vec capacity is not the game's 5-slot rule)".
+  5c added `joker_slots` for Riff-Raff's "(Must have room)" — which unblocked
+  Stencil for free and, more to the point, made its recorded reason **false**.
+  A stale reason is the same rot this EPIC keeps finding, so it was wired rather
+  than left:
+
+  `MultTimesOnEmptyJokerSlots(1)` → ×1 per empty slot, "Joker Stencil included".
+  Verified against the game source rather than the wiki, whose prose explanation
+  of this one is self-contradictory (its ×5 result is right; its reasoning is
+  not). The rule is `(slots − jokers) + (number of Stencils)` — the "included"
+  clause is **+1 per Stencil on the board, not +1 for self**, so it reduces to
+  **`slots − (jokers that are not Stencils)`**: alone it is ×5, and two Stencils
+  are ×5 *each* (→ ×25), not ×4. The trigger gate is on **literally** empty slots
+  while the value uses the inclusive count; the two only disagree on a full board
+  holding ≥2 Stencils, where the game displays a factor it does not apply. The
+  gate is what is implemented — a full board contributes nothing, never ×0.
+  Reading `joker_slots` live rather than a hardcoded 5 is also faithful:
+  `score__joker_stencil_reads_the_current_slot_limit` pins it.
+
+  Keep the list, and keep it empty: every joker that *intends* to score now does,
+  so a new entry is a bug with a reason attached. Jokers that legitimately do not
+  score belong in `scores_hand`, never here.
+
+  **Matador** stays `Blank`, and `matador__stays_blank_because_no_boss_ability_fires_on_a_played_hand`
+  characterizes why: it pays "if played hand triggers the Boss Blind ability",
+  and every boss modelled here applies its ability once at blind select — none is
+  triggered *by a hand*. There is no event to read, and paying on every boss hand
+  would be the plausible-but-wrong value this EPIC exists to keep out. (The wiki
+  also records that Matador is inconsistent in the real game "due to an
+  oversight", without enumerating which bosses fail.) The const is minted anyway
+  (Uncommon / $7 / 🐂, weight 811) so the joker exists and is piled.
 
 ---
+
+## Remaining `Blank`
+
+Fourteen jokers are still `MPip::Blank`, every one of them **blocked, with a
+stated reason** — the EPIC's goal was always "wire it correctly or say why not", and
+these are the "why not".
+
+Those reasons now live in the code as **data**, in `BLANK_WITH_REASON`
+(`src/funky/decks/joker.rs`), and are checked by
+`all_jokers__every_blank_joker_has_a_stated_reason`. It is the third guard, and
+the one the other two structurally could not be: `KNOWN_UNWIRED` and
+`KNOWN_UNWIRED_CARD_ENHANCEMENTS` catch a card that *intends* to score and does
+not, but a `Blank` joker scores nothing **correctly** — so reachability has
+nothing to catch it with. Without this guard, "haven't got to it" and "waiting on
+spectral cards" are indistinguishable in the source. The guard fails three ways:
+a `Blank` joker missing from the list, a listed joker that got wired, and a
+reason too thin to be a reason. The table below is the same set, grouped by
+blocker:
+
+| Waiting on | Jokers | Notes |
+|---|---|---|
+| **Spectral cards** (do not exist — `BCardType::Spectral` is a bare tag with no deck) | Sixth Sense, Séance | EPIC-01 Story 3 |
+| **Booster packs** | Hallucination, Red Card | Red Card is "+3 mult per pack skipped" |
+| **The shop** | Perkeo (also needs Negative editions), Flash Card (rerolls) | |
+| **A per-round random target** | To Do List, Mail-In Rebate | 1c's scope cut |
+| **Card destruction on discard** | Trading Card | |
+| **A probabilistic held-card payout** | Reserved Parking | Deferred, not blocked — it could be wired on the existing seeded-RNG path |
+| **A draw step** | DNA | Its other half, "first hand of round", *is* now expressible via 4c's `hands_played` |
+| **Tags** (and the shop, for its sell trigger) | Diet Cola | It creates a Double Tag — there is no object to create |
+| **In-fold effects** (the pure `&self` scoring fold cannot grow a counter mid-fold) | Lucky Cat | The gap `on_scored` already characterizes for Hiker. Closing it means making scoring mutating — its own phase |
+| **Per-hand boss abilities** | Matador | See item 8; the bosses modelled here apply once at blind select |
+
+### The untriaged three — resolved
+
+Closing this EPIC out found three jokers that were `Blank` by **omission** rather
+than decision: **Card Sharp**, **Diet Cola** and **Ancient Joker** were in no
+phase's scope and mentioned nowhere in this document. They had sat through all
+eight phases not because anything blocked them, but because nobody had looked.
+
+Triaging them made the point better than the guard does: **two of the three were
+never blocked at all.**
+
+- **Card Sharp** → `MultTimesOnRepeatedHandThisRound(3)`. ×3 mult if the played
+  hand type was already played **this round** — new board state
+  `hands_by_type_this_round`, the per-type twin of `hands_played`. (Distinct from
+  `PokerHands::times_played`, which counts the whole *run* and never resets, so
+  it cannot answer the question.) Data fix: Common/$5 → **Uncommon / $6**.
+
+  *The trap, and why the source mattered.* Balatro bumps its per-round tally at
+  the **top** of `evaluate_play`, *before* jokers evaluate — hence its `> 1`
+  test. This engine's `on_hand_played` fires **after** a hand scores (Ice Cream's
+  convention), so the correct test here is `>= 1`. Copying Balatro's comparison
+  verbatim would be correct-looking, silently wrong, and would fire Card Sharp on
+  the round's *first* hand. Pinned: flipping `>= 1` to `> 1` fails three tests.
+
+- **Ancient Joker** → `MultTimesPerScoredAncientSuit(15)`. ×1.5 per played card
+  of the run's current suit, compounding (three Hearts = ×3.375), with the suit
+  re-rolled at every round end. Data fix: Common/$5 → **Rare / $8**.
+
+  The suit is **run state** (`ancient_suit`), not a per-joker counter — which is
+  *why* two Ancient Jokers agree on it in Balatro: one shared field, not a sync
+  rule. `None` until the first roll, which is what makes that roll a 1-in-4 while
+  every later one is a 1-in-3 excluding the current, so it can never repeat back
+  to back. It honours `HandRules::smeared`, so Smeared widens what it pays for
+  exactly as it widens a flush.
+
+  *Deliberate deviation:* the re-roll is **gated on holding one**. Balatro rolls
+  every round regardless, but rolling unconditionally would consume RNG on every
+  board and shift every other seeded roll downstream (Gros Michel, Cavendish).
+  Nothing but Ancient Joker reads the suit, so the gate is unobservable.
+
+- **Diet Cola** stays `Blank`, now with a real reason: it creates a **Double
+  Tag**, and **Tags do not exist** — there is no object to create, and Double
+  Tag's own effect ("copy the next selected Tag") needs the skip-blind
+  tag-selection flow besides. Its `selling_self` trigger also wants the shop.
+  Tags first. (Worth noting it is filed under "Food Jokers" on the wiki and is
+  **not** one mechanically — no timer, no counter, no round decrement. Modelling
+  it as a countdown joker would be wrong.)
+
+**The lesson is the finding.** Two of three needed nothing that did not already
+exist; they were invisible purely because no document named them. That is the
+gap `BLANK_WITH_REASON` closes — not by tracking work, but by making *"nobody
+looked"* impossible to express. `blank_jokers__every_reason_names_a_blocker`
+enforces it: a reason has to name what is missing, and "TODO"/"untriaged" are
+rejected outright.
+
+## The round loop  *(follow-on; closes EPIC-01 Story 7's last item)*
+
+This EPIC built a complete lifecycle — `on_blind_selected`, `on_scored`,
+`on_hand_played`, `on_discard`, `on_round_end` — and **nothing ever ran it as a
+life**. Each hook was tested in isolation; the only thing that drove a sequence
+was the reachability probe, in a deliberately unrealistic order. Four ordering
+rules had been discovered separately and pinned separately:
+
+1. growth before payouts (Rocket's boss increment);
+2. payouts before destruction (a joker that dies still pays);
+3. the boss ability after every joker draw modifier;
+4. `Scored` before the fold, `HandPlayed` after it.
+
+The loop is what proves they compose. `round_loop__the_lifecycle_hooks_compose_in_order`
+drives all four on one board in one round, and they do — **the answer was yes**,
+but it was not knowable before.
+
+**Two bugs, both found by building it, both fixed:**
+
+- **Banner and Mystic Summit read `draws.discards`** — what the round *granted* —
+  where both say "**remaining**". The board's own model is explicit that these
+  differ (`discards_used` is documented as "kept separate from `draws`, which
+  counts what the round *grants*, not what it has consumed"), but nothing
+  subtracted one from the other. So Banner kept paying +30 for discards already
+  spent, and Mystic Summit never fired once they were all spent — the exact two
+  jokers 2a/2b were written to rescue from silent-zero, wrong again in the other
+  direction.
+
+  It was invisible because **the tests faked it**: they set `draws.discards = 0`
+  directly rather than discarding, which is only the same thing when nothing has
+  been consumed. Nothing had ever driven a real discard. Fixed with
+  `discards_remaining()` (granted − used, floored), which Delayed Gratification
+  now also reads — equivalent there, but it leaves the trap field with no
+  "remaining" readers left to imitate.
+
+  *This is the loop's whole argument, arriving before the loop did.*
+
+- **`BuffoonPile::draw(n)` loses cards.** It pops one at a time and returns
+  `None` if it cannot supply the full count — dropping the cards it already
+  popped. Ask a 3-card deck for 5 and the deck ends up empty with the 3 gone.
+  Sidestepped rather than fixed: `deal_to_hand_size` pops until the hand is full
+  or the deck is dry, which is Balatro's behaviour anyway (you are dealt what
+  there is). `draw` is left alone as a separate defect — see TECHNICAL_DEBT.
+
+**The deal invariant now holds — inside the loop.** Item 7a found that the board
+"conserves no deal invariant" (`board.played = …` left the card in `deck` too),
+which is *why* `full_deck` had to be a stored roster rather than a union of the
+location piles. The loop is the first thing that can hold the line, and
+`round_loop__conserves_every_card_the_run_owns` pins it: through a round of
+playing and discarding, `deck + in_hand + discarded == full_deck`, all 52. It
+catches both directions — a leak *and* a duplication (dealing without removing).
+`full_deck` stays a roster regardless: the invariant holds for boards driven
+through the loop, and boards that poke `played` directly are still legal.
+
+**Not modelled, deliberately:** ante progression, so nothing supplies a
+`blind_target` — the caller sets it, and `0` means "run until the hands are
+spent". The mechanism is here; the ante table is a set of numbers this engine has
+no way to check.
+
+## The Stone card  *(follow-on; the last card-level debt)*
+
+The Stone card is +50 chips with **no rank or suit**, and it sat in
+`KNOWN_UNWIRED_CARD_ENHANCEMENTS` from 0d onwards for a good reason: wiring the
+chips alone would have traded a silent zero for a silently *wrong hand type*.
+Both halves are now in, and the entry is gone — **all three guards are empty.**
+
+**The plan was wrong, and the source said so.** The intended fix was "have
+`enhance` blank both pips", i.e. model no-rank-no-suit as absent data. Balatro
+does the opposite: Stone is a **mask at the accessor layer** over a fully
+preserved base. That is observable rather than academic — Vampire strips the
+enhancement and the original rank and suit come straight back, which is
+impossible if they were erased. So detection filters on the **enhancement**
+(`BuffoonCard::is_stone`), never on the pips.
+
+The distinction has a specific bug attached. Blanking the pips makes every Stone
+card *identical*, so **two Stone cards pair with each other** — they must never
+pair, not with a rank and not with one another. This was live: the `STONE_CARD`
+built for Marble Joker in 5d used blank pips, and two Marble Joker blinds put two
+of them in the deck.
+
+**A second live bug, self-inflicted.** `Pip::default()` weighs 0 — and **so does
+a Deuce**. `connectors` compares raw weights, so a blank-ranked Stone card
+connected straights *exactly as if it were a 2*: `3-4-5-6` + Stone read as a
+Straight. It was unreachable until the round loop, because nothing could draw a
+Stone out of the deck; the loop made the whole chain live (Marble Joker adds to
+the deck → the loop deals → you play it). Pinned end-to-end through that path.
+
+**What landed:**
+- `BuffoonCard::is_stone` — the enhancement flag the accessors consult.
+- `BuffoonCard::get_chips` — a Stone card gives its flat 50, *replacing* the rank
+  value rather than adding to it (a Stone Ace is 50, not 61).
+- `BuffoonPile::detectable` — the one seam that drops Stones from classification,
+  used by `connectors`, `count_largest_same_suit(_with)` and `has_x_of_a_kind`.
+  A Stone still consumes a played slot, so the hand is classified from four cards
+  rather than five — which is exactly Balatro's behaviour, and means **Four
+  Fingers rescues a Stone-shortened straight or flush for free**.
+- `STONE_CARD` now carries a real, masked base. *Deliberate divergence:* Balatro
+  randomises a created Stone's base and this one is fixed, since
+  `on_blind_selected` has no RNG and the base is unobservable while the
+  enhancement is on.
+
+**A test was pinning the bug.** `enhance__tarot__tower` asserted a Stone-enhanced
+Seven scored **7** — its base rank, with the +50 lost. It encoded the silent zero
+rather than catching it, which is why the guard listing was the only thing that
+knew. Both are now correct, and the mask-don't-erase model has its own test.
+
+**Also fixed:** `connectors`' doctest fence was never closed — the ``` opened and
+ran to the end of the comment, so any prose added below it would have been
+compiled as Rust. Closed, and the Stone case is now a doctest.
+
+### The reachability guard, hardened  *(found while wiring Phases 3–8)*
+
+Two latent weaknesses in `all_jokers__intended_hand_scorers_are_reachable`
+surfaced only once the new events were driven through it. Both are fixed, and
+both are worth knowing about before adding the next probe:
+
+1. **The baseline must be driven too.** The guard took its baseline *before*
+   firing any event, then compared against a board with the joker **and** the
+   events. That silently assumed every event is score-neutral on its own. Using a
+   Planet is not — it levels a hand type, moving phase 1's base for *everyone* —
+   so the moment 3c's `use_consumable` joined the probe, **every** joker looked
+   reachable and the guard passed vacuously for all 112. Now both sides run the
+   identical `drive_events` sequence and only the probed joker differs, so the
+   marginal is attributable to it and nothing else. Any future event that moves
+   the score is safe by construction.
+2. **The resident probe joker must read only the played hand.** Each probe board
+   carries one Uncommon joker so Baseball Card has something to count. It was
+   **Mystic Summit** (+15 mult at zero discards) — which reads *round state*. As
+   soon as Phase 8's probe selected a blind, Burglar and Drunkard moved the score
+   *through* it and the guard reported them as misclassified, when both are
+   modifiers of exactly Pareidolia's kind. Swapped to **Fibonacci**, which reads
+   only `played`. A resident that reads round state turns every draw modifier
+   into a false positive.
+
+The guard bit correctly and repeatedly through this work — it caught Vampire as a
+silent zero (no probe board *played* an enhanced card, so it had nothing to eat;
+fixed with an `enhanced_played` board) and refused to compile until each of the
+14 new `MPip` variants was classified.
 
 ## Test Plan
 
@@ -793,3 +1273,32 @@ Exit criteria (per phase, not the whole EPIC):
 2. `score()` for a board with none of the phase's jokers is byte-identical to
    before (new state is inert by default).
 3. The Status table row flips to **Complete** only with cited, tested code.
+
+**All eight phases met all three.** Final state: **586 lib tests** (501 at the
+start of this EPIC, 525 before Phases 3–8), clippy pedantic **0 warnings**,
+`no_std` clean, `fmt` clean, docs **0 warnings**. Every arm landed in this EPIC
+was spot-verified by reverting it and watching its test fail — including the
+negative guards, which pass vacuously by design (they assert an *absence*, so
+they are regression guards rather than Gold Standard tests, and are called out as
+such where they appear).
+
+**One process note worth carrying forward.** Every exact effect wired in Phases
+3–8 was checked against the Balatro wiki and, where the wiki was ambiguous, the
+game's own localization strings and source config. That was not ceremony — it
+changed the outcome four times:
+
+- **Vampire** was believed blocked on the in-fold ordering gap. The wiki settles
+  it ("removes Enhancements before their effect occurs"), and that is exactly
+  what `on_scored` already did — so it wired cleanly instead of being deferred.
+- **Fortune Teller** is retroactive. A `joker_state` counter is the obvious
+  implementation and is **silently wrong**; no test anyone would think to write
+  catches it, because it only differs on a joker acquired mid-run.
+- **Madness**'s ×0.5 is granted whether or not it destroys anything. Coupling the
+  two is the natural reading of "gain X0.5 Mult and destroy a random Joker".
+- **Joker Stencil**'s own wiki page reasons incorrectly to a correct number; only
+  the source settles that "included" means +1 *per Stencil on the board*, which
+  is what makes two Stencils ×25 rather than ×16.
+
+None of these would have been caught by the guards, the type system, or review.
+They are exactly the class of bug this EPIC exists to prevent, and the only thing
+that caught them was reading the source of truth before writing the value.

@@ -100,10 +100,27 @@
 - [x] Capacity mechanics: `new_with_capacity`/`capacity`/`free` (`buffoon_pile.rs:23,78,207`)
 - [x] `Draws { hands_to_play, discards }` (`draws.rs`)
 - [x] `ToggleCard` selection via `RefCell<bool>` (`toggle.rs`)
-- [ ] Blind/ante progression, boss blind effects
-- [ ] Shop: buying, selling (consume `resell_value`), rerolls, packs
-- [ ] Money/economy state on the board
-- [ ] Round loop: play/discard cycle consuming `Draws`
+- [x] **Real slot limits** — `joker_slots` (5) and `consumable_slots` (2) on the
+  board. `new_with_capacity` above is a `Vec` reallocation hint and bounds
+  nothing; the "(Must have room)" cards need a limit that can be read and
+  enforced. (EPIC-01a 5c)
+- [~] Blind/ante progression, boss blind effects — **blind state and three boss
+  effects** landed (`types/blind.rs`: The Needle, The Water, The Manacle — the
+  ones whose ability is a pure `Draws` mutation). Ante progression and the rest
+  of the ~20-boss roster (score requirements, card debuffs) are not modelled.
+  (EPIC-01a Phase 8)
+- [~] Shop: buying, selling (consume `resell_value`), rerolls, packs —
+  **`sell_joker` landed** (it pays out `resell_value` and recomputes the round's
+  draws, which is what makes Luchador observable). Buying, rerolls and packs are
+  not modelled. (EPIC-01a Phase 8)
+- [x] **Money/economy state on the board** — `money: isize` plus the round-end /
+  discard payout seam. (EPIC-01a Phase 1)
+- [x] **Round loop: play/discard cycle consuming `Draws`** — `deal_to_hand_size`,
+  `play_hand` / `play_hand_with_rng`, `discard_cards`, `hands_remaining`,
+  `round_is_over` / `round_is_won`, plus the `discarded` pile the board never
+  had and `round_score` / `blind_target`. See the EPIC-01a §Round loop note for
+  the two bugs it surfaced. Ante progression still supplies no target, so
+  `blind_target` is set by the caller (0 = run until the hands are spent).
 
 ## Story 8: Modding & solver enablement (the stated end-goals)
 

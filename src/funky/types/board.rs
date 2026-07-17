@@ -1,8 +1,14 @@
+use crate::funky::decks::basic;
+use crate::funky::decks::joker::Joker;
+use crate::funky::decks::tarot::MajorArcana;
+use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::preludes::funky::{
     BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
+use std::collections::BTreeMap;
+
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
@@ -15,14 +21,54 @@ enum GrowthEvent<'a> {
     HandPlayed(&'a BuffoonPile),
     Discard(&'a BuffoonPile),
     RoundEnd,
+    /// A playing card joined the run's deck through
+    /// [`BuffoonBoard::add_card_to_deck`] — Hologram's trigger. Carries the card
+    /// so a future "gains only on <kind>" joker can discriminate; Hologram
+    /// counts them all alike.
+    CardAdded(BuffoonCard),
+    /// A playing card left the run through [`BuffoonBoard::destroy_deck_card`] —
+    /// Canio's trigger, which counts only the faces among them.
+    CardDestroyed(BuffoonCard),
+    /// The played hand is about to score, fired by [`BuffoonBoard::on_scored`]
+    /// with the hand — Vampire's trigger.
+    ///
+    /// Distinct from [`HandPlayed`](Self::HandPlayed), which fires *after* the
+    /// hand has scored and records it. A counter growing here is read by the
+    /// very hand that grew it; one growing on `HandPlayed` is not.
+    Scored(&'a BuffoonPile),
+    /// A consumable was spent through [`BuffoonBoard::use_consumable`] — the
+    /// trigger for Constellation (Planets) and Fortune Teller (Tarots). Carries
+    /// the card so the two can tell each other's kind apart.
+    ConsumableUsed(BuffoonCard),
+    /// A blind was selected, fired by [`BuffoonBoard::on_blind_selected`] with
+    /// the blind — Madness's trigger, which fires on everything *except* a boss.
+    BlindSelected(Blind),
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BuffoonBoard {
     pub draws: Draws,
     pub deck: BuffoonPile,
     pub in_hand: BuffoonPile,
     pub played: BuffoonPile,
+    /// Cards spent this round — played out or discarded.
+    ///
+    /// The pile the board never had: until the round loop landed there was
+    /// nowhere for a spent card to go, which is half of why
+    /// [`full_deck`](Self::full_deck) had to be a stored roster rather than a
+    /// union of the location piles.
+    pub discarded: BuffoonPile,
+    /// Chips × mult accumulated across every hand played this round — what a
+    /// blind is beaten with. Reset at blind select and round end.
+    pub round_score: usize,
+    /// The score this round must reach to be won, or `0` for an untargeted
+    /// round that simply runs until its hands are spent.
+    ///
+    /// Set by the caller. Balatro derives it from the ante and the blind (Small
+    /// ×1, Big ×1.5, Boss ×2 of an ante base), and **ante progression is not
+    /// modelled here** — so the mechanism lives on the board while the table
+    /// does not. Inventing the table would be a number this engine cannot check.
+    pub blind_target: usize,
     pub consumables: BuffoonPile,
     pub jokers: BuffoonPile,
     pub poker_hands: PokerHands,
@@ -38,6 +84,41 @@ pub struct BuffoonBoard {
     /// [`draws`](Self::draws), which counts what the round *grants*, not what
     /// it has consumed.
     pub discards_used: usize,
+    /// How many hands have been **completed** this round. Incremented by
+    /// [`on_hand_played`](Self::on_hand_played), reset by
+    /// [`on_blind_selected`](Self::on_blind_selected) and
+    /// [`on_round_end`](Self::on_round_end).
+    ///
+    /// Counts hands *behind* the board, not the one in front of it: a hand is
+    /// scored and then recorded, which is the convention every counter joker
+    /// already follows (Ice Cream scores its full +100 on the first hand and
+    /// only then decays). So while the round's Nth hand is being scored this
+    /// reads `N − 1` — see [`is_final_hand`](Self::is_final_hand), which is what
+    /// Dusk turns on.
+    ///
+    /// Per **round**, unlike the per-run [`joker_state`](Self::joker_state)
+    /// accumulators, because "final hand of round" resets with the round.
+    pub hands_played: usize,
+    /// How many times each poker hand type has been played **this round** —
+    /// Card Sharp's condition ("already been played this round").
+    ///
+    /// The per-type twin of [`hands_played`](Self::hands_played), and per round
+    /// like it. Distinct from [`PokerHands`]'s `times_played`, which counts the
+    /// whole **run** and never resets, so it cannot answer this question.
+    ///
+    /// Board state rather than a per-joker counter, deliberately: two Card
+    /// Sharps read one shared tally, which falls out of this being a property of
+    /// the round rather than of a joker.
+    pub hands_by_type_this_round: BTreeMap<HandType, usize>,
+    /// The suit Ancient Joker currently pays for, re-rolled at the end of each
+    /// round by [`on_round_end_with_rng`](Self::on_round_end_with_rng).
+    ///
+    /// Run state, not per-joker state — which is *why* two Ancient Jokers agree
+    /// on the suit in Balatro: it is one shared field, not a synchronisation
+    /// rule. `None` until the first roll, which is what makes that roll a
+    /// 1-in-4 across all four suits while every later one is a 1-in-3 excluding
+    /// the current — so the suit can never repeat back to back.
+    pub ancient_suit: Option<char>,
     /// The round configuration the run started with — the baseline
     /// [`on_blind_selected`](Self::on_blind_selected) recomputes
     /// [`draws`](Self::draws) from. Recorded (like
@@ -63,6 +144,38 @@ pub struct BuffoonBoard {
     /// Seeded from the deck at [`new`](Self::new); only deck **mutation**
     /// (adding or destroying cards) should change it.
     pub full_deck: BuffoonPile,
+    /// How many jokers the board has **room** for (Balatro's base 5).
+    ///
+    /// A real limit, unlike the `Vec` capacity `jokers` is built with — capacity
+    /// is a reallocation hint that neither bounds pushes nor can be read back
+    /// meaningfully. The "must have room" jokers (Riff-Raff) check against this.
+    pub joker_slots: usize,
+    /// How many consumables the board has **room** for (Balatro's base 2). The
+    /// joker-slot rule on the consumable side: [`create_consumable`](Self::create_consumable)
+    /// refuses to exceed it, which is the "(Must have room)" every creator card
+    /// carries.
+    pub consumable_slots: usize,
+    /// Which blind this round is played against. Read by Madness (which refuses
+    /// to trigger on a boss) and Rocket (which counts them), and applied as a
+    /// [`Draws`] modifier when its ability is in force.
+    pub blind: Blind,
+    /// Whether the current Boss Blind's ability has been switched off by selling
+    /// Luchador. Reset by [`on_blind_selected`](Self::on_blind_selected) — the
+    /// next blind is a fresh boss.
+    ///
+    /// Chicot is deliberately **not** modelled here: it disables bosses by being
+    /// on the board, so it is read live from `jokers` and needs no flag. Selling
+    /// it therefore restores the boss automatically.
+    pub boss_disabled: bool,
+    /// How many Tarot cards the run has used, ever.
+    ///
+    /// Deliberately **not** a [`joker_state`](Self::joker_state) accumulator:
+    /// Fortune Teller is retroactive in Balatro — it reads a run-wide statistic,
+    /// so a Fortune Teller bought after ten Tarots have been used is immediately
+    /// worth +10. A per-joker counter would start it at zero and be wrong.
+    /// Contrast Constellation, which is a plain counter and does *not* scale
+    /// retroactively.
+    pub tarots_used: usize,
     /// How big [`full_deck`](Self::full_deck) was when the run started.
     ///
     /// Recorded rather than assumed to be 52, since alternate decks start at
@@ -70,7 +183,24 @@ pub struct BuffoonBoard {
     pub starting_deck_size: usize,
 }
 
+/// An empty board with Balatro's base slot counts.
+///
+/// Hand-written rather than derived because the slot fields must not default to
+/// `0` — a derived `Default` would produce a board with no room for a joker or a
+/// consumable, which is a trap rather than a neutral starting point. Delegating
+/// to [`BuffoonBoard::new`] keeps the two constructors from drifting apart.
+impl Default for BuffoonBoard {
+    fn default() -> Self {
+        Self::new(Draws::default(), BuffoonPile::default())
+    }
+}
+
 impl BuffoonBoard {
+    /// Balatro's base joker slot count.
+    pub const DEFAULT_JOKER_SLOTS: usize = 5;
+    /// Balatro's base consumable slot count.
+    pub const DEFAULT_CONSUMABLE_SLOTS: usize = 2;
+
     #[must_use]
     pub fn new(draws: Draws, deck: BuffoonPile) -> Self {
         // At construction the run owns exactly the deck it was handed, so the
@@ -85,11 +215,22 @@ impl BuffoonBoard {
             starting_deck_size,
             in_hand: BuffoonPile::default(),
             played: BuffoonPile::default(),
-            consumables: BuffoonPile::new_with_capacity(2),
-            jokers: BuffoonPile::new_with_capacity(5),
+            discarded: BuffoonPile::default(),
+            round_score: 0,
+            blind_target: 0,
+            consumables: BuffoonPile::new_with_capacity(Self::DEFAULT_CONSUMABLE_SLOTS),
+            jokers: BuffoonPile::new_with_capacity(Self::DEFAULT_JOKER_SLOTS),
+            joker_slots: Self::DEFAULT_JOKER_SLOTS,
+            consumable_slots: Self::DEFAULT_CONSUMABLE_SLOTS,
             poker_hands: PokerHands::default(),
             money: 0,
             discards_used: 0,
+            hands_played: 0,
+            hands_by_type_this_round: BTreeMap::new(),
+            ancient_suit: None,
+            tarots_used: 0,
+            blind: Blind::default(),
+            boss_disabled: false,
             joker_state: Vec::new(),
         }
     }
@@ -105,14 +246,30 @@ impl BuffoonBoard {
     /// From [Detailed Break down of Balatro Scoring System and some tips to optimise your hand scoring.](https://www.reddit.com/r/balatro/comments/1blbexa/detailed_break_down_of_balatro_scoring_system_and/)
     #[must_use]
     pub fn scoring_phase1_pre_scoring(&self) -> Score {
-        let hand_type = match self.played.determine_hand_type_with(self.hand_rules()) {
+        self.poker_hands
+            .get(&self.scoring_hand_type())
+            .map_or_else(Score::default, |hand| Score::new(hand.chips, hand.mult))
+    }
+
+    /// The hand type the played cards score as, under the board's
+    /// [`HandRules`] — so Four Fingers and Shortcut are already accounted for.
+    ///
+    /// A Royal Flush is normalised to Straight Flush, matching Balatro (there is
+    /// no separate Royal Flush entry to level up). Shared by phase 1 and by the
+    /// hand-type readers (Card Sharp, `on_hand_played`'s per-round tally) so
+    /// there is one answer to "what hand is this" for the whole board — a
+    /// second, subtly different copy is exactly how a Royal Flush would come to
+    /// count as its own type in one place and not another.
+    #[must_use]
+    pub fn scoring_hand_type(&self) -> HandType {
+        Self::normalise_hand_type(self.played.determine_hand_type_with(self.hand_rules()))
+    }
+
+    fn normalise_hand_type(hand_type: HandType) -> HandType {
+        match hand_type {
             HandType::RoyalFlush => HandType::StraightFlush,
             other => other,
-        };
-
-        self.poker_hands
-            .get(&hand_type)
-            .map_or_else(Score::default, |hand| Score::new(hand.chips, hand.mult))
+        }
     }
 
     /// Phase 2 — played-hand scoring: folds each played card into the running
@@ -197,14 +354,33 @@ impl BuffoonBoard {
     /// case), so the played-card fold is byte-identical when no retrigger joker
     /// is held. `index` is the card's position in `self.played`, used by
     /// position-based retriggers (Hanging Chad fires only on the first card).
+    ///
+    /// Jokers are walked with their `joker_state` slot, since the round-state
+    /// retriggers read a counter: Seltzer retriggers only while its 10 hands
+    /// are unspent.
     fn played_retriggers(&self, index: usize, card: &BuffoonCard) -> usize {
         self.jokers
             .iter()
-            .map(|joker| match joker.enhancement {
-                MPip::RetriggerPlayedRanks(n, ranks) if ranks.contains(&card.rank.index) => n,
-                MPip::RetriggerPlayedFaces(n) if self.is_face_card(card) => n,
-                MPip::RetriggerFirstPlayed(n) if index == 0 => n,
-                _ => 0,
+            .enumerate()
+            .map(|(slot, joker)| {
+                let counter = self.joker_state.get(slot).copied().unwrap_or(0);
+                match joker.enhancement {
+                    MPip::RetriggerPlayedRanks(n, ranks) if ranks.contains(&card.rank.index) => n,
+                    MPip::RetriggerPlayedFaces(n) if self.is_face_card(card) => n,
+                    MPip::RetriggerFirstPlayed(n) if index == 0 => n,
+                    // Dusk: every played card, but only on the round's last hand.
+                    MPip::RetriggerPlayedCardsInFinalRound if self.is_final_hand() => 1,
+                    // Seltzer: every played card, for its first `hands` hands.
+                    // `counter` is hands *completed*, so the hand that spends the
+                    // last one still retriggers and `melt_emptied_jokers` removes
+                    // the joker immediately after it.
+                    MPip::RetriggerAllPlayedForHands(n, hands)
+                        if usize::try_from(counter.max(0)).unwrap_or(usize::MAX) < hands =>
+                    {
+                        n
+                    }
+                    _ => 0,
+                }
             })
             .sum()
     }
@@ -391,11 +567,11 @@ impl BuffoonBoard {
             }
             // Banner: +n chips for each remaining discard (reads round state).
             MPip::ChipsPerRemainingDiscard(n) => {
-                return ScoreOp::AddChips(n * self.draws.discards);
+                return ScoreOp::AddChips(n * self.discards_remaining());
             }
             // Mystic Summit: +n mult only when no discards remain, else inert.
             MPip::MultPlusOnZeroDiscards(n) => {
-                return if self.draws.discards == 0 {
+                return if self.discards_remaining() == 0 {
                     ScoreOp::AddMult(n)
                 } else {
                     ScoreOp::Nothing
@@ -405,6 +581,11 @@ impl BuffoonBoard {
             MPip::ChipsPerDollar(n) => {
                 let dollars = usize::try_from(self.money).unwrap_or(0);
                 return ScoreOp::AddChips(n * dollars);
+            }
+            // Fortune Teller: +n mult per Tarot used this run. A board reader,
+            // not a counter — that is what makes it retroactive.
+            MPip::MultPlusPerTarotUsedThisRun(n) => {
+                return ScoreOp::AddMult(n * self.tarots_used);
             }
             // Gros Michel: +n mult unconditionally. The destruction half of the
             // variant is inert here — it rolls at end of round, which has no
@@ -460,6 +641,22 @@ impl BuffoonBoard {
             }
         }
         rules
+    }
+
+    /// Whether a card of suit `card_suit` counts as the `target` suit.
+    ///
+    /// Exact, except under **Smeared Joker**, which makes Hearts ≡ Diamonds and
+    /// Spades ≡ Clubs — the same merge it already applies to flush sizing, so
+    /// Smeared widens what Ancient Joker pays for exactly as it widens a flush.
+    fn suit_matches(card_suit: char, target: char, rules: HandRules) -> bool {
+        if card_suit == target {
+            return true;
+        }
+        rules.smeared
+            && matches!(
+                (card_suit, target),
+                ('H', 'D') | ('D', 'H') | ('S', 'C') | ('C', 'S')
+            )
     }
 
     /// Whether `card` counts as a face card for the face-reading jokers. Kings,
@@ -586,6 +783,58 @@ impl BuffoonBoard {
             {
                 // Blackboard: vacuously true (×n) when the hand is empty.
                 n as f32
+            }
+            // Card Sharp: ×n if this hand type has already been played this
+            // round. `hands_by_type_this_round` is bumped by `on_hand_played`,
+            // which fires *after* a hand scores — so during the round's second
+            // Pair the tally reads 1, and `>= 1` is the test. (Balatro bumps
+            // before its joker pass and so tests `> 1`; same semantics, and
+            // getting it backwards makes Card Sharp fire on the first play.)
+            MPip::MultTimesOnRepeatedHandThisRound(n)
+                if self
+                    .hands_by_type_this_round
+                    .get(&self.scoring_hand_type())
+                    .copied()
+                    .unwrap_or(0)
+                    >= 1 =>
+            {
+                n as f32
+            }
+            // Ancient Joker: ×(tenths/10) per played card of the run's current
+            // ancient suit; compounds, like its per-card ×mult neighbours. No
+            // suit rolled yet means no matches, i.e. ×1 — inert rather than
+            // zeroing.
+            MPip::MultTimesPerScoredAncientSuit(tenths) => {
+                let matches = self.ancient_suit.map_or(0, |suit| {
+                    played
+                        .iter()
+                        .filter(|card| Self::suit_matches(card.suit.index, suit, rules))
+                        .count()
+                });
+                let per = tenths as f32 / 10.0;
+                (0..matches).fold(1.0, |acc, _| acc * per)
+            }
+            // Joker Stencil: ×n per empty joker slot, "Joker Stencil included" —
+            // i.e. it counts its own occupied slot as if it were empty. Every
+            // Stencil on the board adds that +1, so the rule reduces to
+            // `slots − (jokers that are not Stencils)`.
+            //
+            // The `> 0` gate is on **literally** empty slots, not the inclusive
+            // count: a full board applies nothing at all. With one Stencil that
+            // is unobservable (the inclusive count is exactly ×1 — identity —
+            // when the gate closes), but with two on a full board the two
+            // disagree, and the gate wins.
+            MPip::MultTimesOnEmptyJokerSlots(n) => {
+                let empty = self.joker_slots.saturating_sub(self.jokers.len());
+                if empty == 0 {
+                    return None;
+                }
+                let stencils = self
+                    .jokers
+                    .iter()
+                    .filter(|j| matches!(j.enhancement, MPip::MultTimesOnEmptyJokerSlots(_)))
+                    .count();
+                (n * (empty + stencils)) as f32
             }
             _ => return None,
         };
@@ -727,9 +976,14 @@ impl BuffoonBoard {
     /// [`starting_deck_size`](Self::starting_deck_size) is deliberately *not*
     /// bumped: it records where the run started, so a deck grown past it leaves
     /// Erosion scoring nothing rather than going negative.
+    ///
+    /// Fires the `CardAdded` growth event, so Hologram gains its ×0.25 for every
+    /// card that arrives here — including the Stone card Marble Joker adds at
+    /// blind select, which is the interaction Balatro players build on.
     pub fn add_card_to_deck(&mut self, card: BuffoonCard) {
         self.full_deck.push(card);
         self.deck.push(card);
+        self.apply_growth(&GrowthEvent::CardAdded(card));
     }
 
     /// Destroy the roster card at `index`: it leaves the run entirely, so it
@@ -742,6 +996,11 @@ impl BuffoonBoard {
     /// value-equal cards are interchangeable, so removing either leaves the same
     /// multiset. A card the roster holds but the remainder does not (i.e. it is
     /// already dealt, played, or held) simply leaves the remainder untouched.
+    ///
+    /// Fires the `CardDestroyed` growth event, so Canio gains its ×1 when the
+    /// card was a face. The event fires **after** the card is gone, so a joker
+    /// reading the board sees the post-destruction deck — consistent with
+    /// Erosion, which scores the shortfall this call just widened.
     pub fn destroy_deck_card(&mut self, index: usize) -> Option<BuffoonCard> {
         if index >= self.full_deck.len() {
             return None;
@@ -750,6 +1009,7 @@ impl BuffoonBoard {
         if let Some(undealt) = self.deck.iter().position(|c| *c == card) {
             self.deck.remove(undealt);
         }
+        self.apply_growth(&GrowthEvent::CardDestroyed(card));
         Some(card)
     }
 
@@ -773,6 +1033,84 @@ impl BuffoonBoard {
         true
     }
 
+    /// Whether the board has room for another consumable — the "(Must have
+    /// room)" clause the creator cards carry.
+    #[must_use]
+    pub fn has_consumable_room(&self) -> bool {
+        self.consumables.len() < self.consumable_slots
+    }
+
+    /// Whether the board has room for another joker.
+    #[must_use]
+    pub fn has_joker_room(&self) -> bool {
+        self.jokers.len() < self.joker_slots
+    }
+
+    /// Put `card` in a consumable slot, or refuse if there is no room. Returns
+    /// whether it landed.
+    ///
+    /// Refusing rather than growing past [`consumable_slots`](Self::consumable_slots)
+    /// is Balatro's rule: a creator card with a full inventory simply creates
+    /// nothing — it does not queue, and it does not evict.
+    pub fn create_consumable(&mut self, card: BuffoonCard) -> bool {
+        if !self.has_consumable_room() {
+            return false;
+        }
+        self.consumables.push(card);
+        true
+    }
+
+    /// Spend the consumable at `index`, apply its effect, and record the use.
+    /// Returns the card spent, or `None` if `index` is out of bounds.
+    ///
+    /// What "apply" means, by kind:
+    ///
+    /// * **Planet** — levels its hand type, through the existing
+    ///   [`PokerHands::increment`] (chips, mult, and level together).
+    /// * **Tarot** — enhances each roster card named by `targets` (indices into
+    ///   [`full_deck`](Self::full_deck)), through
+    ///   [`BuffoonCard::enhance`] and the [`replace_deck_card`](Self::replace_deck_card)
+    ///   seam, so the change persists on the run's own copy. Pass an empty
+    ///   `targets` for a tarot that takes none.
+    ///
+    /// Either way the card leaves `consumables` and fires the `ConsumableUsed`
+    /// growth event, which is what Constellation and Fortune Teller read.
+    ///
+    /// # Known gap: run-level tarots
+    ///
+    /// The **card-enhancing** tarots are applied here. The ones that act on the
+    /// *run* rather than on a card — Death, Judgement, The Hermit, The Wheel of
+    /// Fortune — pass through [`BuffoonCard::enhance`] unchanged, so this counts
+    /// them as used (correctly, for Fortune Teller) while their real effects stay
+    /// out of scope, exactly as EPIC-01a item 5e leaves them. Their systems
+    /// (spectral cards, the shop, run-level RNG) are EPIC-01 Story 3's, not this
+    /// seam's — using one here is a no-op rather than a wrong effect.
+    ///
+    /// [`PokerHands::increment`]: crate::funky::types::hands::PokerHands::increment
+    pub fn use_consumable(&mut self, index: usize, targets: &[usize]) -> Option<BuffoonCard> {
+        if index >= self.consumables.len() {
+            return None;
+        }
+        let card = self.consumables.remove(index);
+
+        match card.card_type {
+            BCardType::Planet => self.poker_hands.increment(card),
+            BCardType::Tarot => {
+                for &slot in targets {
+                    let Some(target) = self.full_deck.get(slot).copied() else {
+                        continue;
+                    };
+                    self.replace_deck_card(slot, target.enhance(card));
+                }
+                self.tarots_used += 1;
+            }
+            _ => {}
+        }
+
+        self.apply_growth(&GrowthEvent::ConsumableUsed(card));
+        Some(card)
+    }
+
     /// Where `card` sits in the roster, or `None` if the run does not own it.
     /// First match wins — see [`destroy_deck_card`](Self::destroy_deck_card) for
     /// why that is exact rather than approximate.
@@ -793,10 +1131,15 @@ impl BuffoonBoard {
     /// How much a joker's counter changes for one growth event. The write-side
     /// mirror of `counter_joker_op`; both switch on the same enhancement. Returns
     /// 0 for every non-counter joker.
+    ///
+    /// Takes `&self` for the same reason [`payout_delta`](Self::payout_delta)
+    /// does: some growth reads the board rather than just the event. Canio
+    /// classifies the destroyed card through [`is_face_card`](Self::is_face_card),
+    /// so Pareidolia widens what feeds it.
     // Arms are kept one-per-variant (rather than merged where bodies coincide)
-    // to mirror `counter_joker_op`'s future per-joker arms one-for-one.
+    // to mirror `counter_joker_op`'s per-joker arms one-for-one.
     #[allow(clippy::match_same_arms)]
-    fn growth_delta(enhancement: MPip, event: &GrowthEvent, rules: HandRules) -> i32 {
+    fn growth_delta(&self, enhancement: MPip, event: &GrowthEvent, rules: HandRules) -> i32 {
         match (enhancement, event) {
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::HandPlayed(_)) => 1,
             (MPip::GainMultPerHandLessDiscard(_), GrowthEvent::Discard(_)) => -1,
@@ -815,8 +1158,66 @@ impl BuffoonBoard {
             {
                 1
             }
+            // Popcorn: one tick per round ended.
+            (MPip::LoseMultPerRound(_, _), GrowthEvent::RoundEnd) => 1,
+            // Seltzer: one tick per hand played — its 10 hands are a per-run
+            // allowance, so unlike Dusk's "final hand" it does not reset with
+            // the round.
+            (MPip::RetriggerAllPlayedForHands(_, _), GrowthEvent::HandPlayed(_)) => 1,
+            // Yorick counts *cards* discarded, not discard actions, so the
+            // accumulator takes the whole pile — the read side does the
+            // per-23 division.
+            (MPip::GainMultTimesPerDiscardedCards(_, _), GrowthEvent::Discard(d)) => {
+                i32::try_from(d.len()).unwrap_or(i32::MAX)
+            }
+            // Hologram: one tick per playing card added to the deck.
+            (MPip::GainMultTimesPerCardAdded(_), GrowthEvent::CardAdded(_)) => 1,
+            // Canio: one tick per destroyed *face* card.
+            (MPip::GainMultTimesPerFaceDestroyed(_), GrowthEvent::CardDestroyed(card))
+                if self.is_face_card(card) =>
+            {
+                1
+            }
+            // Vampire: one tick per enhanced card in the hand about to score.
+            // Growing on `Scored` rather than `HandPlayed` is what lets the
+            // ×mult apply to that same hand.
+            (MPip::GainMultTimesPerEnhancedPlayed(_), GrowthEvent::Scored(played)) => {
+                i32::try_from(Self::enhanced_count(played)).unwrap_or(i32::MAX)
+            }
+            // Constellation: one tick per Planet used. Fortune Teller has no arm
+            // here on purpose — it is retroactive and reads `tarots_used` from
+            // the board instead.
+            (MPip::GainMultTimesPerPlanetUsed(_), GrowthEvent::ConsumableUsed(card))
+                if card.card_type == BCardType::Planet =>
+            {
+                1
+            }
+            // Madness: one tick per Small or Big Blind — never a Boss. The gain
+            // is independent of whether its destruction pass finds a victim, so
+            // it is counted here rather than beside the removal.
+            (
+                MPip::GainMultTimesOnNonBossBlindDestroyingJoker(_),
+                GrowthEvent::BlindSelected(blind),
+            ) if !blind.is_boss() => 1,
+            // Rocket: one tick per Boss Blind defeated. Reaching the end of a
+            // round on a Boss Blind is what "defeated" means here; a *disabled*
+            // boss still counts, since it is still a boss.
+            (MPip::CashOnRoundEndGrowingOnBossDefeat(_, _), GrowthEvent::RoundEnd)
+                if self.blind.is_boss() =>
+            {
+                1
+            }
             _ => 0,
         }
+    }
+
+    /// How many cards in `pile` carry an enhancement — what Vampire counts and
+    /// eats. A played card's enhancement only ever arrives from a tarot, so
+    /// "not [`MPip::Blank`]" is the whole of "Enhanced" here.
+    fn enhanced_count(pile: &BuffoonPile) -> usize {
+        pile.iter()
+            .filter(|card| card.enhancement != MPip::Blank)
+            .count()
     }
 
     /// Grow every joker's counter for a played hand, then melt any decaying
@@ -825,7 +1226,197 @@ impl BuffoonBoard {
     /// the check rides this hook rather than [`on_round_end`](Self::on_round_end).
     pub fn on_hand_played(&mut self, played: &BuffoonPile) {
         self.apply_growth(&GrowthEvent::HandPlayed(played));
+        self.hands_played += 1;
+        // Record the hand's type for this round (Card Sharp). Keyed off the pile
+        // handed in rather than `self.played`, since that is what was played.
+        let hand_type =
+            Self::normalise_hand_type(played.determine_hand_type_with(self.hand_rules()));
+        *self.hands_by_type_this_round.entry(hand_type).or_insert(0) += 1;
         self.melt_emptied_jokers();
+    }
+
+    /// Draw from the [`deck`](Self::deck) until the hand is full, or the deck
+    /// runs out. Returns how many cards were drawn.
+    ///
+    /// "Full" is `draws.hand_size`, so Juggler's +1 and The Manacle's −1 both
+    /// reach it through the round's recomputed [`Draws`]. Drawing takes from the
+    /// **end** of the deck (the top), which is `pop` rather than `remove(0)` —
+    /// the direction the deck is meant to be dealt from.
+    ///
+    /// Deliberately **not** [`BuffoonPile::draw`]: that helper drains the deck
+    /// and then returns `None` if it could not supply the full count, which
+    /// loses the cards it already popped. Balatro simply deals as many as it
+    /// has, which is what this does.
+    pub fn deal_to_hand_size(&mut self) -> usize {
+        let mut drawn = 0;
+        while self.in_hand.len() < self.draws.hand_size {
+            let Some(card) = self.deck.pop() else {
+                break;
+            };
+            self.in_hand.push(card);
+            drawn += 1;
+        }
+        drawn
+    }
+
+    /// How many hands the round has **left**: what it granted, minus what has
+    /// been played. Floors at 0.
+    #[must_use]
+    pub fn hands_remaining(&self) -> usize {
+        self.draws.hands_to_play.saturating_sub(self.hands_played)
+    }
+
+    /// Whether the round is finished — its target is met, or its hands are gone.
+    ///
+    /// An untargeted round ([`blind_target`](Self::blind_target) of 0) runs
+    /// until its hands are spent, which is what makes a plain board behave as it
+    /// always has.
+    #[must_use]
+    pub fn round_is_over(&self) -> bool {
+        self.round_is_won() || self.hands_remaining() == 0
+    }
+
+    /// Whether the round's target has been reached. Always false for an
+    /// untargeted round.
+    #[must_use]
+    pub fn round_is_won(&self) -> bool {
+        self.blind_target > 0 && self.round_score >= self.blind_target
+    }
+
+    /// Take the cards at `indices` out of [`in_hand`](Self::in_hand), keeping
+    /// them in hand order. `None` if any index is out of bounds, in which case
+    /// the hand is left untouched — a partial move would be worse than a
+    /// refusal.
+    fn take_from_hand(&mut self, indices: &[usize]) -> Option<BuffoonPile> {
+        let mut slots: Vec<usize> = indices.to_vec();
+        slots.sort_unstable();
+        slots.dedup();
+        if slots.iter().any(|slot| *slot >= self.in_hand.len()) {
+            return None;
+        }
+        let mut taken = BuffoonPile::default();
+        for slot in &slots {
+            taken.push(*self.in_hand.get(*slot)?);
+        }
+        // Remove back to front so the earlier slots stay valid.
+        for slot in slots.iter().rev() {
+            self.in_hand.remove(*slot);
+        }
+        Some(taken)
+    }
+
+    /// Play the cards at `indices` from the hand: score them, record the hand,
+    /// spend them, and refill. Returns the hand's [`Score`], or `None` if the
+    /// round has no hands left or an index is out of bounds.
+    ///
+    /// This is the sequence the lifecycle hooks were built for, and the order is
+    /// the whole point:
+    ///
+    /// 1. the cards move from `in_hand` to `played`;
+    /// 2. [`on_scored`](Self::on_scored) — pre-scoring mutations (Hiker fattens,
+    ///    Vampire eats), which the hand about to score must see;
+    /// 3. [`score`](Self::score) — the pure four-phase fold, and the result is
+    ///    added to [`round_score`](Self::round_score);
+    /// 4. [`on_hand_played`](Self::on_hand_played) — the hand is *recorded*,
+    ///    which is why the counters that read it (Ice Cream, Card Sharp) see the
+    ///    hand behind them rather than the one they just scored;
+    /// 5. the played cards go to [`discarded`](Self::discarded), and the hand
+    ///    refills from the deck.
+    ///
+    /// The pure variant leaves the probabilistic effects inert — a Lucky card
+    /// never procs, Superposition never creates — exactly as [`score`](Self::score)
+    /// does. Use [`play_hand_with_rng`](Self::play_hand_with_rng) to drive those.
+    pub fn play_hand(&mut self, indices: &[usize]) -> Option<Score> {
+        self.play_hand_inner::<StdRng>(indices, None)
+    }
+
+    /// [`play_hand`](Self::play_hand), with the probabilistic effects live: Lucky
+    /// cards roll, and the Tarot creators (Superposition, Vagabond) fire.
+    pub fn play_hand_with_rng<R: Rng + ?Sized>(
+        &mut self,
+        indices: &[usize],
+        rng: &mut R,
+    ) -> Option<Score> {
+        self.play_hand_inner(indices, Some(rng))
+    }
+
+    fn play_hand_inner<R: Rng + ?Sized>(
+        &mut self,
+        indices: &[usize],
+        mut rng: Option<&mut R>,
+    ) -> Option<Score> {
+        if self.hands_remaining() == 0 {
+            return None;
+        }
+        self.played = self.take_from_hand(indices)?;
+
+        match rng.as_deref_mut() {
+            Some(rng) => self.on_scored_with_rng(rng),
+            None => self.on_scored(),
+        }
+        // `on_scored` may have mutated the played cards (Hiker, Vampire), so the
+        // hand that scores and is recorded is the board's, not the one taken.
+        let scored = self.played.clone();
+        let score = rng.map_or_else(|| self.score(), |rng| self.score_with_rng(rng));
+        self.round_score = self.round_score.saturating_add(score.score());
+        self.on_hand_played(&scored);
+
+        self.discarded.extend(&self.played);
+        self.played.clear();
+        self.deal_to_hand_size();
+        Some(score)
+    }
+
+    /// Discard the cards at `indices` from the hand and refill. Returns whether
+    /// the discard happened — `false` if the round has no discards left or an
+    /// index is out of bounds.
+    ///
+    /// Fires [`on_discard`](Self::on_discard), so the discard-triggered jokers
+    /// see it (Faceless Joker pays, Ramen and Yorick grow) and the round's
+    /// remaining-discard count drops — which Banner and Mystic Summit read.
+    pub fn discard_cards(&mut self, indices: &[usize]) -> bool {
+        if self.discards_remaining() == 0 {
+            return false;
+        }
+        let Some(discarded) = self.take_from_hand(indices) else {
+            return false;
+        };
+        self.on_discard(&discarded);
+        self.discarded.extend(&discarded);
+        self.deal_to_hand_size();
+        true
+    }
+
+    /// How many discards the round has **left**: what it granted, minus what has
+    /// been used. Floors at 0.
+    ///
+    /// The board splits these deliberately — [`draws`](Self::draws) is the
+    /// round's *allowance* and [`discards_used`](Self::discards_used) its
+    /// *consumption* — so "remaining" is neither field on its own, and any joker
+    /// that says "remaining" (Banner, Mystic Summit) has to ask here. Reading
+    /// `draws.discards` directly is the bug this exists to prevent: it silently
+    /// means "granted", which is only the same number until the first discard.
+    #[must_use]
+    pub fn discards_remaining(&self) -> usize {
+        self.draws.discards.saturating_sub(self.discards_used)
+    }
+
+    /// Whether the hand currently in [`played`](Self::played) is the round's
+    /// **last** one — Dusk's condition.
+    ///
+    /// [`hands_played`](Self::hands_played) counts *completed* hands, so the
+    /// hand being scored is the `hands_played + 1`-th of the
+    /// `draws.hands_to_play` the round grants. `>=` rather than `==` so a board
+    /// driven past its allowance (or one whose hand allowance shrank mid-round)
+    /// stays final rather than silently falling back off the end.
+    ///
+    /// A board that never drives [`on_hand_played`](Self::on_hand_played) reads
+    /// `hands_played == 0`, so this is false for any round granting more than
+    /// one hand — Dusk stays inert on the untouched boards, which is what keeps
+    /// the pure `score()` unchanged.
+    #[must_use]
+    pub fn is_final_hand(&self) -> bool {
+        self.hands_played + 1 >= self.draws.hands_to_play
     }
 
     /// Grow every joker's counter for a discard, pay the discard-triggered
@@ -852,7 +1443,75 @@ impl BuffoonBoard {
     /// Also resets [`discards_used`](Self::discards_used): a new blind is a
     /// new round for Delayed Gratification's forfeit signal, whether or not
     /// [`on_round_end`](Self::on_round_end) was driven in between.
+    ///
+    /// Finally, the deterministic **creators** fire: Marble Joker adds a Stone
+    /// card to the deck. The random one (Riff-Raff, which draws jokers from a
+    /// rarity pool) lives in
+    /// [`on_blind_selected_with_rng`](Self::on_blind_selected_with_rng),
+    /// mirroring the `score`/`score_with_rng` split.
     pub fn on_blind_selected(&mut self) {
+        // A new blind is a fresh boss: whatever Luchador switched off last round
+        // is back on.
+        self.boss_disabled = false;
+        self.recompute_draws();
+        self.apply_growth(&GrowthEvent::BlindSelected(self.blind));
+        self.discards_used = 0;
+        self.hands_played = 0;
+        self.hands_by_type_this_round.clear();
+        self.round_score = 0;
+
+        // Marble Joker: one Stone card into the deck per copy. Collected first
+        // so the deck can be mutated without holding a borrow on `jokers`.
+        let additions: Vec<BCardType> = self
+            .jokers
+            .iter()
+            .filter_map(|joker| match joker.enhancement {
+                MPip::AddCardTypeWhenBlindSelected(card_type) => Some(card_type),
+                _ => None,
+            })
+            .collect();
+        for card_type in additions {
+            if let Some(card) = Self::mint_card(card_type) {
+                self.add_card_to_deck(card);
+            }
+        }
+    }
+
+    /// Whether the current Boss Blind's **ability** is in force.
+    ///
+    /// Three ways it is not: the blind is not a boss at all; Luchador was sold
+    /// this round ([`boss_disabled`](Self::boss_disabled)); or a Chicot is on
+    /// the board, which disables every boss just by being held.
+    ///
+    /// Distinct from [`Blind::is_boss`], the identity question. A disabled boss
+    /// is still a boss — Madness still will not trigger on it, and Rocket still
+    /// counts it defeated — it just has no ability. Keeping the two apart is
+    /// what makes Chicot mean something without changing what Madness sees.
+    #[must_use]
+    pub fn boss_ability_active(&self) -> bool {
+        self.blind.is_boss() && !self.boss_disabled && !self.has_boss_disabling_joker()
+    }
+
+    fn has_boss_disabling_joker(&self) -> bool {
+        self.jokers
+            .iter()
+            .any(|joker| matches!(joker.enhancement, MPip::DisablesAllBossBlinds))
+    }
+
+    /// Recompute the round's [`draws`](Self::draws) from
+    /// [`starting_draws`](Self::starting_draws), the board's draw-modifier
+    /// jokers, and the Boss Blind's ability (if it is in force).
+    ///
+    /// Recomputing from the baseline rather than mutating in place is what makes
+    /// this idempotent and self-cleaning — a second call never stacks a bonus,
+    /// and a sold joker takes its bonus with it. That is also why selling a
+    /// joker can just call this again: the board simply describes itself afresh.
+    ///
+    /// The boss's ability lands **last**, after every joker modifier including
+    /// Burglar's discard wipe. A Boss Blind is a constraint on the round rather
+    /// than another bonus in the pile, so The Needle leaves exactly one hand
+    /// whatever Burglar had to say about it.
+    fn recompute_draws(&mut self) {
         let mut draws = self.starting_draws;
         let mut lose_discards = false;
         for joker in &self.jokers {
@@ -869,13 +1528,177 @@ impl BuffoonBoard {
         if lose_discards {
             draws.discards = 0;
         }
+        if self.boss_ability_active() {
+            if let Some(boss) = self.blind.boss() {
+                draws = boss.apply(draws);
+            }
+        }
         self.draws = draws;
-        self.discards_used = 0;
     }
 
-    /// End-of-round lifecycle, the deterministic half: pay the round-end `+$`
-    /// jokers into [`money`](Self::money), grow each Egg's resell value, and
-    /// reset the round's discard count. Inert on a board without those jokers.
+    /// Sell the joker at `index`: it leaves the board, its
+    /// [`resell_value`](BuffoonCard::resell_value) is paid into
+    /// [`money`](Self::money), and the round's draws are recomputed. Returns the
+    /// joker sold, or `None` if `index` is out of bounds.
+    ///
+    /// Selling **Luchador** disables the current Boss Blind, which is its whole
+    /// effect. The recompute is what makes that observable: the boss's grip on
+    /// the round's draws lifts immediately. The same recompute means selling any
+    /// draw-modifier joker (Juggler, Drunkard) correctly takes its bonus with it,
+    /// and selling a Chicot hands the boss back its ability.
+    ///
+    /// The round's own counters ([`hands_played`](Self::hands_played),
+    /// [`discards_used`](Self::discards_used)) are deliberately left alone — a
+    /// sale happens *mid*-round and must not reset it.
+    pub fn sell_joker(&mut self, index: usize) -> Option<BuffoonCard> {
+        if index >= self.jokers.len() {
+            return None;
+        }
+        let joker = self.remove_joker(index);
+        self.money = self
+            .money
+            .saturating_add(isize::try_from(joker.resell_value).unwrap_or(0));
+        if matches!(joker.enhancement, MPip::DisableBossBlindOnSell) {
+            self.boss_disabled = true;
+        }
+        self.recompute_draws();
+        Some(joker)
+    }
+
+    /// The playing card a `BCardType` names, or `None` if this engine has no
+    /// canonical one for it.
+    ///
+    /// Only Stone is mintable today, which is all Marble Joker needs. Returning
+    /// `None` for the rest is deliberate: minting an arbitrary stand-in would be
+    /// a wrong card, which is worse than adding nothing.
+    fn mint_card(card_type: BCardType) -> Option<BuffoonCard> {
+        match card_type {
+            BCardType::Stone => Some(basic::card::STONE_CARD),
+            _ => None,
+        }
+    }
+
+    /// The joker pool a rarity draws from, or `None` if the `BCardType` is not a
+    /// rarity.
+    fn joker_pool(rarity: BCardType) -> Option<&'static [BuffoonCard]> {
+        match rarity {
+            BCardType::CommonJoker => Some(&Joker::COMMON_JOKERS),
+            BCardType::UncommonJoker => Some(&Joker::UNCOMMON_JOKERS),
+            BCardType::RareJoker => Some(&Joker::RARE_JOKERS),
+            BCardType::LegendaryJoker => Some(&Joker::LEGENDARY_JOKERS),
+            _ => None,
+        }
+    }
+
+    /// Everything [`on_blind_selected`](Self::on_blind_selected) does, then the
+    /// random blind-select effects:
+    ///
+    /// * **Madness** destroys one random *other* joker, on a Small or Big Blind
+    ///   only. Its ×0.5 gain is not here — that is deterministic and already
+    ///   applied by the pure hook, because Balatro grants it whether or not
+    ///   anything was destroyed.
+    /// * **Riff-Raff** draws 2 Common Jokers from the rarity pool, stopping at
+    ///   [`joker_slots`](Self::joker_slots) — checked per joker, so a board with
+    ///   one free slot gets one of the two and a full board gets none, which is
+    ///   Balatro's "(Must have room)".
+    ///
+    /// Madness runs first: it frees a slot, and Riff-Raff can then fill it.
+    pub fn on_blind_selected_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.on_blind_selected();
+        self.madness_destroys_a_joker(rng);
+
+        let creations: Vec<(usize, BCardType)> = self
+            .jokers
+            .iter()
+            .filter_map(|joker| match joker.enhancement {
+                MPip::CreateJokersWhenBlindSelected(n, rarity) => Some((n, rarity)),
+                _ => None,
+            })
+            .collect();
+        for (count, rarity) in creations {
+            let Some(pool) = Self::joker_pool(rarity) else {
+                continue;
+            };
+            if pool.is_empty() {
+                continue;
+            }
+            for _ in 0..count {
+                if !self.has_joker_room() {
+                    break;
+                }
+                let pick = pool[rng.random_range(0..pool.len())];
+                self.push_joker(pick);
+            }
+        }
+    }
+
+    /// Each Madness on the board destroys one random joker — never itself, and
+    /// never on a Boss Blind.
+    ///
+    /// Victims are picked one Madness at a time, re-reading the board each pass,
+    /// so two Madnesses cannot both target the same slot and a Madness can eat
+    /// another Madness (as in Balatro). If the board holds nothing else, nothing
+    /// is destroyed and the ×0.5 the pure hook already granted still stands.
+    fn madness_destroys_a_joker<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        if self.blind.is_boss() {
+            return;
+        }
+        let is_madness = |joker: &BuffoonCard| {
+            matches!(
+                joker.enhancement,
+                MPip::GainMultTimesOnNonBossBlindDestroyingJoker(_)
+            )
+        };
+        let sources: Vec<usize> = self
+            .jokers
+            .iter()
+            .enumerate()
+            .filter(|(_, joker)| is_madness(joker))
+            .map(|(slot, _)| slot)
+            .collect();
+        if sources.is_empty() {
+            return;
+        }
+
+        // Resolve against the board's **original** slots and apply the removals
+        // once at the end. Destroying as we go would shift the indices under the
+        // later sources, and a Madness eaten by an earlier one would still get a
+        // turn it should not have.
+        let mut alive: Vec<usize> = (0..self.jokers.len()).collect();
+        for source in sources {
+            if !alive.contains(&source) {
+                continue; // an earlier Madness already ate this one
+            }
+            let victims: Vec<usize> = alive.iter().copied().filter(|s| *s != source).collect();
+            if victims.is_empty() {
+                continue; // it is alone, and cannot destroy itself
+            }
+            let victim = victims[rng.random_range(0..victims.len())];
+            alive.retain(|slot| *slot != victim);
+        }
+
+        for slot in (0..self.jokers.len()).rev() {
+            if !alive.contains(&slot) {
+                self.remove_joker(slot);
+            }
+        }
+    }
+
+    /// End-of-round lifecycle, the deterministic half: tick the round counters
+    /// (Popcorn's decay, Rocket's boss tally), pay the round-end `+$` jokers into
+    /// [`money`](Self::money), grow each Egg's resell value, destroy anything the
+    /// decay emptied, and reset the round's counters. Inert on a board without
+    /// those jokers.
+    ///
+    /// The order is load-bearing at both ends:
+    ///
+    /// * **Growth before payouts** — Rocket's increment for defeating a Boss
+    ///   Blind lands *before* the payout of the round that defeated it, so the
+    ///   boss round pays the already-raised amount. Nothing else reads a counter
+    ///   to pay, so nothing else notices.
+    /// * **Payouts before destruction** — the cash-out-then-cleanup order
+    ///   [`on_round_end_with_rng`](Self::on_round_end_with_rng) also uses for its
+    ///   rolls: a joker that both pays and dies this round still pays.
     ///
     /// The probabilistic half — the joker destruction rolls (Gros Michel,
     /// Cavendish) — lives in
@@ -883,7 +1706,9 @@ impl BuffoonBoard {
     /// `score`/`score_with_rng` split: with no RNG the rolls are simply
     /// skipped, the way a Lucky card stays inert in the pure [`score`](Self::score).
     pub fn on_round_end(&mut self) {
+        self.apply_growth(&GrowthEvent::RoundEnd);
         self.apply_payouts(&GrowthEvent::RoundEnd);
+        self.melt_emptied_jokers();
         // Egg: its own resell value grows in place, every round.
         for index in 0..self.jokers.len() {
             let Some(joker) = self.jokers.get(index).copied() else {
@@ -897,6 +1722,9 @@ impl BuffoonBoard {
             }
         }
         self.discards_used = 0;
+        self.hands_played = 0;
+        self.hands_by_type_this_round.clear();
+        self.round_score = 0;
     }
 
     /// Everything [`on_round_end`](Self::on_round_end) does, then the
@@ -936,6 +1764,39 @@ impl BuffoonBoard {
         for index in destroyed.into_iter().rev() {
             self.remove_joker(index);
         }
+        self.reroll_ancient_suit(rng);
+    }
+
+    /// Re-roll [`ancient_suit`](Self::ancient_suit) — Ancient Joker's "suit
+    /// changes at end of round".
+    ///
+    /// The new suit is drawn from the three that are **not** the current one, so
+    /// it can never repeat back to back. The first roll is the exception: with
+    /// no suit yet the pool is all four, which is exactly how Balatro seeds it at
+    /// run start.
+    ///
+    /// **Gated on holding an Ancient Joker**, which is a deliberate deviation.
+    /// Balatro rolls the suit every round whether or not you hold one. Rolling
+    /// unconditionally here would consume RNG on every board and shift every
+    /// other seeded roll downstream (Gros Michel's 1-in-6, Cavendish's
+    /// 1-in-1000), changing results for boards that have nothing to do with this
+    /// joker. Nothing but Ancient Joker reads the suit, so gating is
+    /// unobservable — the only difference is *which* suit a joker acquired
+    /// mid-run starts on, and that is a fresh draw either way.
+    fn reroll_ancient_suit<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        const SUITS: [char; 4] = ['S', 'H', 'C', 'D'];
+        let holds_ancient = self
+            .jokers
+            .iter()
+            .any(|joker| matches!(joker.enhancement, MPip::MultTimesPerScoredAncientSuit(_)));
+        if !holds_ancient {
+            return;
+        }
+        let pool: Vec<char> = SUITS
+            .into_iter()
+            .filter(|suit| Some(*suit) != self.ancient_suit)
+            .collect();
+        self.ancient_suit = Some(pool[rng.random_range(0..pool.len())]);
     }
 
     /// Money a joker pays for one lifecycle event — the cash mirror of
@@ -945,16 +1806,27 @@ impl BuffoonBoard {
     /// the round's discard usage, and Faceless Joker classifies the discarded
     /// cards through [`is_face_card`](Self::is_face_card) — so Pareidolia
     /// amplifies it, as in Balatro.
-    fn payout_delta(&self, enhancement: MPip, event: &GrowthEvent) -> isize {
+    fn payout_delta(&self, enhancement: MPip, event: &GrowthEvent, counter: i32) -> isize {
         let cash = |n: usize| isize::try_from(n).unwrap_or(isize::MAX);
         match (enhancement, event) {
             // Golden Joker: a flat $n every round.
             (MPip::CashOnRoundEnd(n), GrowthEvent::RoundEnd) => cash(n),
+            // Rocket: $base, raised by $increase per Boss Blind defeated. The
+            // counter is grown before payouts run, so the boss round itself pays
+            // the already-raised amount — Balatro's order.
+            (MPip::CashOnRoundEndGrowingOnBossDefeat(base, increase), GrowthEvent::RoundEnd) => {
+                let bosses = usize::try_from(counter.max(0)).unwrap_or(0);
+                cash(base.saturating_add(increase.saturating_mul(bosses)))
+            }
             // Delayed Gratification: $n per remaining discard, forfeited the
-            // moment any discard is used this round.
+            // moment any discard is used this round. Reads `discards_remaining`
+            // like its siblings — equivalent here (the payout only survives when
+            // nothing has been used, where granted and remaining coincide), but
+            // it keeps `draws.discards` from having any "remaining" readers left
+            // to imitate.
             (MPip::CashPerDiscardIfNoneUsed(n), GrowthEvent::RoundEnd) => {
                 if self.discards_used == 0 {
-                    cash(n * self.draws.discards)
+                    cash(n * self.discards_remaining())
                 } else {
                     0
                 }
@@ -988,44 +1860,86 @@ impl BuffoonBoard {
     }
 
     /// Pay every joker's cash for one lifecycle event into
-    /// [`money`](Self::money). Every delta is computed from the **pre-event**
+    /// [`money`](Self::money). Every delta is computed against the **same**
     /// board and applied as one sum, so joker order cannot matter — in
     /// particular, To the Moon's interest reads the money held *before* this
     /// round's payouts land, matching Balatro's cash-out screen, where every
     /// line is computed from the same starting balance.
+    ///
+    /// Each joker's counter is passed alongside its enhancement, since Rocket
+    /// pays out of one. Those counters have already been grown for this event by
+    /// the time this runs — see [`on_round_end`](Self::on_round_end), where that
+    /// order is deliberate and is what makes a boss round pay Rocket's raised
+    /// amount rather than its previous one.
     fn apply_payouts(&mut self, event: &GrowthEvent) {
         let total: isize = self
             .jokers
             .iter()
-            .map(|joker| self.payout_delta(joker.enhancement, event))
+            .enumerate()
+            .map(|(slot, joker)| {
+                let counter = self.joker_state.get(slot).copied().unwrap_or(0);
+                self.payout_delta(joker.enhancement, event, counter)
+            })
             .sum();
         self.money = self.money.saturating_add(total);
     }
 
-    /// Remove every decaying joker whose decay has consumed its base — today
-    /// that is Ice Cream (`LoseChipsPerHand`), destroyed when `base − per ×
-    /// hands` reaches 0. Slots are walked in reverse so a removal cannot shift
-    /// an unprocessed index; [`remove_joker`](Self::remove_joker) keeps
-    /// `joker_state` aligned.
+    /// Whether a decaying joker's resource has been fully consumed, given its
+    /// accumulator — Ice Cream's chips (`base − per × hands`), Popcorn's mult
+    /// (`base − per × rounds`), or Seltzer's retriggers (`hands − 1 × hands
+    /// played`). `None` for every joker that does not decay.
+    ///
+    /// All three are one shape — a resource spent at a fixed rate per event —
+    /// and all three are destroyed at 0 in Balatro, so the rule lives here once
+    /// and each hook calls [`melt_emptied_jokers`](Self::melt_emptied_jokers)
+    /// after growing its own event's counter.
+    fn is_decayed_to_nothing(enhancement: MPip, counter: i32) -> Option<bool> {
+        let (base, per) = match enhancement {
+            MPip::LoseChipsPerHand(base, per) | MPip::LoseMultPerRound(base, per) => (base, per),
+            // Seltzer spends one of its `hands` per hand played.
+            MPip::RetriggerAllPlayedForHands(_, hands) => (hands, 1),
+            _ => return None,
+        };
+        let ticks = usize::try_from(counter).unwrap_or(0);
+        Some(base.saturating_sub(per.saturating_mul(ticks)) == 0)
+    }
+
+    /// Remove every decaying joker whose decay has consumed its base: Ice Cream
+    /// (`LoseChipsPerHand`, emptied by hands played) and Popcorn
+    /// (`LoseMultPerRound`, emptied by rounds ended). Each is destroyed **by the
+    /// event that empties it** — Balatro's exact timing, which is why this runs
+    /// from both [`on_hand_played`](Self::on_hand_played) and
+    /// [`on_round_end`](Self::on_round_end) rather than from one of them: a
+    /// joker is only ever emptied by its own event, so the other hook's call is
+    /// a no-op for it.
+    ///
+    /// Slots are walked in reverse so a removal cannot shift an unprocessed
+    /// index; [`remove_joker`](Self::remove_joker) keeps `joker_state` aligned.
     fn melt_emptied_jokers(&mut self) {
         for index in (0..self.jokers.len()).rev() {
             let Some(joker) = self.jokers.get(index) else {
                 continue;
             };
-            let MPip::LoseChipsPerHand(base, per) = joker.enhancement else {
-                continue;
-            };
-            let hands =
-                usize::try_from(self.joker_state.get(index).copied().unwrap_or(0)).unwrap_or(0);
-            if base.saturating_sub(per.saturating_mul(hands)) == 0 {
+            let counter = self.joker_state.get(index).copied().unwrap_or(0);
+            if Self::is_decayed_to_nothing(joker.enhancement, counter) == Some(true) {
                 self.remove_joker(index);
             }
         }
     }
 
-    /// Apply the permanent card mutations that fire when the played hand scores,
-    /// then score it. Today that is Hiker (`MPip::GainChipsOnScored`): every card
-    /// in [`played`](Self::played) gains chips for the rest of the run.
+    /// The pre-scoring pass: apply the card mutations that fire as the played
+    /// hand scores, and grow the counters that the same hand then reads.
+    ///
+    /// Two jokers live here, and both need this to run *before* scoring:
+    ///
+    /// * **Hiker** (`MPip::GainChipsOnScored`) — every card in
+    ///   [`played`](Self::played) permanently gains chips.
+    /// * **Vampire** (`MPip::GainMultTimesPerEnhancedPlayed`) — gains ×0.1 per
+    ///   enhanced played card and **strips** the enhancement off each. Because
+    ///   the strip lands before the fold, the eaten enhancement does not score
+    ///   on this hand (a Glass card gives neither its ×2 nor its break chance),
+    ///   while the ×mult Vampire just gained does — which is exactly Balatro's
+    ///   "removes Enhancements before their effect occurs".
     ///
     /// Call this **before** [`score`](Self::score): in Balatro a card gains
     /// Hiker's chips as it scores, so the boost lands on the very hand that
@@ -1055,6 +1969,10 @@ impl BuffoonBoard {
     /// Boards without a retrigger joker (every board today except Hack, Sock and
     /// Buskin, and Hanging Chad ones) are exact.
     pub fn on_scored(&mut self) {
+        // Vampire counts the enhancements *before* anything eats them.
+        let played = self.played.clone();
+        self.apply_growth(&GrowthEvent::Scored(&played));
+
         let bump: usize = self
             .jokers
             .iter()
@@ -1063,7 +1981,11 @@ impl BuffoonBoard {
                 _ => 0,
             })
             .sum();
-        if bump == 0 {
+        let eats_enhancements = self
+            .jokers
+            .iter()
+            .any(|joker| matches!(joker.enhancement, MPip::GainMultTimesPerEnhancedPlayed(_)));
+        if bump == 0 && !eats_enhancements {
             return;
         }
 
@@ -1071,12 +1993,69 @@ impl BuffoonBoard {
             let Some(card) = self.played.get(index).copied() else {
                 continue;
             };
-            let fattened = card.add_base_chips(bump);
-            self.played.remove(index);
-            self.played.insert(index, fattened);
-            if let Some(slot) = self.full_deck_index_of(card) {
-                self.replace_deck_card(slot, fattened);
+            let mut mutated = card.add_base_chips(bump);
+            if eats_enhancements {
+                mutated.enhancement = MPip::Blank;
             }
+            if mutated == card {
+                continue;
+            }
+            self.played.remove(index);
+            self.played.insert(index, mutated);
+            if let Some(slot) = self.full_deck_index_of(card) {
+                self.replace_deck_card(slot, mutated);
+            }
+        }
+    }
+
+    /// The random half of [`on_scored`](Self::on_scored): the **Tarot creators**
+    /// that fire on the hand being played.
+    ///
+    /// * **Superposition** — the hand is a Straight *and* holds an Ace.
+    /// * **Vagabond** — the hand is played holding `$n` or less.
+    ///
+    /// Both draw a random Tarot from [`MajorArcana::DECK`], and both are subject
+    /// to the free-slot rule through [`create_consumable`](Self::create_consumable),
+    /// so a full inventory silently creates nothing — Balatro's "(Must have
+    /// room)". Random, hence the `_with_rng` split: the pure
+    /// [`on_scored`](Self::on_scored) leaves them inert, the way it leaves Lucky.
+    ///
+    /// Superposition reads the straight through the board's [`HandRules`], so
+    /// Four Fingers and Shortcut widen what qualifies, as they do everywhere
+    /// else.
+    pub fn on_scored_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        self.on_scored();
+
+        let rules = self.hand_rules();
+        let is_ace_straight = self.played.has_straight_with(rules)
+            && self.played.iter().any(|card| card.rank.index == 'A');
+        let money = self.money;
+
+        let creators: Vec<MPip> = self
+            .jokers
+            .iter()
+            .filter(|joker| {
+                matches!(
+                    joker.enhancement,
+                    MPip::CreateTarotOnAceStraight | MPip::CreateTarotOnLowMoney(_)
+                )
+            })
+            .map(|joker| joker.enhancement)
+            .collect();
+
+        for enhancement in creators {
+            let fires = match enhancement {
+                MPip::CreateTarotOnAceStraight => is_ace_straight,
+                MPip::CreateTarotOnLowMoney(limit) => {
+                    money <= isize::try_from(limit).unwrap_or(isize::MAX)
+                }
+                _ => false,
+            };
+            if !fires || !self.has_consumable_room() {
+                continue;
+            }
+            let pick = MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK_SIZE)];
+            self.create_consumable(pick);
         }
     }
 
@@ -1086,7 +2065,7 @@ impl BuffoonBoard {
         let deltas: Vec<i32> = self
             .jokers
             .iter()
-            .map(|j| Self::growth_delta(j.enhancement, event, rules))
+            .map(|j| self.growth_delta(j.enhancement, event, rules))
             .collect();
         for (slot, delta) in self.joker_state.iter_mut().zip(deltas) {
             *slot += delta;
@@ -1130,8 +2109,49 @@ impl BuffoonBoard {
                 let hands = counter.max(0) as usize;
                 Some(ScoreOp::AddChips(base.saturating_sub(per * hands)))
             }
+            // Popcorn: Ice Cream's decay on the mult side, per round rather
+            // than per hand. Floors at 0 — the round that empties it also
+            // destroys it (`melt_emptied_jokers`).
+            MPip::LoseMultPerRound(base, per) => {
+                #[allow(clippy::cast_sign_loss)]
+                let rounds = counter.max(0) as usize;
+                Some(ScoreOp::AddMult(base.saturating_sub(per * rounds)))
+            }
+            // Yorick: ×1 per 23 cards discarded. The accumulator counts cards,
+            // so the factor steps only on each completed block of `per`.
+            MPip::GainMultTimesPerDiscardedCards(rate, per) if per > 0 => {
+                #[allow(clippy::cast_sign_loss)]
+                let blocks = counter.max(0) as usize / per;
+                Some(ScoreOp::TimesMult(Self::gain_x_mult(rate, blocks)))
+            }
+            // Hologram (×0.25 per card added to the deck), Canio (×1 per face
+            // destroyed) and Vampire (×0.1 per enhanced card played) differ only
+            // in which event grows them — `growth_delta` keeps them apart. The
+            // *read* is one rule, so it is written once.
+            MPip::GainMultTimesPerCardAdded(rate)
+            | MPip::GainMultTimesPerFaceDestroyed(rate)
+            | MPip::GainMultTimesPerEnhancedPlayed(rate)
+            | MPip::GainMultTimesPerPlanetUsed(rate)
+            | MPip::GainMultTimesOnNonBossBlindDestroyingJoker(rate) => {
+                #[allow(clippy::cast_sign_loss)]
+                let ticks = counter.max(0) as usize;
+                Some(ScoreOp::TimesMult(Self::gain_x_mult(rate, ticks)))
+            }
             _ => None,
         }
+    }
+
+    /// The ×mult factor of a "this joker gains ×`rate`/100 mult per event"
+    /// counter that has ticked `count` times: `1 + (rate/100) × count`.
+    ///
+    /// **Additive, not compounding** — the Steel Joker rule
+    /// ([`MPip::MultTimesPlusPerFullDeckSteel`]), which is what Balatro's
+    /// "gains ×N Mult" jokers do: Hologram at four cards added is ×2, not
+    /// ×0.25⁴. Base ×1 falls out of `count == 0`, so an ungrown counter joker
+    /// is inert rather than zeroing the mult.
+    #[allow(clippy::cast_precision_loss)]
+    fn gain_x_mult(rate: usize, count: usize) -> f32 {
+        (rate as f32 / 100.0).mul_add(count as f32, 1.0)
     }
 }
 
@@ -1143,8 +2163,11 @@ mod funky__types__board__buffoon_board_tests {
     use crate::funky::decks::basic::card as basic;
     use crate::funky::decks::joker::card;
     use crate::funky::decks::planet;
+    use crate::funky::decks::planet::card as planet_card;
+    use crate::funky::decks::tarot::card as tarot_card;
     use crate::funky::types::effect::{Effect, ScoreOp};
     use crate::funky::types::mpip::MPip;
+    use crate::preludes::funky::{Blind, BossBlind};
     use crate::preludes::funky::{BuffoonCard, Deck};
 
     #[test]
@@ -2102,6 +3125,1377 @@ mod funky__types__board__buffoon_board_tests {
     }
 
     #[test]
+    fn score__popcorn_loses_mult_per_round_played() {
+        // Popcorn: +20 Mult, −4 for each round played. Ice Cream's decay on the
+        // mult side, ticking per round rather than per hand.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::POPCORN);
+
+        // No rounds played yet -> the full +20 mult.
+        assert_eq!(board.score(), Score::new(40, 21));
+
+        // One round -> +16.
+        board.on_round_end();
+        assert_eq!(board.score(), Score::new(40, 17));
+
+        // Four rounds -> +4, its last scoring round.
+        board.on_round_end();
+        board.on_round_end();
+        board.on_round_end();
+        assert_eq!(board.score(), Score::new(40, 5));
+    }
+
+    #[test]
+    fn on_round_end__popcorn_is_destroyed_by_the_round_that_empties_it() {
+        // The Ice Cream rule on Popcorn's clock: 20 mult at −4 a round is spent
+        // after exactly five rounds, and the round that spends it takes the
+        // joker with it rather than leaving a +0 stub on the board.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::POPCORN);
+
+        for _ in 0..4 {
+            board.on_round_end();
+        }
+        assert_eq!(board.jokers.len(), 1, "still worth +4 after four rounds");
+
+        board.on_round_end();
+        assert!(
+            board.jokers.is_empty(),
+            "the fifth round empties it, so it is destroyed"
+        );
+        assert_eq!(board.score(), Score::new(40, 1));
+    }
+
+    #[test]
+    fn score__yorick_gains_x_mult_every_twenty_three_cards_discarded() {
+        // Yorick: gains ×1 Mult every 23 cards discarded; base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::YORICK);
+
+        // Ungrown -> ×1, i.e. inert rather than zeroing the mult.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // 22 cards is short of the first block -> still ×1.
+        for _ in 0..22 {
+            board.on_discard(&bcards!("2C"));
+        }
+        assert_eq!(
+            board.score(),
+            Score::new(40, 1),
+            "22 cards is short a block"
+        );
+
+        // The 23rd completes it -> ×2.
+        board.on_discard(&bcards!("2C"));
+        assert_eq!(board.score(), Score::new(40, 2));
+
+        // 46 -> ×3: the factor is additive (1 + 1×blocks), not compounding.
+        for _ in 0..23 {
+            board.on_discard(&bcards!("2C"));
+        }
+        assert_eq!(board.score(), Score::new(40, 3));
+    }
+
+    #[test]
+    fn score__yorick_counts_discarded_cards_not_discard_actions() {
+        // The distinguishing case: one discard action carrying 23 cards is a
+        // whole block on its own. Counting *actions* would leave this at ×1.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::YORICK);
+
+        board.on_discard(&bcards!(
+            "2C 3C 4C 5C 6C 7C 8C 9C TC JC QC KC AC 2D 3D 4D 5D 6D 7D 8D 9D TD JD"
+        ));
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__hologram_gains_x_mult_per_card_added_to_the_deck() {
+        // Hologram: gains ×0.25 Mult per playing card added to the deck; base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::HOLOGRAM);
+
+        // Ungrown -> ×1.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Four cards added -> ×2. The factor is **additive** (1 + 0.25×4), the
+        // Steel Joker rule — compounding (×0.25⁴) would collapse the mult to 0
+        // instead, so this value is what keeps the two apart.
+        let seven = bcards!("7D").iter().next().copied().unwrap();
+        for _ in 0..4 {
+            board.add_card_to_deck(seven);
+        }
+        assert_eq!(board.score(), Score::new(40, 2));
+    }
+
+    #[test]
+    fn score__hologram_grows_only_on_cards_added_not_replaced() {
+        // `replace_deck_card` is a mutation, not an addition — the run owns the
+        // same number of cards afterwards, so Hologram must not tick. This is
+        // what stops Hiker's per-card bump silently feeding it.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::HOLOGRAM);
+
+        let replacement = bcards!("7D").iter().next().copied().unwrap();
+        assert!(board.replace_deck_card(0, replacement));
+        assert_eq!(
+            board.score(),
+            Score::new(40, 1),
+            "a replacement is not an add"
+        );
+    }
+
+    #[test]
+    fn score__canio_gains_x_mult_per_face_card_destroyed() {
+        // Canio: gains ×1 Mult when a face card is destroyed; base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::CANIO);
+
+        // Ungrown -> ×1.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // Destroying a *non*-face card leaves it alone.
+        let seven = board
+            .full_deck_index_of(bcards!("7D").iter().next().copied().unwrap())
+            .expect("the basic deck holds a 7D");
+        board.destroy_deck_card(seven);
+        assert_eq!(board.score(), Score::new(40, 1), "a 7 is not a face");
+
+        // Destroying a King -> ×2.
+        let king = board
+            .full_deck_index_of(bcards!("KS").iter().next().copied().unwrap())
+            .expect("the basic deck holds a KS");
+        board.destroy_deck_card(king);
+        assert_eq!(board.score(), Score::new(40, 2));
+
+        // A second face -> ×3, additive like its siblings.
+        let queen = board
+            .full_deck_index_of(bcards!("QS").iter().next().copied().unwrap())
+            .expect("the basic deck holds a QS");
+        board.destroy_deck_card(queen);
+        assert_eq!(board.score(), Score::new(40, 3));
+    }
+
+    #[test]
+    fn score__pareidolia_makes_every_destroyed_card_feed_canio() {
+        // Canio classifies through the board's face predicate, so Pareidolia
+        // ("all cards are face cards") makes even a destroyed 7 grow it — the
+        // same amplification Pareidolia already gives Faceless Joker.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::CANIO);
+        board.push_joker(card::PAREIDOLIA);
+
+        let seven = board
+            .full_deck_index_of(bcards!("7D").iter().next().copied().unwrap())
+            .expect("the basic deck holds a 7D");
+        board.destroy_deck_card(seven);
+        assert_eq!(
+            board.score(),
+            Score::new(40, 2),
+            "under Pareidolia a 7 is a face"
+        );
+    }
+
+    #[test]
+    fn score__vampire_gains_x_mult_per_enhanced_card_played_and_eats_it() {
+        // Vampire: gains ×0.1 Mult per enhanced card played, removing the
+        // enhancement. Base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::VAMPIRE);
+
+        // Two Bonus cards (+30 chips each) in the played hand.
+        for index in 0..2 {
+            let card = board.played.remove(index);
+            board.played.insert(index, enhanced(card, MPip::BONUS));
+        }
+
+        // Ungrown and un-eaten, the Bonus chips are worth +60: 40 -> 100.
+        assert_eq!(board.score(), Score::new(100, 1));
+
+        // After Vampire eats them the +60 is gone — the enhancement is removed
+        // *before* it can score. The chips are the observable half here; the
+        // ×1.2 it gained rounds up to mult 2 off a base of 1.
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(40, 2));
+        assert_eq!(board.joker_state[0], 2, "it counted both enhanced cards");
+        assert!(
+            board.played.iter().all(|c| c.enhancement == MPip::Blank),
+            "both enhancements are eaten off the cards themselves"
+        );
+    }
+
+    #[test]
+    fn score__vampire_x_mult_applies_to_the_hand_it_ate() {
+        // The gain lands on the same hand it feeds on — that ordering is the
+        // joker, and it is why Vampire grows on `Scored` rather than
+        // `HandPlayed`. Base Joker (+4 mult) first, so the ×mult has something
+        // big enough to scale visibly.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER); // +4 mult
+        board.push_joker(card::VAMPIRE);
+
+        for index in 0..5 {
+            let card = board.played.remove(index);
+            board.played.insert(index, enhanced(card, MPip::BONUS));
+        }
+
+        // Five enhanced cards eaten -> ×1.5, applied to this very hand:
+        // mult 1 + 4 = 5, then ×1.5 -> ceil(7.5) = 8. Growing on `HandPlayed`
+        // instead would leave this at mult 5.
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(40, 8));
+    }
+
+    #[test]
+    fn score__vampire_eats_glass_cards_before_they_can_multiply() {
+        // The wiki's headline interaction: a Glass card Vampire eats gives
+        // neither its ×2 mult nor (being enhancement-less) its chance to break.
+        let mut board = board_playing("KH QD 2S 5D 8C");
+        board.push_joker(card::VAMPIRE);
+
+        for index in 0..2 {
+            let card = board.played.remove(index);
+            board
+                .played
+                .insert(index, enhanced(card, MPip::Glass(2, 4)));
+        }
+
+        // Two Glass cards each double the mult as they score: 1 × 2 × 2 = 4.
+        assert_eq!(board.score(), Score::new(40, 4));
+
+        // Vampire eats both before either multiplies, leaving only its own ×1.2
+        // (ceil 2). Strip-after-scoring would leave this at 4.
+        board.on_scored();
+        assert_eq!(board.score(), Score::new(40, 2));
+        assert!(
+            board.played.iter().all(|c| c.enhancement == MPip::Blank),
+            "both Glass enhancements are eaten"
+        );
+    }
+
+    #[test]
+    fn on_scored__vampire_leaves_plain_cards_and_a_plain_board_alone() {
+        // A hand of unenhanced cards feeds it nothing, and a board without it
+        // never strips anything — exit criterion 2 for the strip pass.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::VAMPIRE);
+        board.on_scored();
+        assert_eq!(board.joker_state[0], 0);
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        let mut plain = board_playing("2S 5D 8C TS KH");
+        let king = plain.played.remove(4);
+        plain.played.insert(4, enhanced(king, MPip::BONUS));
+        let before = plain.score();
+        plain.on_scored();
+        assert_eq!(plain.score(), before, "no Vampire, no strip");
+    }
+
+    #[test]
+    fn create_consumable__refuses_once_both_slots_are_full() {
+        // "(Must have room)" — a creator with a full inventory creates nothing;
+        // it does not queue, and it does not evict.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        assert!(board.create_consumable(tarot_card::JUSTICE));
+        assert!(board.create_consumable(tarot_card::JUSTICE));
+        assert!(
+            !board.create_consumable(tarot_card::JUSTICE),
+            "the base cap is two"
+        );
+        assert_eq!(board.consumables.len(), 2);
+
+        // Spending one makes room again.
+        board.use_consumable(0, &[]);
+        assert!(board.create_consumable(tarot_card::JUSTICE));
+    }
+
+    #[test]
+    fn use_consumable__planet_levels_its_hand_type() {
+        let mut board = board_playing("KH KS 8C 5D 2S"); // a Pair
+        let before = board.score();
+
+        board.create_consumable(planet_card::MERCURY); // Pair: +15 chips, +1 mult
+        assert_eq!(board.use_consumable(0, &[]), Some(planet_card::MERCURY));
+
+        assert_eq!(
+            board.score(),
+            Score::new(before.chips + 15, before.mult + 1)
+        );
+        assert!(board.consumables.is_empty(), "it is spent, not kept");
+    }
+
+    #[test]
+    fn use_consumable__tarot_enhances_its_targets_on_the_run_roster() {
+        // A Tarot's enhancement lands through `replace_deck_card`, so it sticks
+        // to the run's own copy rather than a temporary.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.create_consumable(tarot_card::JUSTICE); // Glass
+
+        board.use_consumable(0, &[0, 1]);
+
+        assert_eq!(
+            board.full_deck.get(0).unwrap().enhancement,
+            MPip::Glass(2, 4)
+        );
+        assert_eq!(
+            board.full_deck.get(1).unwrap().enhancement,
+            MPip::Glass(2, 4)
+        );
+        assert_eq!(board.tarots_used, 1, "one Tarot, however many targets");
+    }
+
+    #[test]
+    fn score__constellation_gains_x_mult_per_planet_used() {
+        // Constellation: gains ×0.1 Mult per Planet card used; base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::JOKER); // +4 mult, so the ×mult scales visibly
+        board.push_joker(card::CONSTELLATION);
+
+        // Ungrown -> ×1: mult 1 + 4 = 5.
+        assert_eq!(board.score(), Score::new(40, 5));
+
+        // Five Planets used -> ×1.5. Mercury levels Pair, a hand this High Card
+        // board never scores, so only Constellation's growth moves the number.
+        for _ in 0..5 {
+            board.create_consumable(planet_card::MERCURY);
+            board.use_consumable(0, &[]);
+        }
+        assert_eq!(board.score(), Score::new(40, 8)); // ceil(5 × 1.5)
+    }
+
+    #[test]
+    fn score__constellation_does_not_scale_retroactively() {
+        // The counter/board-reader distinction, from Constellation's side: it is
+        // a plain accumulator, so Planets spent before it arrived are worth
+        // nothing to it. This is the exact opposite of Fortune Teller.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        for _ in 0..5 {
+            board.create_consumable(planet_card::MERCURY);
+            board.use_consumable(0, &[]);
+        }
+
+        board.push_joker(card::CONSTELLATION);
+        assert_eq!(
+            board.score(),
+            Score::new(40, 5),
+            "still ×1 — it missed those five"
+        );
+    }
+
+    #[test]
+    fn score__fortune_teller_adds_mult_per_tarot_used_this_run() {
+        // Fortune Teller: +1 Mult per Tarot card used this run.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::FORTUNE_TELLER);
+        assert_eq!(board.score(), Score::new(40, 1), "no Tarots used yet");
+
+        for _ in 0..3 {
+            board.create_consumable(tarot_card::JUSTICE);
+            board.use_consumable(0, &[]);
+        }
+        assert_eq!(board.score(), Score::new(40, 4)); // 1 + 3
+
+        // Planets are not Tarots.
+        board.create_consumable(planet_card::MERCURY);
+        board.use_consumable(0, &[]);
+        assert_eq!(board.score(), Score::new(40, 4));
+    }
+
+    #[test]
+    fn score__fortune_teller_is_retroactive() {
+        // The distinguishing case: it reads the run's Tarot tally off the board,
+        // so one acquired after three Tarots is worth +3 the moment it lands. A
+        // per-joker counter would start it at zero and read 40/1 here.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        for _ in 0..3 {
+            board.create_consumable(tarot_card::JUSTICE);
+            board.use_consumable(0, &[]);
+        }
+
+        board.push_joker(card::FORTUNE_TELLER);
+        assert_eq!(board.score(), Score::new(40, 4), "+3 immediately");
+    }
+
+    #[test]
+    fn on_blind_selected__marble_joker_adds_a_stone_card_to_the_deck() {
+        // Marble Joker: adds one Stone card to the deck when a Blind is
+        // selected. It lands in the *deck* (undealt), not the hand.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MARBLE_JOKER);
+        let deck_before = board.deck.len();
+        let roster_before = board.full_deck.len();
+
+        board.on_blind_selected();
+
+        assert_eq!(board.deck.len(), deck_before + 1);
+        assert_eq!(board.full_deck.len(), roster_before + 1);
+        let added = board.full_deck.iter().last().copied().unwrap();
+        assert_eq!(added.enhancement, MPip::TOWER, "it is a Stone card");
+        assert!(added.is_stone());
+        // "No rank or suit" is the *enhancement's* doing, not erased pips: the
+        // base survives underneath and is masked. So the card still carries one
+        // — what matters is that detection cannot see it, and that its chips are
+        // the flat 50 rather than the base's value.
+        assert_eq!(added.get_chips(), 50, "flat, not base + 50");
+        let mut probe = bcards!("2C 3D");
+        probe.push(added);
+        assert_eq!(probe.detectable().len(), 2, "detection cannot see it");
+
+        // A second blind adds a second, unlike the draw modifiers, which
+        // recompute from a baseline rather than stacking.
+        board.on_blind_selected();
+        assert_eq!(board.full_deck.len(), roster_before + 2);
+    }
+
+    #[test]
+    fn on_blind_selected__marble_joker_feeds_stone_joker_and_hologram() {
+        // The reason adding a Stone card is worth anything today: the roster
+        // count behind Stone Joker (+25 chips per Stone in the full deck) is
+        // wired, and every added card feeds Hologram.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::MARBLE_JOKER);
+        board.push_joker(card::STONE_JOKER);
+        board.push_joker(card::HOLOGRAM);
+
+        assert_eq!(board.score(), Score::new(40, 1), "no Stones yet");
+
+        board.on_blind_selected();
+        // Stone Joker: +25 chips for the one Stone. Hologram: ×1.25 -> ceil 2.
+        assert_eq!(board.score(), Score::new(65, 2));
+    }
+
+    #[test]
+    fn on_blind_selected_with_rng__riff_raff_creates_two_common_jokers() {
+        // Riff-Raff: when a Blind is selected, create 2 Common Jokers.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::RIFF_RAFF);
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(42));
+
+        assert_eq!(board.jokers.len(), 3, "Riff-Raff plus the two it made");
+        for created in board.jokers.iter().skip(1) {
+            assert_eq!(
+                created.card_type,
+                BCardType::CommonJoker,
+                "it creates Common Jokers"
+            );
+        }
+        assert_eq!(
+            board.joker_state.len(),
+            board.jokers.len(),
+            "created jokers get their own counter slot"
+        );
+    }
+
+    #[test]
+    fn on_blind_selected_with_rng__riff_raff_only_fills_the_room_it_has() {
+        // "(Must have room)", checked per joker rather than all-or-nothing: with
+        // one slot free it makes one, and with none it makes nothing.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::RIFF_RAFF);
+        for _ in 0..3 {
+            board.push_joker(card::JOKER);
+        }
+        assert_eq!(board.jokers.len(), 4, "one of the five slots is free");
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.jokers.len(), 5, "it filled the one free slot");
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(board.jokers.len(), 5, "a full board gets nothing");
+    }
+
+    #[test]
+    fn on_blind_selected__is_inert_without_a_creator() {
+        // Exit criterion 2 for the blind-select creators.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        let before = board.clone();
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(7));
+        assert_eq!(board.deck.len(), before.deck.len());
+        assert_eq!(board.full_deck.len(), before.full_deck.len());
+        assert_eq!(board.jokers.len(), before.jokers.len());
+        assert_eq!(board.score(), before.score());
+    }
+
+    #[test]
+    fn on_scored_with_rng__superposition_needs_both_an_ace_and_a_straight() {
+        // Superposition: create a Tarot if the hand contains an Ace *and* a
+        // Straight — so only A-K-Q-J-T or A-2-3-4-5 qualify.
+        let mut ace_straight = board_playing("AH KH QD JC TS");
+        ace_straight.push_joker(card::SUPERPOSITION);
+        ace_straight.on_scored_with_rng(&mut StdRng::seed_from_u64(3));
+        assert_eq!(ace_straight.consumables.len(), 1, "Ace + Straight");
+        assert_eq!(
+            ace_straight.consumables.iter().next().unwrap().card_type,
+            BCardType::Tarot
+        );
+
+        // A straight with no Ace: nothing.
+        let mut no_ace = board_playing("9H KH QD JC TS");
+        no_ace.push_joker(card::SUPERPOSITION);
+        no_ace.on_scored_with_rng(&mut StdRng::seed_from_u64(3));
+        assert!(no_ace.consumables.is_empty(), "a Straight but no Ace");
+
+        // An Ace with no straight: nothing.
+        let mut no_straight = board_playing("AH KH 8D 5C 2S");
+        no_straight.push_joker(card::SUPERPOSITION);
+        no_straight.on_scored_with_rng(&mut StdRng::seed_from_u64(3));
+        assert!(no_straight.consumables.is_empty(), "an Ace but no Straight");
+    }
+
+    #[test]
+    fn on_scored_with_rng__vagabond_creates_a_tarot_at_four_dollars_or_less() {
+        // Vagabond: create a Tarot if a hand is played with $4 or less.
+        for (money, expected) in [(0, 1), (4, 1), (5, 0)] {
+            let mut board = board_playing("2S 5D 8C TS KH");
+            board.money = money;
+            board.push_joker(card::VAGABOND);
+            board.on_scored_with_rng(&mut StdRng::seed_from_u64(9));
+            assert_eq!(
+                board.consumables.len(),
+                expected,
+                "${money} should {} a Tarot",
+                if expected == 1 { "make" } else { "not make" }
+            );
+        }
+    }
+
+    #[test]
+    fn on_scored_with_rng__a_tarot_creator_needs_a_free_consumable_slot() {
+        // "(Must have room)" on the consumable side.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::VAGABOND);
+        board.create_consumable(tarot_card::JUSTICE);
+        board.create_consumable(tarot_card::JUSTICE);
+
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(9));
+        assert_eq!(board.consumables.len(), 2, "no room, so nothing is created");
+    }
+
+    #[test]
+    fn on_scored__leaves_the_tarot_creators_inert_without_rng() {
+        // The `score`/`score_with_rng` split, applied to creation: the pure hook
+        // does not roll, the way a Lucky card stays inert in `score()`.
+        let mut board = board_playing("AH KH QD JC TS");
+        board.push_joker(card::SUPERPOSITION);
+        board.on_scored();
+        assert!(board.consumables.is_empty());
+    }
+
+    #[test]
+    fn on_blind_selected__the_needle_leaves_one_hand_and_switches_dusk_on() {
+        // The Needle plays only 1 hand, so the first hand *is* the final hand —
+        // which is why Dusk always fires under it. The wiki calls this pairing
+        // out explicitly, and it is the cheapest proof the boss ability is real.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::DUSK);
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_blind_selected();
+
+        assert_eq!(board.draws.hands_to_play, 1);
+        // Every card retriggers on the very first hand: 40 -> 75.
+        assert_eq!(board.score(), Score::new(75, 1));
+    }
+
+    #[test]
+    fn on_blind_selected__the_water_leaves_no_discards_and_switches_mystic_summit_on() {
+        // The Water starts the round with 0 discards, which Mystic Summit reads.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MYSTIC_SUMMIT);
+        board.blind = Blind::Boss(BossBlind::TheWater);
+        board.on_blind_selected();
+
+        assert_eq!(board.draws.discards, 0);
+        assert_eq!(board.score(), Score::new(40, 16)); // 1 + 15
+    }
+
+    #[test]
+    fn on_blind_selected__the_boss_ability_lands_after_every_joker_modifier() {
+        // A Boss Blind constrains the round rather than joining the pile of
+        // bonuses, so The Needle leaves one hand whatever Burglar had to say.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::BURGLAR); // +3 hands
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 1, "the boss wins the tie");
+
+        // And on a non-boss blind Burglar gets its way as usual.
+        board.blind = Blind::Small;
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 7);
+    }
+
+    #[test]
+    fn sell_joker__luchador_disables_the_current_boss_blind() {
+        // Luchador: sell it to disable the current Boss Blind. The disable is
+        // observable because the boss's grip on the round's draws lifts.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::LUCHADOR);
+        board.blind = Blind::Boss(BossBlind::TheWater);
+        board.on_blind_selected();
+        assert_eq!(board.draws.discards, 0, "The Water is in force");
+
+        let sold = board.sell_joker(0).expect("Luchador is in slot 0");
+        assert_eq!(sold, card::LUCHADOR);
+        assert!(board.boss_disabled);
+        assert_eq!(board.draws.discards, 3, "the boss is off; discards return");
+        assert_eq!(board.money, 2, "it paid its resell value");
+    }
+
+    #[test]
+    fn sell_joker__only_luchador_disables_the_boss() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        board.blind = Blind::Boss(BossBlind::TheWater);
+        board.on_blind_selected();
+
+        board.sell_joker(0);
+        assert!(!board.boss_disabled);
+        assert_eq!(board.draws.discards, 0, "The Water still holds");
+    }
+
+    #[test]
+    fn on_blind_selected__luchadors_disable_lasts_only_the_current_blind() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::LUCHADOR);
+        board.blind = Blind::Boss(BossBlind::TheWater);
+        board.on_blind_selected();
+        board.sell_joker(0);
+        assert!(board.boss_disabled);
+
+        // The next blind is a fresh boss.
+        board.on_blind_selected();
+        assert!(!board.boss_disabled);
+        assert_eq!(board.draws.discards, 0, "The Water is back");
+    }
+
+    #[test]
+    fn score__chicot_disables_every_boss_blind_while_it_is_held() {
+        // Chicot: passive — it disables bosses by being on the board, so unlike
+        // Luchador it needs no flag and selling it hands the boss back.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::CHICOT);
+        board.blind = Blind::Boss(BossBlind::TheWater);
+        board.on_blind_selected();
+
+        assert!(!board.boss_ability_active());
+        assert_eq!(board.draws.discards, 3, "The Water is disabled");
+
+        // Selling it restores the boss.
+        board.sell_joker(0);
+        assert_eq!(board.draws.discards, 0, "The Water is back");
+    }
+
+    #[test]
+    fn boss_ability_active__separates_the_ability_from_the_identity() {
+        // A disabled boss is still a boss: Madness still refuses to grow on it
+        // and Rocket still counts it. Only the *ability* is off.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::CHICOT);
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_blind_selected();
+
+        assert!(board.blind.is_boss(), "identity is unchanged");
+        assert!(!board.boss_ability_active(), "but the ability is off");
+        assert_eq!(board.draws.hands_to_play, 4, "The Needle does not bite");
+    }
+
+    #[test]
+    fn score__madness_gains_x_mult_on_non_boss_blinds_only() {
+        // Madness: gain ×0.5 Mult when a Small or Big Blind is selected — never
+        // a Boss. Base ×1.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::JOKER); // +4 mult, so the ×mult scales visibly
+        board.push_joker(card::MADNESS);
+        assert_eq!(board.score(), Score::new(40, 5), "ungrown is ×1");
+
+        board.blind = Blind::Small;
+        board.on_blind_selected();
+        board.blind = Blind::Big;
+        board.on_blind_selected();
+        // Two blinds -> ×2: mult 5 × 2 = 10.
+        assert_eq!(board.score(), Score::new(40, 10));
+
+        // A Boss Blind grows it not at all.
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_blind_selected();
+        assert_eq!(board.score(), Score::new(40, 10), "bosses do not feed it");
+    }
+
+    #[test]
+    fn on_blind_selected_with_rng__madness_destroys_another_joker_but_never_itself() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MADNESS);
+        board.push_joker(card::JOKER);
+        board.push_joker(card::BANNER);
+        board.blind = Blind::Small;
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(5));
+
+        assert_eq!(board.jokers.len(), 2, "one of the other two is gone");
+        assert!(
+            board.jokers.iter().any(|j| *j == card::MADNESS),
+            "it cannot destroy itself"
+        );
+    }
+
+    #[test]
+    fn on_blind_selected_with_rng__madness_gains_even_with_nothing_to_destroy() {
+        // The two halves are independent: a lone Madness still gains its ×0.5.
+        // Coupling the gain to a successful destruction is the easy bug here.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MADNESS);
+        board.blind = Blind::Small;
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(5));
+
+        assert_eq!(board.jokers.len(), 1, "it is alone and survives");
+        assert_eq!(board.joker_state[0], 1, "and it still gained");
+    }
+
+    #[test]
+    fn on_blind_selected_with_rng__madness_destroys_nothing_on_a_boss_blind() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::MADNESS);
+        board.push_joker(card::JOKER);
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+
+        board.on_blind_selected_with_rng(&mut StdRng::seed_from_u64(5));
+
+        assert_eq!(board.jokers.len(), 2, "no destruction on a boss");
+        assert_eq!(board.joker_state[0], 0, "and no gain either");
+    }
+
+    #[test]
+    fn on_round_end__rocket_pays_one_and_grows_two_per_boss_defeated() {
+        // Rocket: $1 at end of round, +$2 more per Boss Blind defeated.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::ROCKET);
+
+        // A non-boss round: the base $1, and no growth.
+        board.blind = Blind::Small;
+        board.on_round_end();
+        assert_eq!(board.money, 1);
+
+        // A boss round pays the *already raised* amount — the increment lands
+        // before the payout of the round that earned it. $1 + $2 = $3.
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_round_end();
+        assert_eq!(board.money, 4, "1 + 3, not 1 + 1");
+
+        // A second boss: $1 + $4 = $5.
+        board.on_round_end();
+        assert_eq!(board.money, 9);
+
+        // Back to a small blind: it keeps the raised payout.
+        board.blind = Blind::Small;
+        board.on_round_end();
+        assert_eq!(board.money, 14);
+    }
+
+    #[test]
+    fn on_round_end__rocket_counts_a_disabled_boss_as_defeated() {
+        // Chicot switches the ability off, but the blind is still a boss — so
+        // beating it is still beating a boss.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::ROCKET);
+        board.push_joker(card::CHICOT);
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+
+        board.on_round_end();
+        assert_eq!(board.money, 3, "1 + 2");
+    }
+
+    #[test]
+    fn on_blind_selected__is_inert_without_a_blind_reader() {
+        // Exit criterion 2 for Phase 8: a plain board on a Boss Blind scores
+        // exactly what it scores anywhere else.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER);
+        let plain = board.score();
+
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.on_blind_selected();
+        assert_eq!(board.score(), plain);
+        assert_eq!(board.money, 0);
+    }
+
+    #[test]
+    fn score__joker_stencil_counts_its_own_slot_as_empty() {
+        // Joker Stencil: ×1 Mult per empty Joker slot, "Joker Stencil included".
+        // Alone on a 5-slot board that is ×5, not ×4: four slots are literally
+        // empty, and it counts its own as if it were too.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::JOKER_STENCIL);
+
+        assert_eq!(board.draws.hands_to_play, 4); // untouched; just orienting
+        assert_eq!(board.score(), Score::new(40, 5), "(5 − 1) + 1 = 5");
+
+        // Each ordinary joker dilutes it by one.
+        board.push_joker(card::JOKER); // +4 mult, and one slot fuller
+        // Stencil is folded first: 1 × ((5 − 2) + 1) = 4, then Joker's +4 = 8.
+        assert_eq!(board.score(), Score::new(40, 8));
+    }
+
+    #[test]
+    fn score__joker_stencil_counts_every_stencil_not_only_itself() {
+        // The "included" clause is +1 per Stencil *on the board*, not +1 for
+        // self — so two Stencils are ×5 each rather than ×4, and compound to
+        // ×25. The clean restatement: slots − (jokers that are not Stencils).
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER_STENCIL);
+        board.push_joker(card::JOKER_STENCIL);
+
+        // (5 − 2) + 2 = 5 each; 1 × 5 × 5 = 25.
+        assert_eq!(board.score(), Score::new(40, 25));
+    }
+
+    #[test]
+    fn score__joker_stencil_is_inert_on_a_full_board() {
+        // The gate is on **literally** empty slots, so a full board applies
+        // nothing at all — never ×0.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER_STENCIL);
+        for _ in 0..4 {
+            board.push_joker(card::BANNER); // inert here: 3 discards × 30 chips
+        }
+        assert_eq!(board.jokers.len(), board.joker_slots, "the board is full");
+
+        // Only Banner's chips (4 × 90) land; the Stencil contributes nothing.
+        assert_eq!(board.score(), Score::new(400, 1));
+    }
+
+    #[test]
+    fn score__joker_stencil_reads_the_current_slot_limit() {
+        // It reads `joker_slots` live rather than a hardcoded 5, so a run that
+        // gains a slot gains a ×1 with it.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::JOKER_STENCIL);
+        assert_eq!(board.score(), Score::new(40, 5));
+
+        board.joker_slots += 1;
+        assert_eq!(board.score(), Score::new(40, 6), "(6 − 1) + 1 = 6");
+    }
+
+    #[test]
+    fn score__card_sharp_x3_when_the_hand_type_repeats_this_round() {
+        // Card Sharp: ×3 Mult if the played poker hand has already been played
+        // this round.
+        let mut board = board_playing("KH KS 8C 5D 2S"); // a Pair
+        board.push_joker(card::CARD_SHARP);
+        let pair = bcards!("KH KS 8C 5D 2S");
+
+        // The round's *first* Pair does not fire. `on_hand_played` records a
+        // hand after it scores, so the tally is still empty here — reading `> 0`
+        // off a tally bumped *before* scoring would wrongly fire on this hand.
+        let plain = board.score();
+        assert_eq!(board.score(), plain);
+
+        // Having played one Pair, the next Pair fires.
+        board.on_hand_played(&pair);
+        assert_eq!(board.score(), plain.multi_mult(3.0));
+    }
+
+    #[test]
+    fn score__card_sharp_keys_on_the_hand_type_not_the_hand_count() {
+        // It is per *type*: three hands of other types leave a Pair unfired.
+        let mut board = board_playing("KH KS 8C 5D 2S"); // a Pair
+        board.push_joker(card::CARD_SHARP);
+        let plain = board.score();
+
+        board.on_hand_played(&bcards!("2S 5D 8C TS KH")); // High Card
+        board.on_hand_played(&bcards!("AH KH QH JH TH")); // Straight Flush
+        assert_eq!(board.score(), plain, "no Pair played yet");
+
+        board.on_hand_played(&bcards!("QD QC 7S 4H 2C")); // a Pair
+        assert_eq!(board.score(), plain.multi_mult(3.0));
+    }
+
+    #[test]
+    fn score__card_sharp_resets_with_the_round() {
+        // "…this round": a new blind wipes the tally.
+        let mut board = board_playing("KH KS 8C 5D 2S");
+        board.push_joker(card::CARD_SHARP);
+        let plain = board.score();
+
+        board.on_hand_played(&bcards!("KH KS 8C 5D 2S"));
+        assert_eq!(board.score(), plain.multi_mult(3.0));
+
+        board.on_blind_selected();
+        assert_eq!(board.score(), plain, "a new round, a fresh tally");
+    }
+
+    #[test]
+    fn score__ancient_joker_x_mult_per_played_card_of_the_ancient_suit() {
+        // Ancient Joker: ×1.5 Mult per played card of the current suit; the
+        // factor compounds, so three Hearts is ×3.375.
+        let mut board = board_playing("AH KH QH 5D 2S"); // three Hearts
+        board.push_joker(card::JOKER); // +4 mult, so the ×mult scales visibly
+        board.push_joker(card::ANCIENT_JOKER);
+
+        // No suit rolled yet -> no matches -> ×1, inert rather than zeroing.
+        assert_eq!(board.score(), Score::new(43, 5));
+
+        board.ancient_suit = Some('H');
+        // mult 1 + 4 = 5, then ×1.5³ = ×3.375 -> ceil(16.875) = 17.
+        assert_eq!(board.score(), Score::new(43, 17));
+
+        // A suit the hand does not hold pays nothing.
+        board.ancient_suit = Some('C');
+        assert_eq!(board.score(), Score::new(43, 5));
+    }
+
+    #[test]
+    fn score__smeared_widens_what_ancient_joker_pays_for() {
+        // Smeared merges Hearts≡Diamonds, exactly as it does for flush sizing.
+        let mut board = board_playing("AH KH QH 5D 2S"); // three Hearts, one Diamond
+        board.push_joker(card::JOKER);
+        board.push_joker(card::ANCIENT_JOKER);
+        board.ancient_suit = Some('H');
+        assert_eq!(board.score(), Score::new(43, 17), "three Hearts: ×1.5³");
+
+        // With Smeared the Diamond counts too: ×1.5⁴ = ×5.0625 -> ceil(25.3) = 26.
+        board.push_joker(card::SMEARED_JOKER);
+        assert_eq!(board.score(), Score::new(43, 26));
+    }
+
+    #[test]
+    fn on_round_end_with_rng__the_ancient_suit_never_repeats_back_to_back() {
+        // "suit changes at end of round" — the new suit is drawn from the three
+        // that are *not* current, so a repeat is impossible.
+        let mut board = board_playing("AH KH QH 5D 2S");
+        board.push_joker(card::ANCIENT_JOKER);
+
+        board.on_round_end_with_rng(&mut StdRng::seed_from_u64(1));
+        let first = board.ancient_suit.expect("the first round end rolls one");
+
+        let mut previous = first;
+        for seed in 0..40 {
+            board.on_round_end_with_rng(&mut StdRng::seed_from_u64(seed));
+            let next = board.ancient_suit.unwrap();
+            assert_ne!(next, previous, "a suit must never re-roll to itself");
+            previous = next;
+        }
+    }
+
+    #[test]
+    fn on_round_end_with_rng__the_first_ancient_roll_can_reach_all_four_suits() {
+        // The first roll has no current suit to exclude, so its pool is all
+        // four — Balatro's run-start seeding. Later rolls can only reach three.
+        let mut seen = std::collections::BTreeSet::new();
+        for seed in 0..60 {
+            let mut board = board_playing("AH KH QH 5D 2S");
+            board.push_joker(card::ANCIENT_JOKER);
+            board.on_round_end_with_rng(&mut StdRng::seed_from_u64(seed));
+            seen.insert(board.ancient_suit.unwrap());
+        }
+        assert_eq!(seen.len(), 4, "the first roll reaches every suit: {seen:?}");
+    }
+
+    #[test]
+    fn on_round_end_with_rng__the_ancient_suit_is_left_alone_without_the_joker() {
+        // Gated on holding one, so a board that has nothing to do with Ancient
+        // Joker neither gains a suit nor consumes RNG that its neighbours' rolls
+        // depend on.
+        let mut board = board_playing("AH KH QH 5D 2S");
+        board.push_joker(card::JOKER);
+        board.on_round_end_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.ancient_suit, None);
+    }
+
+    #[test]
+    fn score__banner_counts_the_discards_that_remain_not_the_ones_granted() {
+        // Banner is "+30 chips for each **remaining** discard", so spending one
+        // must cost it 30. Reading `draws.discards` — what the round *granted* —
+        // leaves it paying for discards that are already gone.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::BANNER);
+        assert_eq!(board.score(), Score::new(130, 1), "3 remaining -> +90");
+
+        board.on_discard(&bcards!("2C"));
+        assert_eq!(board.score(), Score::new(100, 1), "2 remaining -> +60");
+
+        board.on_discard(&bcards!("3C"));
+        board.on_discard(&bcards!("4C"));
+        assert_eq!(board.score(), Score::new(40, 1), "all spent -> nothing");
+    }
+
+    #[test]
+    fn score__mystic_summit_fires_once_the_discards_are_actually_spent() {
+        // The mirror image: "+15 mult when 0 discards remaining" must turn *on*
+        // when the last discard is used, not only when the round granted none.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::MYSTIC_SUMMIT);
+        assert_eq!(board.score(), Score::new(40, 1), "3 remaining -> inert");
+
+        board.on_discard(&bcards!("2C"));
+        board.on_discard(&bcards!("3C"));
+        assert_eq!(board.score(), Score::new(40, 1), "1 still remains");
+
+        board.on_discard(&bcards!("4C"));
+        assert_eq!(board.score(), Score::new(40, 16), "spent -> +15");
+    }
+
+    #[test]
+    fn discards_remaining__is_granted_minus_used_and_floors_at_zero() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        assert_eq!(board.discards_remaining(), 3);
+
+        board.on_discard(&bcards!("2C"));
+        assert_eq!(board.discards_remaining(), 2);
+
+        // A round that grants none, driven anyway, floors rather than wrapping.
+        board.draws.discards = 0;
+        assert_eq!(board.discards_remaining(), 0);
+    }
+
+    /// A board with a real deck and an empty hand — the round loop's starting
+    /// point, as opposed to `board_playing`, which pokes `played` directly.
+    fn board_for_a_round() -> BuffoonBoard {
+        BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile())
+    }
+
+    #[test]
+    fn deal_to_hand_size__fills_the_hand_from_the_deck() {
+        let mut board = board_for_a_round();
+        assert_eq!(board.in_hand.len(), 0);
+        let deck_before = board.deck.len();
+
+        assert_eq!(board.deal_to_hand_size(), 8, "the base hand size");
+        assert_eq!(board.in_hand.len(), 8);
+        assert_eq!(board.deck.len(), deck_before - 8, "the deck really shrank");
+        assert_eq!(
+            board.full_deck.len(),
+            52,
+            "the roster is unchanged by a deal"
+        );
+
+        // Idempotent once full.
+        assert_eq!(board.deal_to_hand_size(), 0);
+        assert_eq!(board.in_hand.len(), 8);
+    }
+
+    #[test]
+    fn deal_to_hand_size__deals_what_it_has_when_the_deck_runs_dry() {
+        // Balatro deals as many as it can rather than failing. (`BuffoonPile::draw`
+        // would drain the deck and return None here, losing the cards.)
+        let mut board = board_for_a_round();
+        board.deck = bcards!("2C 3C 4C");
+
+        assert_eq!(board.deal_to_hand_size(), 3);
+        assert_eq!(board.in_hand.len(), 3);
+        assert!(board.deck.is_empty(), "and it is not left half-drained");
+    }
+
+    #[test]
+    fn deal_to_hand_size__honours_the_rounds_hand_size() {
+        // Juggler (+1) and The Manacle (−1) both reach the deal through the
+        // round's recomputed Draws rather than through any code here.
+        let mut board = board_for_a_round();
+        board.push_joker(card::JUGGLER);
+        board.on_blind_selected();
+        assert_eq!(board.deal_to_hand_size(), 9);
+
+        let mut manacled = board_for_a_round();
+        manacled.blind = Blind::Boss(BossBlind::TheManacle);
+        manacled.on_blind_selected();
+        assert_eq!(manacled.deal_to_hand_size(), 7);
+    }
+
+    #[test]
+    fn play_hand__moves_cards_through_the_deal_and_spends_a_hand() {
+        let mut board = board_for_a_round();
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+        assert_eq!(board.hands_remaining(), 4);
+
+        let score = board.play_hand(&[0, 1, 2, 3, 4]).expect("a legal hand");
+
+        assert!(score.score() > 0);
+        assert_eq!(board.hands_remaining(), 3, "a hand was spent");
+        assert_eq!(board.round_score, score.score(), "and it accumulated");
+        assert_eq!(board.discarded.len(), 5, "the played cards are spent");
+        assert_eq!(board.in_hand.len(), 8, "and the hand refilled");
+        assert!(board.played.is_empty(), "played is cleared after the hand");
+        assert_eq!(board.full_deck.len(), 52, "the run still owns every card");
+    }
+
+    #[test]
+    fn play_hand__refuses_once_the_hands_are_spent() {
+        let mut board = board_for_a_round();
+        board.deal_to_hand_size();
+        for _ in 0..4 {
+            assert!(board.play_hand(&[0]).is_some());
+        }
+        assert_eq!(board.hands_remaining(), 0);
+        assert!(board.round_is_over());
+        assert!(board.play_hand(&[0]).is_none(), "no hands left");
+    }
+
+    #[test]
+    fn play_hand__refuses_an_out_of_bounds_index_without_touching_the_hand() {
+        let mut board = board_for_a_round();
+        board.deal_to_hand_size();
+        let before = board.in_hand.clone();
+
+        assert!(board.play_hand(&[0, 99]).is_none());
+        assert_eq!(board.in_hand, before, "a refusal leaves the hand alone");
+        assert_eq!(board.hands_remaining(), 4, "and spends nothing");
+    }
+
+    #[test]
+    fn discard_cards__spends_a_discard_and_refills() {
+        let mut board = board_for_a_round();
+        board.deal_to_hand_size();
+        assert_eq!(board.discards_remaining(), 3);
+
+        assert!(board.discard_cards(&[0, 1]));
+        assert_eq!(board.discards_remaining(), 2);
+        assert_eq!(board.discarded.len(), 2);
+        assert_eq!(board.in_hand.len(), 8, "the hand refilled");
+        assert_eq!(board.hands_remaining(), 4, "a discard is not a hand");
+    }
+
+    #[test]
+    fn discard_cards__refuses_once_the_discards_are_spent() {
+        let mut board = board_for_a_round();
+        board.deal_to_hand_size();
+        for _ in 0..3 {
+            assert!(board.discard_cards(&[0]));
+        }
+        assert!(!board.discard_cards(&[0]), "no discards left");
+    }
+
+    #[test]
+    fn round_loop__conserves_every_card_the_run_owns() {
+        // The invariant the board never had: through a whole round of playing
+        // and discarding, every card is in exactly one place, and the roster is
+        // the sum of them. This is what `full_deck` had to be a stored roster
+        // *for* — see its docs — and the loop is the first thing that can hold
+        // the line.
+        let mut board = board_for_a_round();
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+
+        board.play_hand(&[0, 1, 2]);
+        board.discard_cards(&[0, 1]);
+        board.play_hand(&[0, 1, 2, 3, 4]);
+        board.discard_cards(&[0]);
+
+        let located = board.deck.len() + board.in_hand.len() + board.discarded.len();
+        assert_eq!(
+            located,
+            board.full_deck.len(),
+            "deck {} + hand {} + spent {} should be the roster's {}",
+            board.deck.len(),
+            board.in_hand.len(),
+            board.discarded.len(),
+            board.full_deck.len()
+        );
+        assert_eq!(board.full_deck.len(), 52);
+    }
+
+    #[test]
+    fn round_loop__is_won_when_the_target_is_reached() {
+        let mut board = board_for_a_round();
+        board.blind_target = 1;
+        board.deal_to_hand_size();
+        assert!(!board.round_is_won());
+        assert!(!board.round_is_over());
+
+        board.play_hand(&[0]);
+        assert!(board.round_is_won(), "any score clears a target of 1");
+        assert!(board.round_is_over(), "a won round is over");
+        assert!(board.hands_remaining() > 0, "with hands to spare");
+    }
+
+    #[test]
+    fn round_loop__an_untargeted_round_runs_until_its_hands_are_spent() {
+        let mut board = board_for_a_round();
+        assert_eq!(board.blind_target, 0);
+        board.deal_to_hand_size();
+
+        board.play_hand(&[0]);
+        assert!(!board.round_is_won(), "no target, never won");
+        assert!(!board.round_is_over(), "and it runs on");
+    }
+
+    #[test]
+    fn on_blind_selected__resets_the_rounds_score() {
+        let mut board = board_for_a_round();
+        board.deal_to_hand_size();
+        board.play_hand(&[0]);
+        assert!(board.round_score > 0);
+
+        board.on_blind_selected();
+        assert_eq!(board.round_score, 0);
+        assert_eq!(board.hands_remaining(), 4, "and its hands are back");
+    }
+
+    #[test]
+    fn round_loop__the_lifecycle_hooks_compose_in_order() {
+        // The point of the loop. Four ordering rules were each found separately
+        // and pinned separately; nothing had ever run them together. One round,
+        // one board, all four:
+        //
+        //  * Vampire grows on `Scored` (before the fold) so its ×mult lands on
+        //    the hand it ate;
+        //  * Ice Cream decays on `HandPlayed` (after the fold) so its first hand
+        //    scores the full +100;
+        //  * Rocket's boss increment lands before the round's payout;
+        //  * Popcorn decays at round end and is destroyed by the round that
+        //    empties it.
+        let mut board = board_for_a_round();
+        board.blind = Blind::Boss(BossBlind::TheWater); // 0 discards
+        board.push_joker(card::ICE_CREAM);
+        board.push_joker(card::ROCKET);
+        board.push_joker(card::POPCORN);
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+
+        // The Water is in force: no discards, so Mystic Summit's condition holds
+        // from the first hand — and `discards_remaining` agrees.
+        assert_eq!(board.discards_remaining(), 0);
+        assert!(!board.discard_cards(&[0]), "The Water left none to spend");
+
+        // Hand one: Ice Cream still worth its full +100 (it decays *after*),
+        // Popcorn its full +20.
+        let first = board.play_hand(&[0, 1, 2, 3, 4]).expect("a legal hand");
+        assert_eq!(board.hands_played, 1);
+
+        // Hand two: Ice Cream has decayed by 5, so the same-sized hand is worth
+        // less. (Both hands are five cards; the cards differ, so compare the
+        // joker state rather than the raw score.)
+        board.play_hand(&[0, 1, 2, 3, 4]);
+        assert_eq!(board.joker_state[0], 2, "Ice Cream counted both hands");
+        assert!(first.score() > 0);
+
+        // Round end on a Boss Blind: Rocket's increment lands *before* the
+        // payout, so this round pays $1 + $2 = $3. Popcorn decays a step.
+        board.on_round_end();
+        assert_eq!(board.money, 3, "Rocket paid its raised amount");
+        assert_eq!(board.joker_state[2], 1, "Popcorn lost a round");
+        assert_eq!(board.hands_played, 0, "and the round reset");
+        assert_eq!(board.round_score, 0);
+    }
+
+    #[test]
+    fn round_loop__vampire_eats_across_a_real_round() {
+        // Vampire's ordering, driven through the loop rather than by hand: the
+        // enhancement is gone from the *roster*, so the card stays eaten when it
+        // comes round again.
+        let mut board = board_for_a_round();
+        board.push_joker(card::VAMPIRE);
+        // Enhance the whole roster, so whatever is dealt is food.
+        for slot in 0..board.full_deck.len() {
+            let card = board.full_deck.get(slot).copied().unwrap();
+            board.replace_deck_card(slot, enhanced(card, MPip::BONUS));
+        }
+        board.on_blind_selected();
+        board.deal_to_hand_size();
+
+        board.play_hand(&[0, 1, 2, 3, 4]);
+
+        assert_eq!(board.joker_state[0], 5, "it ate all five");
+        assert!(
+            board.discarded.iter().all(|c| c.enhancement == MPip::Blank),
+            "and the spent cards are stripped for good"
+        );
+    }
+
+    #[test]
+    fn round_loop__a_marble_jokers_stone_card_cannot_fake_a_straight() {
+        // The whole path, end to end, and the reason the blank-rank filter in
+        // `connectors` exists: Marble Joker adds a Stone card to the *deck*, the
+        // round loop deals from the deck, so the Stone card is playable — and a
+        // Stone card has no rank, so it must not connect a straight.
+        //
+        // Before the loop existed nothing could draw it, which is exactly why
+        // this went unnoticed: a blank rank pip weighs 0, and so does a Deuce.
+        let mut board = board_for_a_round();
+        board.push_joker(card::MARBLE_JOKER);
+        board.on_blind_selected(); // adds one Stone card to the deck
+
+        let stone = *board.full_deck.iter().last().unwrap();
+        assert_eq!(stone.enhancement, MPip::TOWER);
+
+        // K-Q-J-T plus the Stone, whose masked base is an Ace — so if its rank
+        // leaked at all, this would read as a Straight.
+        board.in_hand = bcards!("KH QD JC TS");
+        board.in_hand.push(stone);
+        board.draws.hand_size = 5; // stop the deal topping the hand back up
+
+        assert_eq!(
+            board.in_hand.determine_hand_type(),
+            HandType::HighCard,
+            "the Stone's masked Ace must not complete A-K-Q-J-T"
+        );
+        board.play_hand(&[0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn score__stone_card_adds_its_flat_fifty_chips() {
+        // The Stone card, both halves at once. Chips: a flat +50, replacing the
+        // rank's value rather than adding to it.
+        let mut board = board_playing("KH 2S 5D 8C TS"); // High Card 40/1
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        // The King (10 chips) becomes a Stone card: 40 − 10 + 50 = 80.
+        let king = board.played.remove(0);
+        board.played.insert(0, enhanced(king, MPip::TOWER));
+        assert_eq!(board.score(), Score::new(80, 1));
+    }
+
+    #[test]
+    fn score__stone_card_takes_part_in_no_hand_type() {
+        // The other half, and the reason the chips waited for it: a Stone card
+        // must not pair, connect, or flush. Each case is one a rank/suit-blind
+        // implementation would get wrong.
+        let stone = |index: &str| {
+            let card = bcards!(index).iter().next().copied().unwrap();
+            enhanced(card, MPip::TOWER)
+        };
+
+        // It does not connect a straight — it would be a 2 if rank leaked.
+        let mut straight = bcards!("3C 4D 5S 6H");
+        straight.push(stone("2C"));
+        assert_eq!(straight.determine_hand_type(), HandType::HighCard);
+
+        // It does not pair its own former rank.
+        let mut pair = bcards!("KH 7D 9S 3C");
+        pair.push(stone("KS"));
+        assert_eq!(pair.determine_hand_type(), HandType::HighCard);
+
+        // Two Stones do not pair *each other* — the trap of any model that
+        // blanks the rank instead of masking it.
+        let mut two = bcards!("7D 9S 3C");
+        two.push(stone("KS"));
+        two.push(stone("QH"));
+        assert_eq!(two.determine_hand_type(), HandType::HighCard);
+
+        // And it does not size a flush.
+        let mut flush = bcards!("3H 4H 5H 6H");
+        flush.push(stone("9H"));
+        assert_eq!(flush.determine_hand_type(), HandType::HighCard);
+    }
+
+    #[test]
+    fn score__four_fingers_rescues_a_hand_a_stone_card_shortened() {
+        // A Stone card costs the hand a slot, so a four-card straight is all
+        // that is left — which is exactly what Four Fingers asks for. Falls out
+        // of `detectable` for free rather than needing an arm.
+        let mut board = board_playing("3C 4D 5S 6H 2C");
+        let last = board.played.remove(4);
+        board.played.insert(4, enhanced(last, MPip::TOWER));
+        assert_eq!(board.scoring_hand_type(), HandType::HighCard);
+
+        board.push_joker(card::FOUR_FINGERS);
+        assert_eq!(board.scoring_hand_type(), HandType::Straight);
+    }
+
+    #[test]
     fn on_round_end__golden_joker_pays_4() {
         // Golden Joker: earn $4 at end of round — money, not hand score.
         let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
@@ -2442,6 +4836,102 @@ mod funky__types__board__buffoon_board_tests {
         // Only the first card 2S (+2 chips) retriggers, twice more -> +4 chips;
         // the other four cards are untouched. 40 -> 44.
         assert_eq!(board.score(), Score::new(44, 1));
+    }
+
+    #[test]
+    fn score__dusk_retriggers_every_played_card_on_the_rounds_final_hand() {
+        // Dusk: retrigger all played cards in the final hand of the round.
+        // `board_playing` grants four hands (Draws::new(4, 3)).
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::DUSK);
+
+        // An untouched board reads `hands_played == 0`, so the first of four
+        // hands is not the last -> no retrigger.
+        assert_eq!(board.score(), Score::new(40, 1));
+
+        let hand = bcards!("2S 5D 8C TS KH");
+        board.on_hand_played(&hand);
+        board.on_hand_played(&hand);
+        assert_eq!(
+            board.score(),
+            Score::new(40, 1),
+            "the third of four hands is not the last"
+        );
+
+        // Three hands done -> the fourth is final: all five cards score twice,
+        // so the 35 chips of card pips land again (the 5-chip High Card base is
+        // phase 1 and does not re-run). 40 -> 75.
+        board.on_hand_played(&hand);
+        assert_eq!(board.score(), Score::new(75, 1));
+    }
+
+    #[test]
+    fn score__dusk_follows_the_hand_allowance_rather_than_a_fixed_count() {
+        // Burglar's +3 hands pushes the final hand out; Dusk must track the
+        // round's *granted* allowance, not a hardcoded four. With 7 hands
+        // granted, the fourth is no longer final.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::DUSK);
+        board.push_joker(card::BURGLAR);
+        board.on_blind_selected(); // 4 + 3 = 7 hands
+
+        let hand = bcards!("2S 5D 8C TS KH");
+        for _ in 0..3 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(
+            board.score(),
+            Score::new(40, 1),
+            "the fourth of seven hands is not the last"
+        );
+
+        for _ in 0..3 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(board.score(), Score::new(75, 1), "the seventh is");
+    }
+
+    #[test]
+    fn score__seltzer_retriggers_every_played_card_for_ten_hands() {
+        // Seltzer: retrigger all cards played for the next 10 hands.
+        let mut board = board_playing("2S 5D 8C TS KH"); // High Card 40/1
+        board.push_joker(card::SELTZER);
+
+        // Fresh: all five cards score twice. 40 -> 75.
+        assert_eq!(board.score(), Score::new(75, 1));
+
+        // Nine hands spent, one left: still retriggering.
+        let hand = bcards!("2S 5D 8C TS KH");
+        for _ in 0..9 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(
+            board.score(),
+            Score::new(75, 1),
+            "the tenth hand still retriggers"
+        );
+    }
+
+    #[test]
+    fn on_hand_played__seltzer_is_destroyed_after_its_tenth_hand() {
+        // The counter is hands *completed*, so the tenth hand retriggers and the
+        // joker is destroyed straight after it — not before it, which would give
+        // only nine.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::SELTZER);
+
+        let hand = bcards!("2S 5D 8C TS KH");
+        for _ in 0..9 {
+            board.on_hand_played(&hand);
+        }
+        assert_eq!(board.jokers.len(), 1, "nine hands spent, one left");
+
+        board.on_hand_played(&hand);
+        assert!(
+            board.jokers.is_empty(),
+            "the tenth hand spends the last one, so it is destroyed"
+        );
+        assert_eq!(board.score(), Score::new(40, 1));
     }
 
     #[test]

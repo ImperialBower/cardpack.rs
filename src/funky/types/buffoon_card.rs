@@ -170,8 +170,32 @@ impl BuffoonCard {
         }
     }
 
+    /// Whether this is a **Stone card** — the enhancement with "no rank or
+    /// suit".
+    ///
+    /// Stone is a *mask*, not an erasure: the card keeps its rank and suit
+    /// underneath, and this flag is what the accessors consult to hide them.
+    /// That is Balatro's own model, and it is observable — Vampire strips the
+    /// enhancement and the original rank and suit come straight back, which
+    /// could not happen if they had been overwritten.
+    ///
+    /// Modelling it the other way (blanking the pips) has a specific bug: every
+    /// blanked card looks identical, so two Stone cards would pair with each
+    /// other. They must never pair — not with a rank, and not with each other.
+    #[must_use]
+    pub const fn is_stone(&self) -> bool {
+        matches!(self.enhancement, MPip::Stone(_))
+    }
+
+    /// The chips this card contributes when scored.
+    ///
+    /// A **Stone card gives its flat chips and nothing else** — its rank value
+    /// is masked along with the rank itself, so a Stone Ace is worth 50, not 61.
     #[must_use]
     pub fn get_chips(&self) -> usize {
+        if let MPip::Stone(chips) = self.enhancement {
+            return chips;
+        }
         let mut chips = 0;
         if let MPip::Chips(c) = self.enhancement {
             chips += c;
@@ -593,8 +617,34 @@ mod funky__types__buffoon_card_tests {
 
         assert_eq!(card.get_chips(), 7);
         assert_eq!(card.enhancement, MPip::Blank);
-        assert_eq!(card.enhance(TOWER).get_chips(), 7);
         assert_eq!(card.enhance(TOWER).enhancement, MPip::TOWER);
+
+        // The Tower makes it a Stone card: a flat 50 chips, *not* 50 + its
+        // rank's 7 and not the bare 7 it used to score. The rank value is masked
+        // along with the rank.
+        assert_eq!(card.enhance(TOWER).get_chips(), 50);
+        assert!(card.enhance(TOWER).is_stone());
+    }
+
+    #[test]
+    fn enhance__tarot__tower_masks_the_rank_rather_than_erasing_it() {
+        // Balatro's Stone card overrides at the accessor layer; the base data
+        // survives underneath. Observable through Vampire, which eats the
+        // enhancement — after which the original rank and suit must come back.
+        let stone = SEVEN_CLUBS.enhance(TOWER);
+        assert_eq!(stone.rank, SEVEN_CLUBS.rank, "the rank is still there …");
+        assert_eq!(stone.suit, SEVEN_CLUBS.suit, "… and so is the suit");
+
+        let eaten = BuffoonCard {
+            enhancement: MPip::Blank,
+            ..stone
+        };
+        assert_eq!(
+            eaten.get_chips(),
+            7,
+            "strip the Stone and the Seven returns"
+        );
+        assert!(!eaten.is_stone());
     }
 
     #[test]

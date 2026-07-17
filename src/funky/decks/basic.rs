@@ -175,6 +175,33 @@ pub mod card {
     use crate::funky::types::mpip::MPip;
     use crate::prelude::{FrenchRank, FrenchSuit, Pip};
 
+    /// A **Stone card** — Balatro's rankless, suitless +50 chip card, and what
+    /// Marble Joker adds to the deck when a Blind is selected.
+    ///
+    /// "No rank or suit" is carried by the **`MPip::TOWER` enhancement**, not by
+    /// erasing the pips: `BuffoonCard::is_stone` is what the accessors consult,
+    /// and `BuffoonPile::detectable` drops it from hand classification. The base
+    /// below is real and deliberately ordinary — it is *masked*, not absent.
+    ///
+    /// That mirrors Balatro, where Stone overrides at the accessor layer and the
+    /// base data survives underneath (Vampire eats the enhancement and the rank
+    /// comes straight back). Blanking the pips instead would break that, and
+    /// would make every Stone card identical — so two of them would pair with
+    /// each other, which they must never do.
+    ///
+    /// *Divergence, deliberate:* Balatro gives a created Stone card a **random**
+    /// base. This one is fixed, since `on_blind_selected` has no RNG and the base
+    /// is unobservable while the enhancement is on. It would only surface if
+    /// something stripped the enhancement off a *created* Stone.
+    pub const STONE_CARD: BuffoonCard = BuffoonCard {
+        suit: FrenchSuit::SPADES,
+        rank: FrenchRank::ACE,
+        card_type: BCardType::Stone,
+        enhancement: MPip::TOWER,
+        resell_value: 0,
+        debuffed: false,
+    };
+
     #[must_use]
     pub fn plus_rank(basic_card: BuffoonCard) -> BuffoonCard {
         let rank = match basic_card.rank.weight {

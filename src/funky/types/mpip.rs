@@ -204,6 +204,93 @@ pub enum MPip {
     /// whatever those fattened cards go on to score. Applied by
     /// `BuffoonBoard::on_scored`, not by a scoring arm.
     GainChipsOnScored(usize),
+    /// Popcorn: starts at `base` mult and loses `per` per **round ended**; the
+    /// accumulator counts rounds. Read floors at 0, and the joker is destroyed
+    /// by the round that empties it — Ice Cream's
+    /// [`LoseChipsPerHand`](Self::LoseChipsPerHand) shape on the mult side,
+    /// decaying per round rather than per hand.
+    LoseMultPerRound(usize, usize),
+    /// Yorick: gains `rate`/100 ×mult per `per` **cards discarded** — the
+    /// accumulator counts cards, not discard *actions*, so one big discard and
+    /// several small ones of the same size are worth the same. Base ×1.
+    GainMultTimesPerDiscardedCards(usize, usize),
+    /// Hologram: gains `rate`/100 ×mult per playing card **added to the run's
+    /// deck** (`BuffoonBoard::add_card_to_deck`). Base ×1.
+    GainMultTimesPerCardAdded(usize),
+    /// Canio: gains `rate`/100 ×mult per **face card destroyed**
+    /// (`BuffoonBoard::destroy_deck_card`), classified through
+    /// `BuffoonBoard::is_face_card` — so Pareidolia makes every destroyed card
+    /// feed it, as it does Faceless Joker. Base ×1.
+    GainMultTimesPerFaceDestroyed(usize),
+    /// Riff-Raff: create `n` jokers of the given rarity when a Blind is
+    /// selected, **while there is room** — `CreateJokersWhenBlindSelected(2,
+    /// BCardType::CommonJoker)`.
+    ///
+    /// Room is checked per joker, not all-or-nothing: with one slot free, a
+    /// `n = 2` creator fills it and stops. A full board creates nothing.
+    /// Applied by `BuffoonBoard::on_blind_selected_with_rng`, since which
+    /// jokers arrive is a random draw from the rarity's pool.
+    CreateJokersWhenBlindSelected(usize, BCardType),
+    /// Superposition: create a Tarot when the played hand is a **Straight** and
+    /// contains an **Ace**, if there is a free consumable slot. Both conditions
+    /// are required.
+    CreateTarotOnAceStraight,
+    /// Vagabond: create a Tarot when a hand is played holding **$n or less**, if
+    /// there is a free consumable slot.
+    CreateTarotOnLowMoney(usize),
+    /// Card Sharp: ×n mult if the played hand type has **already been played
+    /// this round**. Reads `BuffoonBoard::hands_by_type_this_round`.
+    MultTimesOnRepeatedHandThisRound(usize),
+    /// Ancient Joker: ×(n/10) mult for **each** played card of the run's current
+    /// "ancient" suit (`BuffoonBoard::ancient_suit`), which re-rolls at the end
+    /// of every round. The factor **compounds**, so three matching cards at
+    /// ×1.5 is ×3.375.
+    ///
+    /// The suit lives on the board rather than in this variant because it is run
+    /// state: two Ancient Jokers share it.
+    MultTimesPerScoredAncientSuit(usize),
+    /// Madness: gains `rate`/100 ×mult when a **Small or Big** Blind is selected
+    /// — never on a Boss Blind — and destroys a random other joker. Base ×1.
+    ///
+    /// The two halves are independent: the ×mult is gained whether or not there
+    /// was anything to destroy, so a lone Madness still grows. The destruction
+    /// is random, so it lives in
+    /// `BuffoonBoard::on_blind_selected_with_rng` while the gain is applied by
+    /// the pure hook.
+    GainMultTimesOnNonBossBlindDestroyingJoker(usize),
+    /// Luchador: selling it disables the **current** Boss Blind's ability.
+    /// Handled by `BuffoonBoard::sell_joker`; no standalone score.
+    DisableBossBlindOnSell,
+    /// Chicot: disables the ability of **every** Boss Blind, passively, while it
+    /// is on the board. Read live by `BuffoonBoard::boss_ability_active`.
+    DisablesAllBossBlinds,
+    /// Rocket: earn `base` at end of round, with the payout growing by `increase`
+    /// for each **Boss Blind defeated** — `CashOnRoundEndGrowingOnBossDefeat(1, 2)`.
+    ///
+    /// The accumulator counts bosses defeated. The increment lands *before* the
+    /// round it was earned in pays out, so the boss round itself pays the
+    /// already-raised amount.
+    CashOnRoundEndGrowingOnBossDefeat(usize, usize),
+    /// Constellation: gains `rate`/100 ×mult per **Planet card used**. Base ×1.
+    ///
+    /// A plain counter — it does **not** scale retroactively, so a Constellation
+    /// bought after ten Planets starts at ×1. Contrast
+    /// [`MultPlusPerTarotUsedThisRun`](Self::MultPlusPerTarotUsedThisRun).
+    GainMultTimesPerPlanetUsed(usize),
+    /// Fortune Teller: `+n` mult per Tarot card used **this run**.
+    ///
+    /// Reads `BuffoonBoard::tarots_used`, a run-wide statistic, rather than a
+    /// per-joker accumulator — Balatro's Fortune Teller is retroactive, so one
+    /// bought after ten Tarots is immediately worth +10.
+    MultPlusPerTarotUsedThisRun(usize),
+    /// Vampire: gains `rate`/100 ×mult per **enhanced card played**, and strips
+    /// the enhancement off each one it counts. Base ×1.
+    ///
+    /// Both halves land in `BuffoonBoard::on_scored`, i.e. **before** the hand
+    /// scores. That order is the joker: the ×mult applies to the hand it just
+    /// ate, and the eaten enhancement does *not* — a Glass card Vampire eats
+    /// gives neither its ×2 nor its chance to break.
+    GainMultTimesPerEnhancedPlayed(usize),
     Planet(usize),
     RandomJoker(usize),
     RandomTarot(usize),
@@ -219,6 +306,14 @@ pub enum MPip {
     /// Hanging Chad: re-score the **first** played card `n` additional times
     /// (`RetriggerFirstPlayed(2)` = scored 3× total).
     RetriggerFirstPlayed(usize),
+    /// Seltzer: re-score **every** played card `n` additional times, for the
+    /// joker's first `hands` hands — `RetriggerAllPlayedForHands(1, 10)` — after
+    /// which it is destroyed.
+    ///
+    /// The counter is hands *completed*, so the tenth hand still retriggers and
+    /// `BuffoonBoard::melt_emptied_jokers` takes the joker straight after it —
+    /// the Ice Cream clock, spending retriggers instead of chips.
+    RetriggerAllPlayedForHands(usize, usize),
     SellValueIncrement(usize),
     Stone(usize),
     Strength,
@@ -421,6 +516,44 @@ impl Display for MPip {
             Self::GainMultPerTwoPairHand(n) => write!(f, "GainMultPerTwoPairHand({n})"),
             Self::GainChipsPerStraightHand(n) => write!(f, "GainChipsPerStraightHand({n})"),
             Self::GainChipsOnScored(n) => write!(f, "GainChipsOnScored({n})"),
+            Self::LoseMultPerRound(base, per) => write!(f, "LoseMultPerRound({base}, {per})"),
+            Self::GainMultTimesPerDiscardedCards(rate, per) => {
+                write!(f, "GainMultTimesPerDiscardedCards({rate}, {per})")
+            }
+            Self::GainMultTimesPerCardAdded(rate) => {
+                write!(f, "GainMultTimesPerCardAdded({rate})")
+            }
+            Self::GainMultTimesPerFaceDestroyed(rate) => {
+                write!(f, "GainMultTimesPerFaceDestroyed({rate})")
+            }
+            Self::GainMultTimesPerEnhancedPlayed(rate) => {
+                write!(f, "GainMultTimesPerEnhancedPlayed({rate})")
+            }
+            Self::GainMultTimesPerPlanetUsed(rate) => {
+                write!(f, "GainMultTimesPerPlanetUsed({rate})")
+            }
+            Self::CreateJokersWhenBlindSelected(n, rarity) => {
+                write!(f, "CreateJokersWhenBlindSelected({n}, {rarity:?})")
+            }
+            Self::CreateTarotOnAceStraight => write!(f, "CreateTarotOnAceStraight"),
+            Self::CreateTarotOnLowMoney(n) => write!(f, "CreateTarotOnLowMoney({n})"),
+            Self::MultTimesOnRepeatedHandThisRound(n) => {
+                write!(f, "MultTimesOnRepeatedHandThisRound({n})")
+            }
+            Self::MultTimesPerScoredAncientSuit(n) => {
+                write!(f, "MultTimesPerScoredAncientSuit({n})")
+            }
+            Self::GainMultTimesOnNonBossBlindDestroyingJoker(rate) => {
+                write!(f, "GainMultTimesOnNonBossBlindDestroyingJoker({rate})")
+            }
+            Self::DisableBossBlindOnSell => write!(f, "DisableBossBlindOnSell"),
+            Self::DisablesAllBossBlinds => write!(f, "DisablesAllBossBlinds"),
+            Self::CashOnRoundEndGrowingOnBossDefeat(base, increase) => {
+                write!(f, "CashOnRoundEndGrowingOnBossDefeat({base}, {increase})")
+            }
+            Self::MultPlusPerTarotUsedThisRun(n) => {
+                write!(f, "MultPlusPerTarotUsedThisRun({n})")
+            }
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),
@@ -431,6 +564,9 @@ impl Display for MPip {
             }
             Self::RetriggerPlayedFaces(value) => write!(f, "RetriggerPlayedFaces({value})"),
             Self::RetriggerFirstPlayed(value) => write!(f, "RetriggerFirstPlayed({value})"),
+            Self::RetriggerAllPlayedForHands(value, hands) => {
+                write!(f, "RetriggerAllPlayedForHands({value}, {hands})")
+            }
             Self::SellValueIncrement(value) => write!(f, "SellValueIncrement({value})"),
             Self::Stone(value) => write!(f, "Stone({value})"),
             Self::Strength => write!(f, "Strength"),

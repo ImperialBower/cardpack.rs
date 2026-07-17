@@ -49,16 +49,57 @@
 
 ### From EPIC docs (single source of truth is the EPIC; listed here for the debt view)
 
-- [ ] **Blackboard / Abstract Joker share `weight: 895`** — weights should be
-  unique. (`src/funky/decks/joker.rs`; EPIC-01a §Data fixes)
-- [ ] **Baron mis-tagged Common/$5, should be Rare/$8** and belongs in
-  `RARE_JOKERS`. (EPIC-01a §Data fixes)
-- [ ] **~59 defined-but-unpiled joker consts** want one reconciling rarity/cost/
+> **Refreshed 2026-07-16, when EPIC-01a closed out.** Four of the five items
+> previously listed here were already fixed and had gone stale — the risk of a
+> debt view that mirrors an EPIC rather than deriving from it. Resolved:
+> Blackboard/Abstract's `weight: 895` clash (0a — one of **14** collisions, not
+> the 1 the EPIC flagged), Baron's rarity (0a), Cavendish's missing 1-in-1000
+> destroy chance (1c), and Erosion/Stone Joker's rarity (7c).
+
+- [ ] **~50 defined-but-unpiled joker consts** want one reconciling rarity/cost/
   pile sweep. (EPIC-01a §Data fixes)
-- [ ] **Cavendish missing its 1-in-1000 destroy chance** — latent until a
-  round-end hook exists. (EPIC-01a §Data fixes)
-- [ ] **Stone card scores 0** — needs +50 chips *and* hand-type suppression
-  together; tracked in `KNOWN_UNWIRED_CARD_ENHANCEMENTS`. (EPIC-01a §Data fixes)
+
+  **Now measured rather than estimated, and the shape is known.** Twelve have
+  been corrected so far, and *every one* needed the identical fix: the const had
+  been left at the `CommonJoker` / `value: 5` / `resell_value: 0` default and was
+  absent from every rarity pile. That is not coincidence — `CommonJoker`/$5 is
+  simply **what an unwired const looks like**, so rarity drift and `MPip::Blank`
+  are one debt seen twice. The corollary is useful: the piecemeal route is
+  self-correcting, because nothing gets wired without its data being looked up.
+  A sweep is still cheaper than 50 more one-offs.
+
+- [x] ~~**Stone card scores 0**~~ — **Fixed.** It needed +50 chips *and* hand-type
+  suppression together, and both are in: `BuffoonCard::is_stone` masks the chips
+  flat (a Stone Ace is 50, not 61) and `BuffoonPile::detectable` drops Stones from
+  classification. `KNOWN_UNWIRED_CARD_ENHANCEMENTS` is now **empty** — as are its
+  two siblings.
+
+  *The recorded plan here was wrong.* "Blank the pips" models no-rank-no-suit as
+  absent data; Balatro **masks** at the accessor layer over a preserved base
+  (Vampire strips the enhancement and the rank returns). Filtering on the
+  enhancement is load-bearing: blanked pips make every Stone identical, so two of
+  them would pair with each other. See EPIC-01a §The Stone card.
+
+- [x] ~~**Three jokers are `Blank` by omission**~~ — Card Sharp, Diet Cola and
+  Ancient Joker had no recorded reason. Resolved: **two were never blocked at
+  all** and are now wired (Card Sharp, Ancient Joker); Diet Cola has a real
+  reason (Tags). Every `Blank` joker's reason now lives as **data** in
+  `BLANK_WITH_REASON` (`src/funky/decks/joker.rs`), enforced by
+  `all_jokers__every_blank_joker_has_a_stated_reason` and
+  `blank_jokers__every_reason_names_a_blocker`. (EPIC-01a §The untriaged three)
+
+- [ ] **`BuffoonPile::draw(n)` loses cards when the deck is short.** It pops one
+  at a time and returns `None` if it cannot supply the full `n` — but the cards
+  it already popped go with the dropped return value. Ask a 3-card deck for 5 and
+  the deck ends up **empty with those 3 gone**. Either drain nothing on failure
+  (check `len()` first) or return what it has; the second is what callers want,
+  and is what `BuffoonBoard::deal_to_hand_size` does instead of using this.
+  Found while building the round loop. (`src/funky/types/buffoon_pile.rs:227`)
+
+- [ ] **`draw` and `draw_first` deal from opposite ends** — `draw(n)` uses `pop`
+  (the end), `draw_first` uses `remove(0)` (the front). Related to the "treat the
+  end of the vector as the top of the deck" refactor above; the round loop deals
+  with `pop`. (`src/funky/types/buffoon_pile.rs:227,239`)
 
 ## 🤖 Automated review findings
 
