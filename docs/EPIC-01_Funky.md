@@ -21,7 +21,7 @@
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
 | Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
-| Voucher | `BCardType::Voucher` tag only | ❌ no cards |
+| Voucher | `Voucher` enum + `redeem_shop_voucher`; live readers (draws/slots/economy/weights) | 🟡 20 in scope wired (EPIC-01c); edition/ante/pack-content vouchers deferred |
 | Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟡 Buffoon/Arcana/Celestial buy/skip/open; contents-choosing is caller's (EPIC-01b Phase 4) |
 | Enhancements (Glass/Steel/Gold/Stone…) | `MPip` variants + `enhance()` | 🟡 partial |
 | Editions (foil/holo/polychrome/negative) | — | ❌ absent |
@@ -62,7 +62,10 @@
 - [x] 22 Major Arcana tarot cards with mapped `MPip` effects (`decks/tarot.rs`)
 - [ ] Score/apply tarot effects in the scoring engine (declared but mostly unhandled)
 - [ ] Spectral cards (18 in Balatro) — nothing beyond the `BCardType::Spectral` tag
-- [ ] Vouchers (32 in Balatro) — nothing beyond the tag
+- [~] Vouchers (32 in Balatro) — **the `Voucher` enum and shop $10 slot landed**
+  (EPIC-01c): 20 in-scope vouchers wired at exact wiki values across draws,
+  slots, economy, and shop weights, with the base→upgrade prerequisite enforced.
+  The edition/ante/pack-content vouchers (12) stay deferred on their subsystems.
 - [ ] Tests for `decks/planet.rs` (2) and `decks/tarot.rs` (0)
 
 ## Story 4: Jokers
@@ -126,7 +129,11 @@
   `MultPlusPerPackSkipped(3)`), and `open_pack_with_rng` (pays $4, returns the
   pack's choices, and rolls Hallucination's `CreateTarotOnPackOpen(1, 2)`
   inline). **EPIC-01b is complete** — cash-out, stock/buying, reroll, and packs.
-  Vouchers remain unmodelled. (EPIC-01a Phase 8, EPIC-01b Phases 2–4)
+  **Vouchers landed too** (EPIC-01c, complete): the `Voucher` enum + $10 shop
+  slot + `redeem_shop_voucher`, and 20 in-scope vouchers wired across draws,
+  slots, economy (incl. the interest-cap unification), and shop weights. The
+  shop is now whole bar the deferred edition/ante vouchers. (EPIC-01a Phase 8,
+  EPIC-01b Phases 2–4, EPIC-01c)
 - [x] **Money/economy state on the board** — `money: isize` plus the round-end /
   discard payout seam. (EPIC-01a Phase 1)
 - [x] **Cash-out** — a won round pays Balatro's three lines: blind reward

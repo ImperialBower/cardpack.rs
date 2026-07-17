@@ -7,8 +7,8 @@
 > a persistent, run-wide modifier the shop sells once, read live by the round
 > configuration the engine already recomputes each blind.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–4 complete
-(2026-07-17); Phase 5 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** ✅ **Complete
+(2026-07-17)** — all five phases landed; 692 lib tests, five gates green.
 
 ---
 
@@ -55,7 +55,7 @@ joker directly** — vouchers are their own reward: a complete, spendable shop.
 | 2 — Draws vouchers (Grabber/Nacho Tong, Wasteful/Recyclomancy, Paint Brush/Palette) | hands / discards / hand-size, via `recompute_draws` | **Complete** (2026-07-17) |
 | 3 — Slot vouchers (Overstock/Plus, Crystal Ball, Antimatter) | shop card slots, consumable slots, joker slots | **Complete** (2026-07-17) |
 | 4 — Economy vouchers (Reroll Surplus/Glut, Clearance Sale/Liquidation, Seed Money/Money Tree) | reroll cost, buy discount, interest cap | **Complete** (2026-07-17) |
-| 5 — Shop-weight vouchers (Tarot/Planet Merchant + Tycoon) | the 20/4/4 stock roll | Planned |
+| 5 — Shop-weight vouchers (Tarot/Planet Merchant + Tycoon) | the 20/4/4 stock roll | **Complete** (2026-07-17) |
 
 ---
 
@@ -334,13 +334,22 @@ Tycoons quadruple — so the roll's denominator and thresholds become voucher-aw
   floor is defensive — the cheapest in-scope item ($3) at 50% is already $1, so
   no in-scope card reaches it, but it keeps a future $1–$2 item from going free.
 
-### Phase 5 — Shop-weight vouchers
+### Phase 5 — Shop-weight vouchers — **Complete 2026-07-17**
 
-- [ ] **5a.** Voucher-aware weights in `draw_stock_card`. Seeded distribution
-  test: with Tarot Tycoon, tarots are ~4× their base share and the joker
-  partition is still exact (only piled jokers appear).
-- [ ] **5b.** Roadmap/doc: flip the EPIC-01 Story 3/7 voucher rows; note the
-  deferred edition/ante/pack-content vouchers with their blockers.
+- [x] **5a.** `stock_weights()` `(joker, tarot, planet)` read live; `draw_stock_card`
+  became `&self` and rolls `0..total` over them. Tarot/Planet Merchant double
+  their band, Tycoon quadruples (supersede ladder 1/2/4). With no voucher the
+  weights are 20/4/4 out of 28 — **byte-identical** to before, so the whole
+  suite stayed green across the structural change. Tests: Tarot Tycoon draws
+  >2× the base tarot count over 4000 draws (proven to bite by neutering
+  `stock_weights`); Planet Merchant biases planets; the joker partition stays
+  exact under bias (every drawn joker piled).
+- [x] **Reroll coherence fix.** `reroll_with_rng` redrew a hardcoded 2 slots,
+  ignoring Overstock; it now redraws `2 + overstock_bonus()`, matching
+  `open_shop_with_rng` (`reroll_with_rng__overstock_widens_the_reroll_too`). A
+  Phase 3 gap closed here while `draw_stock_card`'s call sites were being touched.
+- [x] **5b.** Doc close-out (below): EPIC-01 Story 7 voucher row flipped, domain
+  map updated, deferrals restated with blockers.
 
 ---
 
@@ -416,3 +425,73 @@ Exit criteria (per phase):
 2. A board that redeems no voucher is byte-identical to before (Phase 0a green).
 3. The base → upgrade prerequisite is enforced at redeem and at offer.
 4. The Status table row flips to **Complete** only with cited, tested code.
+
+As shipped (2026-07-17): `cargo test --features funky` → **692 lib + 101 doc**
+green; clippy `-Dpedantic --all-targets` clean; `--no-default-features` builds;
+fmt clean; docs clean under `-D warnings`.
+
+---
+
+## Implementation corrigendum
+
+### 1. Two mechanisms for voucher effects, chosen by where the state lives
+
+The design sketched slot vouchers as a redeem-time bump and Draws vouchers as a
+live read, but building it surfaced the general rule behind the split: **a
+voucher bumps a field iff a persistent field exists to hold its effect; otherwise
+it is read live.** Crystal Ball/Antimatter bump `consumable_slots`/`joker_slots`
+(real fields) once at redeem; Grabber (`recompute_draws`), Overstock (shop card
+count), the interest cap, the reroll discount, and the stock weights all have no
+field and are recomputed each time from `self.vouchers`. The bump is safe only
+because redeem is guarded against double-redeem; the live reads are idempotent by
+construction. Documented on `redeem_shop_voucher` and each live reader.
+
+### 2. `PackOpened`-style dead events avoided — no new `GrowthEvent`
+
+Unlike the joker phases, no voucher grows a per-joker counter, so **no
+`GrowthEvent` variant was added**. Every voucher is a live board-config reader or
+a one-time redeem bump; routing any of them through the growth seam (which
+carries `i32` counter deltas) would have been a dead event, the same reason
+EPIC-01b's Phase 0a premise did not hold.
+
+### 3. Reroll slot-count coherence (Phase 5)
+
+`reroll_with_rng` redrew a hardcoded 2 card slots, so an Overstock shop lost its
+third slot on the first reroll. Closed in Phase 5 while `draw_stock_card`'s call
+sites were being converted to `&self`: reroll now redraws `2 + overstock_bonus()`,
+matching `open_shop_with_rng`. Strictly a Phase 3 concern, fixed opportunistically
+with a test rather than left as a latent inconsistency.
+
+### 4. The interest-cap unification was load-bearing, not cosmetic (Phase 4)
+
+The design flagged unifying the two `clamp(0, 5)` sites as the keystone; shipping
+confirmed it. Both `cash_out` and the `ExtraInterest` payout now read one
+`interest_cap()`, so Seed Money/Money Tree raise the ceiling for base interest
+and To the Moon together. `cash_out__to_the_moon_reads_the_same_raised_cap` fails
+if a future edit raises one site without the other.
+
+### Phase status summary
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 (inertness guard) | Shipped | empty-set recompute pinned |
+| 1 (type, slot, redeem) | Shipped | 20-variant enum, `requires()`, `$10` redeem |
+| 2 (Draws vouchers) | Shipped | one `recompute_draws` arm |
+| 3 (slot vouchers) | Shipped | bump-at-redeem + live Overstock |
+| 4 (economy vouchers) | Shipped | interest-cap unification keystone |
+| 5 (weight vouchers) | Shipped | live `stock_weights` + reroll coherence fix |
+
+### Deferred, with blockers (unchanged from Scope)
+
+- **Edition vouchers** — Hone, Glow Up, Illusion, Omen Globe: need editions
+  (foil/holo/poly/Negative) and spectral packs, neither of which exists.
+- **Ante vouchers** — Hieroglyph, Petroglyph, Director's Cut, Retcon: need ante
+  progression, not modelled.
+- **Pack-content vouchers** — Telescope, Observatory: need pack-content shaping.
+- **Magic Trick** — playing-card shop stock, itself voucher-gated in the base
+  game.
+
+### Pre-existing debt
+
+None inherited or introduced: the crate remains clippy-pedantic-clean at
+`--all-targets` and the funky feature stays std-only (no_std build green).

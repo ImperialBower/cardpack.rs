@@ -375,6 +375,12 @@ impl BuffoonBoard {
                     _ => ScoreOp::Nothing,
                 };
                 score = special.apply(score);
+
+                // The card's edition scores at its own position, after its
+                // chips/mult — so a Polychrome ×1.5 multiplies the running score
+                // here (the Glass shape), and a retriggered card re-applies its
+                // edition each pass, matching Balatro.
+                score = card.edition.score_op().apply(score);
             }
         }
 
@@ -1648,14 +1654,39 @@ impl BuffoonBoard {
         pool[rng.random_range(0..pool.len())]
     }
 
-    /// Draw one card slot at Balatro's shop weights: **Joker 20 / Tarot 4 /
-    /// Planet 4** (out of 28), a joker slot then rolled through
-    /// [`draw_shop_joker`](Self::draw_shop_joker).
-    fn draw_stock_card<R: Rng + ?Sized>(rng: &mut R) -> BuffoonCard {
-        let slot = rng.random_range(0..28);
-        if slot < 20 {
+    /// The shop's card-slot weights `(joker, tarot, planet)`, read **live**.
+    ///
+    /// Base **20 / 4 / 4**; a Tarot Merchant doubles the tarot band and a Tarot
+    /// Tycoon quadruples it (the Tycoon requires the Merchant and supersedes it,
+    /// so the multiplier is 1/2/4, not stacked), and the same for planets. The
+    /// joker band and the rarity partition inside it are untouched — only the
+    /// consumable bands move.
+    fn stock_weights(&self) -> (usize, usize, usize) {
+        let mult = |merchant, tycoon| {
+            if self.vouchers.contains(&tycoon) {
+                4
+            } else if self.vouchers.contains(&merchant) {
+                2
+            } else {
+                1
+            }
+        };
+        let tarot = 4 * mult(Voucher::TarotMerchant, Voucher::TarotTycoon);
+        let planet = 4 * mult(Voucher::PlanetMerchant, Voucher::PlanetTycoon);
+        (20, tarot, planet)
+    }
+
+    /// Draw one card slot at the shop's [`stock_weights`](Self::stock_weights): a
+    /// joker (then rolled through [`draw_shop_joker`](Self::draw_shop_joker)), a
+    /// tarot, or a planet. With no Merchant/Tycoon voucher the weights are the
+    /// base 20/4/4 out of 28, so an un-vouchered draw is byte-identical to before.
+    fn draw_stock_card<R: Rng + ?Sized>(&self, rng: &mut R) -> BuffoonCard {
+        let (joker, tarot, planet) = self.stock_weights();
+        let total = joker + tarot + planet;
+        let roll = rng.random_range(0..total);
+        if roll < joker {
             Self::draw_shop_joker(rng)
-        } else if slot < 24 {
+        } else if roll < joker + tarot {
             MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK.len())]
         } else {
             Planet::DECK[rng.random_range(0..Planet::DECK.len())]
@@ -1685,7 +1716,7 @@ impl BuffoonBoard {
     /// exists for Riff-Raff. A fresh shop has rerolled nothing.
     pub fn open_shop_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R) {
         let slots = 2 + self.overstock_bonus();
-        let stock = (0..slots).map(|_| Self::draw_stock_card(rng)).collect();
+        let stock = (0..slots).map(|_| self.draw_stock_card(rng)).collect();
         let packs = vec![Self::draw_pack(rng), Self::draw_pack(rng)];
         let eligible = self.eligible_vouchers();
         let voucher = if eligible.is_empty() {
@@ -1927,7 +1958,10 @@ impl BuffoonBoard {
             return false;
         }
         self.money = self.money.saturating_sub(cost);
-        let stock = vec![Self::draw_stock_card(rng), Self::draw_stock_card(rng)];
+        // Redraw the same number of card slots the shop offers — Overstock
+        // widens the reroll too, matching `open_shop_with_rng`.
+        let slots = 2 + self.overstock_bonus();
+        let stock = (0..slots).map(|_| self.draw_stock_card(rng)).collect();
         if let Some(shop) = self.shop.as_mut() {
             shop.stock = stock;
             shop.rerolls_used += 1;
@@ -5651,6 +5685,7 @@ mod funky__types__board__buffoon_board_tests {
 
     // ---- Vouchers, EPIC-01c Phase 1 ---------------------------------------
 
+    use crate::funky::types::edition::Edition;
     use crate::funky::types::voucher::Voucher;
 
     /// A board whose shop offers exactly `voucher` and nothing else.
@@ -6041,6 +6076,130 @@ mod funky__types__board__buffoon_board_tests {
         board.vouchers.push(Voucher::ClearanceSale);
         board.open_pack_with_rng(0, &mut StdRng::seed_from_u64(1));
         assert_eq!(board.money, 20 - 3, "$4 pack → $3 at 25% off");
+    }
+
+    // ---- Shop-weight vouchers, EPIC-01c Phase 5 ---------------------------
+
+    fn count_kind(vouchers: &[Voucher], kind: BCardType, draws: usize) -> usize {
+        let mut board = board_for_a_round();
+        for voucher in vouchers {
+            board.vouchers.push(*voucher);
+        }
+        let mut rng = StdRng::seed_from_u64(42);
+        (0..draws)
+            .filter(|_| board.draw_stock_card(&mut rng).card_type == kind)
+            .count()
+    }
+
+    #[test]
+    fn draw_stock_card__tarot_tycoon_biases_toward_tarots() {
+        // Base tarot weight is 4/28; Tarot Tycoon lifts it to 16/40. Not a 4×
+        // *share* (the denominator grows), but well over double the count.
+        let base = count_kind(&[], BCardType::Tarot, 4000);
+        let tycoon = count_kind(
+            &[Voucher::TarotMerchant, Voucher::TarotTycoon],
+            BCardType::Tarot,
+            4000,
+        );
+        assert!(
+            tycoon > 2 * base,
+            "Tarot Tycoon biases toward tarots ({tycoon} vs {base})"
+        );
+    }
+
+    #[test]
+    fn draw_stock_card__planet_merchant_biases_toward_planets() {
+        // Planet Merchant doubles the planet band (4 → 8).
+        let base = count_kind(&[], BCardType::Planet, 4000);
+        let merchant = count_kind(&[Voucher::PlanetMerchant], BCardType::Planet, 4000);
+        assert!(
+            merchant > base,
+            "Planet Merchant biases toward planets ({merchant} vs {base})"
+        );
+    }
+
+    #[test]
+    fn draw_stock_card__jokers_stay_a_piled_partition_under_bias() {
+        // The consumable bands moving must not corrupt the joker partition — a
+        // drawn joker is still always a piled one.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::TarotMerchant);
+        board.vouchers.push(Voucher::TarotTycoon);
+        let mut rng = StdRng::seed_from_u64(7);
+        for _ in 0..2000 {
+            let card = board.draw_stock_card(&mut rng);
+            if card.is_joker() {
+                assert!(
+                    Joker::COMMON_JOKERS.contains(&card)
+                        || Joker::UNCOMMON_JOKERS.contains(&card)
+                        || Joker::RARE_JOKERS.contains(&card),
+                    "{card} drawn but not piled"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reroll_with_rng__overstock_widens_the_reroll_too() {
+        // A reroll redraws the same number of card slots the shop offers, so
+        // Overstock's wider stock survives a reroll.
+        let mut board = board_for_a_round();
+        board.money = 100;
+        board.vouchers.push(Voucher::Overstock);
+        board.open_shop_with_rng(&mut StdRng::seed_from_u64(1));
+        assert_eq!(board.shop.as_ref().unwrap().stock.len(), 3);
+        board.reroll_with_rng(&mut StdRng::seed_from_u64(2));
+        assert_eq!(
+            board.shop.as_ref().unwrap().stock.len(),
+            3,
+            "the reroll kept all three slots"
+        );
+    }
+
+    // ---- Played-card editions, EPIC-01d Phase 1 ---------------------------
+
+    /// `board_playing(index)` with `edition` stamped on the first played card.
+    fn board_playing_edition(index: &str, edition: Edition) -> BuffoonBoard {
+        let mut board = board_playing(index);
+        let first = board.played.get(0).copied().unwrap().with_edition(edition);
+        board.played.remove(0);
+        board.played.insert(0, first);
+        board
+    }
+
+    #[test]
+    fn score__a_foil_played_card_adds_fifty_chips() {
+        let base = board_playing("2S 5D 8C TS KH").score();
+        let foil = board_playing_edition("2S 5D 8C TS KH", Edition::Foil).score();
+        assert_eq!(foil.chips, base.chips + 50, "Foil is +50 chips");
+        assert_eq!(foil.mult, base.mult, "and no mult");
+    }
+
+    #[test]
+    fn score__a_holographic_played_card_adds_ten_mult() {
+        let base = board_playing("2S 5D 8C TS KH").score();
+        let holo = board_playing_edition("2S 5D 8C TS KH", Edition::Holographic).score();
+        assert_eq!(holo.mult, base.mult + 10, "Holo is +10 mult");
+        assert_eq!(holo.chips, base.chips, "and no chips");
+    }
+
+    #[test]
+    fn score__a_polychrome_played_card_multiplies_mult_by_one_and_a_half() {
+        // A pair enters phase 2 at 2 mult; Polychrome on a played card ×1.5s the
+        // running mult at that card's position → ceil(2 × 1.5) = 3.
+        let base = board_playing("AS AD QC JS TH").score();
+        assert_eq!(base.mult, 2, "a pair's base mult");
+        let poly = board_playing_edition("AS AD QC JS TH", Edition::Polychrome).score();
+        assert_eq!(poly.mult, 3, "×1.5 ceils 2 → 3");
+        assert_eq!(poly.chips, base.chips, "Polychrome moves mult, not chips");
+    }
+
+    #[test]
+    fn score__an_unedited_played_hand_is_unchanged() {
+        // The inertness anchor: Edition::None everywhere scores byte-identical.
+        let base = board_playing("AS AD QC JS TH");
+        let none = board_playing_edition("AS AD QC JS TH", Edition::None);
+        assert_eq!(none.score(), base.score());
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------

@@ -172,6 +172,7 @@ impl Deck {
 
 pub mod card {
     use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
+    use crate::funky::types::edition::Edition;
     use crate::funky::types::mpip::MPip;
     use crate::prelude::{FrenchRank, FrenchSuit, Pip};
 
@@ -199,6 +200,7 @@ pub mod card {
         card_type: BCardType::Stone,
         enhancement: MPip::TOWER,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
 
@@ -234,6 +236,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const KING_SPADES: BuffoonCard = BuffoonCard {
@@ -242,6 +245,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const QUEEN_SPADES: BuffoonCard = BuffoonCard {
@@ -250,6 +254,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JACK_SPADES: BuffoonCard = BuffoonCard {
@@ -258,6 +263,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TEN_SPADES: BuffoonCard = BuffoonCard {
@@ -266,6 +272,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const NINE_SPADES: BuffoonCard = BuffoonCard {
@@ -274,6 +281,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EIGHT_SPADES: BuffoonCard = BuffoonCard {
@@ -282,6 +290,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SEVEN_SPADES: BuffoonCard = BuffoonCard {
@@ -290,6 +299,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SIX_SPADES: BuffoonCard = BuffoonCard {
@@ -298,6 +308,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FIVE_SPADES: BuffoonCard = BuffoonCard {
@@ -306,6 +317,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FOUR_SPADES: BuffoonCard = BuffoonCard {
@@ -314,6 +326,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TREY_SPADES: BuffoonCard = BuffoonCard {
@@ -322,6 +335,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEUCE_SPADES: BuffoonCard = BuffoonCard {
@@ -330,6 +344,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const ACE_HEARTS: BuffoonCard = BuffoonCard {
@@ -338,6 +353,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const KING_HEARTS: BuffoonCard = BuffoonCard {
@@ -346,6 +362,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const QUEEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -354,6 +371,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JACK_HEARTS: BuffoonCard = BuffoonCard {
@@ -362,6 +380,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -370,6 +389,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const NINE_HEARTS: BuffoonCard = BuffoonCard {
@@ -378,6 +398,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EIGHT_HEARTS: BuffoonCard = BuffoonCard {
@@ -386,6 +407,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SEVEN_HEARTS: BuffoonCard = BuffoonCard {
@@ -394,6 +416,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SIX_HEARTS: BuffoonCard = BuffoonCard {
@@ -402,6 +425,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FIVE_HEARTS: BuffoonCard = BuffoonCard {
@@ -410,6 +434,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FOUR_HEARTS: BuffoonCard = BuffoonCard {
@@ -418,6 +443,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TREY_HEARTS: BuffoonCard = BuffoonCard {
@@ -426,6 +452,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEUCE_HEARTS: BuffoonCard = BuffoonCard {
@@ -434,6 +461,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const ACE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -442,6 +470,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const KING_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -450,6 +479,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const QUEEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -458,6 +488,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JACK_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -466,6 +497,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -474,6 +506,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const NINE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -482,6 +515,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EIGHT_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -490,6 +524,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SEVEN_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -498,6 +533,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SIX_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -506,6 +542,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FIVE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -514,6 +551,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FOUR_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -522,6 +560,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TREY_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -530,6 +569,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEUCE_DIAMONDS: BuffoonCard = BuffoonCard {
@@ -538,6 +578,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const ACE_CLUBS: BuffoonCard = BuffoonCard {
@@ -546,6 +587,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const KING_CLUBS: BuffoonCard = BuffoonCard {
@@ -554,6 +596,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const QUEEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -562,6 +605,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JACK_CLUBS: BuffoonCard = BuffoonCard {
@@ -570,6 +614,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -578,6 +623,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const NINE_CLUBS: BuffoonCard = BuffoonCard {
@@ -586,6 +632,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EIGHT_CLUBS: BuffoonCard = BuffoonCard {
@@ -594,6 +641,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SEVEN_CLUBS: BuffoonCard = BuffoonCard {
@@ -602,6 +650,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SIX_CLUBS: BuffoonCard = BuffoonCard {
@@ -610,6 +659,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FIVE_CLUBS: BuffoonCard = BuffoonCard {
@@ -618,6 +668,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const FOUR_CLUBS: BuffoonCard = BuffoonCard {
@@ -626,6 +677,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TREY_CLUBS: BuffoonCard = BuffoonCard {
@@ -634,6 +686,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEUCE_CLUBS: BuffoonCard = BuffoonCard {
@@ -642,6 +695,7 @@ pub mod card {
         card_type: BCardType::Basic,
         enhancement: MPip::Blank,
         resell_value: 0,
+        edition: Edition::None,
         debuffed: false,
     };
 }

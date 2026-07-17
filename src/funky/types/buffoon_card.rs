@@ -1,4 +1,5 @@
 use crate::funky::decks::{basic, tarot};
+use crate::funky::types::edition::Edition;
 use crate::funky::types::mpip::MPip;
 use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip, PipType};
 use crate::preludes::funky::Score;
@@ -80,6 +81,9 @@ pub struct BuffoonCard {
     pub rank: Pip,
     pub card_type: BCardType,
     pub enhancement: MPip,
+    /// The foil/holo/poly/negative overlay, orthogonal to `enhancement`. Defaults
+    /// to [`Edition::None`] so an unstamped card is unedited.
+    pub edition: Edition,
     pub resell_value: usize,
     pub debuffed: bool,
 }
@@ -229,6 +233,15 @@ impl BuffoonCard {
             enhancement,
             ..*self
         }
+    }
+
+    /// Stamp an [`Edition`] onto this card, returning the edited copy — the
+    /// edition mirror of the enhancement stamp, leaving the enhancement and
+    /// everything else untouched (an edition is orthogonal to an enhancement, so
+    /// a Steel card stays Steel when foiled).
+    #[must_use]
+    pub fn with_edition(&self, edition: Edition) -> Self {
+        Self { edition, ..*self }
     }
 
     #[must_use]
@@ -444,6 +457,17 @@ mod funky__types__buffoon_card_tests {
 
         assert_eq!(ks.get_chips(), 36);
         assert_eq!(DEATH.get_chips(), 10);
+    }
+
+    #[test]
+    fn with_edition__is_orthogonal_to_the_enhancement() {
+        // A Steel card stays Steel when foiled — the two fields do not interfere.
+        let steel = TEN_DIAMONDS.enhance_swap(MPip::STEEL);
+        let steel_foil = steel.with_edition(Edition::Foil);
+        assert_eq!(steel_foil.enhancement, MPip::STEEL, "still Steel");
+        assert_eq!(steel_foil.edition, Edition::Foil, "and now Foil");
+        // A fresh card defaults to no edition.
+        assert_eq!(TEN_DIAMONDS.edition, Edition::None);
     }
 
     #[test]

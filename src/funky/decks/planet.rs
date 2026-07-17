@@ -60,6 +60,7 @@ impl Planet {
 
 pub mod card {
     use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
+    use crate::funky::types::edition::Edition;
     use crate::funky::types::hands::HandType;
     use crate::funky::types::mpip::MPip;
     use crate::prelude::{Pip, PipType};
@@ -84,6 +85,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(10, 1, HandType::HighCard), // +1 Mult and +10 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const MERCURY: BuffoonCard = BuffoonCard {
@@ -98,6 +100,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(15, 1, HandType::Pair), // +1 Mult and +15 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const URANUS: BuffoonCard = BuffoonCard {
@@ -112,6 +115,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(20, 1, HandType::TwoPair), // +1 Mult and +20 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const VENUS: BuffoonCard = BuffoonCard {
@@ -126,6 +130,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(20, 2, HandType::ThreeOfAKind), // +2 Mult and +20 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SATURN: BuffoonCard = BuffoonCard {
@@ -140,6 +145,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(30, 4, HandType::Straight), // +3 Mult and +30 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JUPITER: BuffoonCard = BuffoonCard {
@@ -154,6 +160,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(35, 4, HandType::Flush), // +2 Mult and +35 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EARTH: BuffoonCard = BuffoonCard {
@@ -168,6 +175,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(40, 4, HandType::FullHouse), // +2 Mult and +25 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const MARS: BuffoonCard = BuffoonCard {
@@ -182,6 +190,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(60, 7, HandType::FourOfAKind), // +3 Mult and +30 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const NEPTUNE: BuffoonCard = BuffoonCard {
@@ -196,6 +205,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(40, 4, HandType::StraightFlush), // +4 Mult and +40 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const PLANET_X: BuffoonCard = BuffoonCard {
@@ -210,6 +220,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(35, 3, HandType::FiveOfAKind), // +3 Mult and +35 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const CERES: BuffoonCard = BuffoonCard {
@@ -224,6 +235,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(40, 4, HandType::FlushFive), // +4 Mult and +40 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const ERIS: BuffoonCard = BuffoonCard {
@@ -238,6 +250,7 @@ pub mod card {
         card_type: BCardType::Planet,
         enhancement: MPip::ChipsMultPlusOnHand(50, 3, HandType::FlushFive), // +3 Mult and +50 Chips
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
 }

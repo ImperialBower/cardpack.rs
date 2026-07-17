@@ -32,6 +32,7 @@ impl MajorArcana {
 
 pub mod card {
     use crate::funky::types::buffoon_card::{BCardType, BuffoonCard};
+    use crate::funky::types::edition::Edition;
     use crate::funky::types::mpip::MPip;
     use crate::prelude::{PipType, TarotRank, TarotSuit};
 
@@ -41,6 +42,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Blank,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const MAGICIAN: BuffoonCard = BuffoonCard {
@@ -49,6 +51,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Lucky(5, 15),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const HIGH_PRIESTESS: BuffoonCard = BuffoonCard {
@@ -57,6 +60,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Planet(2),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EMPRESS: BuffoonCard = BuffoonCard {
@@ -65,6 +69,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::MultPlus(4),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const EMPEROR: BuffoonCard = BuffoonCard {
@@ -73,6 +78,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::RandomTarot(2),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const HIEROPHANT: BuffoonCard = BuffoonCard {
@@ -81,6 +87,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Chips(30),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const LOVERS: BuffoonCard = BuffoonCard {
@@ -89,6 +96,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Wild(PipType::Suit),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const THE_CHARIOT: BuffoonCard = BuffoonCard {
@@ -97,6 +105,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::STEEL,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const STRENGTH: BuffoonCard = BuffoonCard {
@@ -105,6 +114,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Strength,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const HERMIT: BuffoonCard = BuffoonCard {
@@ -113,6 +123,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::DoubleMoney(20),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const WHEEL_OF_FORTUNE: BuffoonCard = BuffoonCard {
@@ -121,6 +132,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::WHEEL_OF_FORTUNE,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JUSTICE: BuffoonCard = BuffoonCard {
@@ -129,6 +141,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Glass(2, 4),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const HANGED_MAN: BuffoonCard = BuffoonCard {
@@ -137,6 +150,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Hanged(2),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEATH: BuffoonCard = BuffoonCard {
@@ -145,6 +159,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Death(1),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TEMPERANCE: BuffoonCard = BuffoonCard {
@@ -153,6 +168,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::TEMPERANCE,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const DEVIL: BuffoonCard = BuffoonCard {
@@ -161,6 +177,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::DEVIL,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const TOWER: BuffoonCard = BuffoonCard {
@@ -169,6 +186,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::TOWER,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const STAR: BuffoonCard = BuffoonCard {
@@ -177,6 +195,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Diamonds(3),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const MOON: BuffoonCard = BuffoonCard {
@@ -185,6 +204,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Clubs(3),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const SUN: BuffoonCard = BuffoonCard {
@@ -193,6 +213,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Hearts(3),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const JUDGEMENT: BuffoonCard = BuffoonCard {
@@ -201,6 +222,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::JUDGEMENT,
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
     pub const WORLD: BuffoonCard = BuffoonCard {
@@ -209,6 +231,7 @@ pub mod card {
         card_type: BCardType::Tarot,
         enhancement: MPip::Spades(3),
         resell_value: 1,
+        edition: Edition::None,
         debuffed: false,
     };
 }

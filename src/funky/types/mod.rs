@@ -3,6 +3,7 @@ pub mod board;
 pub mod buffoon_card;
 pub mod buffoon_pile;
 pub mod draws;
+pub mod edition;
 pub mod effect;
 pub mod hands;
 pub mod mpip;
