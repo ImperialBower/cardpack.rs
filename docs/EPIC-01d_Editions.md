@@ -9,8 +9,8 @@
 > the Antimatter-voucher shape. This EPIC also unblocks **Perkeo**, the last
 > Legendary joker still `Blank`.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–1 complete
-(2026-07-17); Phases 2–4 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–2 complete
+(2026-07-17); Phases 3–4 planned
 
 ---
 
@@ -66,7 +66,7 @@ already exist.
 |---|---|---|
 | 0 — `Edition` type + `BuffoonCard.edition` field | the overlay every card/joker can wear | **Complete** (2026-07-17) |
 | 1 — Played-card editions (Foil/Holo/Poly) | `+50` chips / `+10` mult / `×1.5` when a card scores | **Complete** (2026-07-17) |
-| 2 — Joker editions (Foil/Holo/Poly) | the same three on a joker's own contribution | Planned |
+| 2 — Joker editions (Foil/Holo/Poly) | the same three on a joker's own contribution | **Complete** (2026-07-17) |
 | 3 — Negative slots (jokers + consumables) | a Negative item takes no slot | Planned |
 | 4 — Perkeo | the last Blank Legendary, via Negative consumables | Planned |
 
@@ -258,11 +258,15 @@ recorded, not skipped.)*
   on a pair (base mult 2) → mult 3 (`ceil(2 × 1.5)`), chips unchanged. Plus the
   inertness anchor: `Edition::None` on a played card scores byte-identical.
 
-### Phase 2 — Joker editions
+### Phase 2 — Joker editions — **Complete 2026-07-17**
 
-- [ ] **2a.** Fold `joker.edition.score_op()` into `fold_jokers` after the
-  joker's op. Tests: a Foil joker +50 chips, Holo +10 mult, Polychrome ×1.5 on
-  the running score after its effect (composition-order test both ways).
+- [x] **2a.** `joker.edition.score_op().apply(score)` folded into `fold_jokers`
+  after each joker's op — at the joker's position, so a Polychrome joker ×1.5s
+  once its own effect has landed (Balatro's left-to-right joker order). The
+  structural twin of Phase 1, one line. Tests: a Foil Joker +50 chips (its +4
+  mult intact), a Holo Joker +10 mult, a Polychrome Joker → mult 8 (`ceil((1 +
+  4) × 1.5)` = the high-card base 1 + the Joker's 4, then ×1.5), and an
+  `Edition::None` joker scores byte-identical.
 
 ### Phase 3 — Negative slots
 

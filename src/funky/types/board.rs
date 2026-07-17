@@ -567,6 +567,11 @@ impl BuffoonBoard {
                 }
             };
             score = op.apply(score);
+
+            // The joker's own edition scores at its position, after its effect —
+            // so a Polychrome joker ×1.5s the running score once its +mult/×mult
+            // has landed, matching Balatro's left-to-right joker order.
+            score = joker.edition.score_op().apply(score);
         }
 
         score
@@ -6199,6 +6204,60 @@ mod funky__types__board__buffoon_board_tests {
         // The inertness anchor: Edition::None everywhere scores byte-identical.
         let base = board_playing("AS AD QC JS TH");
         let none = board_playing_edition("AS AD QC JS TH", Edition::None);
+        assert_eq!(none.score(), base.score());
+    }
+
+    // ---- Joker editions, EPIC-01d Phase 2 ---------------------------------
+
+    /// `board_playing(index)` with a single joker pushed on.
+    fn board_playing_joker(index: &str, joker: BuffoonCard) -> BuffoonBoard {
+        let mut board = board_playing(index);
+        board.push_joker(joker);
+        board
+    }
+
+    #[test]
+    fn score__a_foil_joker_adds_fifty_chips() {
+        let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER).score();
+        let foil =
+            board_playing_joker("2S 5D 8C TS KH", card::JOKER.with_edition(Edition::Foil)).score();
+        assert_eq!(foil.chips, base.chips + 50, "Foil is +50 chips");
+        assert_eq!(
+            foil.mult, base.mult,
+            "and the joker's own +4 mult, unchanged"
+        );
+    }
+
+    #[test]
+    fn score__a_holographic_joker_adds_ten_mult() {
+        let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER).score();
+        let holo = board_playing_joker(
+            "2S 5D 8C TS KH",
+            card::JOKER.with_edition(Edition::Holographic),
+        )
+        .score();
+        assert_eq!(holo.mult, base.mult + 10, "Holo is +10 mult");
+        assert_eq!(holo.chips, base.chips, "and no chips");
+    }
+
+    #[test]
+    fn score__a_polychrome_joker_multiplies_the_running_mult() {
+        // High card enters phase 4 at 1 mult; the Joker adds +4 → 5, then the
+        // joker's Polychrome ×1.5s at its position → ceil(5 × 1.5) = 8.
+        let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER).score();
+        assert_eq!(base.mult, 5, "1 base + the Joker's 4");
+        let poly = board_playing_joker(
+            "2S 5D 8C TS KH",
+            card::JOKER.with_edition(Edition::Polychrome),
+        )
+        .score();
+        assert_eq!(poly.mult, 8, "×1.5 after the joker's effect, ceil(7.5)");
+    }
+
+    #[test]
+    fn score__an_unedited_joker_is_unchanged() {
+        let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER);
+        let none = board_playing_joker("2S 5D 8C TS KH", card::JOKER.with_edition(Edition::None));
         assert_eq!(none.score(), base.score());
     }
 
