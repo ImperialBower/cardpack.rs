@@ -9,8 +9,8 @@
 > the Antimatter-voucher shape. This EPIC also unblocks **Perkeo**, the last
 > Legendary joker still `Blank`.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–2 complete
-(2026-07-17); Phases 3–4 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–3 complete
+(2026-07-17); Phase 4 planned
 
 ---
 
@@ -67,7 +67,7 @@ already exist.
 | 0 — `Edition` type + `BuffoonCard.edition` field | the overlay every card/joker can wear | **Complete** (2026-07-17) |
 | 1 — Played-card editions (Foil/Holo/Poly) | `+50` chips / `+10` mult / `×1.5` when a card scores | **Complete** (2026-07-17) |
 | 2 — Joker editions (Foil/Holo/Poly) | the same three on a joker's own contribution | **Complete** (2026-07-17) |
-| 3 — Negative slots (jokers + consumables) | a Negative item takes no slot | Planned |
+| 3 — Negative slots (jokers + consumables) | a Negative item takes no slot | **Complete** (2026-07-17) |
 | 4 — Perkeo | the last Blank Legendary, via Negative consumables | Planned |
 
 ---
@@ -268,13 +268,18 @@ recorded, not skipped.)*
   4) × 1.5)` = the high-card base 1 + the Joker's 4, then ×1.5), and an
   `Edition::None` joker scores byte-identical.
 
-### Phase 3 — Negative slots
+### Phase 3 — Negative slots — **Complete 2026-07-17**
 
-- [ ] **3a.** Live Negative exemption in `has_joker_room` and
-  `has_consumable_room`. Tests: a 6th joker fits iff one held is Negative; buying
-  past the limit is refused without a Negative and allowed with one; selling the
-  Negative restores the limit. A Negative joker scores nothing (it is not a
-  numeric edition).
+- [x] **3a.** A shared `slots_taken(pile)` counts every non-Negative item;
+  `has_joker_room` and `has_consumable_room` compare it to their limit instead of
+  `pile.len()`. Read **live** (the EPIC-01c bump-vs-live rule: item removal is
+  unguarded, so a stored counter would drift — a filter cannot), so selling a
+  Negative restores the limit for free. Tests: a Negative among 5 jokers frees a
+  slot and a 6th normal fills it again; the same for consumables; `buy_stock`
+  past the limit is refused without a Negative and succeeds with one; and — the
+  Phase 0 payoff — a Negative joker scores nothing (`score_op` is already
+  `Nothing`). No regression: a board with no Negatives counts identically to
+  `len()`, so Riff-Raff / `create_consumable` are unchanged.
 
 ### Phase 4 — Perkeo
 

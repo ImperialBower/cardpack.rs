@@ -1078,15 +1078,31 @@ impl BuffoonBoard {
 
     /// Whether the board has room for another consumable — the "(Must have
     /// room)" clause the creator cards carry.
+    ///
+    /// A **Negative** consumable takes no slot, so only the non-Negative ones
+    /// count against [`consumable_slots`](Self::consumable_slots) — read live, so
+    /// selling a Negative restores the limit with no stored counter to drift.
     #[must_use]
     pub fn has_consumable_room(&self) -> bool {
-        self.consumables.len() < self.consumable_slots
+        Self::slots_taken(&self.consumables) < self.consumable_slots
     }
 
     /// Whether the board has room for another joker.
+    ///
+    /// A **Negative** joker takes no slot, so only the non-Negative ones count
+    /// against [`joker_slots`](Self::joker_slots).
     #[must_use]
     pub fn has_joker_room(&self) -> bool {
-        self.jokers.len() < self.joker_slots
+        Self::slots_taken(&self.jokers) < self.joker_slots
+    }
+
+    /// How many items in `pile` occupy a slot — every one that is not Negative.
+    /// The one live rule both room checks share, so Negative behaves identically
+    /// for jokers and consumables.
+    fn slots_taken(pile: &BuffoonPile) -> usize {
+        pile.iter()
+            .filter(|card| !card.edition.is_negative())
+            .count()
     }
 
     /// Put `card` in a consumable slot, or refuse if there is no room. Returns
@@ -6259,6 +6275,82 @@ mod funky__types__board__buffoon_board_tests {
         let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER);
         let none = board_playing_joker("2S 5D 8C TS KH", card::JOKER.with_edition(Edition::None));
         assert_eq!(none.score(), base.score());
+    }
+
+    // ---- Negative slots, EPIC-01d Phase 3 ---------------------------------
+
+    /// Turn the joker at `index` Negative, in place.
+    fn negate_joker(board: &mut BuffoonBoard, index: usize) {
+        let neg = board
+            .jokers
+            .get(index)
+            .copied()
+            .unwrap()
+            .with_edition(Edition::Negative);
+        board.jokers.remove(index);
+        board.jokers.insert(index, neg);
+    }
+
+    #[test]
+    fn has_joker_room__a_negative_joker_does_not_count() {
+        let mut board = board_for_a_round();
+        for _ in 0..board.joker_slots {
+            board.push_joker(card::JOKER);
+        }
+        assert!(!board.has_joker_room(), "5 normal jokers fill the 5 slots");
+
+        negate_joker(&mut board, 0);
+        assert!(board.has_joker_room(), "a Negative among them frees a slot");
+
+        board.push_joker(card::JOKER);
+        assert!(!board.has_joker_room(), "5 non-negative of 6 fill it again");
+    }
+
+    #[test]
+    fn has_consumable_room__a_negative_consumable_does_not_count() {
+        let mut board = board_for_a_round();
+        board.create_consumable(tarot_card::FOOL);
+        board.create_consumable(tarot_card::FOOL);
+        assert!(!board.has_consumable_room(), "the two slots are full");
+
+        let neg = board
+            .consumables
+            .get(0)
+            .copied()
+            .unwrap()
+            .with_edition(Edition::Negative);
+        board.consumables.remove(0);
+        board.consumables.insert(0, neg);
+        assert!(
+            board.has_consumable_room(),
+            "a Negative consumable frees a slot"
+        );
+    }
+
+    #[test]
+    fn buy_stock__a_negative_joker_frees_room_for_a_purchase() {
+        let mut board = board_with_stock(vec![card::BLUE_JOKER]);
+        board.money = 100;
+        for _ in 0..board.joker_slots {
+            board.push_joker(card::JOKER);
+        }
+        assert!(!board.buy_stock(0), "a full board refuses");
+
+        negate_joker(&mut board, 0);
+        assert!(board.buy_stock(0), "with a Negative held, the 6th fits");
+        assert_eq!(board.jokers.len(), 6);
+    }
+
+    #[test]
+    fn score__a_negative_joker_scores_nothing() {
+        // Negative is a slot rule, never a numeric edition.
+        let base = board_playing_joker("2S 5D 8C TS KH", card::JOKER).score();
+        let neg = board_playing_joker(
+            "2S 5D 8C TS KH",
+            card::JOKER.with_edition(Edition::Negative),
+        )
+        .score();
+        assert_eq!(neg, base, "a Negative joker contributes no chips or mult");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------
