@@ -7,8 +7,8 @@
 > a persistent, run-wide modifier the shop sells once, read live by the round
 > configuration the engine already recomputes each blind.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phase 1 complete
-(2026-07-17); Phases 2–5 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 1–2 complete
+(2026-07-17); Phases 3–5 planned
 
 ---
 
@@ -52,7 +52,7 @@ joker directly** — vouchers are their own reward: a complete, spendable shop.
 | Component (phase) | Adds | Status |
 |---|---|---|
 | 1 — `Voucher` type, board state, shop slot, redeem | the voucher slot the shop has been missing | **Complete** (2026-07-17) |
-| 2 — Draws vouchers (Grabber/Nacho Tong, Wasteful/Recyclomancy, Paint Brush/Palette) | hands / discards / hand-size, via `recompute_draws` | Planned |
+| 2 — Draws vouchers (Grabber/Nacho Tong, Wasteful/Recyclomancy, Paint Brush/Palette) | hands / discards / hand-size, via `recompute_draws` | **Complete** (2026-07-17) |
 | 3 — Slot vouchers (Overstock/Plus, Crystal Ball, Antimatter) | shop card slots, consumable slots, joker slots | Planned |
 | 4 — Economy vouchers (Reroll Surplus/Glut, Clearance Sale/Liquidation, Seed Money/Money Tree) | reroll cost, buy discount, interest cap | Planned |
 | 5 — Shop-weight vouchers (Tarot/Planet Merchant + Tycoon) | the 20/4/4 stock roll | Planned |
@@ -280,13 +280,20 @@ Tycoons quadruple — so the roll's denominator and thresholds become voucher-aw
   offered once its base is held (256 seeds), and no upgrade is ever offered
   without its base.
 
-### Phase 2 — Draws vouchers
+### Phase 2 — Draws vouchers — **Complete 2026-07-17**
 
-- [ ] **2a.** The `recompute_draws` voucher arm. Tests: Grabber → 5 hands, Nacho
-  Tong → 6 (and refuses without Grabber, per 1c); Wasteful/Recyclomancy on
-  discards; Paint Brush/Palette on hand size; each pinned through a real
-  `on_blind_selected` recompute, and one test that a boss (The Needle) still
-  overrides Grabber to 1 hand.
+- [x] **2a.** One voucher arm in `recompute_draws` (`board.rs:1552`), read live
+  like the jokers: Grabber/Nacho Tong → `hands_to_play`, Wasteful/Recyclomancy →
+  `discards`, Paint Brush/Palette → `hand_size`. Placed **before** the
+  discard-wipe and the boss ability, so the two ordering rules hold. 9 tests
+  through a real `on_blind_selected`: each of the six at its value (5 hands / 6 /
+  4 discards / 5 / hand size 9 / 10); The Needle still overrides Grabber to 1
+  hand (proves the arm is before the boss); Burglar still zeroes a Wasteful
+  discard (proves it is before the discard-wipe); and a permanent voucher adds
+  its bonus **once**, not once per blind, across three `on_blind_selected`s
+  (recompute-from-baseline, the Phase 0a inertness property holding for a
+  non-empty set). The upgrade-needs-base rule is enforced at redeem (Phase 1c),
+  so an unheld Nacho Tong never reaches the board to be read here.
 
 ### Phase 3 — Slot vouchers
 

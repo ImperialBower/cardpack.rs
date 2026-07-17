@@ -1563,6 +1563,19 @@ impl BuffoonBoard {
                 _ => {}
             }
         }
+        // The Draws vouchers (EPIC-01c Phase 2), read live like the jokers so
+        // they stack with them and never accumulate across blinds. Added before
+        // the discard-wipe so Burglar still zeroes a Wasteful discard, and before
+        // the boss ability so The Needle still overrides Grabber — the ordering
+        // both is deliberate.
+        for voucher in &self.vouchers {
+            match voucher {
+                Voucher::Grabber | Voucher::NachoTong => draws.hands_to_play += 1,
+                Voucher::Wasteful | Voucher::Recyclomancy => draws.discards += 1,
+                Voucher::PaintBrush | Voucher::Palette => draws.hand_size += 1,
+                _ => {}
+            }
+        }
         if lose_discards {
             draws.discards = 0;
         }
@@ -5699,6 +5712,101 @@ mod funky__types__board__buffoon_board_tests {
             }
         }
         assert!(saw_nacho, "Nacho Tong is reachable once Grabber is held");
+    }
+
+    // ---- Draws vouchers, EPIC-01c Phase 2 ---------------------------------
+
+    #[test]
+    fn recompute_draws__grabber_adds_a_hand() {
+        let mut board = board_for_a_round(); // 4 hands, 3 discards, hand size 8
+        board.vouchers.push(Voucher::Grabber);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 5);
+        assert_eq!(board.draws.discards, 3, "only hands move");
+    }
+
+    #[test]
+    fn recompute_draws__nacho_tong_adds_a_second_hand() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Grabber);
+        board.vouchers.push(Voucher::NachoTong);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 6, "Grabber + Nacho Tong = +2");
+    }
+
+    #[test]
+    fn recompute_draws__wasteful_adds_a_discard() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Wasteful);
+        board.on_blind_selected();
+        assert_eq!(board.draws.discards, 4);
+        assert_eq!(board.draws.hands_to_play, 4, "only discards move");
+    }
+
+    #[test]
+    fn recompute_draws__recyclomancy_adds_a_second_discard() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Wasteful);
+        board.vouchers.push(Voucher::Recyclomancy);
+        board.on_blind_selected();
+        assert_eq!(board.draws.discards, 5);
+    }
+
+    #[test]
+    fn recompute_draws__paint_brush_adds_hand_size() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::PaintBrush);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hand_size, Draws::DEFAULT_HAND_SIZE + 1);
+    }
+
+    #[test]
+    fn recompute_draws__palette_adds_a_second_hand_size() {
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::PaintBrush);
+        board.vouchers.push(Voucher::Palette);
+        board.on_blind_selected();
+        assert_eq!(board.draws.hand_size, Draws::DEFAULT_HAND_SIZE + 2);
+    }
+
+    #[test]
+    fn recompute_draws__the_boss_ability_still_overrides_grabber() {
+        // The Needle leaves exactly 1 hand, applied last — after every bonus.
+        // Grabber's +1 is computed and then overridden, matching Balatro.
+        let mut board = board_for_a_round();
+        board.blind = Blind::Boss(BossBlind::TheNeedle);
+        board.vouchers.push(Voucher::Grabber);
+        board.on_blind_selected();
+        assert_eq!(
+            board.draws.hands_to_play, 1,
+            "the boss constrains after the bonus"
+        );
+    }
+
+    #[test]
+    fn recompute_draws__burglar_still_zeroes_a_wasteful_discard() {
+        // Burglar loses all discards; Wasteful's +1 is added before that zeroing,
+        // so Burglar still wins — the voucher discard does not survive it.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Wasteful);
+        board.push_joker(card::BURGLAR);
+        board.on_blind_selected();
+        assert_eq!(
+            board.draws.discards, 0,
+            "Burglar zeroes even a Wasteful discard"
+        );
+    }
+
+    #[test]
+    fn recompute_draws__vouchers_do_not_stack_across_blinds() {
+        // The recompute rebuilds from `starting_draws` each blind, so a permanent
+        // voucher adds its bonus once, not once per blind.
+        let mut board = board_for_a_round();
+        board.vouchers.push(Voucher::Grabber);
+        board.on_blind_selected();
+        board.on_blind_selected();
+        board.on_blind_selected();
+        assert_eq!(board.draws.hands_to_play, 5, "still +1, never +3");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------
