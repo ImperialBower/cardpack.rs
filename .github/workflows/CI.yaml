@@ -111,9 +111,15 @@ jobs:
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
+      # The wasm-bindgen CLI's schema must exactly match the wasm-bindgen crate
+      # version in Cargo.lock, so read the version from the lockfile and install
+      # that CLI — the pair can never drift.
+      - name: Read wasm-bindgen version from Cargo.lock
+        id: wbg
+        run: echo "version=$(cargo pkgid wasm-bindgen | cut -d'@' -f2)" >> "$GITHUB_OUTPUT"
       - uses: taiki-e/install-action@v2
         with:
-          tool: wasm-bindgen-cli
+          tool: wasm-bindgen-cli@${{ steps.wbg.outputs.version }}
       - run: cargo test --target wasm32-unknown-unknown --test wasm
 
   coverage:
