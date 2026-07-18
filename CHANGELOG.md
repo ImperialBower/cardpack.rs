@@ -7,8 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-07-18
+
+### Breaking
+
+- **`cardpack` is now pure by default: `default = []`.** A bare dependency
+  is an `alloc`-only, `no_std`, no-I/O domain kernel — no optional crates
+  are pulled in. The previous batteries-included behavior is now opt-in
+  behind a new `full` feature (`std` + `i18n` + `colored-display` +
+  `yaml` + `serde`), or via the individual features.
+  Migration: change `cardpack = "0.7"` to
+  `cardpack = { version = "0.8", features = ["full"] }` to keep prior
+  behavior, or opt into only the features you use. See the Cargo features
+  table in the README and `docs/audit-2026-07-18-domain-kernel.md`
+  (Invariant 3).
+
 ### Added
 
+- `full` umbrella feature turning on the complete convenience stack
+  (`std`, `i18n`, `colored-display`, `yaml`, `serde`) in one flag, for
+  consumers that want the pre-0.8 batteries-included behavior.
 - **`funky` feature (experimental, off by default, requires `std`)** — a
   Balatro-style scoring engine layered on the core `basic` deck, for a
   Balatro solver and for authoring custom mods. Highlights:
@@ -41,11 +59,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   helper for building piles from `const` arrays. `Pile` wraps `Vec`
   and is intentionally not const-constructible. (audit row #14)
 
+### Fixed
+
+- The `Razz` deck no longer performs a runtime filesystem read to build
+  its card list. `Razz::base_vec()` previously called
+  `BasicCard::cards_from_yaml_file("src/basic/decks/yaml/razz.yaml")` —
+  a CWD-relative `std::fs` read that returned a **silent empty deck** for
+  any consumer whose working directory wasn't the crate root. The YAML is
+  now embedded at compile time via `include_str!`, so deck construction is
+  pure and correct regardless of working directory.
+  (docs/audit-2026-07-18-domain-kernel.md, Finding 1a)
+
 ### Internal
 
 - Criterion benchmarks under `benches/draw.rs` covering shuffle, draw,
   `pile_on`, and `combos` against the 108-card Canasta deck. New
   `make bench` target. (audit row #8)
+- Domain-kernel purity audit (`docs/audit-2026-07-18-domain-kernel.md`).
+  CI and Makefile test/clippy/doc targets now pass `--features full`
+  where they previously relied on default features; the `no-std-build`
+  CI job doubles as the pure-kernel gate.
 
 ## [0.7.0] — 2026-05-01
 
