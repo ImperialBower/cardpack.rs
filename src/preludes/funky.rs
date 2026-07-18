@@ -7,6 +7,8 @@ pub use crate::funky::decks::joker::Joker;
 pub use crate::funky::decks::joker::card::*;
 pub use crate::funky::decks::planet::Planet;
 pub use crate::funky::decks::planet::card::*;
+pub use crate::funky::decks::spectral::Spectral;
+pub use crate::funky::decks::spectral::card::*;
 pub use crate::funky::decks::tarot::MajorArcana;
 pub use crate::funky::decks::tarot::card::*;
 pub use crate::funky::types::blind::{Blind, BossBlind};
