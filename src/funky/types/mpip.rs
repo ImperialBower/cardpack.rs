@@ -238,6 +238,13 @@ pub enum MPip {
     /// Vagabond: create a Tarot when a hand is played holding **$n or less**, if
     /// there is a free consumable slot.
     CreateTarotOnLowMoney(usize),
+    /// Séance: create a random **Spectral** when the played hand is a **Straight
+    /// Flush**, if there is a free consumable slot. The spectral twin of
+    /// [`CreateTarotOnAceStraight`](Self::CreateTarotOnAceStraight).
+    CreateSpectralOnStraightFlush,
+    /// Sixth Sense: when the **first hand of the round** is a **single 6**,
+    /// destroy that 6 and create a random Spectral (if there is room).
+    CreateSpectralOnFirstSingleSix,
     /// Card Sharp: ×n mult if the played hand type has **already been played
     /// this round**. Reads `BuffoonBoard::hands_by_type_this_round`.
     MultTimesOnRepeatedHandThisRound(usize),
@@ -562,6 +569,8 @@ impl Display for MPip {
             }
             Self::CreateTarotOnAceStraight => write!(f, "CreateTarotOnAceStraight"),
             Self::CreateTarotOnLowMoney(n) => write!(f, "CreateTarotOnLowMoney({n})"),
+            Self::CreateSpectralOnStraightFlush => write!(f, "CreateSpectralOnStraightFlush"),
+            Self::CreateSpectralOnFirstSingleSix => write!(f, "CreateSpectralOnFirstSingleSix"),
             Self::MultTimesOnRepeatedHandThisRound(n) => {
                 write!(f, "MultTimesOnRepeatedHandThisRound({n})")
             }

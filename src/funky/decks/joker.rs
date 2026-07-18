@@ -992,7 +992,7 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::CreateSpectralOnFirstSingleSix,
         resell_value: 3,
         edition: Edition::None,
         debuffed: false,
@@ -1186,7 +1186,7 @@ pub mod card {
             value: 6,
         },
         card_type: BCardType::UncommonJoker,
-        enhancement: MPip::Blank,
+        enhancement: MPip::CreateSpectralOnStraightFlush,
         resell_value: 3,
         edition: Edition::None,
         debuffed: false,
@@ -2514,6 +2514,10 @@ mod funky__decks__joker_tests {
             | MPip::CreateJokersWhenBlindSelected(_, _)
             | MPip::CreateTarotOnAceStraight
             | MPip::CreateTarotOnLowMoney(_)
+            // Séance / Sixth Sense create a Spectral on their hand condition —
+            // the created card's arm, not theirs; non-scoring like the tarot pair.
+            | MPip::CreateSpectralOnStraightFlush
+            | MPip::CreateSpectralOnFirstSingleSix
             // The Boss Blind pair act on the *blind*, never on the hand.
             // Luchador and Chicot switch a boss's ability off, which reaches the
             // score only through what that ability was doing to the round's
@@ -2815,16 +2819,8 @@ mod funky__decks__joker_tests {
     /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
     /// shop) that are deliberately outside this crate's current scope. Delete an
     /// entry only when the joker is wired.
-    const BLANK_WITH_REASON: [(BuffoonCard, &str); 10] = [
+    const BLANK_WITH_REASON: [(BuffoonCard, &str); 8] = [
         // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
-        (
-            card::SIXTH_SENSE,
-            "Spectral cards do not exist — `BCardType::Spectral` is a bare tag with no deck (EPIC-01 Story 3)",
-        ),
-        (
-            card::SEANCE,
-            "Spectral cards do not exist — same blocker as Sixth Sense (EPIC-01 Story 3)",
-        ),
         (
             card::DNA,
             "needs a draw step (it copies a card into hand); its other half, \

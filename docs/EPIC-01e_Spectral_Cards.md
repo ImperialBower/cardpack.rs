@@ -9,8 +9,8 @@
 > the effects that ride existing seams, and **unblocks Sixth Sense and Séance** —
 > the two jokers whose whole purpose is to *create* a spectral.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phase 0 complete
-(2026-07-17); Phases 1–3 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–1 complete
+(2026-07-17); Phases 2–3 planned
 
 ---
 
@@ -57,7 +57,7 @@ Sixth Sense / Séance unblock.
 | Component (phase) | Adds | Status |
 |---|---|---|
 | 0 — `spectral.rs` deck (18 cards) | the 18 cards behind the tag | **Complete** (2026-07-17) |
-| 1 — Sixth Sense & Séance | the two jokers that *create* a spectral | Planned |
+| 1 — Sixth Sense & Séance | the two jokers that *create* a spectral | **Complete** (2026-07-17) |
 | 2 — Run-level spectrals (Black Hole, The Soul, Wraith, Ectoplasm, Hex, Ankh) | leveling / joker creation / joker editions / money | Planned |
 | 3 — In-hand seam + hand spectrals (Aura, Sigil, Ouija, Immolate, Familiar, Grim, Incantation, Cryptid) | the new `in_hand` mutation seam | Planned |
 | — Seal spectrals (Talisman, Deja Vu, Trance, Medium) | — | **Deferred** (no seals) |
@@ -227,12 +227,21 @@ were before this EPIC.
   "don't build half a subsystem" discipline this branch has followed since
   EPIC-01b's `PackOpened`.
 
-### Phase 1 — Sixth Sense & Séance
+### Phase 1 — Sixth Sense & Séance — **Complete 2026-07-17**
 
-- [ ] **1a.** Wire both to create a random spectral on their trigger (Sixth Sense
-  first-hand single-6; Séance Straight Flush). Flip the consts; remove from
-  `BLANK_WITH_REASON` (10 → 8). Tests: each yields a spectral in a consumable
-  slot on its condition and nothing off it.
+- [x] **1a.** Both wired as the **spectral twins of the existing tarot creators**
+  (Superposition/Vagabond) in `on_scored_with_rng`: two new `MPip` variants
+  (`CreateSpectralOnStraightFlush`, `CreateSpectralOnFirstSingleSix`, non-scoring),
+  a `create_random_spectral` helper beside the extracted `create_random_tarot`,
+  and the creator loop rewritten as a `match`. **Séance** fires on
+  `has_straight_flush_with`; **Sixth Sense** on the round's first hand
+  (`hands_played == 0`) being a single 6, and it also **destroys that 6** through
+  `destroy_played_single` (`full_deck_index_of` + `destroy_deck_card`) — but only
+  when the spectral actually landed, so the "(Must have room)" clause governs both
+  halves at once (the creation rides the match guard). Consts flipped; removed
+  from `BLANK_WITH_REASON` (**10 → 8**). 7 tests: each creates a Spectral on its
+  condition; Sixth Sense also drops the roster 52 → 51; and it stays silent on a
+  non-6, after the first hand, and on a multi-card hand.
 
 ### Phase 2 — run-level spectrals
 

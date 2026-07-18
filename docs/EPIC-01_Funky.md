@@ -20,7 +20,7 @@
 | Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~105/150 declared (incl. 5 Rare + 5 Legendary), 4 rarity piles assembled, ~34 effect kinds scored (hand-conditional +/×mult, per-scored-rank/face, per-held-rank, board-count, held-suit, seeded probabilistic); the rest need subsystems (economy/counters/retriggers/mutation/blinds) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
-| Spectral card | `BCardType::Spectral` tag only | ❌ no cards |
+| Spectral card | `src/funky/decks/spectral.rs` (18 cards) + Sixth Sense/Séance creators | 🟡 deck + create-path done (EPIC-01e); most effects + the seal four still open |
 | Voucher | `Voucher` enum + `redeem_shop_voucher`; live readers (draws/slots/economy/weights) | 🟡 20 in scope wired (EPIC-01c); edition/ante/pack-content vouchers deferred |
 | Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟡 Buffoon/Arcana/Celestial buy/skip/open; contents-choosing is caller's (EPIC-01b Phase 4) |
 | Enhancements (Glass/Steel/Gold/Stone…) | `MPip` variants + `enhance()` | 🟡 partial |
@@ -61,7 +61,11 @@
 - [x] Hand leveling: `PokerHands::increment` applies planet upgrades (`hands.rs:106`)
 - [x] 22 Major Arcana tarot cards with mapped `MPip` effects (`decks/tarot.rs`)
 - [ ] Score/apply tarot effects in the scoring engine (declared but mostly unhandled)
-- [ ] Spectral cards (18 in Balatro) — nothing beyond the `BCardType::Spectral` tag
+- [~] Spectral cards (18 in Balatro) — **the deck exists** (`decks/spectral.rs`,
+  EPIC-01e Phase 0) and **Sixth Sense / Séance are wired** to create a random
+  spectral on their trigger (Phase 1), leaving `BLANK_WITH_REASON` at 8. The
+  card effects (edition/joker/hand-mutation) land across EPIC-01e Phases 2–3;
+  the four seal spectrals stay deferred on a Seals EPIC.
 - [~] Vouchers (32 in Balatro) — **the `Voucher` enum and shop $10 slot landed**
   (EPIC-01c): 20 in-scope vouchers wired at exact wiki values across draws,
   slots, economy, and shop weights, with the base→upgrade prerequisite enforced.

@@ -1,6 +1,7 @@
 use crate::funky::decks::basic;
 use crate::funky::decks::joker::Joker;
 use crate::funky::decks::planet::Planet;
+use crate::funky::decks::spectral::Spectral;
 use crate::funky::decks::tarot::MajorArcana;
 use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
@@ -2643,6 +2644,15 @@ impl BuffoonBoard {
         let rules = self.hand_rules();
         let is_ace_straight = self.played.has_straight_with(rules)
             && self.played.iter().any(|card| card.rank.index == 'A');
+        let is_straight_flush = self.played.has_straight_flush_with(rules);
+        // Sixth Sense: the round's first hand (nothing played yet, so
+        // `hands_played == 0`) is exactly one card, a 6.
+        let is_first_single_six = self.hands_played == 0
+            && self.played.len() == 1
+            && self
+                .played
+                .get(0)
+                .is_some_and(|card| card.rank.index == '6');
         let money = self.money;
 
         let creators: Vec<MPip> = self
@@ -2651,25 +2661,67 @@ impl BuffoonBoard {
             .filter(|joker| {
                 matches!(
                     joker.enhancement,
-                    MPip::CreateTarotOnAceStraight | MPip::CreateTarotOnLowMoney(_)
+                    MPip::CreateTarotOnAceStraight
+                        | MPip::CreateTarotOnLowMoney(_)
+                        | MPip::CreateSpectralOnStraightFlush
+                        | MPip::CreateSpectralOnFirstSingleSix
                 )
             })
             .map(|joker| joker.enhancement)
             .collect();
 
         for enhancement in creators {
-            let fires = match enhancement {
-                MPip::CreateTarotOnAceStraight => is_ace_straight,
-                MPip::CreateTarotOnLowMoney(limit) => {
-                    money <= isize::try_from(limit).unwrap_or(isize::MAX)
+            match enhancement {
+                MPip::CreateTarotOnAceStraight if is_ace_straight => self.create_random_tarot(rng),
+                MPip::CreateTarotOnLowMoney(limit)
+                    if money <= isize::try_from(limit).unwrap_or(isize::MAX) =>
+                {
+                    self.create_random_tarot(rng);
                 }
-                _ => false,
-            };
-            if !fires || !self.has_consumable_room() {
-                continue;
+                MPip::CreateSpectralOnStraightFlush if is_straight_flush => {
+                    self.create_random_spectral(rng);
+                }
+                // Sixth Sense destroys the 6 only if the spectral actually landed
+                // (there was room) — the "(Must have room)" clause applies to both
+                // halves at once, so the creation rides the guard.
+                MPip::CreateSpectralOnFirstSingleSix
+                    if is_first_single_six && self.create_random_spectral(rng) =>
+                {
+                    self.destroy_played_single();
+                }
+                _ => {}
             }
+        }
+    }
+
+    /// Create a random Tarot from [`MajorArcana::DECK`] if there is a free
+    /// consumable slot — the shared body of the tarot-creator jokers.
+    fn create_random_tarot<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        if self.has_consumable_room() {
             let pick = MajorArcana::DECK[rng.random_range(0..MajorArcana::DECK_SIZE)];
             self.create_consumable(pick);
+        }
+    }
+
+    /// Create a random Spectral from [`Spectral::DECK`] if there is room,
+    /// returning whether it landed — the spectral twin of
+    /// [`create_random_tarot`](Self::create_random_tarot).
+    fn create_random_spectral<R: Rng + ?Sized>(&mut self, rng: &mut R) -> bool {
+        if !self.has_consumable_room() {
+            return false;
+        }
+        let pick = Spectral::DECK[rng.random_range(0..Spectral::DECK_SIZE)];
+        self.create_consumable(pick)
+    }
+
+    /// Destroy the single played card from the run's roster — Sixth Sense's "destroy
+    /// that 6". Located by value in [`full_deck`](Self::full_deck), like every
+    /// other roster mutation.
+    fn destroy_played_single(&mut self) {
+        if let Some(card) = self.played.get(0).copied() {
+            if let Some(slot) = self.full_deck_index_of(card) {
+                self.destroy_deck_card(slot);
+            }
         }
     }
 
@@ -6433,6 +6485,77 @@ mod funky__types__board__buffoon_board_tests {
 
         board.on_round_end_with_rng(&mut StdRng::seed_from_u64(1));
         assert!(board.consumables.is_empty(), "nothing to copy");
+    }
+
+    // ---- Sixth Sense & Séance, EPIC-01e Phase 1 ---------------------------
+
+    #[test]
+    fn on_scored_with_rng__seance_creates_a_spectral_on_a_straight_flush() {
+        let mut board = board_playing("9S 8S 7S 6S 5S"); // straight flush
+        board.push_joker(card::SEANCE);
+        assert!(board.consumables.is_empty());
+
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.consumables.len(), 1, "Séance created a spectral");
+        assert_eq!(
+            board.consumables.get(0).unwrap().card_type,
+            BCardType::Spectral
+        );
+    }
+
+    #[test]
+    fn on_scored_with_rng__seance_is_silent_off_a_straight_flush() {
+        let mut board = board_playing("2S 5D 8C TS KH"); // high card
+        board.push_joker(card::SEANCE);
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+        assert!(
+            board.consumables.is_empty(),
+            "no straight flush, no spectral"
+        );
+    }
+
+    #[test]
+    fn on_scored_with_rng__sixth_sense_creates_a_spectral_on_a_first_single_six() {
+        let mut board = board_playing("6S"); // a single 6, first hand of round
+        board.push_joker(card::SIXTH_SENSE);
+        assert_eq!(board.hands_played, 0, "the first hand");
+
+        assert_eq!(board.full_deck.len(), 52, "the 6 is still in the roster");
+
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.consumables.len(), 1, "Sixth Sense created a spectral");
+        assert_eq!(
+            board.consumables.get(0).unwrap().card_type,
+            BCardType::Spectral
+        );
+        assert_eq!(board.full_deck.len(), 51, "and destroyed the 6");
+    }
+
+    #[test]
+    fn on_scored_with_rng__sixth_sense_is_silent_on_a_non_six() {
+        let mut board = board_playing("7S");
+        board.push_joker(card::SIXTH_SENSE);
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+        assert!(board.consumables.is_empty(), "a 7 is not a 6");
+    }
+
+    #[test]
+    fn on_scored_with_rng__sixth_sense_is_silent_after_the_first_hand() {
+        let mut board = board_playing("6S");
+        board.hands_played = 1; // not the first hand of the round
+        board.push_joker(card::SIXTH_SENSE);
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+        assert!(board.consumables.is_empty(), "only on the first hand");
+    }
+
+    #[test]
+    fn on_scored_with_rng__sixth_sense_is_silent_on_a_multi_card_hand() {
+        let mut board = board_playing("6S 6D"); // a pair of 6s, not a single 6
+        board.push_joker(card::SIXTH_SENSE);
+        board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
+        assert!(board.consumables.is_empty(), "a single card only");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------
