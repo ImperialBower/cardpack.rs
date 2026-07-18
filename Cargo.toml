@@ -70,7 +70,7 @@ term-table = "1.4.0"
 # criterion uses std::time / std::process and won't build for wasm either.
 # Both also require std, so gate off bare-metal targets as well.
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
-criterion = "0.5"
+criterion = "0.7"
 proptest = "1"
 
 # Used by tests/wasm.rs only when targeting wasm32.
