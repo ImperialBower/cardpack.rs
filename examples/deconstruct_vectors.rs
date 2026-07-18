@@ -1,5 +1,12 @@
 //! Dumps golden vectors for the /deconstruct regeneration pack.
 //! Public API only — this program is a consumer of the crate.
+
+// This example is a *consumer* of the crate (a golden-vector dumper), not part
+// of the pure kernel, so it deliberately performs filesystem I/O. The
+// kernel-purity lints (clippy.toml) exist to keep the *library* pure; allow
+// them for this binary only. See docs/audit-2026-07-18-domain-kernel.md.
+#![allow(clippy::disallowed_types, clippy::disallowed_methods)]
+
 use cardpack::prelude::*;
 use core::hash::Hash;
 use serde_json::{Value, json};
@@ -82,9 +89,7 @@ fn error_variant_name(e: &CardError) -> &'static str {
         CardError::Fubar => "Fubar",
         CardError::InvalidCard(_) => "InvalidCard",
         CardError::InvalidCardCount(_) => "InvalidCardCount",
-        CardError::InvalidFilePath(_) => "InvalidFilePath",
         CardError::InvalidFluentName(_) => "InvalidFluentName",
-        CardError::InvalidFluentRank(_) => "InvalidFluentRank",
         CardError::InvalidIndex(_) => "InvalidIndex",
         CardError::NotEnoughCards(_) => "NotEnoughCards",
         CardError::TooManyCards(_) => "TooManyCards",

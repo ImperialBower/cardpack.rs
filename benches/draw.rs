@@ -19,7 +19,8 @@
 
 use cardpack::basic::types::traits::Ranged;
 use cardpack::prelude::*;
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
+use std::hint::black_box;
 
 fn bench_shuffled(c: &mut Criterion) {
     let deck = Canasta::deck();
