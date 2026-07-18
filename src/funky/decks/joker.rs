@@ -1949,7 +1949,7 @@ pub mod card {
             value: 0,
         },
         card_type: BCardType::LegendaryJoker,
-        enhancement: MPip::Blank, // creates a Negative copy of a consumable
+        enhancement: MPip::CreateNegativeConsumableCopy,
         resell_value: 0,
         edition: Edition::None,
         debuffed: false,
@@ -2572,6 +2572,9 @@ mod funky__decks__joker_tests {
             // opened — a probabilistic creation like RandomTarot, not a hand
             // scorer, so it stays out of the reachability guard.
             | MPip::CreateTarotOnPackOpen(_, _)
+            // Perkeo creates a Negative consumable copy at round end — a creation
+            // like the above, not a hand scorer.
+            | MPip::CreateNegativeConsumableCopy
             | MPip::SellValueIncrement(_)
             | MPip::Strength
             | MPip::Odds1in(_)
@@ -2812,7 +2815,7 @@ mod funky__decks__joker_tests {
     /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
     /// shop) that are deliberately outside this crate's current scope. Delete an
     /// entry only when the joker is wired.
-    const BLANK_WITH_REASON: [(BuffoonCard, &str); 11] = [
+    const BLANK_WITH_REASON: [(BuffoonCard, &str); 10] = [
         // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
         (
             card::SIXTH_SENSE,
@@ -2821,10 +2824,6 @@ mod funky__decks__joker_tests {
         (
             card::SEANCE,
             "Spectral cards do not exist — same blocker as Sixth Sense (EPIC-01 Story 3)",
-        ),
-        (
-            card::PERKEO,
-            "needs the shop and Negative editions, neither of which exists",
         ),
         (
             card::DNA,

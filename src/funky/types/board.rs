@@ -4,6 +4,7 @@ use crate::funky::decks::planet::Planet;
 use crate::funky::decks::tarot::MajorArcana;
 use crate::funky::types::blind::Blind;
 use crate::funky::types::draws::Draws;
+use crate::funky::types::edition::Edition;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::funky::types::shop::{BoosterPack, PackKind, Shop};
 use crate::funky::types::voucher::Voucher;
@@ -1111,8 +1112,11 @@ impl BuffoonBoard {
     /// Refusing rather than growing past [`consumable_slots`](Self::consumable_slots)
     /// is Balatro's rule: a creator card with a full inventory simply creates
     /// nothing — it does not queue, and it does not evict.
+    ///
+    /// A **Negative** consumable takes no slot, so it always lands — the rule
+    /// Perkeo's copy relies on.
     pub fn create_consumable(&mut self, card: BuffoonCard) -> bool {
-        if !self.has_consumable_room() {
+        if !card.edition.is_negative() && !self.has_consumable_room() {
             return false;
         }
         self.consumables.push(card);
@@ -2345,6 +2349,35 @@ impl BuffoonBoard {
             self.remove_joker(index);
         }
         self.reroll_ancient_suit(rng);
+        self.perkeo_copies(rng);
+    }
+
+    /// Each **Perkeo** creates a Negative copy of a random held consumable at
+    /// round end — the Riff-Raff shape (a probabilistic creation, so it rides
+    /// the seeded path). The copy is stamped [`Edition::Negative`] and created
+    /// through [`create_consumable`](Self::create_consumable), which always
+    /// accepts a Negative, so it lands even on a full board. A Perkeo with no
+    /// held consumable to copy does nothing.
+    ///
+    /// Copies are resolved one Perkeo at a time, re-reading the pile each pass,
+    /// so a second Perkeo can copy the first one's fresh Negative — matching
+    /// Balatro, where the copy is a consumable like any other.
+    fn perkeo_copies<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        let perkeos = self
+            .jokers
+            .iter()
+            .filter(|joker| matches!(joker.enhancement, MPip::CreateNegativeConsumableCopy))
+            .count();
+        for _ in 0..perkeos {
+            if self.consumables.is_empty() {
+                break;
+            }
+            let pick = rng.random_range(0..self.consumables.len());
+            let Some(copy) = self.consumables.get(pick).copied() else {
+                continue;
+            };
+            self.create_consumable(copy.with_edition(Edition::Negative));
+        }
     }
 
     /// Re-roll [`ancient_suit`](Self::ancient_suit) — Ancient Joker's "suit
@@ -6351,6 +6384,55 @@ mod funky__types__board__buffoon_board_tests {
         )
         .score();
         assert_eq!(neg, base, "a Negative joker contributes no chips or mult");
+    }
+
+    // ---- Perkeo, EPIC-01d Phase 4 -----------------------------------------
+
+    #[test]
+    fn create_consumable__a_negative_card_always_fits() {
+        // A Negative consumable takes no slot, so it lands even on a full board.
+        let mut board = board_for_a_round();
+        board.create_consumable(tarot_card::FOOL);
+        board.create_consumable(tarot_card::FOOL);
+        assert!(!board.has_consumable_room(), "the two slots are full");
+        assert!(
+            !board.create_consumable(tarot_card::FOOL),
+            "a normal consumable is refused"
+        );
+
+        let negative = tarot_card::FOOL.with_edition(Edition::Negative);
+        assert!(board.create_consumable(negative), "a Negative always fits");
+        assert_eq!(board.consumables.len(), 3, "three held, two taking slots");
+    }
+
+    #[test]
+    fn on_round_end_with_rng__perkeo_creates_a_negative_consumable_copy() {
+        // Perkeo copies a random held consumable, Negative, at round end.
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::PERKEO);
+        board.create_consumable(tarot_card::FOOL);
+        assert_eq!(board.consumables.len(), 1);
+
+        board.on_round_end_with_rng(&mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.consumables.len(), 2, "the copy joined the held one");
+        assert!(
+            board
+                .consumables
+                .iter()
+                .any(|c| c.edition == Edition::Negative),
+            "and it is Negative"
+        );
+    }
+
+    #[test]
+    fn on_round_end_with_rng__perkeo_does_nothing_without_a_consumable() {
+        let mut board = board_playing("2S 5D 8C TS KH");
+        board.push_joker(card::PERKEO);
+        assert!(board.consumables.is_empty());
+
+        board.on_round_end_with_rng(&mut StdRng::seed_from_u64(1));
+        assert!(board.consumables.is_empty(), "nothing to copy");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------

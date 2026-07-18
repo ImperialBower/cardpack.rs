@@ -303,6 +303,11 @@ pub enum MPip {
     /// 6s doubles it), the Riff-Raff shape rather than the Green Joker shape.
     /// Scores nothing on its own.
     CreateTarotOnPackOpen(usize, usize),
+    /// Perkeo: at end of round, create a **Negative copy** of a random held
+    /// consumable. A creation (the Riff-Raff shape), rolled on the seeded
+    /// round-end path; the Negative copy takes no slot, so it always lands.
+    /// Scores nothing on its own.
+    CreateNegativeConsumableCopy,
     /// Vampire: gains `rate`/100 ×mult per **enhanced card played**, and strips
     /// the enhancement off each one it counts. Base ×1.
     ///
@@ -579,6 +584,7 @@ impl Display for MPip {
             Self::CreateTarotOnPackOpen(num, den) => {
                 write!(f, "CreateTarotOnPackOpen({num}, {den})")
             }
+            Self::CreateNegativeConsumableCopy => write!(f, "CreateNegativeConsumableCopy"),
             Self::Planet(value) => write!(f, "Planet({value})"),
             Self::RandomJoker(value) => write!(f, "RandomJoker({value})"),
             Self::RandomTarot(value) => write!(f, "RandomTarot({value})"),

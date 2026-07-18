@@ -9,8 +9,8 @@
 > the Antimatter-voucher shape. This EPIC also unblocks **Perkeo**, the last
 > Legendary joker still `Blank`.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–3 complete
-(2026-07-17); Phase 4 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** ✅ **Complete
+(2026-07-17)** — all five phases landed; 714 lib tests, five gates green.
 
 ---
 
@@ -68,7 +68,7 @@ already exist.
 | 1 — Played-card editions (Foil/Holo/Poly) | `+50` chips / `+10` mult / `×1.5` when a card scores | **Complete** (2026-07-17) |
 | 2 — Joker editions (Foil/Holo/Poly) | the same three on a joker's own contribution | **Complete** (2026-07-17) |
 | 3 — Negative slots (jokers + consumables) | a Negative item takes no slot | **Complete** (2026-07-17) |
-| 4 — Perkeo | the last Blank Legendary, via Negative consumables | Planned |
+| 4 — Perkeo | the last Blank Legendary, via Negative consumables | **Complete** (2026-07-17) |
 
 ---
 
@@ -281,13 +281,20 @@ recorded, not skipped.)*
   `Nothing`). No regression: a board with no Negatives counts identically to
   `len()`, so Riff-Raff / `create_consumable` are unchanged.
 
-### Phase 4 — Perkeo
+### Phase 4 — Perkeo — **Complete 2026-07-17**
 
-- [ ] **4a.** `MPip::CreateNegativeConsumableCopy` on the round-end hook: copy a
-  held consumable, stamp `Edition::Negative`, create it (always fits). Flip
-  Perkeo's const; remove from `BLANK_WITH_REASON` (11 → 10); the guard
-  `all_jokers__every_blank_joker_has_a_stated_reason` is the close-out check.
-  Test: Perkeo at round end yields a Negative consumable that occupies no slot.
+- [x] **4a.** `MPip::CreateNegativeConsumableCopy` (+ `Display`, classified
+  non-scoring in `scores_hand`). `create_consumable` now accepts a Negative card
+  unconditionally (it takes no slot — the "always fits" rule Phase 3 left for
+  here). `perkeo_copies(rng)` on the seeded round-end hook
+  (`on_round_end_with_rng`): each Perkeo copies a random held consumable, stamps
+  it `Edition::Negative`, and creates it — one Perkeo at a time re-reading the
+  pile, so a second can copy the first's fresh copy. Perkeo's const flipped from
+  `Blank`; removed from `BLANK_WITH_REASON` (**11 → 10**), which the guard
+  `all_jokers__every_blank_joker_has_a_stated_reason` enforces. Tests: a Negative
+  consumable lands on a full board; Perkeo yields a Negative copy at round end;
+  a Perkeo with no held consumable does nothing. **This was the last `Blank`
+  Legendary joker — every Legendary now scores or acts.**
 
 ---
 
@@ -367,3 +374,71 @@ Exit criteria (per phase):
 4. Perkeo leaves `BLANK_WITH_REASON`, or its reason names only a genuinely
    remaining blocker.
 5. A Status row flips to **Complete** only with cited, tested code.
+
+As shipped (2026-07-17): `cargo test --features funky` → **714 lib + 101 doc**
+green; clippy `-Dpedantic --all-targets` clean; `--no-default-features` builds;
+fmt clean; docs clean under `-D warnings`.
+
+---
+
+## Implementation corrigendum
+
+### 1. One typed field, two orthogonal subsystems — for free
+
+The design predicted editions would touch two folds plus the slot checks; shipping
+confirmed the deeper payoff: `Edition` feeds the **score fold** (Foil/Holo/Poly via
+`score_op`) and the **slot checks** (Negative via `slots_taken`) as *independent*
+readers of one field. `score__a_negative_joker_scores_nothing` passed the instant
+it was written — Phase 0's `Negative => Nothing` already covered the scoring side,
+so Phase 3 was pure slot logic. Scattering foil/holo/poly/negative across the code
+would have coupled these; the single typed field kept them apart.
+
+### 2. Position is the whole correctness story for the scoring editions
+
+Foil and Holo are additive and compose anywhere, but Polychrome is `×mult`, so
+*where* it applies is the behaviour. Both folds apply the edition **at the
+bearer's position** — played cards inside the retrigger loop (a retriggered Foil
+gives +50 each pass), jokers after the joker's own op (`ceil((1+4)×1.5)=8`, not
+`6` or a global multiply). Each Polychrome test asserts one integer that pins the
+position; a wrong scope would drift it. This matched the design's Glass-shape
+prediction exactly.
+
+### 3. Bump vs live-read, decided by "is removal guarded?"
+
+Negative could have bumped `joker_slots` on add (the Antimatter shape), but joker
+removal is unguarded, so a stored counter would desync. It is a **live filter**
+(`slots_taken` counts non-Negatives) instead — the same EPIC-01c call, opposite
+answer from Antimatter's, because a voucher redeems once (guarded) and a joker
+comes and goes (not). The no-regression proof: a board with no Negatives makes
+`slots_taken == len()`, so every prior room test is unchanged.
+
+### 4. The "always fits" rule landed with Perkeo, not Phase 3
+
+Phase 3 made `has_*_room` count non-Negatives (answering "room for a *normal*
+one?"), but the dual rule — a Negative item *always* fits regardless — was only
+needed by Perkeo, so it landed in Phase 4 as a one-line guard in
+`create_consumable`. Scoping it to where it was needed kept Phase 3 minimal.
+
+### Phase status summary
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 (Edition type + field) | Shipped | 199-literal sweep, compiler-verified |
+| 1 (played-card editions) | Shipped | one line in `fold_played_cards` |
+| 2 (joker editions) | Shipped | one line in `fold_jokers`, Phase 1's twin |
+| 3 (Negative slots) | Shipped | live `slots_taken` filter |
+| 4 (Perkeo) | Shipped | last `Blank` Legendary; `BLANK_WITH_REASON` 11→10 |
+
+### Deferred, with blockers (unchanged from Context)
+
+- **Edition sourcing** — how editions appear in a run (shop rolls, Hone/Glow Up/
+  Illusion frequency vouchers) — a follow-on owns it; this EPIC ships the model,
+  scoring, slots, and stamp (`with_edition`).
+- **Held-card editions** — editions do not trigger from hand (that is Steel's
+  job), so `fold_held_cards` was correctly untouched.
+- **Seals** — a separate overlay, out of scope.
+
+### Pre-existing debt
+
+None inherited or introduced: clippy-pedantic-clean at `--all-targets`, funky
+stays std-only (no_std build green).
