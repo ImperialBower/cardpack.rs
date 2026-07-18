@@ -134,7 +134,9 @@ test-wasm:
 		rustup target add wasm32-unknown-unknown; \
 	fi
 	$(check_wasm_bindgen_cli)
-	cargo test --target wasm32-unknown-unknown --test wasm
+	# --features full: the wasm tests use std-gated shuffle and yaml parsing,
+	# absent from the pure `default = []` build.
+	cargo test --target wasm32-unknown-unknown --features full --test wasm
 
 # Check for cargo-llvm-cov, prompt to install if missing.
 define check_llvm_cov
@@ -162,7 +164,9 @@ coverage:
 # Run criterion benchmarks. Output saved under target/criterion/.
 # Use `cargo bench -- --quick` for fast iteration during development.
 bench:
-	cargo bench --bench draw
+	# --features full: benches call the std-gated `shuffled()` and criterion
+	# needs std, neither of which is in the pure `default = []` build.
+	cargo bench --features full --bench draw
 
 # Check for cargo-mutants, prompt to install if missing
 define check_mutants
@@ -214,7 +218,9 @@ nightly: test-nightly clippy-nightly
 
 # Run tests under Miri
 miri:
-	cargo miri test
+	# --features full so Miri exercises the whole surface; the pure
+	# `default = []` build would otherwise run only the ungated tests.
+	cargo miri test --features full
 
 # Show dependency tree
 tree:

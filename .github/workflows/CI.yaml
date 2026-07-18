@@ -135,7 +135,10 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-bindgen-cli@${{ steps.wbg.outputs.version }}
-      - run: cargo test --locked --target wasm32-unknown-unknown --test wasm
+      # `--features full` is required now that `default = []`: the wasm tests
+      # exercise the std-gated no-arg `shuffle()`/`shuffled()` and the
+      # yaml-gated `cards_from_yaml_str`, none of which exist in the pure build.
+      - run: cargo test --locked --target wasm32-unknown-unknown --features full --test wasm
 
   coverage:
     name: Coverage
