@@ -1,5 +1,21 @@
 # EPIC-01: Funky — Balatro-Style Cards
 
+> **Status: ✅ Complete (with named deferrals) — closed out 2026-07-18 at tip
+> `e50fdd0`.** All five child EPICs are closed: [01a Joker
+> Wiring](./EPIC-01a_Joker_Wiring_Backlog.md) (2026-07-16), [01b
+> Shop](./EPIC-01b_Shop.md), [01c Vouchers](./EPIC-01c_Vouchers.md), [01d
+> Editions](./EPIC-01d_Editions.md) (all 2026-07-17), and [01e Spectral
+> Cards](./EPIC-01e_Spectral_Cards.md) (2026-07-18, seal spectrals deferred).
+> Both stated goals are structurally met: the solver path (`score()` /
+> `score_with_seed()`, four phases, never panics, seeded shuffle) and the
+> modding path (the `Effect`/`EffectRegistry` seam). Everything still open below
+> is a **named deferral onto a future EPIC** (Seals, Decks, Antes/Bosses, Tags,
+> Serde), not in-flight work — see the [Implementation
+> corrigendum](#implementation-corrigendum) for the design-vs-actual deltas and
+> the deferral register. Verified at close-out: 769 lib + 10 integration tests +
+> 101 doctests green, clippy `-Dpedantic --all-targets` clean, no_std build
+> clean, doc gate clean, `examples/buffoon.rs` scores 11254.
+>
 > **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Checked boxes reflect work already landed on `origin/funky` as of 2026-07-05 (tip `cc1595d`, the merge of main's 0.7.0 no_std work into funky). See the companion status document [`EPIC-01_Funky_Progress.md`](EPIC-01_Funky_Progress.md) for the quality evaluation behind these checkmarks.
 >
 > **2026-07-11 hardening pass** (uncommitted on local `funky`): funky is now gated in CI (`cargo test --features funky`; `cargo clippy --features funky --lib --tests` at `-Dpedantic`); debug `println!`s removed from scoring paths; the two `MPip` Display bugs fixed; the 6 funky-lib clippy warnings cleared; **the whole crate made clippy-pedantic-clean at `--all-targets`** (lib, all tests, all examples, benches) — `unwrap`/`expect` allowed under `cfg(test)` in `src/lib.rs`, plus mechanical fixes in core `basic` test code and API-level fixes in the examples (`bridge.rs` pass-by-value/`# Panics`/`# Errors` docs/`render` rename, `range.rs`/`demo.rs`/`poker_eval.rs` cleanups); `Draws`/`Toggle`/`ToggleCard` exported; data-invariant tests added for `decks/basic.rs` and `decks/joker.rs` (+12 tests → 395 green); and `examples/buffoon.rs` rewritten to demonstrate phase-4 joker scoring end-to-end. CI now gates `cargo clippy --features funky --all-targets`. **Deferred by design:** scoring phases 1–3 (`todo!()`), the ~54 silently-zero `MPip` variants, the mod/effect-registry redesign, and the remaining Balatro subsystems.
@@ -17,22 +33,22 @@
 | Balatro concept | funky construct | Status |
 |---|---|---|
 | Playing card | `BuffoonCard` + `BCardType::Basic` | ✅ done |
-| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~105/150 declared (incl. 5 Rare + 5 Legendary), 4 rarity piles assembled, ~34 effect kinds scored (hand-conditional +/×mult, per-scored-rank/face, per-held-rank, board-count, held-suit, seeded probabilistic); the rest need subsystems (economy/counters/retriggers/mutation/blinds) |
+| Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟢 112 declared (`ALL_JOKERS`, `joker.rs:2057`), 4 rarity piles assembled; 104 wired with exact-wiki-value tests; 8 stay `Blank` with a test-enforced reason (`BLANK_WITH_REASON`, `joker.rs:2844` — blocked on draw step / seals / tags / per-hand boss abilities) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
 | Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟢 card-enhancing tarots apply + score via `enhance` (tested); run-level ones deferred |
-| Spectral card | `src/funky/decks/spectral.rs` (18 cards) + Sixth Sense/Séance creators | 🟡 deck + create-path done (EPIC-01e); most effects + the seal four still open |
+| Spectral card | `src/funky/decks/spectral.rs` (18 cards) + Sixth Sense/Séance creators | 🟢 deck + create-path + 14 of 18 effects done (EPIC-01e Phases 0–3); the four seal spectrals (Talisman, Deja Vu, Trance, Medium) deferred to a Seals EPIC |
 | Voucher | `Voucher` enum + `redeem_shop_voucher`; live readers (draws/slots/economy/weights) | 🟡 20 in scope wired (EPIC-01c); edition/ante/pack-content vouchers deferred |
-| Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟡 Buffoon/Arcana/Celestial buy/skip/open; contents-choosing is caller's (EPIC-01b Phase 4) |
+| Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟢 Buffoon/Arcana/Celestial buy/skip/open (EPIC-01b Phase 4; contents-choosing is caller's by design); a Spectral pack kind deferred |
 | Enhancements (Glass/Steel/Gold/Stone…) | `MPip` variants + `enhance()` | 🟡 partial |
 | Editions (foil/holo/polychrome/negative) | `Edition` enum on `BuffoonCard`; folded into played-card & joker scoring; Negative = live slot exemption | 🟡 model + scoring + slots done (EPIC-01d); edition *sourcing* (shop rolls, frequency vouchers) deferred |
-| Seals | — | ❌ absent |
+| Seals | — | ❌ absent — deferred to a future Seals EPIC (blocks the 4 seal spectrals, red-seal retriggers, and seal scoring contributions) |
 | Decks (Red, Checkered, Abandoned…) | `basic.rs`: Basic 52, Abandoned 40, Checkered | 🟡 3 of ~16 |
 | Poker hands + levels | `HandType`/`PokerHand`/`PokerHands` (`hands.rs`) | ✅ done, incl. FiveOfAKind/FlushHouse/FlushFive |
-| Chips × mult scoring | `Score` (`score.rs`), 4-phase `BuffoonBoard` scoring + `score()` aggregate | 🟢 all 4 phases done (base + played cards + held ×mult + jokers); jokers still additive-only |
-| Blinds / antes / boss blinds | `MPip::AddCardTypeWhenBlindSelected` stub | ❌ absent |
-| Shop / economy | `money`, cash-out, `Shop` (stock draw + `buy_stock`), `sell_joker`, `resell_value` | 🟡 cash-out + buying + selling done; rerolls/packs/vouchers open (EPIC-01b) |
-| Hand/discard counts | `Draws` (`draws.rs`) | ✅ done (not exported) |
-| Card selection | `ToggleCard` (`toggle.rs`, `RefCell<bool>`) | ✅ done (not exported) |
+| Chips × mult scoring | `Score` (`score.rs`), 4-phase `BuffoonBoard` scoring + `score()` aggregate | ✅ all 4 phases done (base + played cards + held ×mult + jokers L→R); additive, ×mult, retrigger, and edition contributions all fold in |
+| Blinds / antes / boss blinds | `types/blind.rs`: blind state + The Needle / The Water / The Manacle | 🟡 blind state + 3 `Draws`-mutating bosses (EPIC-01a Phase 8); ante progression + the rest of the ~20-boss roster absent |
+| Shop / economy | `money`, cash-out, `Shop` (stock + `buy_stock` + rerolls + packs + voucher slot), `sell_joker` | 🟢 cash-out, buying, selling, rerolls, packs, vouchers all done (EPIC-01b + 01c complete); only the edition/ante voucher subset deferred |
+| Hand/discard counts | `Draws` (`draws.rs`) | ✅ done, exported via `preludes/funky.rs:18` |
+| Card selection | `ToggleCard` (`toggle.rs`, `RefCell<bool>`) | ✅ done, exported via `preludes/funky.rs:25` |
 
 ---
 
@@ -67,11 +83,14 @@
   The **run-level** tarots (Death, Judgement, Hermit, Wheel, Emperor, High
   Priestess, Hanged Man) are no-ops on a card — their effects belong to the
   consumable/economy subsystems
-- [~] Spectral cards (18 in Balatro) — **the deck exists** (`decks/spectral.rs`,
-  EPIC-01e Phase 0) and **Sixth Sense / Séance are wired** to create a random
-  spectral on their trigger (Phase 1), leaving `BLANK_WITH_REASON` at 8. The
-  card effects (edition/joker/hand-mutation) land across EPIC-01e Phases 2–3;
-  the four seal spectrals stay deferred on a Seals EPIC.
+- [~] Spectral cards (18 in Balatro) — **14 of 18 are fully wired** (EPIC-01e
+  Phases 0–3, closed 2026-07-18): the deck (`decks/spectral.rs`), the Sixth
+  Sense / Séance create-path, the six run-level spectrals (Black Hole, The
+  Soul, Wraith, Ectoplasm, Hex, Ankh), and the eight hand/in-hand spectrals
+  (Aura, Sigil, Ouija, Immolate, Familiar, Grim, Incantation, Cryptid) via the
+  `in_hand` mutation seam. The four seal spectrals (Talisman, Deja Vu, Trance,
+  Medium — `spectral.rs:106,144,152,153`) stay `MPip::Blank`, **deferred to a
+  future Seals EPIC**.
 - [~] Vouchers (32 in Balatro) — **the `Voucher` enum and shop $10 slot landed**
   (EPIC-01c): 20 in-scope vouchers wired at exact wiki values across draws,
   slots, economy, and shop weights, with the base→upgrade prerequisite enforced.
@@ -83,9 +102,9 @@
 
 ## Story 4: Jokers
 
-- [x] ~95 joker consts with rarity, cost, and (for ~43) a wired `MPip` effect (`decks/joker.rs`, 1,459 lines)
+- [x] 112 joker consts with rarity, cost, and (for 104) a wired `MPip` effect (`ALL_JOKERS`, `decks/joker.rs:2057`)
 - [x] `COMMON_JOKERS` pile assembly (22 jokers, `joker.rs:8`)
-- [~] Wire effects for the jokers carrying `MPip::Blank` — **all the deterministic pure-board-state ones are now wired** (8): Cavendish (`MultTimes(3)`), Abstract Joker (`MultPlusPerJoker(3)`), Blue Joker (`ChipsPerDeckCard(2)` → +104 fresh deck), Baron (`MultTimesPerHeldRank(15,'K')`, compounds), Scary Face (`ChipsPlusPerScoredFace(30)`), Walkie Talkie (`ChipsMultPlusPerScoredRanks(10,4,['T','4'])`), Blackboard (`MultTimesIfHeldAllSuits(3,['S','C'])`, vacuous-true when hand empty), Baseball Card (`MultTimesPerUncommonJoker(15)`, compounds). Each reads only current board state (`jokers`/`deck`/`in_hand`/`played`), exact wiki values, one test each. **The remaining ~43 were driven out by [`EPIC-01a_Joker_Wiring_Backlog.md`](./EPIC-01a_Joker_Wiring_Backlog.md), closed out 2026-07-16:** its eight subsystem phases (economy, round & hand state, per-run counters, retriggers, deck mutation/consumables, detection-rule hooks, full-deck view, boss blinds) wired 29 more jokers, each with an exact-wiki-value test. **14 stay `Blank` with a stated, test-enforced reason** (`BLANK_WITH_REASON`, `decks/joker.rs` — enforced by `all_jokers__every_blank_joker_has_a_stated_reason`), blocked on subsystems outside that EPIC's scope: spectral cards, booster packs, the shop, tags, a draw step, in-fold effects, per-hand boss abilities. The live silent-zero bug it flagged (Banner/Mystic Summit) is fixed — first by the scoring arms (2a/2b), then again by `discards_remaining()` when the round loop caught both reading granted rather than remaining discards
+- [~] Wire effects for the jokers carrying `MPip::Blank` — **all the deterministic pure-board-state ones are now wired** (8): Cavendish (`MultTimes(3)`), Abstract Joker (`MultPlusPerJoker(3)`), Blue Joker (`ChipsPerDeckCard(2)` → +104 fresh deck), Baron (`MultTimesPerHeldRank(15,'K')`, compounds), Scary Face (`ChipsPlusPerScoredFace(30)`), Walkie Talkie (`ChipsMultPlusPerScoredRanks(10,4,['T','4'])`), Blackboard (`MultTimesIfHeldAllSuits(3,['S','C'])`, vacuous-true when hand empty), Baseball Card (`MultTimesPerUncommonJoker(15)`, compounds). Each reads only current board state (`jokers`/`deck`/`in_hand`/`played`), exact wiki values, one test each. **The remaining ~43 were driven out by [`EPIC-01a_Joker_Wiring_Backlog.md`](./EPIC-01a_Joker_Wiring_Backlog.md), closed out 2026-07-16:** its eight subsystem phases (economy, round & hand state, per-run counters, retriggers, deck mutation/consumables, detection-rule hooks, full-deck view, boss blinds) wired 29 more jokers, each with an exact-wiki-value test. **14 stayed `Blank` with a stated, test-enforced reason** (`BLANK_WITH_REASON`, enforced by `all_jokers__every_blank_joker_has_a_stated_reason`), blocked on subsystems outside that EPIC's scope. EPICs 01b–01e then wired six more (Flash Card, Red Card, Hallucination via the shop; Perkeo via editions; Sixth Sense and Séance via spectrals), so **8 remain `Blank` at close-out** (`decks/joker.rs:2844`): DNA (draw step), To Do List / Mail-In Rebate (per-round random targets), Trading Card (destruction on discard), Reserved Parking (deferred, not blocked), Lucky Cat (mutating scoring), Matador (per-hand boss triggers), Diet Cola (Tags). The live silent-zero bug it flagged (Banner/Mystic Summit) is fixed — first by the scoring arms (2a/2b), then again by `discards_remaining()` when the round loop caught both reading granted rather than remaining discards
 - [~] Implement jokers 96–150 (mostly still a commented-out catalog). **Done: the 5 Rare jokers** (The Duo/Trio/Family/Order/Tribe, #131–135) and **the 5 Legendary jokers** (#146–150) are declared. **Triboulet is scored** (`MultTimesPerScoredRank(2, ['K','Q'])` = ×2 per played King/Queen, compounding); **Canio, Yorick and Chicot are now wired too** (EPIC-01a Phases 3b/8); **Perkeo is now wired too** (EPIC-01d Phase 4: `CreateNegativeConsumableCopy` at round end) — so **every Legendary joker now scores or acts, and no joker remains `Blank` for want of editions**
 - [x] Uncommon/Rare/Legendary pile assemblies — **all done**: `UNCOMMON_JOKERS` (12), `RARE_JOKERS` (5), `LEGENDARY_JOKERS` (5), mirroring `COMMON_JOKERS`, with `pile_uncommon()`/`pile_rare()`/`pile_legendary()`
 - [x] Data-invariant tests for `decks/joker.rs` — a shared `assert_rarity_pile` helper checks size / all-jokers / correct-rarity / distinct across all four rarity piles, plus a cross-pile no-duplicate check (44 jokers). Per-card cost checks still open
@@ -112,9 +131,16 @@
 - [x] Phase 1 pre-scoring: `BuffoonBoard::scoring_phase1_pre_scoring` — base chips/mult from the played hand's type & level (Royal Flush normalizes to Straight Flush, matching Balatro). Also fixed a `FlushFive` table-entry typo in `hands.rs`
 - [x] Phase 2 played-hand scoring: `BuffoonBoard::scoring_phase2_dealt_hand_scoring` — each played card's `get_chips()` (base rank + flat `Chips`) plus per-card `calculate_plus` effects (disjoint `MPip` variants, no double-count)
 - [x] Phase 3 held-card effects: `BuffoonBoard::scoring_phase3_effects_in_hand` — applies held ×mult (Steel = `MultTimes1Dot(15)` = ×1.5, `MultTimes(n)` = ×n) to the running score. **All four phases now implemented**; `BuffoonBoard::score()` folds them into one running score in Balatro order (base → cards → held ×mult → jokers L→R) and never panics; 23 board tests total (`board.rs`)
-- [~] Handle the `MPip` variants that fall through to `_ => 0`. **Done: the per-card rank family** — `MultPlusOn5Ranks` (Fibonacci +8, Even Steven +4) at both card and pile level, and pile-level summing of `ChipsPlusOn5Ranks` (Odd Todd +31), which was a latent silent bug: its card-level test passed but board scoring goes through the pile, which never summed it, so Odd Todd scored 0 in play. 5 unit tests + an end-to-end `score()` regression test. **Also done:** flat multiplicative jokers (`MultTimes`, `MultTimes1Dot`) and hand-conditional ×mult jokers (5 new `MPip::MultTimesOn{Pair,Trips,4OfAKind,Straight,Flush}` variants + the 5 Rare jokers The Duo/Trio/Family/Order/Tribe), all via the phase-4 running-score fold, using the "contains" predicates. **Also done:** probabilistic effects via a seeded RNG path — `BuffoonBoard::score_with_seed(seed)` / `score_with_rng(rng)` roll Lucky cards (1-in-N → +20 mult) and the Misprint joker (`MultPlusRandomTo(n)` → +random(0..n) mult) deterministically per seed; pure `score()` is the zero-proc floor. **Still open:** state-dependent variants (economy, discards/hands remaining, joker-slot counts like `MultTimesOnEmptyJokerSlots`/`MultTimesEveryXHands`) and non-scoring probabilistic effects (Glass/`ChanceDestroyed` destruction, `Odds1inUpgradeHand`, `Odds1inCashOn3Ranks` — deck-mutation/economy, not score contributions)
-- [ ] Retrigger mechanics (red seal, Dusk, Hack…)
-- [ ] Edition/enhancement/seal contributions to scoring
+- [~] Handle the `MPip` variants that fall through to `_ => 0`. **Done: the per-card rank family** — `MultPlusOn5Ranks` (Fibonacci +8, Even Steven +4) at both card and pile level, and pile-level summing of `ChipsPlusOn5Ranks` (Odd Todd +31), which was a latent silent bug: its card-level test passed but board scoring goes through the pile, which never summed it, so Odd Todd scored 0 in play. 5 unit tests + an end-to-end `score()` regression test. **Also done:** flat multiplicative jokers (`MultTimes`, `MultTimes1Dot`) and hand-conditional ×mult jokers (5 new `MPip::MultTimesOn{Pair,Trips,4OfAKind,Straight,Flush}` variants + the 5 Rare jokers The Duo/Trio/Family/Order/Tribe), all via the phase-4 running-score fold, using the "contains" predicates. **Also done:** probabilistic effects via a seeded RNG path — `BuffoonBoard::score_with_seed(seed)` / `score_with_rng(rng)` roll Lucky cards (1-in-N → +20 mult) and the Misprint joker (`MultPlusRandomTo(n)` → +random(0..n) mult) deterministically per seed; pure `score()` is the zero-proc floor. **Also done since (EPIC-01a):** the state-dependent variants — economy (Bull's `ChipsPerDollar`), discards remaining (Banner's `ChipsPerRemainingDiscard`, `board.rs:621`), joker-slot counts (Joker Stencil's `MultTimesOnEmptyJokerSlots`, `board.rs:879`) — and Glass destruction (`ChanceDestroyed` rolls, `board.rs:2681`). **Still carried-but-unscored (silent zero) at close-out:** `MultPlusOnHandPlays` (Supernova, `joker.rs:829`) and `MultTimesEveryXHands` (Loyalty Card, `joker.rs:540`) — both sit in the reachability guard's exclusion list (`joker.rs:2593`) though `hands_played` state now exists to wire them against
+- [~] Retrigger mechanics — **joker retriggers landed** (EPIC-01a Phase 4):
+  `played_retriggers` (`board.rs:408`) re-runs the whole per-card contribution
+  for Dusk, Hack (`RetriggerPlayedRanks`), Seltzer (counter-limited), and
+  Hanging Chad (position-based). Red-seal retriggers deferred with seals.
+- [~] Edition/enhancement/seal contributions to scoring — **editions score**
+  (EPIC-01d: Foil/Holo/Polychrome fold into played-card and joker scoring;
+  Negative is a live slot exemption) and **enhancements score** (Steel/Glass/
+  Bonus/Mult/Lucky/Stone via phases 2–3). Seal contributions deferred with
+  seals.
 
 ## Story 7: Game state & economy
 
@@ -131,7 +157,7 @@
   ones whose ability is a pure `Draws` mutation). Ante progression and the rest
   of the ~20-boss roster (score requirements, card debuffs) are not modelled.
   (EPIC-01a Phase 8)
-- [~] Shop: buying, selling (consume `resell_value`), rerolls, packs —
+- [x] Shop: buying, selling (consume `resell_value`), rerolls, packs —
   **`sell_joker` landed** (it pays out `resell_value` and recomputes the round's
   draws, which is what makes Luchador observable). **The shop and buying landed
   too** (EPIC-01b Phase 2): `Shop { stock, rerolls_used }` on the board,
@@ -171,7 +197,7 @@
 ## Story 8: Modding & solver enablement (the stated end-goals)
 
 - [~] Open effect interpretation — **the extension seam is in.** `MPip::Custom(u32)` (stays `Copy`/const/serde) + an `Effect` trait, `ScoringContext`, `ScoreOp`, and an `EffectRegistry` (`src/funky/types/effect.rs`); `BuffoonBoard::score_with_registry` resolves custom effects on **played cards, held cards, and jokers** — every phase they can occur — without editing any core match arm (9 tests + worked examples). The three phase folds are unified (`fold_played_cards`/`fold_held_cards`/`fold_jokers`), and phase 2 now takes a running score so a custom played ×mult composes correctly. Built-in scoring is unified onto `ScoreOp` (each fold applies one op per item via `builtin_*_op`/`custom_op`), so built-in and custom effects share one application path. Design + migration path in [`2026-07-11-effect-registry-design.md`](./2026-07-11-effect-registry-design.md). **Remaining migration items are all closed** except optional serde-stable string ids for mods.
-- [~] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` (deterministic floor) and `score_with_seed(seed)` (rolls probabilistic effects) run all four phases without panicking; still partial until the state-dependent `MPip` variants land (they need round/economy state on the board)
+- [x] Full `Score` pipeline a solver can call without panicking — `BuffoonBoard::score()` (deterministic floor) and `score_with_seed(seed)` (rolls probabilistic effects) run all four phases without panicking; the state-dependent `MPip` variants landed with the round/economy state EPIC-01a put on the board. (Two carried-but-unscored variants remain as data gaps, not pipeline gaps — see Story 6 and the corrigendum)
 - [x] Deterministic/seedable shuffle for solver reproducibility — `BuffoonPile::{shuffle_with_seed, shuffled_with_seed, shuffle_with_rng, shuffled_with_rng}` mirror the core `basic` API (`StdRng::seed_from_u64`); 3 determinism tests + a doctest. A solver deals reproducibly via `Deck::basic_buffoon_pile().shuffled_with_seed(seed)`
 - [ ] Serde on funky types (core decks got serde in 0.6.x; funky types have none)
 - [x] End-to-end example: `examples/buffoon.rs` now deals a board, plays a hand, detects the hand type, and demonstrates phase-4 joker scoring (180 chips × 22 mult) end-to-end
@@ -195,8 +221,9 @@
 
 ## Verification matrix
 
-- [x] `cargo test --features funky` — full battery (**750** lib tests green as of
-  2026-07-18, up from 395 at the 2026-07-11 hardening pass)
+- [x] `cargo test --features funky` — full battery (**769** lib + 10 integration
+  tests + 101 doctests green at close-out, 2026-07-18 tip `e50fdd0`; up from 395
+  at the 2026-07-11 hardening pass)
 - [x] `cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic` — **the entire crate is clean** (lib, all tests, all examples, benches) and gated in CI (`unwrap`/`expect` in tests allowed via a `cfg(test)` attribute in `src/lib.rs`)
 - [x] `cargo build --no-default-features` — green; `--examples` also green (buffoon correctly gated behind `required-features = ["funky"]`)
 - [x] `cargo run --example buffoon --features funky` — demonstrates the full four-phase pipeline: base (100×8) + cards (+51 chips) + held Steel (×1.5 → 12 mult) + jokers (180×22) → `score()` 331×34 = **11254**
@@ -204,8 +231,86 @@
 
 ## Gotchas
 
-- **All four scoring phases are implemented; `BuffoonBoard::score()` never panics** and folds every phase into one running score, so joker order (and additive-vs-×mult) is honored. But many `MPip` variants still fall through to `_ => 0`, so a "wired" joker can silently score nothing (e.g. `MultPlusOnHandPlays`, `ChipsPerRemainingDiscard`, the hand-conditional ×mult jokers). **Effects are scored through the *pile* (`BuffoonPile::calculate_plus`), not just the card — a per-card variant handled only in `BuffoonCard` still scores 0 in play until the pile sums it** (this bit Odd Todd). When implementing a variant, add a test at the pile/board level proving it scores.
+- **All four scoring phases are implemented; `BuffoonBoard::score()` never panics** and folds every phase into one running score, so joker order (and additive-vs-×mult) is honored. A handful of `MPip` variants still fall through to `_ => 0`, so a "wired" joker can silently score nothing — at close-out the known two are `MultPlusOnHandPlays` (Supernova) and `MultTimesEveryXHands` (Loyalty Card); `ChipsPerRemainingDiscard` and the hand-conditional ×mult jokers, formerly listed here, have since been wired. **Effects are scored through the *pile* (`BuffoonPile::calculate_plus`), not just the card — a per-card variant handled only in `BuffoonCard` still scores 0 in play until the pile sums it** (this bit Odd Todd). When implementing a variant, add a test at the pile/board level proving it scores.
 - **Silent zero-scoring:** unhandled `MPip` variants fall through to `_ => 0`, so a joker can be "wired" yet contribute nothing (e.g. `MultPlusOn5Ranks`). When implementing a variant, add a test proving it scores.
 - **`RefCell` in `ToggleCard`** makes it non-`Sync` — fine for a single-threaded solver loop, a constraint for parallel search.
 - **funky is std-only by design** — never import funky types into `basic` modules or the no_std discipline breaks.
 - **`beggar my neighbor`** commits seen in history are not part of funky at the current tip — don't go looking for them.
+
+---
+
+## Implementation corrigendum
+
+*Closed out 2026-07-18 at `funky` tip `e50fdd0` (in sync with `origin/funky`,
+clean tree). All five verification gates re-run and green at close-out: 769 lib
++ 10 integration tests + 101 doctests; clippy `-Dclippy::all -Dclippy::pedantic
+--all-targets` clean; `cargo build --no-default-features` clean; `cargo doc`
+with `-D warnings` clean; `examples/buffoon.rs` scores 11254.*
+
+### Design-vs-actual deltas
+
+1. **The work shipped as a five-EPIC chain, not one document's checkboxes.**
+   This EPIC's Stories stated the *what*; the *how* was peeled off into
+   [01a](./EPIC-01a_Joker_Wiring_Backlog.md) (joker subsystems, closed
+   2026-07-16), [01b](./EPIC-01b_Shop.md) (shop), [01c](./EPIC-01c_Vouchers.md)
+   (vouchers), [01d](./EPIC-01d_Editions.md) (editions, all closed 2026-07-17),
+   and [01e](./EPIC-01e_Spectral_Cards.md) (spectrals, closed 2026-07-18). Each
+   child carries its own corrigendum; this table reconciles the parent.
+2. **"Wire every joker" became "wire or state why not."** The original Story 4
+   goal was effects for all Blanks; the landed design is stronger: 104 of 112
+   declared jokers score with exact-wiki-value tests, and the 8 that cannot yet
+   (`BLANK_WITH_REASON`, `joker.rs:2844`) each carry a test-enforced reason
+   naming the missing subsystem — so "not done yet" and "waiting on Tags" are
+   distinguishable in source, and a wired joker can never silently join the list.
+3. **The mod-extensibility goal landed as `Effect`/`EffectRegistry`, not `phf`.**
+   The function-pointer pip (`fpips.rs`) and the `phf` dependency were both
+   removed; built-ins unified onto `ScoreOp` and customs ride
+   `MPip::Custom(u32)` + `score_with_registry` (`types/effect.rs`).
+4. **The solver goal landed as a deterministic floor + seeded ceiling.**
+   `score()` never rolls; `score_with_seed`/`score_with_rng` roll Lucky,
+   Misprint, Glass destruction, and spectral creation reproducibly. Retriggers
+   (`played_retriggers`, `board.rs:408`) re-run the whole per-card contribution,
+   so a retriggered Lucky card re-rolls — matching Balatro.
+5. **Editions folded into the existing `ScoreOp` scoring rather than a new
+   phase** (01d), and Negative became a live slot exemption rather than a slot
+   mutation — which is what let Perkeo (`CreateNegativeConsumableCopy`) be the
+   last Legendary wired.
+6. **Two carried-but-unscored variants survive close-out** (silent zero by the
+   Gotcha's definition): `MultPlusOnHandPlays` (Supernova, `joker.rs:829`) and
+   `MultTimesEveryXHands` (Loyalty Card, `joker.rs:540`). Both sit in the
+   reachability guard's exclusion list; the `hands_played` counter they need
+   now exists (`board.rs:120`). They are the natural first items of any
+   follow-on sweep.
+
+### Story status summary
+
+| Story | Status |
+|---|---|
+| 1 — Core card model & vocabulary | **Complete** |
+| 2 — Decks | **Complete for scope** — 3 decks; the other 13 Balatro decks **Deferred** (future Decks EPIC) |
+| 3 — Consumables | **Complete for scope** — planets ✅, card-enhancing tarots ✅, 14/18 spectrals ✅, 20/32 vouchers ✅; run-level tarots, seal spectrals, edition/ante vouchers **Deferred** |
+| 4 — Jokers | **Complete for scope** — 104/112 wired; 8 `Blank` with test-enforced reasons **Deferred** onto their subsystems |
+| 5 — Hand detection & levels | **Complete** — incl. the `HandRules` seam (Four Fingers / Shortcut / Smeared) |
+| 6 — Scoring engine | **Complete for scope** — all 4 phases, ×mult composition, retriggers, editions, seeded probabilistics; red-seal retriggers + 2 silent variants **Deferred** |
+| 7 — Game state & economy | **Complete for scope** — round loop, cash-out, shop, vouchers, 3 boss blinds; ante progression + full boss roster **Deferred** (future Antes/Bosses EPIC) |
+| 8 — Modding & solver enablement | **Complete for scope** — registry seam + non-panicking pipeline + seeded shuffle + real example; serde on funky types **Deferred** (future Serde EPIC) |
+| 9 — API surface & hygiene | **Complete** — CI-gated at `-Dpedantic --all-targets`, prelude exports, CHANGELOG |
+
+### Inherited debt (the deferral register)
+
+Named here so nothing silently rots; each is a future EPIC, not a loose end:
+
+- **Seals** — the last ❌ subsystem: 4 seal spectrals, red-seal retriggers,
+  seal scoring, and Talisman/Deja Vu/Trance/Medium (`spectral.rs:106-153`).
+- **Antes & boss blinds** — ante progression (`blind_target` is caller-set),
+  ~17 more bosses, per-hand boss triggers (unblocks Matador).
+- **Decks** — 13 remaining Balatro decks beyond Basic/Abandoned/Checkered.
+- **Tags** — unblocks Diet Cola.
+- **Draw step / mutation hooks** — unblocks DNA, Trading Card, Lucky Cat
+  (mutating scoring), To Do List / Mail-In Rebate (per-round random targets).
+- **Serde on funky types** + optional serde-stable string ids for mod effects.
+- **Edition sourcing** — shop edition rolls and the edition/ante/pack-content
+  voucher subset (12 vouchers).
+- **Spectral booster pack** — EPIC-01b's deferred fourth `PackKind`; per
+  EPIC-01e's Dependencies it "now has cards to draw."
+- **Supernova & Loyalty Card** — the two silent-zero variants (delta 6).

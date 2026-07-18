@@ -2,7 +2,7 @@
 
 > Index of outstanding work, aggregated from EPIC docs, GitHub issues, and code
 > comments by the `/backlog` skill (last refreshed 2026-07-15, branch `funky`;
-> EPIC-01a section updated 2026-07-16 at its close-out).
+> EPIC-01 family sections updated 2026-07-18 at EPIC-01's close-out, `e50fdd0`).
 > Detail lives in the linked sources; tech debt detail lives in
 > [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md). Items tagged 🤖 are
 > machine-proposed suggestions, not commitments.
@@ -25,36 +25,47 @@ abilities. Carried forward, tracked outside the EPIC:
 - [ ] `BuffoonPile::draw(n)` loses cards when the deck can't supply the full
   count — sidestepped by `deal_to_hand_size`, tracked in TECHNICAL_DEBT.
 
-### EPIC-01b — The Shop ([docs/EPIC-01b_Shop.md](docs/EPIC-01b_Shop.md)) — planned, the next EPIC
+### EPIC-01b — The Shop ([docs/EPIC-01b_Shop.md](docs/EPIC-01b_Shop.md)) — **complete** (closed out 2026-07-17)
 
-Cash-out (blind reward + $/hand + interest), shop stock drawn from the
-now-reconciled rarity piles, buying (Credit Card debt floor), reroll (Flash
-Card, Chaos the Clown), booster packs (Red Card, Hallucination). Four phases,
-all open; unblocks 3 of the 14 `Blank` jokers and wires the 2 silently-inert
-money consts.
+All four phases landed: cash-out, stock/buying (Credit Card debt floor),
+rerolls (Flash Card, Chaos the Clown), booster packs (Red Card, Hallucination).
 
-### EPIC-01 — Funky/Balatro engine ([docs/EPIC-01_Funky.md](docs/EPIC-01_Funky.md)) — parent EPIC
+### EPIC-01c — Vouchers ([docs/EPIC-01c_Vouchers.md](docs/EPIC-01c_Vouchers.md)) — **complete** (closed out 2026-07-17)
 
-Still open beyond EPIC-01a's scope:
+`Voucher` enum + $10 shop slot; 20 in-scope vouchers wired at exact wiki values
+across draws, slots, economy, and shop weights. The edition/ante/pack-content
+subset (12) deferred onto its subsystems.
 
-- [ ] Remaining Balatro decks (Red, Blue, Yellow, Green, Black, Magic, Nebula,
-  Ghost, Erratic, Painted, Anaglyph, Plasma, Zodiac).
-- [~] Score/apply tarot effects — card-enhancing tarots apply + score via
-  `BuffoonCard::enhance` (tested 2026-07-18); run-level tarots deferred.
-- [ ] Spectral cards (18) and Vouchers (32) — nothing beyond the type tags.
-- [x] Tests for `decks/planet.rs` (10) and `decks/tarot.rs` (8) — added
-  2026-07-18; the planet suite fixed a missing-Mercury (Pair) data gap.
-- [ ] Editions / seals contributions to scoring (red seal retrigger, foil, holo…).
-- [ ] Ante progression (blind state + three boss effects landed via EPIC-01a
-  Phase 8; ante supplies no `blind_target` yet); shop (`sell_joker` landed;
-  buying, rerolls, packs open). The round loop itself landed with EPIC-01a's
-  close-out.
-- [ ] Serde on funky types. CHANGELOG entries for the funky feature — **added
-  2026-07-18** (under `[Unreleased] → Added`).
-- Note: the doc's checkboxes are frozen at 2026-07-05 (`cc1595d`) and several are
-  stale — e.g. "Joker-modified hand detection (Smeared)" (line 83) and "Retrigger
-  mechanics" (line 94) have since landed via EPIC-01a Phases 4/6. The doc wants a
-  status refresh.
+### EPIC-01d — Editions ([docs/EPIC-01d_Editions.md](docs/EPIC-01d_Editions.md)) — **complete** (closed out 2026-07-17)
+
+Foil/Holo/Polychrome fold into played-card and joker scoring; Negative is a
+live slot exemption; Perkeo (the last `Blank` Legendary) wired. Edition
+*sourcing* (shop rolls, frequency vouchers) deferred.
+
+### EPIC-01e — Spectral cards ([docs/EPIC-01e_Spectral_Cards.md](docs/EPIC-01e_Spectral_Cards.md)) — **complete** (Phases 0–3, closed out 2026-07-18)
+
+18-card deck, Sixth Sense/Séance create-path, 14 of 18 effects wired. The four
+seal spectrals stay `Blank`, deferred to a future Seals EPIC.
+
+### EPIC-01 — Funky/Balatro engine ([docs/EPIC-01_Funky.md](docs/EPIC-01_Funky.md)) — **✅ closed out** (2026-07-18, `e50fdd0`)
+
+The parent EPIC is **Complete with named deferrals** — see its Implementation
+corrigendum for the full deferral register. 769 lib + 10 integration tests +
+101 doctests green; all five gates pass. What it deferred (each a future EPIC,
+none in-flight):
+
+- [ ] **Seals** — 4 seal spectrals, red-seal retriggers, seal scoring; the last
+  ❌ subsystem.
+- [ ] **Antes & boss blinds** — ante progression, ~17 more bosses, per-hand
+  boss triggers (unblocks Matador).
+- [ ] **Decks** — 13 remaining Balatro decks (Red, Blue, Yellow, Green, Black,
+  Magic, Nebula, Ghost, Erratic, Painted, Anaglyph, Plasma, Zodiac).
+- [ ] **Tags** (unblocks Diet Cola); **draw step / mutation hooks** (unblocks
+  DNA, Trading Card, Lucky Cat, To Do List, Mail-In Rebate).
+- [ ] **Serde on funky types** + serde-stable string ids for mod effects.
+- [ ] **Edition sourcing** + the 12 deferred vouchers; a Spectral `PackKind`.
+- [ ] **Supernova & Loyalty Card** — the two carried-but-unscored (silent-zero)
+  `MPip` variants (`MultPlusOnHandPlays`, `MultTimesEveryXHands`).
 
 ### EPIC-02 — Ganjifa decks ([docs/EPIC-02_Ganjifa.md](docs/EPIC-02_Ganjifa.md)) — fully planned, not started
 
