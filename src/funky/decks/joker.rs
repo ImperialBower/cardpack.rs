@@ -796,6 +796,11 @@ pub mod card {
     /// On the one hand I love how I can have a constant that represents the state, but I can also mutate
     /// it through game play, just like in the game, without touching the underlying functions
     /// that process it. On the other hand, it's convoluted AF.
+    ///
+    /// **UPDATE** Business Card (#94), carried as
+    /// `Odds1inCashOn3Ranks(2, 2, ['K','Q','J'])`: a `1 in 2` chance to earn $2
+    /// per played face card. A probabilistic *economy* effect, not a hand-score
+    /// contribution — it belongs to the seeded-RNG / payout path, not `score()`.
     pub const BUSINESS_CARD: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::JOKER,
         rank: Pip {

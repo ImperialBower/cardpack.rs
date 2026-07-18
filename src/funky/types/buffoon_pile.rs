@@ -89,6 +89,11 @@ impl BuffoonPile {
 
     /// **DIARY** OK here is where we put our coding to the test. We should be able to take what we
     /// did on the [`BuffoonCard`] side and apply it at the connection level.
+    ///
+    /// **UPDATE** The `+mult` this whole pile earns from `enhancer`'s effect —
+    /// the pile-level twin of [`BuffoonCard::calculate_plus_mult`]. Hand-shape
+    /// effects (flush/pair/straight bonuses) are answered here, while per-card
+    /// effects (Fibonacci, the suit jokers) are summed over the played cards.
     #[must_use]
     pub fn calculate_plus_mult(&self, enhancer: &BuffoonCard) -> usize {
         match enhancer.enhancement {
@@ -232,7 +237,18 @@ impl BuffoonPile {
         red.max(black)
     }
 
-    /// TODO: HACKY
+    /// The best poker hand this pile forms, under vanilla Balatro rules.
+    ///
+    /// This is an **ordered cascade**: it tests the hand families from
+    /// strongest ([`FlushFive`](HandType::FlushFive)) to weakest
+    /// ([`HighCard`](HandType::HighCard)) and returns the first that matches,
+    /// so a hand that satisfies several categories is always named by its
+    /// highest one. That ordering *is* the classification — each `has_*`
+    /// predicate answers only its own question, and the cascade resolves the
+    /// precedence between them. See [`determine_hand_type_with`] for the
+    /// rule-modifier-aware variant this delegates to.
+    ///
+    /// [`determine_hand_type_with`]: Self::determine_hand_type_with
     #[must_use]
     pub fn determine_hand_type(&self) -> HandType {
         self.determine_hand_type_with(HandRules::default())
@@ -302,6 +318,9 @@ impl BuffoonPile {
     /// However, before I can write this easily, I need a `BuffoonPile::from_str() `
     /// method. I am addicted to them in these style of libraries. I want to manifest state
     /// as easily as possible.
+    ///
+    /// **UPDATE** Returns a copy of the pile with `enhancer` applied to every
+    /// card, via [`BuffoonCard::enhance`].
     #[must_use]
     pub fn enhance(&self, enhancer: BuffoonCard) -> Self {
         self.iter().map(|c| c.enhance(enhancer)).collect()
@@ -410,6 +429,9 @@ impl BuffoonPile {
     ///
     /// The basic logic is simple. If there are fewer ranks in a pile of cards than the total
     /// number of cards, there must be at least one pair.
+    ///
+    /// **UPDATE** Whether the pile contains at least one pair. Built on the core
+    /// [`BasicPile`] combinatorics so pile-state jokers can read it cheaply.
     #[must_use]
     pub fn has_pair(&self) -> bool {
         self.has_x_of_a_kind(2)
@@ -427,18 +449,27 @@ impl BuffoonPile {
         self.len() <= x
     }
 
-    /// TODO: HACKY
+    /// Whether the pile forms a Royal Flush (A-K-Q-J-10 in one suit).
     #[must_use]
     pub fn has_royal_flush(&self) -> bool {
         self.has_royal_flush_with(HandRules::default())
     }
 
+    /// A Royal Flush is the top [straight flush](Self::has_straight_flush): it
+    /// spans Ace down to Ten in a single suit. This engine has no Ace-low
+    /// straights — [`connectors`](Self::connectors) never bridges the Ace to a
+    /// low card, so `A-2-3-4-5` is not a straight — which means a straight flush
+    /// holding **both an Ace and a King** can only be `A-K-Q-J-10`. Testing for
+    /// those two anchor ranks is order-independent (unlike reading the sorted
+    /// top card) and stays correct when [`HandRules`] shortens the straight.
     #[must_use]
     pub fn has_royal_flush_with(&self, rules: HandRules) -> bool {
-        self.basic_pile()
-            .sorted()
-            .first()
-            .is_some_and(|card| self.has_straight_flush_with(rules) && card.rank == FrenchRank::ACE)
+        if !self.has_straight_flush_with(rules) {
+            return false;
+        }
+        let ranks = self.detectable();
+        ranks.iter().any(|c| c.rank == FrenchRank::ACE)
+            && ranks.iter().any(|c| c.rank == FrenchRank::KING)
     }
 
     /// Whether the pile forms a straight. Vanilla Balatro (gap-free, five cards)
@@ -787,6 +818,8 @@ mod funky__types__buffoon_pile_tests {
     /// let enhancer = BuffoonCard::new(5, 6);
     /// assert_eq!(pile.calculate_plus_mult(enhancer), 44);
     /// ```
+    ///
+    /// **UPDATE** Greedy Joker gives +3 mult per played Diamond, summed over the hand.
     #[test]
     fn calculate_plus_mult() {
         assert_eq!(
@@ -910,6 +943,9 @@ mod funky__types__buffoon_pile_tests {
     }
 
     /// *DIARY** I really don't want to write any more tests.
+    ///
+    /// **UPDATE** Guards the Royal Flush anchors: a mixed-suit A-high run and a
+    /// King-high straight flush must *not* classify as a Royal Flush.
     #[rstest]
     #[case("AD KS QS JS TS", HandType::RoyalFlush)]
     #[case("9S KS QS JS TS", HandType::RoyalFlush)]
@@ -988,7 +1024,12 @@ mod funky__types__buffoon_pile_tests {
     #[test]
     fn has_royal_flush() {
         assert!(bcards!("AS KS QS JS TS").has_royal_flush());
+        // A King-high straight flush has no Ace anchor.
         assert!(!bcards!("9S KS QS JS TS").has_royal_flush());
+        // An Ace-high flush that is not a straight fails the straight-flush gate.
+        assert!(!bcards!("AS KS QS JS 9S").has_royal_flush());
+        // Right ranks, wrong (mixed) suits: not a flush at all.
+        assert!(!bcards!("AS KH QS JS TS").has_royal_flush());
     }
 
     #[test]

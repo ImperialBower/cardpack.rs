@@ -23,11 +23,14 @@
 
 ### Hacks (`TODO: HACK`)
 
-- [ ] **`determine_hand_type` is HACKY** — sequential if-chain hand detection;
-  also tracked in EPIC-01 ("Resolve the HACKY markers").
-  (`src/funky/types/buffoon_pile.rs:235`)
-- [ ] **`has_royal_flush` is HACKY** — same cluster as above.
-  (`src/funky/types/buffoon_pile.rs:430`)
+- [x] ~~**`determine_hand_type` is HACKY**~~ — **Resolved 2026-07-18.** The
+  sequential if-chain is an intentional ordered cascade (strongest hand family
+  first); the marker is now a doc comment saying so, no logic change.
+  (`src/funky/types/buffoon_pile.rs`)
+- [x] ~~**`has_royal_flush` is HACKY**~~ — **Resolved 2026-07-18.** Rewritten to
+  test for the Ace **and** King anchors rather than the sorted top card:
+  order-independent, and correct because the engine has no Ace-low straights.
+  (`src/funky/types/buffoon_pile.rs`)
 - [ ] **`Pip::PRIMES` const marked HACK** — a hard-coded 60-prime table used for
   weighting. (`src/basic/types/pips.rs:98`)
 - [ ] **i18n `fluent_*` path marked HACK** — author notes fluent-templates may

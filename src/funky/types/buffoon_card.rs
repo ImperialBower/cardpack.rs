@@ -108,6 +108,11 @@ impl BuffoonCard {
     ///     enhancement: self.enhancement,
     /// }
     /// ```
+    ///
+    /// **UPDATE** Returns a copy of this card with `chips` added to its base
+    /// rank value. A card's chips can be raised two ways: by increasing the
+    /// underlying rank value (this method — how Hiker permanently fattens a
+    /// scored card) or by attaching an [`MPip::Chips`] enhancement.
     #[must_use]
     pub fn add_base_chips(&self, chips: usize) -> Self {
         let mut value = self.rank.value;

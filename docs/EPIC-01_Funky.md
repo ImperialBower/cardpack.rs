@@ -19,7 +19,7 @@
 | Playing card | `BuffoonCard` + `BCardType::Basic` | ✅ done |
 | Joker | `BCardType::{Common,Uncommon,Rare,Legendary}Joker` + `MPip` effect | 🟡 ~105/150 declared (incl. 5 Rare + 5 Legendary), 4 rarity piles assembled, ~34 effect kinds scored (hand-conditional +/×mult, per-scored-rank/face, per-held-rank, board-count, held-suit, seeded probabilistic); the rest need subsystems (economy/counters/retriggers/mutation/blinds) |
 | Planet card | `src/funky/decks/planet.rs` (12 cards) + `PokerHands::increment` | ✅ done |
-| Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟡 cards + effects declared, mostly unscored |
+| Tarot card | `src/funky/decks/tarot.rs` (22 Major Arcana) | 🟢 card-enhancing tarots apply + score via `enhance` (tested); run-level ones deferred |
 | Spectral card | `src/funky/decks/spectral.rs` (18 cards) + Sixth Sense/Séance creators | 🟡 deck + create-path done (EPIC-01e); most effects + the seal four still open |
 | Voucher | `Voucher` enum + `redeem_shop_voucher`; live readers (draws/slots/economy/weights) | 🟡 20 in scope wired (EPIC-01c); edition/ante/pack-content vouchers deferred |
 | Booster pack | `PackKind` + `BoosterPack`; `skip_pack`/`open_pack_with_rng` | 🟡 Buffoon/Arcana/Celestial buy/skip/open; contents-choosing is caller's (EPIC-01b Phase 4) |
@@ -60,7 +60,13 @@
 - [x] 12 planet cards with `ChipsMultPlusOnHand` effects (`decks/planet.rs`)
 - [x] Hand leveling: `PokerHands::increment` applies planet upgrades (`hands.rs:106`)
 - [x] 22 Major Arcana tarot cards with mapped `MPip` effects (`decks/tarot.rs`)
-- [ ] Score/apply tarot effects in the scoring engine (declared but mostly unhandled)
+- [~] Score/apply tarot effects — the **card-enhancing** tarots apply and score
+  through `BuffoonCard::enhance` (Glass/Steel/Bonus/Mult/Lucky/Wild/Stone, plus
+  Strength's rank bump and the four suit-changers), pinned by
+  `funky__decks__tarot_tests`; applied in play via `BuffoonBoard::use_consumable`.
+  The **run-level** tarots (Death, Judgement, Hermit, Wheel, Emperor, High
+  Priestess, Hanged Man) are no-ops on a card — their effects belong to the
+  consumable/economy subsystems
 - [~] Spectral cards (18 in Balatro) — **the deck exists** (`decks/spectral.rs`,
   EPIC-01e Phase 0) and **Sixth Sense / Séance are wired** to create a random
   spectral on their trigger (Phase 1), leaving `BLANK_WITH_REASON` at 8. The
@@ -70,7 +76,10 @@
   (EPIC-01c): 20 in-scope vouchers wired at exact wiki values across draws,
   slots, economy, and shop weights, with the base→upgrade prerequisite enforced.
   The edition/ante/pack-content vouchers (12) stay deferred on their subsystems.
-- [ ] Tests for `decks/planet.rs` (2) and `decks/tarot.rs` (0)
+- [x] Tests for `decks/planet.rs` (10) and `decks/tarot.rs` (8) — data-invariant
+  + effect-application coverage. The planet suite found and fixed a data gap:
+  `Planet::DECK` was missing Mercury (the Pair planet), so the base deck now
+  covers all nine base poker hands (`DECK_SIZE` 8→9)
 
 ## Story 4: Jokers
 
@@ -87,8 +96,13 @@
 - [x] 4-card straights via `connectors(distance)` — groundwork for Four Fingers / Shortcut jokers
 - [x] Base chips/mult table per Balatro, level and times-played tracking (`hands.rs:58-93`)
 - [x] Well tested: 37 tests + 20 rstest cases on `buffoon_pile.rs`
-- [ ] Resolve the "TODO: HACKY" markers on `determine_hand_type` (`buffoon_pile.rs:131`) and `has_royal_flush` (`:297`)
-- [ ] Joker-modified hand detection (e.g. Smeared Joker suit merging)
+- [x] Resolved the "TODO: HACKY" markers on `determine_hand_type` (documented as
+  an ordered strongest-first cascade — that ordering *is* the classification) and
+  `has_royal_flush` (rewritten to test for the Ace **and** King anchors, which is
+  order-independent and robust; the engine has no Ace-low straights, so a straight
+  flush holding both can only be A-K-Q-J-10)
+- [x] Joker-modified hand detection — the `HandRules` seam (Four Fingers,
+  Shortcut, Smeared suit-merging) landed in EPIC-01a Phase 6
 
 ## Story 6: Scoring engine
 
@@ -170,14 +184,19 @@
 - [x] Add funky to CI: the test matrix now runs `cargo test --features funky`, and the clippy job runs `cargo clippy --features funky --lib -- -Dclippy::all -Dclippy::pedantic`
 - [x] Fix 6 default-level clippy warnings in funky lib code (unwrap on Option, collapsible ifs, `sort_by_key`, let-if-seq) — funky lib is now clean at `-Dclippy::pedantic`
 - [x] Remove or use the `phf` dependency — **removed.** It was the wrong tool for the built-in dispatch (compile-time hash vs. a runtime data-carrying enum; a `match` is already a faster, exhaustive jump table). Built-ins were unified onto `ScoreOp` instead; `phf` + the `dep:phf` feature are gone
-- [~] Replace journal-style doc comments with API reference docs. **Done: the profanity/"STORY TIME" is gone** (it lived only in the now-deleted `fpips.rs`). **Remaining:** `DIARY` notes in `buffoon_card.rs`, `buffoon_pile.rs`, `joker.rs`
-- [ ] CHANGELOG entries for the funky feature
+- [x] Replace journal-style doc comments with API reference docs. The profanity/
+  "STORY TIME" is gone (it lived only in the now-deleted `fpips.rs`). The `DIARY`
+  notes in `buffoon_card.rs`, `buffoon_pile.rs`, `joker.rs` are **kept by author
+  preference** — each now carries an appended **UPDATE** paragraph with the clean
+  API reference doc, so the journal and the reference coexist
+- [x] CHANGELOG entries for the funky feature (under `[Unreleased] → Added`)
 
 ---
 
 ## Verification matrix
 
-- [x] `cargo test --features funky` — full battery (**395** unit tests green as of 2026-07-11, +12 new deck/joker data tests)
+- [x] `cargo test --features funky` — full battery (**750** lib tests green as of
+  2026-07-18, up from 395 at the 2026-07-11 hardening pass)
 - [x] `cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic` — **the entire crate is clean** (lib, all tests, all examples, benches) and gated in CI (`unwrap`/`expect` in tests allowed via a `cfg(test)` attribute in `src/lib.rs`)
 - [x] `cargo build --no-default-features` — green; `--examples` also green (buffoon correctly gated behind `required-features = ["funky"]`)
 - [x] `cargo run --example buffoon --features funky` — demonstrates the full four-phase pipeline: base (100×8) + cards (+51 chips) + held Steel (×1.5 → 12 mult) + jokers (180×22) → `score()` 331×34 = **11254**

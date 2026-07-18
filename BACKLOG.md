@@ -39,15 +39,18 @@ Still open beyond EPIC-01a's scope:
 
 - [ ] Remaining Balatro decks (Red, Blue, Yellow, Green, Black, Magic, Nebula,
   Ghost, Erratic, Painted, Anaglyph, Plasma, Zodiac).
-- [ ] Score/apply tarot effects in the scoring engine (declared, mostly unhandled).
+- [~] Score/apply tarot effects — card-enhancing tarots apply + score via
+  `BuffoonCard::enhance` (tested 2026-07-18); run-level tarots deferred.
 - [ ] Spectral cards (18) and Vouchers (32) — nothing beyond the type tags.
-- [ ] Tests for `decks/planet.rs` (has 2) and `decks/tarot.rs` (has 0).
+- [x] Tests for `decks/planet.rs` (10) and `decks/tarot.rs` (8) — added
+  2026-07-18; the planet suite fixed a missing-Mercury (Pair) data gap.
 - [ ] Editions / seals contributions to scoring (red seal retrigger, foil, holo…).
 - [ ] Ante progression (blind state + three boss effects landed via EPIC-01a
   Phase 8; ante supplies no `blind_target` yet); shop (`sell_joker` landed;
   buying, rerolls, packs open). The round loop itself landed with EPIC-01a's
   close-out.
-- [ ] Serde on funky types; CHANGELOG entries for the funky feature.
+- [ ] Serde on funky types. CHANGELOG entries for the funky feature — **added
+  2026-07-18** (under `[Unreleased] → Added`).
 - Note: the doc's checkboxes are frozen at 2026-07-05 (`cc1595d`) and several are
   stale — e.g. "Joker-modified hand detection (Smeared)" (line 83) and "Retrigger
   mechanics" (line 94) have since landed via EPIC-01a Phases 4/6. The doc wants a
@@ -72,8 +75,9 @@ no core-type changes needed. Good "next EPIC" candidate when funky pauses.
 Tracked in [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md) — 16 code-comment
 items (`TODO RF` / `TODO: HACK`) plus automated review findings. Highlights:
 
-- [ ] `determine_hand_type` / `has_royal_flush` "HACKY" markers in
-  `src/funky/types/buffoon_pile.rs` (also EPIC-01 §hand-detection).
+- [x] ~~`determine_hand_type` / `has_royal_flush` "HACKY" markers in
+  `src/funky/types/buffoon_pile.rs`~~ — **resolved 2026-07-18** (cascade
+  documented; royal-flush check made order-independent via Ace+King anchors).
 - [ ] `Pile` → `VecDeque` consideration; treat vector end as top of deck
   (`pile.rs:647`, `basic_card.rs:31`).
 - [ ] Closure-accepting common function for the `combos.rs` duplication (`combos.rs:99`).

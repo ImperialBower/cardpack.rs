@@ -235,3 +235,124 @@ pub mod card {
         debuffed: false,
     };
 }
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__decks__tarot_tests {
+    use super::*;
+    use crate::funky::decks::basic::card::{ACE_SPADES, KING_SPADES};
+    use crate::funky::decks::tarot::card;
+    use crate::funky::types::buffoon_card::BCardType;
+    use crate::funky::types::mpip::MPip;
+    use std::collections::HashSet;
+
+    // ---- Deck-level invariants -------------------------------------------
+
+    #[test]
+    fn deck__size_matches_declaration() {
+        assert_eq!(MajorArcana::DECK.len(), MajorArcana::DECK_SIZE);
+    }
+
+    #[test]
+    fn deck__all_cards_are_tarot() {
+        for tarot in MajorArcana::DECK {
+            assert_eq!(
+                tarot.card_type,
+                BCardType::Tarot,
+                "{tarot} in DECK is not a Tarot card"
+            );
+        }
+    }
+
+    #[test]
+    fn deck__all_cards_are_distinct_major_arcana() {
+        let cards: HashSet<_> = MajorArcana::DECK.iter().collect();
+        assert_eq!(cards.len(), MajorArcana::DECK_SIZE, "DECK has duplicates");
+        for tarot in MajorArcana::DECK {
+            assert_eq!(tarot.resell_value, 1, "{tarot} should resell for $1");
+        }
+    }
+
+    // ---- The three tarot-application shapes, via `BuffoonCard::enhance` ----
+    //
+    // `enhance` is the card-application seam every card-targeting tarot goes
+    // through (see `BuffoonBoard::use_consumable`). It has exactly three
+    // behaviours, and these tests pin one of each.
+
+    /// Rank mutator: Strength steps a card's rank up by one (King -> Ace).
+    #[test]
+    fn strength__steps_the_rank_up_by_one() {
+        let promoted = KING_SPADES.enhance(card::STRENGTH);
+        assert_eq!(promoted.rank.index, 'A', "Strength should push King to Ace");
+        assert_eq!(promoted.suit, KING_SPADES.suit, "suit is untouched");
+        assert_eq!(
+            promoted.card_type,
+            BCardType::Basic,
+            "the target stays a basic card"
+        );
+    }
+
+    /// Suit mutator: the four suit tarots repaint a card without touching its
+    /// rank or enhancement.
+    #[test]
+    fn suit_tarots__repaint_the_card_leaving_rank_alone() {
+        for (tarot, suit) in [
+            (card::STAR, 'D'),
+            (card::MOON, 'C'),
+            (card::SUN, 'H'),
+            (card::WORLD, 'S'),
+        ] {
+            let painted = ACE_SPADES.enhance(tarot);
+            assert_eq!(painted.suit.index, suit, "{tarot} set the wrong suit");
+            assert_eq!(painted.rank, ACE_SPADES.rank, "{tarot} moved the rank");
+        }
+    }
+
+    /// Enhancement swap: the enhancing tarots stamp their `MPip` onto the card,
+    /// leaving rank and suit intact.
+    #[test]
+    fn enhancing_tarots__stamp_their_enhancement_onto_the_card() {
+        for (tarot, expected) in [
+            (card::JUSTICE, MPip::Glass(2, 4)),
+            (card::THE_CHARIOT, MPip::STEEL),
+            (card::HIEROPHANT, MPip::Chips(30)),
+            (card::EMPRESS, MPip::MultPlus(4)),
+            (card::TOWER, MPip::TOWER),
+        ] {
+            let enhanced = ACE_SPADES.enhance(tarot);
+            assert_eq!(enhanced.enhancement, expected, "{tarot} set wrong effect");
+            assert_eq!(enhanced.rank, ACE_SPADES.rank, "{tarot} moved the rank");
+            assert_eq!(enhanced.suit, ACE_SPADES.suit, "{tarot} moved the suit");
+        }
+    }
+
+    /// Run-level tarots (Death, Hermit, Hanged Man, High Priestess, Emperor)
+    /// are *not* card enhancements — applied to a card they are a no-op, because
+    /// their real effect belongs to a subsystem outside scoring (EPIC-01a 5e).
+    #[test]
+    fn run_level_tarots__do_not_touch_a_card() {
+        for tarot in [
+            card::DEATH,
+            card::HERMIT,
+            card::HANGED_MAN,
+            card::HIGH_PRIESTESS,
+            card::EMPEROR,
+        ] {
+            assert_eq!(
+                ACE_SPADES.enhance(tarot),
+                ACE_SPADES,
+                "{tarot} should leave the card unchanged"
+            );
+        }
+    }
+
+    /// Scoring linkage: an enhancement a tarot applies actually reaches the
+    /// score. The Hierophant stamps `Chips(30)`; a King then scores its 10 base
+    /// chips plus that 30.
+    #[test]
+    fn hierophant__adds_its_chips_to_the_scored_card() {
+        let blessed = KING_SPADES.enhance(card::HIEROPHANT);
+        assert_eq!(KING_SPADES.get_chips(), 10, "plain King is 10 chips");
+        assert_eq!(blessed.get_chips(), 40, "Hierophant should add +30 chips");
+    }
+}
