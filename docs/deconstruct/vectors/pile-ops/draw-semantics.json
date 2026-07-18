@@ -1,0 +1,38 @@
+{
+  "behavior": "draw-semantics",
+  "data": {
+    "initial_size": 52,
+    "steps": [
+      {
+        "op": "draw_first",
+        "result": "AS",
+        "size_after": 51
+      },
+      {
+        "op": "draw_last",
+        "result": "2C",
+        "size_after": 50
+      },
+      {
+        "op": "draw(3)",
+        "result": [
+          "KS",
+          "QS",
+          "JS"
+        ],
+        "size_after": 47
+      },
+      {
+        "op": "draw(0)",
+        "result": [],
+        "size_after": 47
+      },
+      {
+        "op": "draw(1000)",
+        "result": null,
+        "size_after": 47
+      }
+    ]
+  },
+  "epic": "DECON-02"
+}

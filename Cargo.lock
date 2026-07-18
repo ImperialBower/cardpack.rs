@@ -162,6 +162,7 @@ dependencies = [
  "rand",
  "rstest",
  "serde",
+ "serde_json",
  "serde_norway",
  "term-table",
  "thiserror 2.0.18",

@@ -1,0 +1,374 @@
+{
+  "behavior": "canonical-order",
+  "data": {
+    "cards": [
+      {
+        "index": "AS",
+        "position": 0,
+        "rank": "Ace",
+        "suit": "Spades",
+        "symbol": "A♠"
+      },
+      {
+        "index": "KS",
+        "position": 1,
+        "rank": "King",
+        "suit": "Spades",
+        "symbol": "K♠"
+      },
+      {
+        "index": "QS",
+        "position": 2,
+        "rank": "Queen",
+        "suit": "Spades",
+        "symbol": "Q♠"
+      },
+      {
+        "index": "JS",
+        "position": 3,
+        "rank": "Jack",
+        "suit": "Spades",
+        "symbol": "J♠"
+      },
+      {
+        "index": "TS",
+        "position": 4,
+        "rank": "Ten",
+        "suit": "Spades",
+        "symbol": "T♠"
+      },
+      {
+        "index": "9S",
+        "position": 5,
+        "rank": "Nine",
+        "suit": "Spades",
+        "symbol": "9♠"
+      },
+      {
+        "index": "8S",
+        "position": 6,
+        "rank": "Eight",
+        "suit": "Spades",
+        "symbol": "8♠"
+      },
+      {
+        "index": "7S",
+        "position": 7,
+        "rank": "Seven",
+        "suit": "Spades",
+        "symbol": "7♠"
+      },
+      {
+        "index": "6S",
+        "position": 8,
+        "rank": "Six",
+        "suit": "Spades",
+        "symbol": "6♠"
+      },
+      {
+        "index": "5S",
+        "position": 9,
+        "rank": "Five",
+        "suit": "Spades",
+        "symbol": "5♠"
+      },
+      {
+        "index": "4S",
+        "position": 10,
+        "rank": "Four",
+        "suit": "Spades",
+        "symbol": "4♠"
+      },
+      {
+        "index": "3S",
+        "position": 11,
+        "rank": "Three",
+        "suit": "Spades",
+        "symbol": "3♠"
+      },
+      {
+        "index": "2S",
+        "position": 12,
+        "rank": "Deuce",
+        "suit": "Spades",
+        "symbol": "2♠"
+      },
+      {
+        "index": "AH",
+        "position": 13,
+        "rank": "Ace",
+        "suit": "Hearts",
+        "symbol": "A♥"
+      },
+      {
+        "index": "KH",
+        "position": 14,
+        "rank": "King",
+        "suit": "Hearts",
+        "symbol": "K♥"
+      },
+      {
+        "index": "QH",
+        "position": 15,
+        "rank": "Queen",
+        "suit": "Hearts",
+        "symbol": "Q♥"
+      },
+      {
+        "index": "JH",
+        "position": 16,
+        "rank": "Jack",
+        "suit": "Hearts",
+        "symbol": "J♥"
+      },
+      {
+        "index": "TH",
+        "position": 17,
+        "rank": "Ten",
+        "suit": "Hearts",
+        "symbol": "T♥"
+      },
+      {
+        "index": "9H",
+        "position": 18,
+        "rank": "Nine",
+        "suit": "Hearts",
+        "symbol": "9♥"
+      },
+      {
+        "index": "8H",
+        "position": 19,
+        "rank": "Eight",
+        "suit": "Hearts",
+        "symbol": "8♥"
+      },
+      {
+        "index": "7H",
+        "position": 20,
+        "rank": "Seven",
+        "suit": "Hearts",
+        "symbol": "7♥"
+      },
+      {
+        "index": "6H",
+        "position": 21,
+        "rank": "Six",
+        "suit": "Hearts",
+        "symbol": "6♥"
+      },
+      {
+        "index": "5H",
+        "position": 22,
+        "rank": "Five",
+        "suit": "Hearts",
+        "symbol": "5♥"
+      },
+      {
+        "index": "4H",
+        "position": 23,
+        "rank": "Four",
+        "suit": "Hearts",
+        "symbol": "4♥"
+      },
+      {
+        "index": "3H",
+        "position": 24,
+        "rank": "Three",
+        "suit": "Hearts",
+        "symbol": "3♥"
+      },
+      {
+        "index": "2H",
+        "position": 25,
+        "rank": "Deuce",
+        "suit": "Hearts",
+        "symbol": "2♥"
+      },
+      {
+        "index": "AD",
+        "position": 26,
+        "rank": "Ace",
+        "suit": "Diamonds",
+        "symbol": "A♦"
+      },
+      {
+        "index": "KD",
+        "position": 27,
+        "rank": "King",
+        "suit": "Diamonds",
+        "symbol": "K♦"
+      },
+      {
+        "index": "QD",
+        "position": 28,
+        "rank": "Queen",
+        "suit": "Diamonds",
+        "symbol": "Q♦"
+      },
+      {
+        "index": "JD",
+        "position": 29,
+        "rank": "Jack",
+        "suit": "Diamonds",
+        "symbol": "J♦"
+      },
+      {
+        "index": "TD",
+        "position": 30,
+        "rank": "Ten",
+        "suit": "Diamonds",
+        "symbol": "T♦"
+      },
+      {
+        "index": "9D",
+        "position": 31,
+        "rank": "Nine",
+        "suit": "Diamonds",
+        "symbol": "9♦"
+      },
+      {
+        "index": "8D",
+        "position": 32,
+        "rank": "Eight",
+        "suit": "Diamonds",
+        "symbol": "8♦"
+      },
+      {
+        "index": "7D",
+        "position": 33,
+        "rank": "Seven",
+        "suit": "Diamonds",
+        "symbol": "7♦"
+      },
+      {
+        "index": "6D",
+        "position": 34,
+        "rank": "Six",
+        "suit": "Diamonds",
+        "symbol": "6♦"
+      },
+      {
+        "index": "5D",
+        "position": 35,
+        "rank": "Five",
+        "suit": "Diamonds",
+        "symbol": "5♦"
+      },
+      {
+        "index": "4D",
+        "position": 36,
+        "rank": "Four",
+        "suit": "Diamonds",
+        "symbol": "4♦"
+      },
+      {
+        "index": "3D",
+        "position": 37,
+        "rank": "Three",
+        "suit": "Diamonds",
+        "symbol": "3♦"
+      },
+      {
+        "index": "2D",
+        "position": 38,
+        "rank": "Deuce",
+        "suit": "Diamonds",
+        "symbol": "2♦"
+      },
+      {
+        "index": "AC",
+        "position": 39,
+        "rank": "Ace",
+        "suit": "Clubs",
+        "symbol": "A♣"
+      },
+      {
+        "index": "KC",
+        "position": 40,
+        "rank": "King",
+        "suit": "Clubs",
+        "symbol": "K♣"
+      },
+      {
+        "index": "QC",
+        "position": 41,
+        "rank": "Queen",
+        "suit": "Clubs",
+        "symbol": "Q♣"
+      },
+      {
+        "index": "JC",
+        "position": 42,
+        "rank": "Jack",
+        "suit": "Clubs",
+        "symbol": "J♣"
+      },
+      {
+        "index": "TC",
+        "position": 43,
+        "rank": "Ten",
+        "suit": "Clubs",
+        "symbol": "T♣"
+      },
+      {
+        "index": "9C",
+        "position": 44,
+        "rank": "Nine",
+        "suit": "Clubs",
+        "symbol": "9♣"
+      },
+      {
+        "index": "8C",
+        "position": 45,
+        "rank": "Eight",
+        "suit": "Clubs",
+        "symbol": "8♣"
+      },
+      {
+        "index": "7C",
+        "position": 46,
+        "rank": "Seven",
+        "suit": "Clubs",
+        "symbol": "7♣"
+      },
+      {
+        "index": "6C",
+        "position": 47,
+        "rank": "Six",
+        "suit": "Clubs",
+        "symbol": "6♣"
+      },
+      {
+        "index": "5C",
+        "position": 48,
+        "rank": "Five",
+        "suit": "Clubs",
+        "symbol": "5♣"
+      },
+      {
+        "index": "4C",
+        "position": 49,
+        "rank": "Four",
+        "suit": "Clubs",
+        "symbol": "4♣"
+      },
+      {
+        "index": "3C",
+        "position": 50,
+        "rank": "Three",
+        "suit": "Clubs",
+        "symbol": "3♣"
+      },
+      {
+        "index": "2C",
+        "position": 51,
+        "rank": "Deuce",
+        "suit": "Clubs",
+        "symbol": "2♣"
+      }
+    ],
+    "count": 52,
+    "deck": "Standard52"
+  },
+  "epic": "DECON-01"
+}

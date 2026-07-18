@@ -1,0 +1,23 @@
+{
+  "behavior": "parse-cases",
+  "data": {
+    "cases": [
+      {
+        "index": "AS",
+        "input": "as",
+        "status": "ok"
+      },
+      {
+        "index": "__",
+        "input": "__",
+        "status": "ok"
+      },
+      {
+        "error": "InvalidCard",
+        "input": "ZZ",
+        "status": "error"
+      }
+    ]
+  },
+  "epic": "DECON-04"
+}
