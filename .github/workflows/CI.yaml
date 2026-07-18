@@ -29,12 +29,12 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
           components: rust-src
-      - run: cargo test --all
+      - run: cargo test --locked --all
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
       # funky is a std-only, off-by-default feature that the default-feature
       # matrix above never compiles. Test it explicitly so regressions are gated.
-      - run: cargo test --features funky
+      - run: cargo test --locked --features funky
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
 
@@ -52,12 +52,12 @@ jobs:
         with:
           toolchain: stable
           components: clippy, rust-src
-      - run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
+      - run: cargo clippy --locked -- -Dclippy::all -Dclippy::pedantic
       # Lint everything the bare `cargo clippy` above misses: the funky
       # feature (off by default) plus all tests, examples, and benches
       # (`--all-targets`). `unwrap`/`expect` in tests are allowed via a
       # `cfg(test)` attribute in src/lib.rs.
-      - run: cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+      - run: cargo clippy --locked --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
 
   fmt:
     name: Fmt
@@ -85,7 +85,7 @@ jobs:
         with:
           toolchain: stable
           components: rust-src
-      - run: cargo doc --no-deps --all-features
+      - run: cargo doc --locked --no-deps --all-features
 
   wasm-build:
     name: WASM Build
@@ -97,9 +97,9 @@ jobs:
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
-      - run: cargo build --target wasm32-unknown-unknown --all-features
-      - run: cargo build --target wasm32-unknown-unknown --no-default-features
-      - run: cargo build --target wasm32-unknown-unknown --example wasm
+      - run: cargo build --locked --target wasm32-unknown-unknown --all-features
+      - run: cargo build --locked --target wasm32-unknown-unknown --no-default-features
+      - run: cargo build --locked --target wasm32-unknown-unknown --example wasm
 
   wasm-test:
     name: WASM Test
@@ -120,7 +120,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-bindgen-cli@${{ steps.wbg.outputs.version }}
-      - run: cargo test --target wasm32-unknown-unknown --test wasm
+      - run: cargo test --locked --target wasm32-unknown-unknown --test wasm
 
   coverage:
     name: Coverage
@@ -135,7 +135,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
-      - run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - run: cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info
       - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
@@ -150,15 +150,15 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - run: cargo build --no-default-features
-      - run: cargo build --no-default-features --features serde
-      - run: cargo test --no-default-features --lib
+      - run: cargo build --locked --no-default-features
+      - run: cargo build --locked --no-default-features --features serde
+      - run: cargo test --locked --no-default-features --lib
       # Build all examples under default features to catch any missing
       # required-features = ["std"] declarations on examples that use
       # std-gated APIs (rand::random, no-arg shuffle, draw_random, etc.).
       # Examples with required-features matching off are silently skipped
       # by Cargo, so this is what enforces the gating discipline.
-      - run: cargo build --no-default-features --examples
+      - run: cargo build --locked --no-default-features --examples
 
   no-std-thumbv7em:
     name: no_std bare-metal target
@@ -170,6 +170,6 @@ jobs:
         with:
           toolchain: stable
           targets: thumbv7em-none-eabihf
-      - run: cargo build --no-default-features --target thumbv7em-none-eabihf
-      - run: cargo build --no-default-features --features serde --target thumbv7em-none-eabihf
-      - run: cargo build --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke
+      - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf
+      - run: cargo build --locked --no-default-features --features serde --target thumbv7em-none-eabihf
+      - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke
