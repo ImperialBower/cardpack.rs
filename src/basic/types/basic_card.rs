@@ -12,7 +12,13 @@ use core::fmt;
 use core::fmt::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+// Finding 1b (docs/audit-2026-07-18-domain-kernel.md): this filesystem read is
+// the last remaining I/O in the core and is slated to move to an adapter in
+// audit step 3. Until then it is *explicitly* exempted from the kernel purity
+// lint (clippy `disallowed_types`, see clippy.toml) rather than silently — the
+// `#[allow]` is the paper trail for the exception.
 #[cfg(feature = "yaml")]
+#[allow(clippy::disallowed_types)]
 use std::fs::File;
 #[cfg(feature = "yaml")]
 use std::io::Read;
@@ -75,6 +81,7 @@ impl BasicCard {
     ///
     /// Throws an error for an invalid path or invalid data.
     #[cfg(feature = "yaml")]
+    #[allow(clippy::disallowed_types)] // Finding 1b — see the `use std::fs::File` note above.
     pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();

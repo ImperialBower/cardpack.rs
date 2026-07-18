@@ -178,3 +178,34 @@ jobs:
       - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf
       - run: cargo build --locked --no-default-features --features serde --target thumbv7em-none-eabihf
       - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke
+
+  # The testable definition of "domain kernel": the pure (no-default-features)
+  # build must contain no I/O / format / presentation / transport crate. This
+  # gate is what makes the purity claim enforceable rather than aspirational.
+  # See docs/audit-2026-07-18-domain-kernel.md (Mode B).
+  kernel-purity:
+    name: Kernel purity (pure tree is I/O-free)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Crate names (pipe-separated) that must be ABSENT from the pure tree.
+      # Keep in sync with the `[bans].deny` list in deny.toml.
+      BANNED: "serde_norway|serde_yaml|serde_yaml_bw|colored|fluent-templates|fluent-bundle|tokio|reqwest|hyper|tonic|axum|rusqlite|sqlx"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      # 1. No banned crate may be in the pure (no-default-features) dependency tree.
+      - name: Assert pure dependency tree is I/O-free
+        run: |
+          if cargo tree --locked --no-default-features --edges normal --prefix none \
+               | sort -u | grep -E "^($BANNED) " ; then
+            echo "::error::banned crate present in the pure (no-default-features) build"
+            exit 1
+          fi
+          echo "pure kernel dependency tree is clean"
+      # 2. cargo-deny enforces the same ban list against the default graph, and
+      #    fails the build if any format/transport/runtime crate creeps in.
+      - uses: taiki-e/install-action@cargo-deny
+      - run: cargo deny check bans

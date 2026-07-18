@@ -1,3 +1,35 @@
 msrv = "1.85"
 
 cognitive-complexity-threshold = 30
+
+# ── Domain-kernel purity lints ──────────────────────────────────────────────
+# These ban the I/O / non-determinism entry points a pure domain kernel must not
+# use, so accidental reintroduction fails `cargo clippy` (CI runs it with
+# `--all-features --all-targets`). Format / transport / i18n *crates* are banned
+# separately via cargo-deny `[bans]` in deny.toml, which keeps them out of the
+# graph entirely. See docs/audit-2026-07-18-domain-kernel.md (Invariants 1 & 4).
+#
+# Known exception: BasicCard::cards_from_yaml_file (basic_card.rs) still uses
+# std::fs::File behind the `yaml` feature and carries a local #[allow] with a
+# pointer to Finding 1b — it is slated to move to an adapter (audit step 3).
+
+disallowed-types = [
+    { path = "std::path::Path",       reason = "a kernel takes bytes/&str, not paths — an adapter owns the filesystem" },
+    { path = "std::path::PathBuf",    reason = "filesystem policy belongs in an adapter, not the kernel" },
+    { path = "std::fs::File",         reason = "no filesystem I/O in a pure kernel" },
+    { path = "std::net::TcpStream",   reason = "no network in a pure kernel" },
+    { path = "std::net::TcpListener", reason = "no network in a pure kernel" },
+    { path = "std::process::Command", reason = "no process spawning in a pure kernel" },
+]
+
+disallowed-methods = [
+    { path = "std::fs::read",           reason = "kernel must not read the filesystem" },
+    { path = "std::fs::write",          reason = "kernel must not write the filesystem" },
+    { path = "std::fs::read_to_string", reason = "kernel must not read the filesystem" },
+    { path = "std::fs::create_dir_all", reason = "kernel must not touch the filesystem" },
+    { path = "std::env::var",           reason = "kernel must not read the environment" },
+    { path = "std::env::vars",          reason = "kernel must not read the environment" },
+    # Time and randomness make the kernel non-deterministic; inject them instead.
+    # (Seeded RNG is already the pattern here — see shuffle_with_seed.)
+    { path = "std::time::SystemTime::now", reason = "inject time; a kernel is deterministic" },
+]
