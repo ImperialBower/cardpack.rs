@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behavior, or opt into only the features you use. See the Cargo features
   table in the README and `docs/audit-2026-07-18-domain-kernel.md`
   (Invariant 3).
+- **`BasicCard::cards_from_yaml_file` moved from the `yaml` feature to a new
+  opt-in `std-io` feature** (`std-io = ["std", "yaml"]`), which is **not**
+  included in `full`. This is the crate's one filesystem seam; keeping it out
+  of `full` means both the pure kernel and the convenience stack are
+  I/O-free. Migration: enable `std-io` if you call `cards_from_yaml_file`, or
+  switch to the pure `cards_from_yaml_str` with a compile-time `include_str!`
+  (as the `Razz` deck now does). `cards_from_yaml_str` is unchanged and
+  remains under `yaml`. (docs/audit-2026-07-18-domain-kernel.md, Finding 1b)
 
 ### Added
 

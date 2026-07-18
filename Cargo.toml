@@ -29,6 +29,12 @@ path = "src/lib.rs"
 default = []
 full = ["std", "i18n", "colored-display", "yaml", "serde"]
 std = ["alloc", "rand/std", "rand/thread_rng", "serde?/std", "log/std"]
+# The crate's one filesystem seam: `BasicCard::cards_from_yaml_file`. Kept out
+# of `full` on purpose so both the pure kernel and the convenience stack stay
+# I/O-free; opt in explicitly to read decks from YAML *files*. Deck-from-YAML
+# without the filesystem is already available via `cards_from_yaml_str` + a
+# compile-time `include_str!` (see the `Razz` deck).
+std-io = ["std", "yaml"]
 alloc = ["serde?/alloc"]
 i18n = ["std", "dep:fluent-templates"]
 colored-display = ["std", "dep:colored"]

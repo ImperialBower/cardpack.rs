@@ -41,6 +41,16 @@ jobs:
       - run: cargo test --locked --features full,funky
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
+      # std-io is the opt-in filesystem seam (cards_from_yaml_file), deliberately
+      # excluded from `full`, so the runs above never exercise it. Its lib test
+      # and doctest exist only under this feature — cover them explicitly.
+      # (`--lib` and `--doc` can't be combined in one invocation.)
+      - run: cargo test --locked --features std-io --lib
+        env:
+          RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
+      - run: cargo test --locked --features std-io --doc
+        env:
+          RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
 
   clippy:
     name: Clippy

@@ -96,24 +96,28 @@ what they need:
 | `std`             | no      | libstd             | `std`-only APIs (thread-RNG shuffle, `draw_random`, etc.)     |
 | `i18n`            | no      | `fluent-templates` | `FluentName`, `Named`, `Card::fluent_name*`, `localization`   |
 | `colored-display` | no      | `colored`          | `Color`, `Colorize`, `Card::color*`, `Pile::to_color_*`       |
-| `yaml`            | no      | `serde_norway`     | `BasicCard::cards_from_yaml_*`, the `Razz` deck (YAML-loaded) |
+| `yaml`            | no      | `serde_norway`     | `BasicCard::cards_from_yaml_str` (pure, in-memory), the `Razz` deck |
 | `serde`           | no      | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
+| `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
 | `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
 
 To get the previous "batteries-included" behavior, opt into `full`:
 
 ```toml
 # Full convenience stack (i18n, colored display, YAML, serde):
-cardpack = { version = "0.7", features = ["full"] }
+cardpack = { version = "0.8", features = ["full"] }
 
 # Or trim to just what you need — e.g. the pure kernel plus serde:
-cardpack = { version = "0.7", features = ["serde"] }
+cardpack = { version = "0.8", features = ["serde"] }
 
 # Or the pure, no_std, alloc-only kernel with no extra deps at all:
-cardpack = "0.7"
+cardpack = "0.8"
 ```
 
 `yaml` implies `serde` (it deserializes into the serde-derived structs).
+`std-io` implies `yaml` and adds the filesystem reader on top of it; it is the
+only feature that lets the crate touch `std::fs`, and it is intentionally left
+out of `full` so the pure kernel and the convenience stack both stay I/O-free.
 
 ## Funky — Balatro-style cards
 

@@ -1,4 +1,4 @@
-.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy msrv create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
+.PHONY: clean build test test-unit test-doc test-std-io test-wasm build-wasm coverage bench build_test fmt clippy msrv create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
 
 # Default target
 default: ayce
@@ -85,8 +85,16 @@ test-unit:
 test-doc:
 	cargo test --doc --features full
 
-# Run all tests: unit tests via nextest, doc tests via cargo test
-test: test-unit test-doc
+# Exercise the opt-in filesystem seam (`cards_from_yaml_file`). It lives behind
+# the `std-io` feature, which `full` excludes, so `test-unit`/`test-doc` above
+# never touch it — its lib test and doctest exist only under this feature.
+test-std-io:
+	cargo test --features std-io --lib
+	cargo test --features std-io --doc
+
+# Run all tests: unit tests via nextest, doc tests via cargo test, plus the
+# std-io filesystem seam.
+test: test-unit test-doc test-std-io
 
 # Build cardpack for wasm32-unknown-unknown across feature combos.
 # The repo's .cargo/config.toml supplies the required getrandom backend cfg.
