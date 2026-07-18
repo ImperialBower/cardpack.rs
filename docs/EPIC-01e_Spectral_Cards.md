@@ -9,8 +9,9 @@
 > the effects that ride existing seams, and **unblocks Sixth Sense and Séance** —
 > the two jokers whose whole purpose is to *create* a spectral.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–2 complete
-(2026-07-17); Phase 3 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–3 complete
+(Phase 3 landed 2026-07-18). Only the four seal spectrals remain `Blank`,
+deferred to a future Seals EPIC.
 
 ---
 
@@ -59,7 +60,7 @@ Sixth Sense / Séance unblock.
 | 0 — `spectral.rs` deck (18 cards) | the 18 cards behind the tag | **Complete** (2026-07-17) |
 | 1 — Sixth Sense & Séance | the two jokers that *create* a spectral | **Complete** (2026-07-17) |
 | 2 — Run-level spectrals (Black Hole, The Soul, Wraith, Ectoplasm, Hex, Ankh) | leveling / joker creation / joker editions / money | **Complete** (2026-07-17) |
-| 3 — In-hand seam + hand spectrals (Aura, Sigil, Ouija, Immolate, Familiar, Grim, Incantation, Cryptid) | the new `in_hand` mutation seam | Planned |
+| 3 — In-hand seam + hand spectrals (Aura, Sigil, Ouija, Immolate, Familiar, Grim, Incantation, Cryptid) | the new `in_hand` mutation seam | **Complete** (2026-07-18) |
 | — Seal spectrals (Talisman, Deja Vu, Trance, Medium) | — | **Deferred** (no seals) |
 
 ---
@@ -269,13 +270,29 @@ were before this EPIC.
   classified non-scoring. The two destructive arms collapse their empty-check
   into a match guard (clippy), the Sixth Sense pattern again.
 
-### Phase 3 — in-hand seam + hand spectrals
+### Phase 3 — in-hand seam + hand spectrals — **Complete 2026-07-18**
 
-- [ ] **3a.** The `replace_in_hand` / `destroy_in_hand` / `add_to_hand` seam +
-  **Aura** (random edition on a selected hand card).
-- [ ] **3b.** **Sigil** / **Ouija** (hand → single suit / rank, Ouija −1 hand).
-- [ ] **3c.** **Immolate** (destroy 5 + $20), **Familiar** / **Grim** /
-  **Incantation** (destroy 1, add N enhanced), **Cryptid** (2 copies).
+- [x] **3a.** The `replace_in_hand` / `destroy_in_hand` / `add_to_hand` seam —
+  the `in_hand` mirror of the deck-mutation seam, each primitive keeping the
+  **roster** (`full_deck`) in step so the round loop's
+  `deck + in_hand + discarded == full_deck` invariant holds (and an Aura stamp
+  survives a reshuffle). `destroy_in_hand` fires `CardDestroyed` and `add_to_hand`
+  fires `CardAdded`, so Canio / Hologram read them like the deck seam. **Aura** →
+  `SpectralEditionRandomHandCard`: a random Foil/Holo/Poly onto `targets[0]`,
+  persisted to the roster. Seeded, inert on the pure path.
+- [x] **3b.** **Sigil** → `SpectralHandToRandomSuit` and **Ouija** →
+  `SpectralHandToRandomRankMinusHandSize`, both through a shared `convert_hand`
+  that rewrites every held card (via `set_suit` / a new `set_rank`) and mirrors
+  each onto the roster; Ouija also adds a `spectral_hand_size_penalty` (the
+  Ectoplasm shape). Ranks/suits are left untouched respectively.
+- [x] **3c.** **Immolate** → `SpectralDestroyRandomHandGainMoney(5, 20)` (destroy
+  up to 5 held cards, then +$20 — pays even when the hand is short); **Familiar** /
+  **Grim** / **Incantation** → `SpectralDestroyOneAddEnhanced{Faces,Aces,Numbered}`
+  via a shared `add_enhanced_cards` (destroy 1, add N random Enhanced cards of the
+  category, Stone excluded so a "face" stays one); **Cryptid** →
+  `SpectralCopySelectedHandCard(2)` (two copies of `targets[0]`). Each fails
+  before its arm; each is inert on the pure no-RNG path. `apply_spectral` split
+  into a joker/money half and an `apply_hand_spectral` half for readability.
 
 ### Deferred
 

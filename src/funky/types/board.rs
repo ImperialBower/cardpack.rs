@@ -9,6 +9,7 @@ use crate::funky::types::edition::Edition;
 use crate::funky::types::effect::{EffectRegistry, ScoreOp, ScoringContext};
 use crate::funky::types::shop::{BoosterPack, PackKind, Shop};
 use crate::funky::types::voucher::Voucher;
+use crate::prelude::{FrenchRank, FrenchSuit, Pip};
 use crate::preludes::funky::{
     BCardType, BuffoonCard, BuffoonPile, HandRules, HandType, MPip, PokerHands, Score,
 };
@@ -1084,6 +1085,119 @@ impl BuffoonBoard {
         true
     }
 
+    /// The `in_hand` mirror of the deck-mutation seam — the three primitives the
+    /// hand-targeting spectrals (Aura, Sigil, Ouija, Immolate, Familiar, …) act
+    /// through. Each keeps the **roster** ([`full_deck`](Self::full_deck)) in
+    /// step, because a held card is one the run owns: the round loop conserves
+    /// `deck + in_hand + discarded == full_deck`, so a hand mutation that skipped
+    /// the roster would break that invariant — and would lose an Aura stamp the
+    /// moment the card was reshuffled back into the deck. The roster copy is
+    /// located by **value**, the same rule as [`replace_deck_card`](Self::replace_deck_card).
+    ///
+    /// Replace the held card at `index` with `replacement`. Returns `false` if
+    /// `index` is out of bounds. Aura (stamp an edition) and Sigil / Ouija
+    /// (rewrite suit / rank) ride this.
+    pub fn replace_in_hand(&mut self, index: usize, replacement: BuffoonCard) -> bool {
+        let Some(old) = self.in_hand.get(index).copied() else {
+            return false;
+        };
+        self.in_hand.remove(index);
+        self.in_hand.insert(index, replacement);
+        if let Some(slot) = self.full_deck.iter().position(|c| *c == old) {
+            self.full_deck.remove(slot);
+            self.full_deck.insert(slot, replacement);
+        }
+        true
+    }
+
+    /// Destroy the held card at `index`: it leaves the run, so it also leaves the
+    /// roster. Fires `CardDestroyed` (Canio reads it), matching
+    /// [`destroy_deck_card`](Self::destroy_deck_card). Returns the card, or `None`
+    /// if `index` is out of bounds. Immolate and the Familiar/Grim/Incantation
+    /// trio ride this.
+    pub fn destroy_in_hand(&mut self, index: usize) -> Option<BuffoonCard> {
+        if index >= self.in_hand.len() {
+            return None;
+        }
+        let card = self.in_hand.remove(index);
+        if let Some(slot) = self.full_deck.iter().position(|c| *c == card) {
+            self.full_deck.remove(slot);
+        }
+        self.apply_growth(&GrowthEvent::CardDestroyed(card));
+        Some(card)
+    }
+
+    /// Destroy one held card chosen at random (Immolate and the Familiar / Grim /
+    /// Incantation trio all start here). Returns the destroyed card, or `None` if
+    /// the hand is empty.
+    fn destroy_random_hand_card<R: Rng + ?Sized>(&mut self, rng: &mut R) -> Option<BuffoonCard> {
+        if self.in_hand.is_empty() {
+            return None;
+        }
+        let index = rng.random_range(0..self.in_hand.len());
+        self.destroy_in_hand(index)
+    }
+
+    /// Add `count` random **Enhanced** cards drawn from `ranks` to the hand — the
+    /// shared body of Familiar (faces), Grim (Aces), and Incantation (numbered).
+    /// Each card gets a random suit and a random enhancement; they land through
+    /// [`add_to_hand`](Self::add_to_hand), so they join the roster too.
+    fn add_enhanced_cards<R: Rng + ?Sized>(&mut self, count: usize, ranks: &[Pip], rng: &mut R) {
+        const SUITS: [Pip; 4] = [
+            FrenchSuit::SPADES,
+            FrenchSuit::HEARTS,
+            FrenchSuit::DIAMONDS,
+            FrenchSuit::CLUBS,
+        ];
+        // The playing-card enhancements that keep a rank and suit (so a "face
+        // card" stays one) — Stone is excluded, since it masks both.
+        const ENHANCEMENTS: [MPip; 5] = [
+            MPip::Chips(30),
+            MPip::MultPlus(4),
+            MPip::Glass(2, 4),
+            MPip::STEEL,
+            MPip::Lucky(5, 15),
+        ];
+        for _ in 0..count {
+            let rank = ranks[rng.random_range(0..ranks.len())];
+            let suit = SUITS[rng.random_range(0..SUITS.len())];
+            let enhancement = ENHANCEMENTS[rng.random_range(0..ENHANCEMENTS.len())];
+            self.add_to_hand(BuffoonCard {
+                suit,
+                rank,
+                card_type: BCardType::Basic,
+                enhancement,
+                edition: Edition::None,
+                resell_value: 0,
+                debuffed: false,
+            });
+        }
+    }
+
+    /// Rewrite every held card through `f`, persisting each change to the roster
+    /// via [`replace_in_hand`](Self::replace_in_hand) — the shared body of Sigil
+    /// (suit) and Ouija (rank). Indices stay valid because `replace_in_hand`
+    /// keeps the hand's length and order.
+    fn convert_hand(&mut self, f: impl Fn(BuffoonCard) -> BuffoonCard) {
+        for index in 0..self.in_hand.len() {
+            if let Some(card) = self.in_hand.get(index).copied() {
+                self.replace_in_hand(index, f(card));
+            }
+        }
+    }
+
+    /// Add `card` to the hand — a new card the run now owns and is holding. It
+    /// lands in both `in_hand` and the roster and fires `CardAdded` (Hologram
+    /// reads it), matching [`add_card_to_deck`](Self::add_card_to_deck). It is
+    /// **not** put in the undealt [`deck`](Self::deck) remainder — it is in hand,
+    /// not waiting to be drawn. Familiar / Grim / Incantation / Cryptid build
+    /// hands with it.
+    pub fn add_to_hand(&mut self, card: BuffoonCard) {
+        self.full_deck.push(card);
+        self.in_hand.push(card);
+        self.apply_growth(&GrowthEvent::CardAdded(card));
+    }
+
     /// Whether the board has room for another consumable — the "(Must have
     /// room)" clause the creator cards carry.
     ///
@@ -1197,7 +1311,7 @@ impl BuffoonBoard {
                 }
                 self.tarots_used += 1;
             }
-            BCardType::Spectral => self.apply_spectral(card.enhancement, rng),
+            BCardType::Spectral => self.apply_spectral(card.enhancement, targets, rng),
             _ => {}
         }
 
@@ -1208,7 +1322,12 @@ impl BuffoonBoard {
     /// Apply a spectral card's effect. Deterministic effects (Black Hole) apply
     /// on either path; the rolling ones are inert without `rng`, the way a Lucky
     /// card is in the pure `score`.
-    fn apply_spectral<R: Rng + ?Sized>(&mut self, effect: MPip, rng: Option<&mut R>) {
+    fn apply_spectral<R: Rng + ?Sized>(
+        &mut self,
+        effect: MPip,
+        targets: &[usize],
+        rng: Option<&mut R>,
+    ) {
         if effect == MPip::SpectralLevelAllHands {
             self.poker_hands.increment_all();
             return;
@@ -1252,6 +1371,113 @@ impl BuffoonBoard {
                 }
                 self.destroy_other_jokers(index);
                 self.push_joker(copy);
+            }
+            // Everything else is a hand-targeting spectral (Phase 3).
+            _ => self.apply_hand_spectral(effect, targets, rng),
+        }
+    }
+
+    /// The **hand-targeting** spectrals (EPIC-01e Phase 3) — those that act on
+    /// [`in_hand`](Self::in_hand) through the in-hand seam, split out of
+    /// [`apply_spectral`](Self::apply_spectral) to keep each readable.
+    fn apply_hand_spectral<R: Rng + ?Sized>(
+        &mut self,
+        effect: MPip,
+        targets: &[usize],
+        rng: &mut R,
+    ) {
+        match effect {
+            // Aura: a random edition (Foil/Holo/Poly) onto the selected hand card
+            // (`targets[0]`), persisted to the roster through `replace_in_hand`.
+            MPip::SpectralEditionRandomHandCard => {
+                if let Some(&target) = targets.first()
+                    && let Some(card) = self.in_hand.get(target).copied()
+                {
+                    const EDITIONS: [Edition; 3] =
+                        [Edition::Foil, Edition::Holographic, Edition::Polychrome];
+                    let edition = EDITIONS[rng.random_range(0..EDITIONS.len())];
+                    self.replace_in_hand(target, card.with_edition(edition));
+                }
+            }
+            // Sigil: every held card to one random suit.
+            MPip::SpectralHandToRandomSuit => {
+                const SUITS: [Pip; 4] = [
+                    FrenchSuit::SPADES,
+                    FrenchSuit::HEARTS,
+                    FrenchSuit::DIAMONDS,
+                    FrenchSuit::CLUBS,
+                ];
+                let suit = SUITS[rng.random_range(0..SUITS.len())];
+                self.convert_hand(|card| basic::card::set_suit(card, suit));
+            }
+            // Ouija: every held card to one random rank, and −1 hand size.
+            MPip::SpectralHandToRandomRankMinusHandSize => {
+                const RANKS: [Pip; 13] = [
+                    FrenchRank::ACE,
+                    FrenchRank::KING,
+                    FrenchRank::QUEEN,
+                    FrenchRank::JACK,
+                    FrenchRank::TEN,
+                    FrenchRank::NINE,
+                    FrenchRank::EIGHT,
+                    FrenchRank::SEVEN,
+                    FrenchRank::SIX,
+                    FrenchRank::FIVE,
+                    FrenchRank::FOUR,
+                    FrenchRank::TREY,
+                    FrenchRank::DEUCE,
+                ];
+                let rank = RANKS[rng.random_range(0..RANKS.len())];
+                self.convert_hand(|card| basic::card::set_rank(card, rank));
+                self.spectral_hand_size_penalty += 1;
+                self.recompute_draws();
+            }
+            // Immolate: destroy n random held cards, then gain $m.
+            MPip::SpectralDestroyRandomHandGainMoney(count, dollars) => {
+                for _ in 0..count {
+                    if self.destroy_random_hand_card(rng).is_none() {
+                        break;
+                    }
+                }
+                self.money += isize::try_from(dollars).unwrap_or(0);
+            }
+            // Familiar: destroy 1 random held card, add n Enhanced face cards.
+            MPip::SpectralDestroyOneAddEnhancedFaces(count) => {
+                const FACES: [Pip; 3] = [FrenchRank::KING, FrenchRank::QUEEN, FrenchRank::JACK];
+                self.destroy_random_hand_card(rng);
+                self.add_enhanced_cards(count, &FACES, rng);
+            }
+            // Grim: destroy 1 random held card, add n Enhanced Aces.
+            MPip::SpectralDestroyOneAddEnhancedAces(count) => {
+                const ACES: [Pip; 1] = [FrenchRank::ACE];
+                self.destroy_random_hand_card(rng);
+                self.add_enhanced_cards(count, &ACES, rng);
+            }
+            // Incantation: destroy 1 random held card, add n Enhanced numbered cards.
+            MPip::SpectralDestroyOneAddEnhancedNumbered(count) => {
+                const NUMBERED: [Pip; 9] = [
+                    FrenchRank::DEUCE,
+                    FrenchRank::TREY,
+                    FrenchRank::FOUR,
+                    FrenchRank::FIVE,
+                    FrenchRank::SIX,
+                    FrenchRank::SEVEN,
+                    FrenchRank::EIGHT,
+                    FrenchRank::NINE,
+                    FrenchRank::TEN,
+                ];
+                self.destroy_random_hand_card(rng);
+                self.add_enhanced_cards(count, &NUMBERED, rng);
+            }
+            // Cryptid: add n copies of the selected hand card (`targets[0]`).
+            MPip::SpectralCopySelectedHandCard(count) => {
+                if let Some(&target) = targets.first()
+                    && let Some(card) = self.in_hand.get(target).copied()
+                {
+                    for _ in 0..count {
+                        self.add_to_hand(card);
+                    }
+                }
             }
             _ => {}
         }
@@ -4950,6 +5176,13 @@ mod funky__types__board__buffoon_board_tests {
         BuffoonBoard::new(Draws::new(4, 3), Deck::basic_buffoon_pile())
     }
 
+    /// Put `card` in a consumable slot and use it through the seeded RNG path.
+    fn use_spectral(board: &mut BuffoonBoard, card: BuffoonCard, targets: &[usize], seed: u64) {
+        board.create_consumable(card);
+        let index = board.consumables.len() - 1;
+        board.use_consumable_with_rng(index, targets, &mut StdRng::seed_from_u64(seed));
+    }
+
     #[test]
     fn deal_to_hand_size__fills_the_hand_from_the_deck() {
         let mut board = board_for_a_round();
@@ -6798,6 +7031,307 @@ mod funky__types__board__buffoon_board_tests {
         assert_eq!(board.jokers.len(), 2, "the original and its copy remain");
         // Both remaining jokers are the same card (a joker and its copy).
         assert_eq!(board.jokers.get(0).copied(), board.jokers.get(1).copied());
+    }
+
+    // ---- Phase 3a: the in-hand seam + Aura --------------------------------
+
+    #[test]
+    fn use_consumable_with_rng__aura_stamps_a_random_edition_on_the_selected_hand_card() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::QUEEN_CLUBS]);
+        board.create_consumable(spectral_card::AURA);
+
+        // Target the Queen (index 1).
+        board.use_consumable_with_rng(0, &[1], &mut StdRng::seed_from_u64(1));
+
+        let queen = board.in_hand.get(1).copied().unwrap();
+        assert!(
+            matches!(
+                queen.edition,
+                Edition::Foil | Edition::Holographic | Edition::Polychrome
+            ),
+            "the selected card got a Foil/Holo/Poly edition, was {:?}",
+            queen.edition
+        );
+        assert_eq!(
+            board.in_hand.get(0).unwrap().edition,
+            Edition::None,
+            "the unselected King is untouched"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__aura_is_deterministic_per_seed() {
+        let edition_for = |seed| {
+            let mut board = board_for_a_round();
+            board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS]);
+            board.create_consumable(spectral_card::AURA);
+            board.use_consumable_with_rng(0, &[0], &mut StdRng::seed_from_u64(seed));
+            board.in_hand.get(0).copied().unwrap().edition
+        };
+        assert_eq!(edition_for(7), edition_for(7), "same seed, same edition");
+    }
+
+    #[test]
+    fn use_consumable_with_rng__aura_persists_the_edition_onto_the_run_roster() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS]);
+        board.create_consumable(spectral_card::AURA);
+        board.use_consumable_with_rng(0, &[0], &mut StdRng::seed_from_u64(1));
+
+        let stamped = board.in_hand.get(0).copied().unwrap();
+        assert_ne!(stamped.edition, Edition::None);
+        assert!(
+            board.full_deck.iter().any(|c| *c == stamped),
+            "the edition persisted onto the run roster"
+        );
+        assert!(
+            !board.full_deck.iter().any(|c| *c == basic::KING_HEARTS),
+            "the plain King is gone from the roster"
+        );
+    }
+
+    #[test]
+    fn use_consumable__aura_is_inert_on_the_pure_no_rng_path() {
+        // A rolling spectral used without RNG does nothing (the Lucky-card rule).
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS]);
+        board.create_consumable(spectral_card::AURA);
+        board.use_consumable(0, &[0]);
+        assert_eq!(
+            board.in_hand.get(0).unwrap().edition,
+            Edition::None,
+            "no RNG, no edition"
+        );
+    }
+
+    #[test]
+    fn add_to_hand__grows_the_hand_and_the_roster() {
+        let mut board = board_for_a_round();
+        let hand = board.in_hand.len();
+        let roster = board.full_deck.len();
+        board.add_to_hand(basic::ACE_SPADES);
+        assert_eq!(board.in_hand.len(), hand + 1);
+        assert_eq!(board.full_deck.len(), roster + 1);
+    }
+
+    #[test]
+    fn destroy_in_hand__removes_the_card_from_hand_and_roster() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::QUEEN_CLUBS]);
+        let roster = board.full_deck.len();
+        assert_eq!(board.destroy_in_hand(0), Some(basic::KING_HEARTS));
+        assert_eq!(board.in_hand.len(), 1);
+        assert_eq!(board.full_deck.len(), roster - 1);
+        assert!(
+            !board.full_deck.iter().any(|c| *c == basic::KING_HEARTS),
+            "the destroyed card left the roster"
+        );
+    }
+
+    #[test]
+    fn destroy_in_hand__out_of_bounds_is_none() {
+        let mut board = board_for_a_round();
+        assert_eq!(board.destroy_in_hand(99), None);
+    }
+
+    #[test]
+    fn replace_in_hand__swaps_the_held_card_and_mirrors_the_roster() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS]);
+        let replacement = basic::KING_HEARTS.with_edition(Edition::Foil);
+        assert!(board.replace_in_hand(0, replacement));
+        assert_eq!(board.in_hand.get(0).copied(), Some(replacement));
+        assert!(
+            board.full_deck.iter().any(|c| *c == replacement),
+            "the roster copy was mirrored"
+        );
+        assert!(
+            !board.full_deck.iter().any(|c| *c == basic::KING_HEARTS),
+            "the plain roster copy is gone"
+        );
+    }
+
+    #[test]
+    fn replace_in_hand__out_of_bounds_is_false() {
+        let mut board = board_for_a_round();
+        assert!(!board.replace_in_hand(99, basic::ACE_SPADES));
+    }
+
+    // ---- Phase 3b: Sigil & Ouija ------------------------------------------
+
+    #[test]
+    fn use_consumable_with_rng__sigil_converts_the_whole_hand_to_one_suit() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![
+            basic::KING_HEARTS,
+            basic::QUEEN_CLUBS,
+            basic::TEN_DIAMONDS,
+        ]);
+        board.create_consumable(spectral_card::SIGIL);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        let suit = board.in_hand.get(0).unwrap().suit;
+        assert!(
+            board.in_hand.iter().all(|c| c.suit == suit),
+            "every held card shares one suit"
+        );
+        assert!(
+            matches!(suit.index, 'S' | 'H' | 'D' | 'C'),
+            "and it is a real French suit, was {}",
+            suit.index
+        );
+        // Ranks are untouched — only the suit is rewritten.
+        assert_eq!(board.in_hand.get(0).unwrap().rank.index, 'K');
+    }
+
+    #[test]
+    fn use_consumable_with_rng__ouija_converts_the_hand_to_one_rank_and_shrinks_it() {
+        let mut board = board_for_a_round();
+        board.on_blind_selected();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::QUEEN_CLUBS]);
+        let hand_before = board.draws.hand_size;
+        board.create_consumable(spectral_card::OUIJA);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        let rank = board.in_hand.get(0).unwrap().rank;
+        assert!(
+            board.in_hand.iter().all(|c| c.rank == rank),
+            "every held card shares one rank"
+        );
+        // Suits are untouched — only the rank is rewritten.
+        assert_eq!(board.in_hand.get(0).unwrap().suit.index, 'H');
+        assert_eq!(board.draws.hand_size, hand_before - 1, "−1 hand size");
+        assert_eq!(board.spectral_hand_size_penalty, 1, "and it is permanent");
+    }
+
+    #[test]
+    fn use_consumable__sigil_and_ouija_are_inert_on_the_pure_no_rng_path() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::QUEEN_CLUBS]);
+        let before = board.in_hand.clone();
+        board.create_consumable(spectral_card::SIGIL);
+        board.create_consumable(spectral_card::OUIJA);
+        board.use_consumable(0, &[]);
+        board.use_consumable(0, &[]);
+        assert_eq!(board.in_hand, before, "no RNG, no conversion");
+        assert_eq!(board.spectral_hand_size_penalty, 0);
+    }
+
+    // ---- Phase 3c: Immolate, Familiar, Grim, Incantation, Cryptid ---------
+
+    fn is_face(c: &BuffoonCard) -> bool {
+        matches!(c.rank.index, 'K' | 'Q' | 'J')
+    }
+
+    fn is_enhanced(c: &BuffoonCard) -> bool {
+        c.enhancement != MPip::Blank
+    }
+
+    #[test]
+    fn use_consumable_with_rng__immolate_destroys_five_hand_cards_and_pays_twenty() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("KH QC TD 9S 8H 7C 6D 5S"); // 8 cards
+        assert_eq!(board.money, 0);
+
+        use_spectral(&mut board, spectral_card::IMMOLATE, &[], 1);
+
+        assert_eq!(board.in_hand.len(), 3, "five of the eight were destroyed");
+        assert_eq!(board.money, 20, "and it paid $20");
+    }
+
+    #[test]
+    fn use_consumable_with_rng__immolate_destroys_what_it_can_when_the_hand_is_short() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("KH QC"); // fewer than five
+        use_spectral(&mut board, spectral_card::IMMOLATE, &[], 1);
+        assert!(board.in_hand.is_empty(), "the whole hand went");
+        assert_eq!(board.money, 20, "and it still paid $20");
+    }
+
+    #[test]
+    fn use_consumable_with_rng__familiar_swaps_one_card_for_three_enhanced_faces() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("2H 3C"); // no faces to start
+        use_spectral(&mut board, spectral_card::FAMILIAR, &[], 1);
+
+        assert_eq!(board.in_hand.len(), 4, "−1 +3 = net +2");
+        assert_eq!(
+            board
+                .in_hand
+                .iter()
+                .filter(|c| is_face(c) && is_enhanced(c))
+                .count(),
+            3,
+            "the three added cards are Enhanced faces"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__grim_swaps_one_card_for_two_enhanced_aces() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("2H 3C");
+        use_spectral(&mut board, spectral_card::GRIM, &[], 1);
+
+        assert_eq!(board.in_hand.len(), 3, "−1 +2 = net +1");
+        assert_eq!(
+            board
+                .in_hand
+                .iter()
+                .filter(|c| c.rank.index == 'A' && is_enhanced(c))
+                .count(),
+            2,
+            "the two added cards are Enhanced Aces"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__incantation_swaps_one_card_for_four_enhanced_numbered() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("KH QC"); // two faces to start
+        use_spectral(&mut board, spectral_card::INCANTATION, &[], 1);
+
+        assert_eq!(board.in_hand.len(), 5, "−1 +4 = net +3");
+        assert_eq!(
+            board
+                .in_hand
+                .iter()
+                .filter(|c| matches!(c.rank.index, '2'..='9' | 'T') && is_enhanced(c))
+                .count(),
+            4,
+            "the four added cards are Enhanced numbered cards"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__cryptid_makes_two_copies_of_the_selected_card() {
+        let mut board = board_for_a_round();
+        board.in_hand = BuffoonPile::from(vec![basic::KING_HEARTS, basic::QUEEN_CLUBS]);
+        use_spectral(&mut board, spectral_card::CRYPTID, &[0], 1); // copy the King
+
+        assert_eq!(board.in_hand.len(), 4, "two copies added");
+        assert_eq!(
+            board
+                .in_hand
+                .iter()
+                .filter(|c| **c == basic::KING_HEARTS)
+                .count(),
+            3,
+            "the original King plus its two copies"
+        );
+    }
+
+    #[test]
+    fn use_consumable__phase_3c_spectrals_are_inert_on_the_pure_no_rng_path() {
+        let mut board = board_for_a_round();
+        board.in_hand = bcards!("KH QC");
+        let before = board.in_hand.clone();
+        board.create_consumable(spectral_card::IMMOLATE);
+        board.use_consumable(0, &[]);
+        assert_eq!(board.in_hand, before, "no RNG, no destruction");
+        assert_eq!(board.money, 0, "and no payout");
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------

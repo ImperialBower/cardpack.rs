@@ -261,6 +261,29 @@ pub enum MPip {
     /// Ankh (spectral): copy a random joker, then destroy the others — the
     /// original and its copy remain.
     SpectralCopyRandomJokerDestroyOthers,
+    /// Aura (spectral): add a random edition — Foil, Holographic, or Polychrome —
+    /// to the **selected hand card** (`targets[0]`). The stamp is permanent, so it
+    /// persists onto the run roster.
+    SpectralEditionRandomHandCard,
+    /// Sigil (spectral): convert **every** held card to a single random suit.
+    SpectralHandToRandomSuit,
+    /// Ouija (spectral): convert **every** held card to a single random rank, and
+    /// reduce hand size by 1 (permanent, per use).
+    SpectralHandToRandomRankMinusHandSize,
+    /// Immolate (spectral): destroy `n` random held cards, then gain `$m`.
+    SpectralDestroyRandomHandGainMoney(usize, usize),
+    /// Familiar (spectral): destroy 1 random held card, then add `n` random
+    /// **Enhanced face** cards to the hand.
+    SpectralDestroyOneAddEnhancedFaces(usize),
+    /// Grim (spectral): destroy 1 random held card, then add `n` random
+    /// **Enhanced Aces** to the hand.
+    SpectralDestroyOneAddEnhancedAces(usize),
+    /// Incantation (spectral): destroy 1 random held card, then add `n` random
+    /// **Enhanced numbered** cards (2–10) to the hand.
+    SpectralDestroyOneAddEnhancedNumbered(usize),
+    /// Cryptid (spectral): add `n` copies of the **selected hand card**
+    /// (`targets[0]`) to the hand.
+    SpectralCopySelectedHandCard(usize),
     /// Card Sharp: ×n mult if the played hand type has **already been played
     /// this round**. Reads `BuffoonBoard::hands_by_type_this_round`.
     MultTimesOnRepeatedHandThisRound(usize),
@@ -598,6 +621,24 @@ impl Display for MPip {
             Self::SpectralPolychromeRandomJokerDestroyOthers => {
                 write!(f, "SpectralPolychromeRandomJokerDestroyOthers")
             }
+            Self::SpectralEditionRandomHandCard => write!(f, "SpectralEditionRandomHandCard"),
+            Self::SpectralHandToRandomSuit => write!(f, "SpectralHandToRandomSuit"),
+            Self::SpectralHandToRandomRankMinusHandSize => {
+                write!(f, "SpectralHandToRandomRankMinusHandSize")
+            }
+            Self::SpectralDestroyRandomHandGainMoney(n, m) => {
+                write!(f, "SpectralDestroyRandomHandGainMoney({n}, {m})")
+            }
+            Self::SpectralDestroyOneAddEnhancedFaces(n) => {
+                write!(f, "SpectralDestroyOneAddEnhancedFaces({n})")
+            }
+            Self::SpectralDestroyOneAddEnhancedAces(n) => {
+                write!(f, "SpectralDestroyOneAddEnhancedAces({n})")
+            }
+            Self::SpectralDestroyOneAddEnhancedNumbered(n) => {
+                write!(f, "SpectralDestroyOneAddEnhancedNumbered({n})")
+            }
+            Self::SpectralCopySelectedHandCard(n) => write!(f, "SpectralCopySelectedHandCard({n})"),
             Self::SpectralCopyRandomJokerDestroyOthers => {
                 write!(f, "SpectralCopyRandomJokerDestroyOthers")
             }

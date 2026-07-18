@@ -82,11 +82,29 @@ pub mod card {
     // Effects are wired across EPIC-01e Phases 1–3; every card is `Blank` here.
     // The four seal spectrals (Talisman, Deja Vu, Trance, Medium) stay `Blank`
     // permanently — seals do not exist.
-    spectral!(FAMILIAR, 18, 'F', '👪', MPip::Blank);
-    spectral!(GRIM, 17, 'G', '💀', MPip::Blank);
-    spectral!(INCANTATION, 16, 'I', '📜', MPip::Blank);
+    spectral!(
+        FAMILIAR,
+        18,
+        'F',
+        '👪',
+        MPip::SpectralDestroyOneAddEnhancedFaces(3)
+    );
+    spectral!(
+        GRIM,
+        17,
+        'G',
+        '💀',
+        MPip::SpectralDestroyOneAddEnhancedAces(2)
+    );
+    spectral!(
+        INCANTATION,
+        16,
+        'I',
+        '📜',
+        MPip::SpectralDestroyOneAddEnhancedNumbered(4)
+    );
     spectral!(TALISMAN, 15, 'T', '🧿', MPip::Blank);
-    spectral!(AURA, 14, 'A', '✨', MPip::Blank);
+    spectral!(AURA, 14, 'A', '✨', MPip::SpectralEditionRandomHandCard);
     spectral!(
         WRAITH,
         13,
@@ -94,8 +112,14 @@ pub mod card {
         '👻',
         MPip::SpectralCreateRareJokerZeroMoney
     );
-    spectral!(SIGIL, 12, 'S', '🔯', MPip::Blank);
-    spectral!(OUIJA, 11, 'O', '🪧', MPip::Blank);
+    spectral!(SIGIL, 12, 'S', '🔯', MPip::SpectralHandToRandomSuit);
+    spectral!(
+        OUIJA,
+        11,
+        'O',
+        '🪧',
+        MPip::SpectralHandToRandomRankMinusHandSize
+    );
     spectral!(
         ECTOPLASM,
         10,
@@ -103,7 +127,13 @@ pub mod card {
         '🫧',
         MPip::SpectralNegativeRandomJokerMinusHandSize
     );
-    spectral!(IMMOLATE, 9, 'M', '🔥', MPip::Blank);
+    spectral!(
+        IMMOLATE,
+        9,
+        'M',
+        '🔥',
+        MPip::SpectralDestroyRandomHandGainMoney(5, 20)
+    );
     spectral!(
         ANKH,
         8,
@@ -121,7 +151,7 @@ pub mod card {
     );
     spectral!(TRANCE, 5, 'R', '🌀', MPip::Blank);
     spectral!(MEDIUM, 4, 'U', '🔮', MPip::Blank);
-    spectral!(CRYPTID, 3, 'C', '🦎', MPip::Blank);
+    spectral!(CRYPTID, 3, 'C', '🦎', MPip::SpectralCopySelectedHandCard(2));
     spectral!(THE_SOUL, 2, 'L', '🌟', MPip::SpectralCreateLegendaryJoker);
     spectral!(BLACK_HOLE, 1, 'B', '🕳', MPip::SpectralLevelAllHands);
 }

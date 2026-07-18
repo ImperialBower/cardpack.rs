@@ -2532,6 +2532,14 @@ mod funky__decks__joker_tests {
             | MPip::SpectralNegativeRandomJokerMinusHandSize
             | MPip::SpectralPolychromeRandomJokerDestroyOthers
             | MPip::SpectralCopyRandomJokerDestroyOthers
+            | MPip::SpectralEditionRandomHandCard
+            | MPip::SpectralHandToRandomSuit
+            | MPip::SpectralHandToRandomRankMinusHandSize
+            | MPip::SpectralDestroyRandomHandGainMoney(_, _)
+            | MPip::SpectralDestroyOneAddEnhancedFaces(_)
+            | MPip::SpectralDestroyOneAddEnhancedAces(_)
+            | MPip::SpectralDestroyOneAddEnhancedNumbered(_)
+            | MPip::SpectralCopySelectedHandCard(_)
             // The Boss Blind pair act on the *blind*, never on the hand.
             // Luchador and Chicot switch a boss's ability off, which reaches the
             // score only through what that ability was doing to the round's

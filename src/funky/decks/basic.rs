@@ -230,6 +230,11 @@ pub mod card {
         BuffoonCard { suit, ..basic_card }
     }
 
+    #[must_use]
+    pub fn set_rank(basic_card: BuffoonCard, rank: Pip) -> BuffoonCard {
+        BuffoonCard { rank, ..basic_card }
+    }
+
     pub const ACE_SPADES: BuffoonCard = BuffoonCard {
         suit: FrenchSuit::SPADES,
         rank: FrenchRank::ACE,
