@@ -1390,9 +1390,7 @@ impl BuffoonBoard {
             // Aura: a random edition (Foil/Holo/Poly) onto the selected hand card
             // (`targets[0]`), persisted to the roster through `replace_in_hand`.
             MPip::SpectralEditionRandomHandCard => {
-                if let Some(&target) = targets.first()
-                    && let Some(card) = self.in_hand.get(target).copied()
-                {
+                if let Some((target, card)) = self.selected_hand_card(targets) {
                     const EDITIONS: [Edition; 3] =
                         [Edition::Foil, Edition::Holographic, Edition::Polychrome];
                     let edition = EDITIONS[rng.random_range(0..EDITIONS.len())];
@@ -1471,9 +1469,7 @@ impl BuffoonBoard {
             }
             // Cryptid: add n copies of the selected hand card (`targets[0]`).
             MPip::SpectralCopySelectedHandCard(count) => {
-                if let Some(&target) = targets.first()
-                    && let Some(card) = self.in_hand.get(target).copied()
-                {
+                if let Some((_, card)) = self.selected_hand_card(targets) {
                     for _ in 0..count {
                         self.add_to_hand(card);
                     }
@@ -1481,6 +1477,15 @@ impl BuffoonBoard {
             }
             _ => {}
         }
+    }
+
+    /// The selected hand card for a `targets[0]`-taking spectral (Aura,
+    /// Cryptid): its index and the card, or `None` when no target was passed or
+    /// it is out of bounds. (Written without a let-chain — the crate's MSRV is
+    /// 1.85 and let-chains need 1.88.)
+    fn selected_hand_card(&self, targets: &[usize]) -> Option<(usize, BuffoonCard)> {
+        let &target = targets.first()?;
+        Some((target, self.in_hand.get(target).copied()?))
     }
 
     /// Swap the joker at `index` for the same joker wearing `edition`, keeping
