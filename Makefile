@@ -74,14 +74,16 @@ define check_nextest
 	fi
 endef
 
-# Run unit tests via nextest
+# Run unit tests via nextest.
+# `--features full` restores the whole convenience stack now that `default = []`
+# makes a bare build the pure kernel (see docs/audit-2026-07-18-domain-kernel.md).
 test-unit:
 	$(check_nextest)
-	cargo nextest run
+	cargo nextest run --features full
 
-# Run doc tests
+# Run doc tests (doctests exercise i18n/yaml/colored APIs, so need `full`).
 test-doc:
-	cargo test --doc
+	cargo test --doc --features full
 
 # Run all tests: unit tests via nextest, doc tests via cargo test
 test: test-unit test-doc
@@ -185,14 +187,14 @@ fmt:
 # the funky feature across all targets (lib, tests, examples, benches)
 clippy:
 	cargo clippy -- -Dclippy::all -Dclippy::pedantic
-	cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+	cargo clippy --all-features --all-targets -- -Dclippy::all -Dclippy::pedantic
 
 # Run the CI MSRV gate locally: the two test invocations on the 1.85 toolchain.
 # Catches post-1.85 syntax (e.g. let-chains) that stable never flags.
 # Requires: rustup toolchain install 1.85.0
 msrv:
-	cargo +1.85.0 test --locked --all
-	cargo +1.85.0 test --locked --features funky
+	cargo +1.85.0 test --locked --all --features full
+	cargo +1.85.0 test --locked --features full,funky
 
 test-nightly:
 	cargo +nightly test --all-targets --all-features
@@ -233,7 +235,7 @@ unused-deps:
 
 # Create documentation
 create_docs:
-	cargo doc --no-deps
+	cargo doc --no-deps --all-features
 
 # Open documentation in browser
 docs: create_docs

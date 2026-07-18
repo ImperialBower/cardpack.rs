@@ -29,12 +29,16 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
           components: rust-src
-      - run: cargo test --locked --all
+      # `default = []` makes a bare build the pure kernel; `--features full`
+      # restores the whole convenience stack (std, i18n, colored, yaml, serde)
+      # that this job used to get for free. The pure/no-feature build is
+      # exercised separately by the `no-std-build` job below.
+      - run: cargo test --locked --all --features full
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
-      # funky is a std-only, off-by-default feature that the default-feature
-      # matrix above never compiles. Test it explicitly so regressions are gated.
-      - run: cargo test --locked --features funky
+      # funky is a std-only, off-by-default feature that `full` doesn't include.
+      # Test it explicitly (alongside full) so regressions are gated.
+      - run: cargo test --locked --features full,funky
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
 
@@ -52,12 +56,13 @@ jobs:
         with:
           toolchain: stable
           components: clippy, rust-src
+      # First lint the pure kernel (bare `cargo clippy` is now `default = []`).
       - run: cargo clippy --locked -- -Dclippy::all -Dclippy::pedantic
-      # Lint everything the bare `cargo clippy` above misses: the funky
-      # feature (off by default) plus all tests, examples, and benches
-      # (`--all-targets`). `unwrap`/`expect` in tests are allowed via a
-      # `cfg(test)` attribute in src/lib.rs.
-      - run: cargo clippy --locked --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+      # Then lint the entire surface the pure build misses: every feature
+      # (`--all-features`, which covers funky, i18n, colored, yaml, serde) across
+      # all tests, examples, and benches (`--all-targets`). `unwrap`/`expect` in
+      # tests are allowed via a `cfg(test)` attribute in src/lib.rs.
+      - run: cargo clippy --locked --all-features --all-targets -- -Dclippy::all -Dclippy::pedantic
 
   fmt:
     name: Fmt

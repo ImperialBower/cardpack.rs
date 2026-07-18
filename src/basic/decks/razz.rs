@@ -27,8 +27,14 @@ pub struct Razz {}
 
 impl DeckedBase for Razz {
     fn base_vec() -> Vec<BasicCard> {
-        BasicCard::cards_from_yaml_file("src/basic/decks/yaml/razz.yaml").unwrap_or_else(|e| {
-            error!("Failed to load Razz deck from YAML: {e}");
+        // Razz ships its card list as YAML to demonstrate config-driven decks.
+        // `include_str!` embeds that YAML at build time, so deck construction
+        // stays pure: no `std::fs`, no CWD-relative path, unlike the old runtime
+        // `cards_from_yaml_file` read that returned a silent empty deck for any
+        // consumer whose working directory wasn't the crate root.
+        // See docs/audit-2026-07-18-domain-kernel.md, Finding 1a.
+        BasicCard::cards_from_yaml_str(include_str!("yaml/razz.yaml")).unwrap_or_else(|e| {
+            error!("Failed to parse embedded Razz YAML: {e}");
             Vec::default()
         })
     }
