@@ -47,7 +47,34 @@ highlight = "all"
 workspace-default-features = "allow"
 external-default-features = "allow"
 allow = []
-deny = []
+# Domain-kernel purity: these format / presentation / i18n / runtime / transport
+# crates are adapter concerns and must NOT appear in the default (pure) build.
+# `[graph]` above uses default features (no-default-features = false), and
+# `default = []` makes that the pure kernel — so cargo-deny checks the pure
+# graph, where these are absent. They remain reachable behind opt-in features
+# (`yaml`, `colored-display`, `i18n`, ...). See
+# docs/audit-2026-07-18-domain-kernel.md (Invariants 2 & 4).
+deny = [
+    # Concrete serialization FORMATS (the `serde` trait itself is fine):
+    { name = "serde_norway" },
+    { name = "serde_yaml" },
+    { name = "serde_yaml_bw" },
+    # Terminal / presentation:
+    { name = "colored" },
+    # i18n / localization (embeds locale assets):
+    { name = "fluent-templates" },
+    { name = "fluent-bundle" },
+    # Async runtimes / transport / RPC / HTTP (future-proofing — not deps today):
+    { name = "tokio" },
+    { name = "async-std" },
+    { name = "reqwest" },
+    { name = "hyper" },
+    { name = "tonic" },
+    { name = "axum" },
+    # Storage engines:
+    { name = "rusqlite" },
+    { name = "sqlx" },
+]
 skip = []
 skip-tree = []
 

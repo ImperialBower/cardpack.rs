@@ -1,4 +1,4 @@
-.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy msrv create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
+.PHONY: clean build test test-unit test-doc test-std-io test-wasm build-wasm coverage bench build_test fmt clippy msrv create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
 
 # Default target
 default: ayce
@@ -74,17 +74,27 @@ define check_nextest
 	fi
 endef
 
-# Run unit tests via nextest
+# Run unit tests via nextest.
+# `--features full` restores the whole convenience stack now that `default = []`
+# makes a bare build the pure kernel (see docs/audit-2026-07-18-domain-kernel.md).
 test-unit:
 	$(check_nextest)
-	cargo nextest run
+	cargo nextest run --features full
 
-# Run doc tests
+# Run doc tests (doctests exercise i18n/yaml/colored APIs, so need `full`).
 test-doc:
-	cargo test --doc
+	cargo test --doc --features full
 
-# Run all tests: unit tests via nextest, doc tests via cargo test
-test: test-unit test-doc
+# Exercise the opt-in filesystem seam (`cards_from_yaml_file`). It lives behind
+# the `std-io` feature, which `full` excludes, so `test-unit`/`test-doc` above
+# never touch it — its lib test and doctest exist only under this feature.
+test-std-io:
+	cargo test --features std-io --lib
+	cargo test --features std-io --doc
+
+# Run all tests: unit tests via nextest, doc tests via cargo test, plus the
+# std-io filesystem seam.
+test: test-unit test-doc test-std-io
 
 # Build cardpack for wasm32-unknown-unknown across feature combos.
 # The repo's .cargo/config.toml supplies the required getrandom backend cfg.
@@ -124,7 +134,9 @@ test-wasm:
 		rustup target add wasm32-unknown-unknown; \
 	fi
 	$(check_wasm_bindgen_cli)
-	cargo test --target wasm32-unknown-unknown --test wasm
+	# --features full: the wasm tests use std-gated shuffle and yaml parsing,
+	# absent from the pure `default = []` build.
+	cargo test --target wasm32-unknown-unknown --features full --test wasm
 
 # Check for cargo-llvm-cov, prompt to install if missing.
 define check_llvm_cov
@@ -152,7 +164,9 @@ coverage:
 # Run criterion benchmarks. Output saved under target/criterion/.
 # Use `cargo bench -- --quick` for fast iteration during development.
 bench:
-	cargo bench --bench draw
+	# --features full: benches call the std-gated `shuffled()` and criterion
+	# needs std, neither of which is in the pure `default = []` build.
+	cargo bench --features full --bench draw
 
 # Check for cargo-mutants, prompt to install if missing
 define check_mutants
@@ -185,14 +199,14 @@ fmt:
 # the funky feature across all targets (lib, tests, examples, benches)
 clippy:
 	cargo clippy -- -Dclippy::all -Dclippy::pedantic
-	cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+	cargo clippy --all-features --all-targets -- -Dclippy::all -Dclippy::pedantic
 
 # Run the CI MSRV gate locally: the two test invocations on the 1.85 toolchain.
 # Catches post-1.85 syntax (e.g. let-chains) that stable never flags.
 # Requires: rustup toolchain install 1.85.0
 msrv:
-	cargo +1.85.0 test --locked --all
-	cargo +1.85.0 test --locked --features funky
+	cargo +1.85.0 test --locked --all --features full
+	cargo +1.85.0 test --locked --features full,funky
 
 test-nightly:
 	cargo +nightly test --all-targets --all-features
@@ -204,7 +218,9 @@ nightly: test-nightly clippy-nightly
 
 # Run tests under Miri
 miri:
-	cargo miri test
+	# --features full so Miri exercises the whole surface; the pure
+	# `default = []` build would otherwise run only the ungated tests.
+	cargo miri test --features full
 
 # Show dependency tree
 tree:
@@ -233,7 +249,7 @@ unused-deps:
 
 # Create documentation
 create_docs:
-	cargo doc --no-deps
+	cargo doc --no-deps --all-features
 
 # Open documentation in browser
 docs: create_docs

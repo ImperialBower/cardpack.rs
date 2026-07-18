@@ -29,12 +29,26 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
           components: rust-src
-      - run: cargo test --locked --all
+      # `default = []` makes a bare build the pure kernel; `--features full`
+      # restores the whole convenience stack (std, i18n, colored, yaml, serde)
+      # that this job used to get for free. The pure/no-feature build is
+      # exercised separately by the `no-std-build` job below.
+      - run: cargo test --locked --all --features full
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
-      # funky is a std-only, off-by-default feature that the default-feature
-      # matrix above never compiles. Test it explicitly so regressions are gated.
-      - run: cargo test --locked --features funky
+      # funky is a std-only, off-by-default feature that `full` doesn't include.
+      # Test it explicitly (alongside full) so regressions are gated.
+      - run: cargo test --locked --features full,funky
+        env:
+          RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
+      # std-io is the opt-in filesystem seam (cards_from_yaml_file), deliberately
+      # excluded from `full`, so the runs above never exercise it. Its lib test
+      # and doctest exist only under this feature — cover them explicitly.
+      # (`--lib` and `--doc` can't be combined in one invocation.)
+      - run: cargo test --locked --features std-io --lib
+        env:
+          RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
+      - run: cargo test --locked --features std-io --doc
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
 
@@ -52,12 +66,13 @@ jobs:
         with:
           toolchain: stable
           components: clippy, rust-src
+      # First lint the pure kernel (bare `cargo clippy` is now `default = []`).
       - run: cargo clippy --locked -- -Dclippy::all -Dclippy::pedantic
-      # Lint everything the bare `cargo clippy` above misses: the funky
-      # feature (off by default) plus all tests, examples, and benches
-      # (`--all-targets`). `unwrap`/`expect` in tests are allowed via a
-      # `cfg(test)` attribute in src/lib.rs.
-      - run: cargo clippy --locked --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+      # Then lint the entire surface the pure build misses: every feature
+      # (`--all-features`, which covers funky, i18n, colored, yaml, serde) across
+      # all tests, examples, and benches (`--all-targets`). `unwrap`/`expect` in
+      # tests are allowed via a `cfg(test)` attribute in src/lib.rs.
+      - run: cargo clippy --locked --all-features --all-targets -- -Dclippy::all -Dclippy::pedantic
 
   fmt:
     name: Fmt
@@ -120,7 +135,10 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-bindgen-cli@${{ steps.wbg.outputs.version }}
-      - run: cargo test --locked --target wasm32-unknown-unknown --test wasm
+      # `--features full` is required now that `default = []`: the wasm tests
+      # exercise the std-gated no-arg `shuffle()`/`shuffled()` and the
+      # yaml-gated `cards_from_yaml_str`, none of which exist in the pure build.
+      - run: cargo test --locked --target wasm32-unknown-unknown --features full --test wasm
 
   coverage:
     name: Coverage
@@ -173,3 +191,34 @@ jobs:
       - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf
       - run: cargo build --locked --no-default-features --features serde --target thumbv7em-none-eabihf
       - run: cargo build --locked --no-default-features --target thumbv7em-none-eabihf --example no_std_smoke
+
+  # The testable definition of "domain kernel": the pure (no-default-features)
+  # build must contain no I/O / format / presentation / transport crate. This
+  # gate is what makes the purity claim enforceable rather than aspirational.
+  # See docs/audit-2026-07-18-domain-kernel.md (Mode B).
+  kernel-purity:
+    name: Kernel purity (pure tree is I/O-free)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Crate names (pipe-separated) that must be ABSENT from the pure tree.
+      # Keep in sync with the `[bans].deny` list in deny.toml.
+      BANNED: "serde_norway|serde_yaml|serde_yaml_bw|colored|fluent-templates|fluent-bundle|tokio|reqwest|hyper|tonic|axum|rusqlite|sqlx"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      # 1. No banned crate may be in the pure (no-default-features) dependency tree.
+      - name: Assert pure dependency tree is I/O-free
+        run: |
+          if cargo tree --locked --no-default-features --edges normal --prefix none \
+               | sort -u | grep -E "^($BANNED) " ; then
+            echo "::error::banned crate present in the pure (no-default-features) build"
+            exit 1
+          fi
+          echo "pure kernel dependency tree is clean"
+      # 2. cargo-deny enforces the same ban list against the default graph, and
+      #    fails the build if any format/transport/runtime crate creeps in.
+      - uses: taiki-e/install-action@cargo-deny
+      - run: cargo deny check bans

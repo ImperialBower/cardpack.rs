@@ -12,9 +12,16 @@ use core::fmt;
 use core::fmt::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "yaml")]
+// The `std-io` feature is the crate's one deliberate filesystem seam: it gates
+// `cards_from_yaml_file` and nothing else. It is opt-in and NOT part of `full`,
+// so the pure kernel and the convenience stack both stay I/O-free. The
+// `#[allow]` documents that this `std::fs` use is the intended seam rather than
+// an accidental leak past the kernel purity lint (clippy `disallowed_types`,
+// see clippy.toml). See docs/audit-2026-07-18-domain-kernel.md (Finding 1b).
+#[cfg(feature = "std-io")]
+#[allow(clippy::disallowed_types)]
 use std::fs::File;
-#[cfg(feature = "yaml")]
+#[cfg(feature = "std-io")]
 use std::io::Read;
 
 /// Intermediary struct to help mix and match cards for related decks.
@@ -59,8 +66,16 @@ impl BasicCard {
         Self { suit, rank }
     }
 
-    /// Reads in a YAML file version of `BasicCard` data at the passed in location and returns a vector of `BasicCards`. See the
-    /// [`Razz`](crate::basic::decks::razz::Razz) deck for an example of how to use this method.
+    /// Reads a YAML file of `BasicCard` data at the given path and returns a vector of `BasicCards`.
+    ///
+    /// Requires the opt-in `std-io` feature — this is the crate's one filesystem
+    /// seam and is deliberately outside the pure kernel and the `full` bundle.
+    /// For a pure alternative, embed the YAML at compile time with `include_str!`
+    /// and call [`cards_from_yaml_str`](Self::cards_from_yaml_str), as the
+    /// [`Razz`](crate::basic::decks::razz::Razz) deck does.
+    ///
+    /// This example (like the function) exists only under the `std-io` feature,
+    /// so it runs when the doctests are built with `std-io` enabled:
     ///
     /// ```
     /// use cardpack::prelude::*;
@@ -74,7 +89,8 @@ impl BasicCard {
     /// # Errors
     ///
     /// Throws an error for an invalid path or invalid data.
-    #[cfg(feature = "yaml")]
+    #[cfg(feature = "std-io")]
+    #[allow(clippy::disallowed_types)] // Intentional `std-io` filesystem seam — see the import note above.
     pub fn cards_from_yaml_file(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         let mut file = File::open(file_path)?;
         let mut contents = String::new();
@@ -202,7 +218,7 @@ mod basic__types__basic_card_tests {
     use core::str::FromStr;
     use rstest::rstest;
 
-    #[cfg(feature = "yaml")]
+    #[cfg(feature = "std-io")]
     #[test]
     fn cards_from_yaml_file() {
         let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
