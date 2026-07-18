@@ -476,7 +476,7 @@ mod basic__types__card_tests {
 
         let s: String = cards
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ");
 
