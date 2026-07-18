@@ -1,0 +1,76 @@
+{
+  "behavior": "card-anatomy",
+  "data": {
+    "cards": [
+      {
+        "full_name": "Ace of Spades",
+        "index": "AS",
+        "rank": {
+          "index": "A",
+          "name": "Ace",
+          "symbol": "A",
+          "weight": 12
+        },
+        "suit": {
+          "index": "S",
+          "name": "Spades",
+          "symbol": "♠",
+          "weight": 3
+        },
+        "symbol": "A♠"
+      },
+      {
+        "full_name": "Ten of Diamonds",
+        "index": "TD",
+        "rank": {
+          "index": "T",
+          "name": "Ten",
+          "symbol": "T",
+          "weight": 8
+        },
+        "suit": {
+          "index": "D",
+          "name": "Diamonds",
+          "symbol": "♦",
+          "weight": 1
+        },
+        "symbol": "T♦"
+      },
+      {
+        "full_name": "Deuce of Clubs",
+        "index": "2C",
+        "rank": {
+          "index": "2",
+          "name": "Deuce",
+          "symbol": "2",
+          "weight": 0
+        },
+        "suit": {
+          "index": "C",
+          "name": "Clubs",
+          "symbol": "♣",
+          "weight": 0
+        },
+        "symbol": "2♣"
+      },
+      {
+        "full_name": "Joker Full-Color",
+        "index": "BJ",
+        "rank": {
+          "index": "B",
+          "name": "Full-Color",
+          "symbol": "B",
+          "weight": 14
+        },
+        "suit": {
+          "index": "J",
+          "name": "Joker",
+          "symbol": "🃟",
+          "weight": 4
+        },
+        "symbol": "B🃟"
+      }
+    ]
+  },
+  "epic": "DECON-01"
+}

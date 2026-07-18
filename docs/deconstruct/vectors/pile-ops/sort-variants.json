@@ -1,0 +1,10 @@
+{
+  "behavior": "sort-variants",
+  "data": {
+    "seed": 42,
+    "shuffled_index": "4D 9C AH QS KS 7H 2H 5H 8H 6D 9H TD TC JS QD QC 4H 9D 5C TS 9S KH AD 3S 7C QH 2C JC 7D 8C 2D 2S 8S 3C AS TH 5D 7S JD 4S 5S KD AC 6S JH 3H 4C 6C KC 8D 3D 6H",
+    "sorted_by_rank_index": "AH AD AS AC KS KH KD KC QS QD QC QH JS JC JD JH TD TC TS TH 9C 9H 9D 9S 8H 8C 8S 8D 7H 7C 7D 7S 6D 6S 6C 6H 5H 5C 5D 5S 4D 4H 4S 4C 3S 3C 3H 3D 2H 2C 2D 2S",
+    "sorted_default_index": "AS KS QS JS TS 9S 8S 7S 6S 5S 4S 3S 2S AH KH QH JH TH 9H 8H 7H 6H 5H 4H 3H 2H AD KD QD JD TD 9D 8D 7D 6D 5D 4D 3D 2D AC KC QC JC TC 9C 8C 7C 6C 5C 4C 3C 2C"
+  },
+  "epic": "DECON-02"
+}

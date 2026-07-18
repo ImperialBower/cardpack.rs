@@ -1,0 +1,30 @@
+{
+  "behavior": "extraction",
+  "data": {
+    "combos_2_count": 1326,
+    "ranks": [
+      "A",
+      "K",
+      "Q",
+      "J",
+      "T",
+      "9",
+      "8",
+      "7",
+      "6",
+      "5",
+      "4",
+      "3",
+      "2"
+    ],
+    "ranks_index": "A K Q J T 9 8 7 6 5 4 3 2",
+    "suits": [
+      "S",
+      "H",
+      "D",
+      "C"
+    ],
+    "suits_index": "S H D C"
+  },
+  "epic": "DECON-02"
+}

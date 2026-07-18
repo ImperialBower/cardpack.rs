@@ -1,0 +1,453 @@
+{
+  "behavior": "locales",
+  "data": {
+    "locales": [
+      {
+        "locale": "en-US",
+        "ranks": [
+          {
+            "index": "A",
+            "name": "Ace"
+          },
+          {
+            "index": "K",
+            "name": "King"
+          },
+          {
+            "index": "Q",
+            "name": "Queen"
+          },
+          {
+            "index": "J",
+            "name": "Jack"
+          },
+          {
+            "index": "T",
+            "name": "Ten"
+          },
+          {
+            "index": "9",
+            "name": "Nine"
+          },
+          {
+            "index": "8",
+            "name": "Eight"
+          },
+          {
+            "index": "7",
+            "name": "Seven"
+          },
+          {
+            "index": "6",
+            "name": "Six"
+          },
+          {
+            "index": "5",
+            "name": "Five"
+          },
+          {
+            "index": "4",
+            "name": "Four"
+          },
+          {
+            "index": "3",
+            "name": "Three"
+          },
+          {
+            "index": "2",
+            "name": "Deuce"
+          }
+        ],
+        "sample_cards": [
+          {
+            "index": "AS",
+            "name": "Ace of Spades"
+          },
+          {
+            "index": "KH",
+            "name": "King of Hearts"
+          },
+          {
+            "index": "2C",
+            "name": "Deuce of Clubs"
+          }
+        ],
+        "suits": [
+          {
+            "index": "S",
+            "name": "Spades"
+          },
+          {
+            "index": "H",
+            "name": "Hearts"
+          },
+          {
+            "index": "D",
+            "name": "Diamonds"
+          },
+          {
+            "index": "C",
+            "name": "Clubs"
+          }
+        ]
+      },
+      {
+        "locale": "de",
+        "ranks": [
+          {
+            "index": "A",
+            "name": "Ass"
+          },
+          {
+            "index": "K",
+            "name": "König"
+          },
+          {
+            "index": "Q",
+            "name": "Dame"
+          },
+          {
+            "index": "J",
+            "name": "Bube"
+          },
+          {
+            "index": "T",
+            "name": "Zhen"
+          },
+          {
+            "index": "9",
+            "name": "Neun"
+          },
+          {
+            "index": "8",
+            "name": "Acht"
+          },
+          {
+            "index": "7",
+            "name": "Sieben"
+          },
+          {
+            "index": "6",
+            "name": "Sechs"
+          },
+          {
+            "index": "5",
+            "name": "Fünf"
+          },
+          {
+            "index": "4",
+            "name": "Vier"
+          },
+          {
+            "index": "3",
+            "name": "Drei"
+          },
+          {
+            "index": "2",
+            "name": "Zwei"
+          }
+        ],
+        "sample_cards": [
+          {
+            "index": "AS",
+            "name": "Ass Spaten"
+          },
+          {
+            "index": "KH",
+            "name": "König Herzen"
+          },
+          {
+            "index": "2C",
+            "name": "Zwei Klee"
+          }
+        ],
+        "suits": [
+          {
+            "index": "S",
+            "name": "Spaten"
+          },
+          {
+            "index": "H",
+            "name": "Herzen"
+          },
+          {
+            "index": "D",
+            "name": "Diamanten"
+          },
+          {
+            "index": "C",
+            "name": "Klee"
+          }
+        ]
+      },
+      {
+        "locale": "fr",
+        "ranks": [
+          {
+            "index": "A",
+            "name": "As"
+          },
+          {
+            "index": "K",
+            "name": "Roi"
+          },
+          {
+            "index": "Q",
+            "name": "Dame"
+          },
+          {
+            "index": "J",
+            "name": "Valet"
+          },
+          {
+            "index": "T",
+            "name": "Dix"
+          },
+          {
+            "index": "9",
+            "name": "Neuf"
+          },
+          {
+            "index": "8",
+            "name": "Huit"
+          },
+          {
+            "index": "7",
+            "name": "Sept"
+          },
+          {
+            "index": "6",
+            "name": "Six"
+          },
+          {
+            "index": "5",
+            "name": "Cinq"
+          },
+          {
+            "index": "4",
+            "name": "Quatre"
+          },
+          {
+            "index": "3",
+            "name": "Trois"
+          },
+          {
+            "index": "2",
+            "name": "Deux"
+          }
+        ],
+        "sample_cards": [
+          {
+            "index": "AS",
+            "name": "As de Pique"
+          },
+          {
+            "index": "KH",
+            "name": "Roi de Cœur"
+          },
+          {
+            "index": "2C",
+            "name": "Deux de Trèfle"
+          }
+        ],
+        "suits": [
+          {
+            "index": "S",
+            "name": "Pique"
+          },
+          {
+            "index": "H",
+            "name": "Cœur"
+          },
+          {
+            "index": "D",
+            "name": "Carreau"
+          },
+          {
+            "index": "C",
+            "name": "Trèfle"
+          }
+        ]
+      },
+      {
+        "locale": "la",
+        "ranks": [
+          {
+            "index": "A",
+            "name": "As"
+          },
+          {
+            "index": "K",
+            "name": "Rex"
+          },
+          {
+            "index": "Q",
+            "name": "Regina"
+          },
+          {
+            "index": "J",
+            "name": "Famulus"
+          },
+          {
+            "index": "T",
+            "name": "Decem"
+          },
+          {
+            "index": "9",
+            "name": "Novem"
+          },
+          {
+            "index": "8",
+            "name": "Octo"
+          },
+          {
+            "index": "7",
+            "name": "Septem"
+          },
+          {
+            "index": "6",
+            "name": "Sex"
+          },
+          {
+            "index": "5",
+            "name": "Quinque"
+          },
+          {
+            "index": "4",
+            "name": "Quattuor"
+          },
+          {
+            "index": "3",
+            "name": "Tres"
+          },
+          {
+            "index": "2",
+            "name": "Duo"
+          }
+        ],
+        "sample_cards": [
+          {
+            "index": "AS",
+            "name": "As Spathae"
+          },
+          {
+            "index": "KH",
+            "name": "Rex Corda"
+          },
+          {
+            "index": "2C",
+            "name": "Duo Trifolia"
+          }
+        ],
+        "suits": [
+          {
+            "index": "S",
+            "name": "Spathae"
+          },
+          {
+            "index": "H",
+            "name": "Corda"
+          },
+          {
+            "index": "D",
+            "name": "Rhombi"
+          },
+          {
+            "index": "C",
+            "name": "Trifolia"
+          }
+        ]
+      },
+      {
+        "locale": "tlh",
+        "ranks": [
+          {
+            "index": "A",
+            "name": "wa'DIch"
+          },
+          {
+            "index": "K",
+            "name": "ta'"
+          },
+          {
+            "index": "Q",
+            "name": "ta'be'"
+          },
+          {
+            "index": "J",
+            "name": "toy'wI'"
+          },
+          {
+            "index": "T",
+            "name": "wa'maH"
+          },
+          {
+            "index": "9",
+            "name": "Hut"
+          },
+          {
+            "index": "8",
+            "name": "chorgh"
+          },
+          {
+            "index": "7",
+            "name": "Soch"
+          },
+          {
+            "index": "6",
+            "name": "jav"
+          },
+          {
+            "index": "5",
+            "name": "vagh"
+          },
+          {
+            "index": "4",
+            "name": "loS"
+          },
+          {
+            "index": "3",
+            "name": "wej"
+          },
+          {
+            "index": "2",
+            "name": "cha'"
+          }
+        ],
+        "sample_cards": [
+          {
+            "index": "AS",
+            "name": "wa'DIch yan"
+          },
+          {
+            "index": "KH",
+            "name": "ta' tIq"
+          },
+          {
+            "index": "2C",
+            "name": "cha' naQ"
+          }
+        ],
+        "suits": [
+          {
+            "index": "S",
+            "name": "yan"
+          },
+          {
+            "index": "H",
+            "name": "tIq"
+          },
+          {
+            "index": "D",
+            "name": "nagh"
+          },
+          {
+            "index": "C",
+            "name": "naQ"
+          }
+        ]
+      }
+    ]
+  },
+  "epic": "DECON-07"
+}

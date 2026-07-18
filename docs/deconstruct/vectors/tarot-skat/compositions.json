@@ -1,0 +1,786 @@
+{
+  "behavior": "compositions",
+  "data": {
+    "skat": {
+      "cards": [
+        {
+          "index": "DE",
+          "position": 0,
+          "rank": "Daus",
+          "suit": "Eichel",
+          "symbol": "D♣"
+        },
+        {
+          "index": "ZE",
+          "position": 1,
+          "rank": "Zehn",
+          "suit": "Eichel",
+          "symbol": "Z♣"
+        },
+        {
+          "index": "KE",
+          "position": 2,
+          "rank": "König",
+          "suit": "Eichel",
+          "symbol": "K♣"
+        },
+        {
+          "index": "OE",
+          "position": 3,
+          "rank": "Ober",
+          "suit": "Eichel",
+          "symbol": "O♣"
+        },
+        {
+          "index": "UE",
+          "position": 4,
+          "rank": "Unter",
+          "suit": "Eichel",
+          "symbol": "U♣"
+        },
+        {
+          "index": "9E",
+          "position": 5,
+          "rank": "Neun",
+          "suit": "Eichel",
+          "symbol": "9♣"
+        },
+        {
+          "index": "8E",
+          "position": 6,
+          "rank": "Acht",
+          "suit": "Eichel",
+          "symbol": "8♣"
+        },
+        {
+          "index": "7E",
+          "position": 7,
+          "rank": "Sieben",
+          "suit": "Eichel",
+          "symbol": "7♣"
+        },
+        {
+          "index": "DL",
+          "position": 8,
+          "rank": "Daus",
+          "suit": "Laub",
+          "symbol": "D♠"
+        },
+        {
+          "index": "ZL",
+          "position": 9,
+          "rank": "Zehn",
+          "suit": "Laub",
+          "symbol": "Z♠"
+        },
+        {
+          "index": "KL",
+          "position": 10,
+          "rank": "König",
+          "suit": "Laub",
+          "symbol": "K♠"
+        },
+        {
+          "index": "OL",
+          "position": 11,
+          "rank": "Ober",
+          "suit": "Laub",
+          "symbol": "O♠"
+        },
+        {
+          "index": "UL",
+          "position": 12,
+          "rank": "Unter",
+          "suit": "Laub",
+          "symbol": "U♠"
+        },
+        {
+          "index": "9L",
+          "position": 13,
+          "rank": "Neun",
+          "suit": "Laub",
+          "symbol": "9♠"
+        },
+        {
+          "index": "8L",
+          "position": 14,
+          "rank": "Acht",
+          "suit": "Laub",
+          "symbol": "8♠"
+        },
+        {
+          "index": "7L",
+          "position": 15,
+          "rank": "Sieben",
+          "suit": "Laub",
+          "symbol": "7♠"
+        },
+        {
+          "index": "DH",
+          "position": 16,
+          "rank": "Daus",
+          "suit": "Herz",
+          "symbol": "D♥"
+        },
+        {
+          "index": "ZH",
+          "position": 17,
+          "rank": "Zehn",
+          "suit": "Herz",
+          "symbol": "Z♥"
+        },
+        {
+          "index": "KH",
+          "position": 18,
+          "rank": "König",
+          "suit": "Herz",
+          "symbol": "K♥"
+        },
+        {
+          "index": "OH",
+          "position": 19,
+          "rank": "Ober",
+          "suit": "Herz",
+          "symbol": "O♥"
+        },
+        {
+          "index": "UH",
+          "position": 20,
+          "rank": "Unter",
+          "suit": "Herz",
+          "symbol": "U♥"
+        },
+        {
+          "index": "9H",
+          "position": 21,
+          "rank": "Neun",
+          "suit": "Herz",
+          "symbol": "9♥"
+        },
+        {
+          "index": "8H",
+          "position": 22,
+          "rank": "Acht",
+          "suit": "Herz",
+          "symbol": "8♥"
+        },
+        {
+          "index": "7H",
+          "position": 23,
+          "rank": "Sieben",
+          "suit": "Herz",
+          "symbol": "7♥"
+        },
+        {
+          "index": "DS",
+          "position": 24,
+          "rank": "Daus",
+          "suit": "Schellen",
+          "symbol": "D♦"
+        },
+        {
+          "index": "ZS",
+          "position": 25,
+          "rank": "Zehn",
+          "suit": "Schellen",
+          "symbol": "Z♦"
+        },
+        {
+          "index": "KS",
+          "position": 26,
+          "rank": "König",
+          "suit": "Schellen",
+          "symbol": "K♦"
+        },
+        {
+          "index": "OS",
+          "position": 27,
+          "rank": "Ober",
+          "suit": "Schellen",
+          "symbol": "O♦"
+        },
+        {
+          "index": "US",
+          "position": 28,
+          "rank": "Unter",
+          "suit": "Schellen",
+          "symbol": "U♦"
+        },
+        {
+          "index": "9S",
+          "position": 29,
+          "rank": "Neun",
+          "suit": "Schellen",
+          "symbol": "9♦"
+        },
+        {
+          "index": "8S",
+          "position": 30,
+          "rank": "Acht",
+          "suit": "Schellen",
+          "symbol": "8♦"
+        },
+        {
+          "index": "7S",
+          "position": 31,
+          "rank": "Sieben",
+          "suit": "Schellen",
+          "symbol": "7♦"
+        }
+      ],
+      "count": 32
+    },
+    "tarot": {
+      "cards": [
+        {
+          "index": "0M",
+          "position": 0,
+          "rank": "The Fool",
+          "suit": "Major Arcana",
+          "symbol": "🤡🔮"
+        },
+        {
+          "index": "1M",
+          "position": 1,
+          "rank": "The Magician",
+          "suit": "Major Arcana",
+          "symbol": "🎩🔮"
+        },
+        {
+          "index": "2M",
+          "position": 2,
+          "rank": "The High Priestess",
+          "suit": "Major Arcana",
+          "symbol": "😇🔮"
+        },
+        {
+          "index": "3M",
+          "position": 3,
+          "rank": "The Empress",
+          "suit": "Major Arcana",
+          "symbol": "👸🔮"
+        },
+        {
+          "index": "4M",
+          "position": 4,
+          "rank": "The Emperor",
+          "suit": "Major Arcana",
+          "symbol": "🤴🔮"
+        },
+        {
+          "index": "5M",
+          "position": 5,
+          "rank": "The Hierophant",
+          "suit": "Major Arcana",
+          "symbol": "👑🔮"
+        },
+        {
+          "index": "6M",
+          "position": 6,
+          "rank": "The Lovers",
+          "suit": "Major Arcana",
+          "symbol": "💑🔮"
+        },
+        {
+          "index": "7M",
+          "position": 7,
+          "rank": "The Chariot",
+          "suit": "Major Arcana",
+          "symbol": "🏎🔮"
+        },
+        {
+          "index": "8M",
+          "position": 8,
+          "rank": "Strength",
+          "suit": "Major Arcana",
+          "symbol": "💪🔮"
+        },
+        {
+          "index": "9M",
+          "position": 9,
+          "rank": "The Hermit",
+          "suit": "Major Arcana",
+          "symbol": "🕵🔮"
+        },
+        {
+          "index": "AM",
+          "position": 10,
+          "rank": "Wheel of Fortune",
+          "suit": "Major Arcana",
+          "symbol": "🎡🔮"
+        },
+        {
+          "index": "BM",
+          "position": 11,
+          "rank": "Justice",
+          "suit": "Major Arcana",
+          "symbol": "⚖🔮"
+        },
+        {
+          "index": "CM",
+          "position": 12,
+          "rank": "The Hanged Man",
+          "suit": "Major Arcana",
+          "symbol": "🙃🔮"
+        },
+        {
+          "index": "DM",
+          "position": 13,
+          "rank": "Death",
+          "suit": "Major Arcana",
+          "symbol": "💀🔮"
+        },
+        {
+          "index": "EM",
+          "position": 14,
+          "rank": "Temperance",
+          "suit": "Major Arcana",
+          "symbol": "🚭🔮"
+        },
+        {
+          "index": "FM",
+          "position": 15,
+          "rank": "The Devil",
+          "suit": "Major Arcana",
+          "symbol": "😈🔮"
+        },
+        {
+          "index": "GM",
+          "position": 16,
+          "rank": "The Tower",
+          "suit": "Major Arcana",
+          "symbol": "🗼🔮"
+        },
+        {
+          "index": "HM",
+          "position": 17,
+          "rank": "The Star",
+          "suit": "Major Arcana",
+          "symbol": "⭐🔮"
+        },
+        {
+          "index": "IM",
+          "position": 18,
+          "rank": "The Moon",
+          "suit": "Major Arcana",
+          "symbol": "🌜🔮"
+        },
+        {
+          "index": "JM",
+          "position": 19,
+          "rank": "The Sun",
+          "suit": "Major Arcana",
+          "symbol": "☀🔮"
+        },
+        {
+          "index": "KM",
+          "position": 20,
+          "rank": "Judgement",
+          "suit": "Major Arcana",
+          "symbol": "🔔🔮"
+        },
+        {
+          "index": "LM",
+          "position": 21,
+          "rank": "The World",
+          "suit": "Major Arcana",
+          "symbol": "🌍🔮"
+        },
+        {
+          "index": "KW",
+          "position": 22,
+          "rank": "King",
+          "suit": "Wands",
+          "symbol": "K🪄"
+        },
+        {
+          "index": "QW",
+          "position": 23,
+          "rank": "Queen",
+          "suit": "Wands",
+          "symbol": "Q🪄"
+        },
+        {
+          "index": "NW",
+          "position": 24,
+          "rank": "Knight",
+          "suit": "Wands",
+          "symbol": "🃏🪄"
+        },
+        {
+          "index": "PW",
+          "position": 25,
+          "rank": "Page",
+          "suit": "Wands",
+          "symbol": "P🪄"
+        },
+        {
+          "index": "TW",
+          "position": 26,
+          "rank": "Ten",
+          "suit": "Wands",
+          "symbol": "T🪄"
+        },
+        {
+          "index": "9W",
+          "position": 27,
+          "rank": "Nine",
+          "suit": "Wands",
+          "symbol": "9🪄"
+        },
+        {
+          "index": "8W",
+          "position": 28,
+          "rank": "Eight",
+          "suit": "Wands",
+          "symbol": "8🪄"
+        },
+        {
+          "index": "7W",
+          "position": 29,
+          "rank": "Seven",
+          "suit": "Wands",
+          "symbol": "7🪄"
+        },
+        {
+          "index": "6W",
+          "position": 30,
+          "rank": "Six",
+          "suit": "Wands",
+          "symbol": "6🪄"
+        },
+        {
+          "index": "5W",
+          "position": 31,
+          "rank": "Five",
+          "suit": "Wands",
+          "symbol": "5🪄"
+        },
+        {
+          "index": "4W",
+          "position": 32,
+          "rank": "Four",
+          "suit": "Wands",
+          "symbol": "4🪄"
+        },
+        {
+          "index": "3W",
+          "position": 33,
+          "rank": "Three",
+          "suit": "Wands",
+          "symbol": "3🪄"
+        },
+        {
+          "index": "2W",
+          "position": 34,
+          "rank": "Deuce",
+          "suit": "Wands",
+          "symbol": "2🪄"
+        },
+        {
+          "index": "AW",
+          "position": 35,
+          "rank": "Ace",
+          "suit": "Wands",
+          "symbol": "A🪄"
+        },
+        {
+          "index": "KC",
+          "position": 36,
+          "rank": "King",
+          "suit": "Chalices",
+          "symbol": "K🍷"
+        },
+        {
+          "index": "QC",
+          "position": 37,
+          "rank": "Queen",
+          "suit": "Chalices",
+          "symbol": "Q🍷"
+        },
+        {
+          "index": "NC",
+          "position": 38,
+          "rank": "Knight",
+          "suit": "Chalices",
+          "symbol": "🃏🍷"
+        },
+        {
+          "index": "PC",
+          "position": 39,
+          "rank": "Page",
+          "suit": "Chalices",
+          "symbol": "P🍷"
+        },
+        {
+          "index": "TC",
+          "position": 40,
+          "rank": "Ten",
+          "suit": "Chalices",
+          "symbol": "T🍷"
+        },
+        {
+          "index": "9C",
+          "position": 41,
+          "rank": "Nine",
+          "suit": "Chalices",
+          "symbol": "9🍷"
+        },
+        {
+          "index": "8C",
+          "position": 42,
+          "rank": "Eight",
+          "suit": "Chalices",
+          "symbol": "8🍷"
+        },
+        {
+          "index": "7C",
+          "position": 43,
+          "rank": "Seven",
+          "suit": "Chalices",
+          "symbol": "7🍷"
+        },
+        {
+          "index": "6C",
+          "position": 44,
+          "rank": "Six",
+          "suit": "Chalices",
+          "symbol": "6🍷"
+        },
+        {
+          "index": "5C",
+          "position": 45,
+          "rank": "Five",
+          "suit": "Chalices",
+          "symbol": "5🍷"
+        },
+        {
+          "index": "4C",
+          "position": 46,
+          "rank": "Four",
+          "suit": "Chalices",
+          "symbol": "4🍷"
+        },
+        {
+          "index": "3C",
+          "position": 47,
+          "rank": "Three",
+          "suit": "Chalices",
+          "symbol": "3🍷"
+        },
+        {
+          "index": "2C",
+          "position": 48,
+          "rank": "Deuce",
+          "suit": "Chalices",
+          "symbol": "2🍷"
+        },
+        {
+          "index": "AC",
+          "position": 49,
+          "rank": "Ace",
+          "suit": "Chalices",
+          "symbol": "A🍷"
+        },
+        {
+          "index": "KS",
+          "position": 50,
+          "rank": "King",
+          "suit": "Swords",
+          "symbol": "K⚔"
+        },
+        {
+          "index": "QS",
+          "position": 51,
+          "rank": "Queen",
+          "suit": "Swords",
+          "symbol": "Q⚔"
+        },
+        {
+          "index": "NS",
+          "position": 52,
+          "rank": "Knight",
+          "suit": "Swords",
+          "symbol": "🃏⚔"
+        },
+        {
+          "index": "PS",
+          "position": 53,
+          "rank": "Page",
+          "suit": "Swords",
+          "symbol": "P⚔"
+        },
+        {
+          "index": "TS",
+          "position": 54,
+          "rank": "Ten",
+          "suit": "Swords",
+          "symbol": "T⚔"
+        },
+        {
+          "index": "9S",
+          "position": 55,
+          "rank": "Nine",
+          "suit": "Swords",
+          "symbol": "9⚔"
+        },
+        {
+          "index": "8S",
+          "position": 56,
+          "rank": "Eight",
+          "suit": "Swords",
+          "symbol": "8⚔"
+        },
+        {
+          "index": "7S",
+          "position": 57,
+          "rank": "Seven",
+          "suit": "Swords",
+          "symbol": "7⚔"
+        },
+        {
+          "index": "6S",
+          "position": 58,
+          "rank": "Six",
+          "suit": "Swords",
+          "symbol": "6⚔"
+        },
+        {
+          "index": "5S",
+          "position": 59,
+          "rank": "Five",
+          "suit": "Swords",
+          "symbol": "5⚔"
+        },
+        {
+          "index": "4S",
+          "position": 60,
+          "rank": "Four",
+          "suit": "Swords",
+          "symbol": "4⚔"
+        },
+        {
+          "index": "3S",
+          "position": 61,
+          "rank": "Three",
+          "suit": "Swords",
+          "symbol": "3⚔"
+        },
+        {
+          "index": "2S",
+          "position": 62,
+          "rank": "Deuce",
+          "suit": "Swords",
+          "symbol": "2⚔"
+        },
+        {
+          "index": "AS",
+          "position": 63,
+          "rank": "Ace",
+          "suit": "Swords",
+          "symbol": "A⚔"
+        },
+        {
+          "index": "KP",
+          "position": 64,
+          "rank": "King",
+          "suit": "Pentacles",
+          "symbol": "K☆"
+        },
+        {
+          "index": "QP",
+          "position": 65,
+          "rank": "Queen",
+          "suit": "Pentacles",
+          "symbol": "Q☆"
+        },
+        {
+          "index": "NP",
+          "position": 66,
+          "rank": "Knight",
+          "suit": "Pentacles",
+          "symbol": "🃏☆"
+        },
+        {
+          "index": "PP",
+          "position": 67,
+          "rank": "Page",
+          "suit": "Pentacles",
+          "symbol": "P☆"
+        },
+        {
+          "index": "TP",
+          "position": 68,
+          "rank": "Ten",
+          "suit": "Pentacles",
+          "symbol": "T☆"
+        },
+        {
+          "index": "9P",
+          "position": 69,
+          "rank": "Nine",
+          "suit": "Pentacles",
+          "symbol": "9☆"
+        },
+        {
+          "index": "8P",
+          "position": 70,
+          "rank": "Eight",
+          "suit": "Pentacles",
+          "symbol": "8☆"
+        },
+        {
+          "index": "7P",
+          "position": 71,
+          "rank": "Seven",
+          "suit": "Pentacles",
+          "symbol": "7☆"
+        },
+        {
+          "index": "6P",
+          "position": 72,
+          "rank": "Six",
+          "suit": "Pentacles",
+          "symbol": "6☆"
+        },
+        {
+          "index": "5P",
+          "position": 73,
+          "rank": "Five",
+          "suit": "Pentacles",
+          "symbol": "5☆"
+        },
+        {
+          "index": "4P",
+          "position": 74,
+          "rank": "Four",
+          "suit": "Pentacles",
+          "symbol": "4☆"
+        },
+        {
+          "index": "3P",
+          "position": 75,
+          "rank": "Three",
+          "suit": "Pentacles",
+          "symbol": "3☆"
+        },
+        {
+          "index": "2P",
+          "position": 76,
+          "rank": "Deuce",
+          "suit": "Pentacles",
+          "symbol": "2☆"
+        },
+        {
+          "index": "AP",
+          "position": 77,
+          "rank": "Ace",
+          "suit": "Pentacles",
+          "symbol": "A☆"
+        }
+      ],
+      "count": 78
+    }
+  },
+  "epic": "DECON-06"
+}

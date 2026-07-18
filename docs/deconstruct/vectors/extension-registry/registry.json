@@ -1,0 +1,56 @@
+{
+  "behavior": "registry",
+  "data": {
+    "decks": [
+      {
+        "count": 108,
+        "name": "Canasta"
+      },
+      {
+        "count": 24,
+        "name": "Euchre 24"
+      },
+      {
+        "count": 32,
+        "name": "Euchre 32"
+      },
+      {
+        "count": 54,
+        "name": "French"
+      },
+      {
+        "count": 48,
+        "name": "Pinochle"
+      },
+      {
+        "count": 52,
+        "name": "Razz"
+      },
+      {
+        "count": 36,
+        "name": "Short"
+      },
+      {
+        "count": 32,
+        "name": "Skat"
+      },
+      {
+        "count": 52,
+        "name": "Spades"
+      },
+      {
+        "count": 52,
+        "name": "Standard 52"
+      },
+      {
+        "count": 78,
+        "name": "Tarot"
+      },
+      {
+        "count": 4,
+        "name": "Tiny"
+      }
+    ]
+  },
+  "epic": "DECON-08"
+}

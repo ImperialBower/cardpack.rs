@@ -63,6 +63,7 @@ ckc-rs = "0.1.15"
 clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
 rstest = "0.25"
+serde_json = "1"
 term-table = "1.4.0"
 
 # proptest's transitive `wait-timeout` is unix-only, so gate it off wasm.
@@ -105,6 +106,10 @@ name = "wasm"
 [[example]]
 name = "no_std_smoke"
 required-features = []
+
+[[example]]
+name = "deconstruct_vectors"
+required-features = ["std", "i18n", "yaml"]
 
 [[bench]]
 name = "draw"
