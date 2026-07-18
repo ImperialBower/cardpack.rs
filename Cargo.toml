@@ -53,7 +53,7 @@ thiserror = { version = "2.0.18", default-features = false }
 # Consumers still need to set `--cfg getrandom_backend="wasm_js"` via
 # .cargo/config.toml (see docs/wasm.md).
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom = { version = "0.4", features = ["wasm_js"] }
 
 # All ordinary dev-deps require std and cannot build for bare-metal targets
 # (target_os = "none", e.g. thumbv7em-none-eabihf). Gate them off those targets
