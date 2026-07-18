@@ -4,3 +4,11 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
+  # Lockfile bumps arrive as their own PRs running the full CI matrix (MSRV
+  # 1.85, wasm, no_std, clippy), so a dependency that raises its rustc floor
+  # or ships a bad release fails its PR instead of breaking mainline.
+  # Security advisories open PRs immediately, independent of this schedule.
+  - package-ecosystem: 'cargo'
+    directory: '/'
+    schedule:
+      interval: 'weekly'

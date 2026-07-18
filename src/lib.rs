@@ -17,6 +17,10 @@
     clippy::struct_field_names
 )]
 #![allow(dead_code)]
+// `unwrap`/`expect` are the idiomatic way to assert in test code — a panic is
+// the failure. Keep them denied in production paths (the `#![warn]` above) but
+// allow them under `cfg(test)` so the test suite stays clippy-clean.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 #![cfg_attr(not(feature = "std"), no_std)]
 // clippy::as_conversions
 // clippy::float_arithmetic
@@ -295,6 +299,10 @@ extern crate alloc;
 
 pub mod basic;
 pub mod common;
+#[cfg(feature = "funky")]
+pub mod funky;
 #[cfg(feature = "i18n")]
 pub mod localization;
 pub mod prelude;
+#[cfg(feature = "funky")]
+pub mod preludes;

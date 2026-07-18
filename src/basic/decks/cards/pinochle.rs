@@ -117,7 +117,7 @@ mod basic__decks__cards__french__tests {
 
         // println!("{yml}");
 
-        let pip2: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
-        assert_eq!(pips, pip2);
+        let decoded: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
+        assert_eq!(pips, decoded);
     }
 }

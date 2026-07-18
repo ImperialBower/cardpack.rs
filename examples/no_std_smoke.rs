@@ -10,7 +10,7 @@
 //! because on host targets the sysroot always provides libstd, even
 //! under `--no-default-features` — and a `#[panic_handler]` collides
 //! with std's at link time. Only true bare-metal targets have no std
-//! in the sysroot, so the no_std body must be gated on the target,
+//! in the sysroot, so the `no_std` body must be gated on the target,
 //! not on cardpack's `std` feature flag.
 
 #![cfg_attr(target_os = "none", no_std)]

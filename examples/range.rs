@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 fn main() {
     let mut chart = vec![vec!["  ".to_string(); 13]; 13];
     let ranks = [
@@ -6,22 +8,18 @@ fn main() {
 
     for (i, &rank1) in ranks.iter().enumerate() {
         for (j, &rank2) in ranks.iter().enumerate() {
-            if i < j {
-                let iltg = format!("{}{}", rank1, rank2);
-                chart[i][j] = iltg.clone();
-            } else if i > j {
-                let igtg = format!("{}{}", rank2, rank1);
-                chart[i][j] = igtg.clone();
-            } else {
-                let ig = format!("{}{}", rank1, rank2);
-                chart[i][j] = ig.clone();
-            }
+            // Above the diagonal: suited (rank1 rank2); below: offsuit
+            // (rank2 rank1); on the diagonal: the pair.
+            chart[i][j] = match i.cmp(&j) {
+                Ordering::Greater => format!("{rank2}{rank1}"),
+                Ordering::Less | Ordering::Equal => format!("{rank1}{rank2}"),
+            };
         }
     }
 
     for row in chart {
         for cell in row {
-            print!("{:>3}", cell);
+            print!("{cell:>3}");
         }
         println!();
     }

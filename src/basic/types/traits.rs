@@ -369,13 +369,29 @@ pub trait Ranged {
         mappy
     }
 
+    fn map_by_suit(&self) -> BTreeMap<Pip, BasicPile> {
+        let mut mappy: BTreeMap<Pip, BasicPile> = BTreeMap::new();
+
+        for card in &self.my_basic_pile() {
+            mappy.entry(card.suit).or_default().push(*card);
+        }
+
+        mappy
+    }
+
     /// Takes the `BasicPiles` and sorts them based on their length.
     ///
-    /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades in
-    /// our unit tests. It's annoying but not enough to solve the problem.
+    /// **DIARY**: Don't really care that much that ten of spades comes before jack of spades. In
+    /// our unit test below. It's annoying but not enough to solve the problem.
     fn combos_by_rank(&self) -> Combos {
-        let mappy = self.map_by_rank();
+        self.combos_from_pip_map(self.map_by_rank())
+    }
 
+    fn combos_by_suit(&self) -> Combos {
+        self.combos_from_pip_map(self.map_by_suit())
+    }
+
+    fn combos_from_pip_map(&self, mappy: BTreeMap<Pip, BasicPile>) -> Combos {
         let v: Vec<BasicPile> = mappy.values().map(Clone::clone).collect::<Vec<_>>();
 
         let mut combos = Combos::from(v);

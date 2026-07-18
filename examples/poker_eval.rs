@@ -21,12 +21,12 @@ fn best_hand_for(seven: &Pile<Standard52>) -> HandRank {
     for five in seven.combos(5) {
         let mut numbers = [0 as CKCNumber; 5];
         for (i, card) in five.iter().enumerate() {
-            numbers[i] = card.get_ckc_number() as CKCNumber;
+            numbers[i] = CKCNumber::try_from(card.get_ckc_number()).unwrap();
         }
 
         let value = evaluate::five_cards(numbers);
-        if value > 0 && (value as u32) < best_value {
-            best_value = value as u32;
+        if value > 0 && u32::from(value) < best_value {
+            best_value = u32::from(value);
             best = HandRank::from(value);
         }
     }

@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -29,6 +29,7 @@ i18n = ["std", "dep:fluent-templates"]
 colored-display = ["std", "dep:colored"]
 yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde", "alloc"]
+funky = ["std"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
@@ -105,6 +106,14 @@ name = "wasm"
 [[example]]
 name = "no_std_smoke"
 required-features = []
+
+[[example]]
+name = "buffoon"
+required-features = ["funky"]
+
+[[example]]
+name = "funky_tour"
+required-features = ["funky"]
 
 [[bench]]
 name = "draw"

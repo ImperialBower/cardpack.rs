@@ -129,7 +129,7 @@ proptest! {
     #[test]
     fn pile_on__single_is_identity(seed: u64) {
         let pile = Standard52::deck().shuffled_with_seed(seed);
-        let combined = Pile::<Standard52>::pile_on(&[pile.clone()]);
+        let combined = Pile::<Standard52>::pile_on(std::slice::from_ref(&pile));
         prop_assert_eq!(combined, pile);
     }
 }

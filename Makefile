@@ -1,4 +1,4 @@
-.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
+.PHONY: clean build test test-unit test-doc test-wasm build-wasm coverage bench build_test fmt clippy msrv create_docs ayce default help docs test-nightly clippy-nightly nightly miri mutants tree tree-duplicates deny audit unused-deps install-tools install-nextest install-mutants install-wasm-bindgen-cli install-llvm-cov watch install-watch no-std no-std-thumbv7
 
 # Default target
 default: ayce
@@ -19,6 +19,7 @@ help:
 	@echo "  make build_test      - Clean once, then build and test"
 	@echo "  make fmt             - Format code"
 	@echo "  make clippy          - Run clippy linter"
+	@echo "  make msrv            - Run the test battery on the 1.85 MSRV toolchain"
 	@echo "  make create_docs     - Build documentation"
 	@echo "  make docs            - Build docs and open in browser"
 	@echo "  make ayce            - Run fmt, build_test, clippy, and docs"
@@ -180,9 +181,18 @@ build_test: clean build test
 fmt:
 	cargo fmt
 
-# Run clippy linter
+# Run clippy exactly as the CI clippy job does: default features first, then
+# the funky feature across all targets (lib, tests, examples, benches)
 clippy:
-	cargo clippy -- -W clippy::pedantic
+	cargo clippy -- -Dclippy::all -Dclippy::pedantic
+	cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
+
+# Run the CI MSRV gate locally: the two test invocations on the 1.85 toolchain.
+# Catches post-1.85 syntax (e.g. let-chains) that stable never flags.
+# Requires: rustup toolchain install 1.85.0
+msrv:
+	cargo +1.85.0 test --locked --all
+	cargo +1.85.0 test --locked --features funky
 
 test-nightly:
 	cargo +nightly test --all-targets --all-features
@@ -238,8 +248,9 @@ docs: create_docs
 		exit 1; \
 	fi
 
-# All You Can Eat - Run all checks
-ayce: fmt build_test clippy create_docs
+# All You Can Eat - Run all checks (MSRV + no_std included; deny/audit stay
+# separate — advisories are time-triggered and owned by the audit cron)
+ayce: fmt build_test clippy msrv no-std create_docs
 
 # Install cargo-nextest
 install-nextest:
@@ -280,6 +291,7 @@ install-watch:
 no-std:
 	cargo build --no-default-features
 	cargo build --no-default-features --features serde
+	cargo test --no-default-features --lib
 
 # Build for bare-metal thumbv7em target
 no-std-thumbv7:

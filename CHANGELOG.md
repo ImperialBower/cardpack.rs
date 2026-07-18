@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`funky` feature (experimental, off by default, requires `std`)** — a
+  Balatro-style scoring engine layered on the core `basic` deck, for a
+  Balatro solver and for authoring custom mods. Highlights:
+  - `BuffoonCard` / `BuffoonPile` / `BuffoonBoard` with a data-driven
+    `MPip` effect enum interpreted by a four-phase scoring pipeline
+    (base → played cards → held ×mult → jokers, folded left-to-right so
+    additive and ×mult jokers compose in order).
+  - ~110 jokers across four rarity piles with wired scoring effects,
+    plus economy (`money`), per-run counters, retriggers, deck mutation,
+    consumables, rule-modifier detection hooks (Four Fingers, Shortcut,
+    Smeared…), a full-deck view, boss blinds, and a play/discard round
+    loop. Effects a subsystem cannot yet score correctly stay `Blank`
+    with a stated reason rather than a plausible-but-wrong value.
+  - Planet cards (hand leveling) and 22 Major Arcana tarot cards
+    (card enhancements applied through `BuffoonCard::enhance`).
+  - `MPip::Custom` + an `EffectRegistry` extension seam so mods can add
+    effects without editing core match arms.
+  - Deterministic, seedable shuffle and a seeded-RNG scoring path
+    (`score_with_seed`) for solver reproducibility.
+- `Planet::DECK` now includes Mercury (the Pair planet), which was
+  missing; the base planet deck covers all nine base poker hands.
+  (funky)
 - `Pip::new` is now a `const fn`, enabling compile-time `Pip` literals
   via the constructor (callers previously had to use struct literals).
   (audit row #14)

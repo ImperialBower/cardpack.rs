@@ -31,7 +31,7 @@ fn bench_shuffled(c: &mut Criterion) {
 fn bench_shuffled_with_seed(c: &mut Criterion) {
     let deck = Canasta::deck();
     c.bench_function("shuffled_with_seed (canasta, 108 cards)", |b| {
-        b.iter(|| black_box(&deck).shuffled_with_seed(black_box(0xC0FFEE)));
+        b.iter(|| black_box(&deck).shuffled_with_seed(black_box(0x00C0_FFEE)));
     });
 }
 
