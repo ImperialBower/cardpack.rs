@@ -208,7 +208,7 @@ mod basic__types__basic_card_tests {
         let cards = BasicCard::cards_from_yaml_file("src/basic/decks/yaml/french.yaml").unwrap();
 
         assert_eq!(cards.len(), 54);
-        assert_eq!(cards, Pile::<French>::base_vec())
+        assert_eq!(cards, Pile::<French>::base_vec());
     }
 
     #[test]

@@ -385,8 +385,8 @@ mod basic__decks__cards__french__tests {
         let pips = vec![FrenchRank::ACE];
         let yml = serde_norway::to_string(&pips).unwrap();
 
-        let pip2: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
-        assert_eq!(pips, pip2);
+        let decoded: Vec<Pip> = serde_norway::from_str(&yml).unwrap();
+        assert_eq!(pips, decoded);
     }
 
     #[cfg(feature = "yaml")]

@@ -10,6 +10,8 @@ use clap::Parser;
 /// `cargo run --example demo -- -temfkpsac -v`
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
+// A CLI flag per deck is the natural shape for a clap args struct.
+#[allow(clippy::struct_excessive_bools)]
 struct Args {
     #[clap(short = 'v', long)]
     verbose: bool,
@@ -46,14 +48,14 @@ struct Args {
     tarot: bool,
 }
 
-fn main() -> Result<(), CardError> {
+fn main() {
     let args = Args::parse();
 
     if args.all {
         for kind in DeckKind::all() {
             kind.demo(args.verbose);
         }
-        return Ok(());
+        return;
     }
 
     if args.tarot {
@@ -91,6 +93,4 @@ fn main() -> Result<(), CardError> {
     if args.standard {
         DeckKind::Standard52.demo(args.verbose);
     }
-
-    Ok(())
 }

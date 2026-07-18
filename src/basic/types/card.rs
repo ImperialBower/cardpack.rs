@@ -155,7 +155,7 @@ impl<DeckType: DeckedBase> Card<DeckType> {
     ///
     /// ```txt
     /// error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
-    ///    --> src/basic/types/card.rs:151:9
+    ///    --> src/basic/types/bcard:151:9
     ///     |
     /// 151 |           DeckedBase::basic_pile().contains(&self.base_card)
     ///     |           ^^^^^^^^^^^^^^^^^^^^^^^^ cannot call associated function of trait
@@ -476,7 +476,7 @@ mod basic__types__card_tests {
 
         let s: String = cards
             .iter()
-            .map(|c| c.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ");
 
@@ -582,8 +582,8 @@ mod basic__types__card_tests {
     #[cfg(feature = "colored-display")]
     color_deck!(BrightCyanDeck, colored::Color::BrightCyan);
 
-    /// Verifies that color_string applies the expected ANSI color to the output.
-    /// Each sub-assertion catches the "delete match arm Color::X" mutation.
+    /// Verifies that `color_string` applies the expected ANSI color to the output.
+    /// Each sub-assertion catches the "delete match arm `Color::X`" mutation.
     #[cfg(feature = "colored-display")]
     #[test]
     fn color_string__all_variants() {

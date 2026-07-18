@@ -1,0 +1,775 @@
+use crate::funky::decks::{basic, tarot};
+use crate::funky::types::edition::Edition;
+use crate::funky::types::mpip::MPip;
+use crate::prelude::{BasicCard, CardError, FrenchSuit, Pip, PipType};
+use crate::preludes::funky::Score;
+use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::Display;
+use std::str::FromStr;
+// region BCardType
+
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
+)]
+pub enum BCardType {
+    #[default]
+    Basic,
+    Stone,
+    CommonJoker,
+    UncommonJoker,
+    RareJoker,
+    LegendaryJoker,
+    Planet,
+    Spectral,
+    Tarot,
+    Voucher,
+}
+
+impl Display for BCardType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Self::CommonJoker => 'j',
+            Self::Stone => '■',
+            Self::UncommonJoker => 'u',
+            Self::RareJoker => 'r',
+            Self::LegendaryJoker => 'l',
+            Self::Planet => 'p',
+            Self::Spectral => 's',
+            Self::Tarot => 't',
+            Self::Voucher => 'v',
+            Self::Basic => '_',
+        };
+        write!(f, "{s}")
+    }
+}
+
+impl From<char> for BCardType {
+    fn from(c: char) -> Self {
+        match c {
+            'j' | 'J' => Self::CommonJoker,
+            '■' => Self::Stone,
+            'u' | 'U' => Self::UncommonJoker,
+            'r' | 'R' => Self::RareJoker,
+            'l' | 'L' => Self::LegendaryJoker,
+            'p' | 'P' => Self::Planet,
+            's' | 'S' => Self::Spectral,
+            't' | 'T' => Self::Tarot,
+            'v' | 'V' => Self::Voucher,
+            _ => Self::Basic,
+        }
+    }
+}
+
+impl FromStr for BCardType {
+    type Err = CardError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut chars = s.chars();
+        match (chars.next(), chars.next()) {
+            (Some(c), None) => Ok(c.into()),
+            _ => Err(CardError::InvalidIndex(s.to_string())),
+        }
+    }
+}
+
+// endregion BCardType
+
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, Serialize, Deserialize)]
+pub struct BuffoonCard {
+    pub suit: Pip,
+    pub rank: Pip,
+    pub card_type: BCardType,
+    pub enhancement: MPip,
+    /// The foil/holo/poly/negative overlay, orthogonal to `enhancement`. Defaults
+    /// to [`Edition::None`] so an unstamped card is unedited.
+    pub edition: Edition,
+    pub resell_value: usize,
+    pub debuffed: bool,
+}
+
+impl BuffoonCard {
+    /// Adds to the underlying value of the rank of the card.
+    ///
+    /// There are two ways to increase the total chips for a `BuffoonCard`. The first is to
+    /// add to the value of the underlying rank of the card. The other is to add the `MPipType::Chips`
+    /// enhancement to the card.
+    ///
+    /// DIARY: I'm settling on a fluid style for the changes to the card. That's where
+    /// instead of adjusting internal state, it returns a new card with the changes.
+    ///
+    /// I love `Self { rank, ..*self }` over my original hacky way:
+    ///
+    /// ```txt
+    /// BuffoonCard {
+    ///     suit: self.suit,
+    ///     rank,
+    ///     card_type: self.card_type,
+    ///     enhancement: self.enhancement,
+    /// }
+    /// ```
+    ///
+    /// **UPDATE** Returns a copy of this card with `chips` added to its base
+    /// rank value. A card's chips can be raised two ways: by increasing the
+    /// underlying rank value (this method — how Hiker permanently fattens a
+    /// scored card) or by attaching an [`MPip::Chips`] enhancement.
+    #[must_use]
+    pub fn add_base_chips(&self, chips: usize) -> Self {
+        let mut value = self.rank.value;
+        value += chips;
+
+        let rank = self.rank.update_value(value);
+
+        Self { rank, ..*self }
+    }
+
+    #[must_use]
+    pub fn basic_card(&self) -> BasicCard {
+        BasicCard {
+            suit: self.suit,
+            rank: self.rank,
+        }
+    }
+
+    #[must_use]
+    pub fn calculate_plus(&self, enhancer: &Self) -> Score {
+        match enhancer.enhancement {
+            MPip::MultPlusChipsOnRank(mult, chips, rank_char) => {
+                if self.rank.index == rank_char {
+                    Score { chips, mult }
+                } else {
+                    Score::default()
+                }
+            }
+            _ => Score {
+                chips: self.calculate_plus_chips(enhancer),
+                mult: self.calculate_plus_mult(enhancer),
+            },
+        }
+    }
+
+    #[must_use]
+    pub fn calculate_plus_chips(&self, enhancer: &Self) -> usize {
+        match enhancer.enhancement {
+            MPip::ChipsPlusOn5Ranks(value, ranks) if ranks.contains(&self.rank.index) => value,
+            _ => 0,
+        }
+    }
+
+    #[must_use]
+    pub fn calculate_plus_mult(&self, enhancer: &Self) -> usize {
+        match enhancer.enhancement {
+            MPip::MultPlus(value) => value,
+            MPip::MultPlusOnSuit(value, suit) if self.suit.index == suit => value,
+            MPip::MultPlusOn5Ranks(value, ranks) if ranks.contains(&self.rank.index) => value,
+            _ => 0,
+        }
+    }
+
+    #[must_use]
+    pub fn distance(&self, other: &Self) -> usize {
+        self.rank.distance(&other.rank)
+    }
+
+    fn get_enhanced_chips(&self) -> usize {
+        if let MPip::Chips(c) = self.enhancement {
+            c
+        } else {
+            0
+        }
+    }
+
+    /// Whether this is a **Stone card** — the enhancement with "no rank or
+    /// suit".
+    ///
+    /// Stone is a *mask*, not an erasure: the card keeps its rank and suit
+    /// underneath, and this flag is what the accessors consult to hide them.
+    /// That is Balatro's own model, and it is observable — Vampire strips the
+    /// enhancement and the original rank and suit come straight back, which
+    /// could not happen if they had been overwritten.
+    ///
+    /// Modelling it the other way (blanking the pips) has a specific bug: every
+    /// blanked card looks identical, so two Stone cards would pair with each
+    /// other. They must never pair — not with a rank, and not with each other.
+    #[must_use]
+    pub const fn is_stone(&self) -> bool {
+        matches!(self.enhancement, MPip::Stone(_))
+    }
+
+    /// The chips this card contributes when scored.
+    ///
+    /// A **Stone card gives its flat chips and nothing else** — its rank value
+    /// is masked along with the rank itself, so a Stone Ace is worth 50, not 61.
+    #[must_use]
+    pub fn get_chips(&self) -> usize {
+        if let MPip::Stone(chips) = self.enhancement {
+            return chips;
+        }
+        let mut chips = 0;
+        if let MPip::Chips(c) = self.enhancement {
+            chips += c;
+        }
+        chips + self.rank.value
+    }
+
+    #[must_use]
+    pub fn enhance(&self, enhancer: Self) -> Self {
+        match enhancer.enhancement {
+            MPip::Death(_)
+            | MPip::DoubleMoney(_)
+            | MPip::Hanged(_)
+            | MPip::Planet(_)
+            | MPip::RandomTarot(_)
+            | MPip::JokersValue(_)
+            | MPip::RandomJoker(_)
+            | MPip::Odds1in(_) => *self,
+            MPip::Strength => basic::card::plus_rank(*self),
+            MPip::Diamonds(_) => basic::card::set_suit(*self, FrenchSuit::DIAMONDS),
+            MPip::Clubs(_) => basic::card::set_suit(*self, FrenchSuit::CLUBS),
+            MPip::Hearts(_) => basic::card::set_suit(*self, FrenchSuit::HEARTS),
+            MPip::Spades(_) => basic::card::set_suit(*self, FrenchSuit::SPADES),
+            _ => self.enhance_swap(enhancer.enhancement),
+        }
+    }
+
+    /// Function to implement mods where they are just straight up replacements.
+    fn enhance_swap(&self, enhancement: MPip) -> Self {
+        Self {
+            enhancement,
+            ..*self
+        }
+    }
+
+    /// Stamp an [`Edition`] onto this card, returning the edited copy — the
+    /// edition mirror of the enhancement stamp, leaving the enhancement and
+    /// everything else untouched (an edition is orthogonal to an enhancement, so
+    /// a Steel card stays Steel when foiled).
+    #[must_use]
+    pub fn with_edition(&self, edition: Edition) -> Self {
+        Self { edition, ..*self }
+    }
+
+    #[must_use]
+    pub fn is_basic(&self) -> bool {
+        (self.card_type == BCardType::Basic) && (self.enhancement == MPip::Blank)
+    }
+
+    #[must_use]
+    pub fn is_joker(&self) -> bool {
+        self.suit.pip_type == PipType::Joker
+    }
+}
+
+impl Display for BuffoonCard {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_basic() {
+            write!(f, "{}{}", self.rank.index, self.suit.index)
+        } else {
+            write!(
+                f,
+                "{}{}{}-{} ${}/${}",
+                self.rank.index,
+                self.suit.index,
+                self.card_type,
+                self.enhancement,
+                self.rank.value,
+                self.resell_value
+            )
+        }
+    }
+}
+
+impl FromStr for BuffoonCard {
+    type Err = CardError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim().to_uppercase();
+
+        if s.len() < 2 {
+            return Err(CardError::InvalidIndex(s));
+        }
+
+        // let index: String = s.chars().take(2).collect();
+
+        match s.as_str() {
+            "AS" => Ok(basic::card::ACE_SPADES),
+            "2S" => Ok(basic::card::DEUCE_SPADES),
+            "3S" => Ok(basic::card::TREY_SPADES),
+            "4S" => Ok(basic::card::FOUR_SPADES),
+            "5S" => Ok(basic::card::FIVE_SPADES),
+            "6S" => Ok(basic::card::SIX_SPADES),
+            "7S" => Ok(basic::card::SEVEN_SPADES),
+            "8S" => Ok(basic::card::EIGHT_SPADES),
+            "9S" => Ok(basic::card::NINE_SPADES),
+            "TS" => Ok(basic::card::TEN_SPADES),
+            "JS" => Ok(basic::card::JACK_SPADES),
+            "QS" => Ok(basic::card::QUEEN_SPADES),
+            "KS" => Ok(basic::card::KING_SPADES),
+            "AD" => Ok(basic::card::ACE_DIAMONDS),
+            "2D" => Ok(basic::card::DEUCE_DIAMONDS),
+            "3D" => Ok(basic::card::TREY_DIAMONDS),
+            "4D" => Ok(basic::card::FOUR_DIAMONDS),
+            "5D" => Ok(basic::card::FIVE_DIAMONDS),
+            "6D" => Ok(basic::card::SIX_DIAMONDS),
+            "7D" => Ok(basic::card::SEVEN_DIAMONDS),
+            "8D" => Ok(basic::card::EIGHT_DIAMONDS),
+            "9D" => Ok(basic::card::NINE_DIAMONDS),
+            "TD" => Ok(basic::card::TEN_DIAMONDS),
+            "JD" => Ok(basic::card::JACK_DIAMONDS),
+            "QD" => Ok(basic::card::QUEEN_DIAMONDS),
+            "KD" => Ok(basic::card::KING_DIAMONDS),
+            "AH" => Ok(basic::card::ACE_HEARTS),
+            "2H" => Ok(basic::card::DEUCE_HEARTS),
+            "3H" => Ok(basic::card::TREY_HEARTS),
+            "4H" => Ok(basic::card::FOUR_HEARTS),
+            "5H" => Ok(basic::card::FIVE_HEARTS),
+            "6H" => Ok(basic::card::SIX_HEARTS),
+            "7H" => Ok(basic::card::SEVEN_HEARTS),
+            "8H" => Ok(basic::card::EIGHT_HEARTS),
+            "9H" => Ok(basic::card::NINE_HEARTS),
+            "TH" => Ok(basic::card::TEN_HEARTS),
+            "JH" => Ok(basic::card::JACK_HEARTS),
+            "QH" => Ok(basic::card::QUEEN_HEARTS),
+            "KH" => Ok(basic::card::KING_HEARTS),
+            "AC" => Ok(basic::card::ACE_CLUBS),
+            "2C" => Ok(basic::card::DEUCE_CLUBS),
+            "3C" => Ok(basic::card::TREY_CLUBS),
+            "4C" => Ok(basic::card::FOUR_CLUBS),
+            "5C" => Ok(basic::card::FIVE_CLUBS),
+            "6C" => Ok(basic::card::SIX_CLUBS),
+            "7C" => Ok(basic::card::SEVEN_CLUBS),
+            "8C" => Ok(basic::card::EIGHT_CLUBS),
+            "9C" => Ok(basic::card::NINE_CLUBS),
+            "TC" => Ok(basic::card::TEN_CLUBS),
+            "JC" => Ok(basic::card::JACK_CLUBS),
+            "QC" => Ok(basic::card::QUEEN_CLUBS),
+            "KC" => Ok(basic::card::KING_CLUBS),
+
+            // Tarot
+            "0M" | "FOOL" => Ok(tarot::card::FOOL),
+            "1M" | "MAGICIAN" => Ok(tarot::card::MAGICIAN),
+            "2M" | "HIGH_PRIESTESS" => Ok(tarot::card::HIGH_PRIESTESS),
+            "3M" | "EMPRESS" => Ok(tarot::card::EMPRESS),
+            "4M" | "EMPEROR" => Ok(tarot::card::EMPEROR),
+            "5M" | "HIEROPHANT" => Ok(tarot::card::HIEROPHANT),
+            "6M" | "LOVERS" => Ok(tarot::card::LOVERS),
+            "7M" | "THE_CHARIOT" => Ok(tarot::card::THE_CHARIOT),
+            "8M" | "STRENGTH" => Ok(tarot::card::STRENGTH),
+            "9M" | "HERMIT" => Ok(tarot::card::HERMIT),
+            "AM" | "WHEEL_OF_FORTUNE" => Ok(tarot::card::WHEEL_OF_FORTUNE),
+            "BM" | "JUSTICE" => Ok(tarot::card::JUSTICE),
+            "CM" | "HANGED_MAN" => Ok(tarot::card::HANGED_MAN),
+            "DM" | "DEATH" => Ok(tarot::card::DEATH),
+            "EM" | "TEMPERANCE" => Ok(tarot::card::TEMPERANCE),
+            "FM" | "DEVIL" => Ok(tarot::card::DEVIL),
+            "GM" | "TOWER" => Ok(tarot::card::TOWER),
+            "HM" | "STAR" => Ok(tarot::card::STAR),
+            "IM" | "MOON" => Ok(tarot::card::MOON),
+            "JM" | "SUN" => Ok(tarot::card::SUN),
+            "KM" | "JUDGEMENT" => Ok(tarot::card::JUDGEMENT),
+            "LM" | "WORLD" => Ok(tarot::card::WORLD),
+
+            _ => Ok(Self::default()),
+        }
+    }
+}
+
+/// Inverts the order so that the highest card comes first.
+impl Ord for BuffoonCard {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other
+            .suit
+            .cmp(&self.suit)
+            .then_with(|| other.rank.cmp(&self.rank))
+    }
+}
+
+impl PartialOrd for BuffoonCard {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod funky__types__buffoon_card_tests {
+    use super::*;
+    use crate::bcard;
+    use crate::funky::decks::basic::card::*;
+    use crate::funky::decks::joker;
+    use crate::funky::decks::tarot::card::*;
+
+    #[test]
+    fn calculate_plus() {
+        assert_eq!(
+            bcard!(AD).calculate_plus(&bcard!(ODD_TODD)),
+            Score::new(31, 0)
+        );
+        assert_eq!(bcard!(AD).calculate_plus(&bcard!(GREEDY)), Score::new(0, 3));
+        assert_eq!(
+            bcard!(AD).calculate_plus(&bcard!(SCHOLAR)),
+            Score::new(20, 4)
+        );
+    }
+
+    #[test]
+    fn calculate_plus_chips__odd_todd() {
+        assert_eq!(bcard!(AD).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(9C).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(7S).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(5C).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(3H).calculate_plus_chips(&joker::card::ODD_TODD), 31);
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(ODD_TODD)), 0);
+    }
+
+    #[test]
+    fn calculate_plus_mult__fibonacci() {
+        // Fibonacci: +8 mult for each played A, 2, 3, 5, or 8.
+        assert_eq!(bcard!(AD).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        assert_eq!(bcard!(2C).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        assert_eq!(bcard!(8S).calculate_plus_mult(&joker::card::FIBONACCI), 8);
+        // Non-matching ranks contribute nothing.
+        assert_eq!(bcard!(4H).calculate_plus_mult(&joker::card::FIBONACCI), 0);
+        assert_eq!(bcard!(KD).calculate_plus_mult(&joker::card::FIBONACCI), 0);
+        // Fibonacci adds no chips.
+        assert_eq!(bcard!(AD).calculate_plus_chips(&joker::card::FIBONACCI), 0);
+    }
+
+    #[test]
+    fn calculate_plus_mult__greedy_joker() {
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(GREEDY)), 3);
+        assert_eq!(
+            bcard!(JC).calculate_plus_mult(&joker::card::GREEDY_JOKER),
+            0
+        );
+        assert_eq!(bcard!(JS).calculate_plus_mult(&bcard!(GREEDY)), 0);
+        assert_eq!(
+            bcard!(JH).calculate_plus_mult(&joker::card::GREEDY_JOKER),
+            0
+        );
+    }
+    #[test]
+    fn calculate_plus_mult__lusty_joker() {
+        assert_eq!(bcard!(JH).calculate_plus_mult(&joker::card::LUSTY_JOKER), 3);
+        assert_eq!(bcard!(JD).calculate_plus_mult(&bcard!(LUSTY)), 0);
+        assert_eq!(bcard!(JC).calculate_plus_mult(&joker::card::LUSTY_JOKER), 0);
+        assert_eq!(bcard!(JS).calculate_plus_mult(&bcard!(LUSTY)), 0);
+    }
+
+    #[test]
+    fn get_chips() {
+        let ks = KING_SPADES.add_base_chips(11).add_base_chips(15);
+
+        assert_eq!(ks.get_chips(), 36);
+        assert_eq!(DEATH.get_chips(), 10);
+    }
+
+    #[test]
+    fn with_edition__is_orthogonal_to_the_enhancement() {
+        // A Steel card stays Steel when foiled — the two fields do not interfere.
+        let steel = TEN_DIAMONDS.enhance_swap(MPip::STEEL);
+        let steel_foil = steel.with_edition(Edition::Foil);
+        assert_eq!(steel_foil.enhancement, MPip::STEEL, "still Steel");
+        assert_eq!(steel_foil.edition, Edition::Foil, "and now Foil");
+        // A fresh card defaults to no edition.
+        assert_eq!(TEN_DIAMONDS.edition, Edition::None);
+    }
+
+    #[test]
+    fn enhance__tarot__magician() {
+        assert_eq!(
+            TEN_DIAMONDS.enhance_swap(MPip::Lucky(5, 15)).enhancement,
+            MPip::Lucky(5, 15)
+        );
+        assert_eq!(
+            TEN_DIAMONDS.enhance(MAGICIAN).enhancement,
+            MPip::Lucky(5, 15)
+        );
+        assert_eq!(TEN_DIAMONDS.enhance(MAGICIAN).get_chips(), 10);
+    }
+
+    /// The High Priestess creates up to 2 random Planet cards, so is a pass-through with no effect
+    /// to the underlying card.
+    #[test]
+    fn enhance__tarot__high_priestess() {
+        let card = QUEEN_SPADES.enhance(MAGICIAN);
+        let original_enhancement = card.enhancement;
+
+        assert_eq!(
+            card.enhance(HIGH_PRIESTESS).enhancement,
+            original_enhancement
+        );
+    }
+
+    /// The Empress replaces the existing enhancement.
+    #[test]
+    fn enhance__tarot__empress() {
+        let card = JACK_SPADES.enhance(MAGICIAN);
+
+        assert_eq!(card.enhance(EMPRESS).enhancement, MPip::MultPlus(4));
+    }
+
+    #[test]
+    fn enhance__tarot__emperor() {
+        let card = TEN_DIAMONDS.enhance(MAGICIAN);
+        let original_enhancement = card.enhancement;
+
+        assert_eq!(card.enhance(EMPEROR).enhancement, original_enhancement);
+    }
+
+    #[test]
+    fn enhance__tarot__hierophant() {
+        let card = JACK_CLUBS;
+
+        assert_eq!(card.get_chips(), 10);
+        assert_eq!(card.enhance(HIEROPHANT).enhancement, MPip::BONUS);
+        assert_eq!(card.enhance(HIEROPHANT).get_chips(), 40);
+        assert_eq!(card.enhance(HIEROPHANT).add_base_chips(9).get_chips(), 49);
+    }
+
+    #[test]
+    fn enhance__tarot__lovers() {
+        let card = TEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 10);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(LOVERS).get_chips(), 10);
+        assert_eq!(card.enhance(LOVERS).enhancement, MPip::Wild(PipType::Suit));
+    }
+
+    #[test]
+    fn enhance__tarot__chariot() {
+        let card = NINE_CLUBS;
+
+        assert_eq!(card.get_chips(), 9);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(THE_CHARIOT).get_chips(), 9);
+        assert_eq!(card.enhance(THE_CHARIOT).enhancement, MPip::STEEL);
+    }
+
+    #[test]
+    fn enhance__tarot__justice() {
+        let card = EIGHT_CLUBS;
+
+        assert_eq!(card.get_chips(), 8);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(JUSTICE).get_chips(), 8);
+        assert_eq!(card.enhance(JUSTICE).enhancement, MPip::Glass(2, 4));
+    }
+
+    #[test]
+    fn enhance__tarot__hermit() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(HERMIT).get_chips(), 7);
+        assert_eq!(card.enhance(HERMIT).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn enhance__tarot__wheel() {
+        let card = SIX_CLUBS;
+
+        assert_eq!(card.get_chips(), 6);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).get_chips(), 6);
+        assert_eq!(card.enhance(WHEEL_OF_FORTUNE).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn enhance__tarot__strength() {
+        let card = FIVE_CLUBS;
+
+        assert_eq!(card.get_chips(), 5);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(STRENGTH).get_chips(), 6);
+        assert_eq!(card.enhance(STRENGTH).enhancement, MPip::Blank);
+        assert_eq!(card.enhance(STRENGTH), SIX_CLUBS);
+        assert_eq!(SIX_CLUBS.enhance(STRENGTH), SEVEN_CLUBS);
+        assert_eq!(SEVEN_CLUBS.enhance(STRENGTH), EIGHT_CLUBS);
+        assert_eq!(EIGHT_CLUBS.enhance(STRENGTH), NINE_CLUBS);
+        assert_eq!(NINE_CLUBS.enhance(STRENGTH), TEN_CLUBS);
+        assert_eq!(TEN_CLUBS.enhance(STRENGTH), JACK_CLUBS);
+        assert_eq!(JACK_CLUBS.enhance(STRENGTH), QUEEN_CLUBS);
+        assert_eq!(QUEEN_CLUBS.enhance(STRENGTH), KING_CLUBS);
+        assert_eq!(KING_CLUBS.enhance(STRENGTH), ACE_CLUBS);
+        assert_eq!(ACE_CLUBS.enhance(STRENGTH), DEUCE_CLUBS);
+        assert_eq!(DEUCE_CLUBS.enhance(STRENGTH), TREY_CLUBS);
+        assert_eq!(TREY_CLUBS.enhance(STRENGTH), FOUR_CLUBS);
+        assert_eq!(FOUR_CLUBS.enhance(STRENGTH), FIVE_CLUBS);
+    }
+
+    #[test]
+    fn enhance__tarot__hanged() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(HANGED_MAN).get_chips(), 7);
+        assert_eq!(card.enhance(HANGED_MAN).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn enhance__tarot__death() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(DEATH).get_chips(), 7);
+        assert_eq!(card.enhance(DEATH).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn enhance__tarot__temperance() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(TEMPERANCE).get_chips(), 7);
+        assert_eq!(card.enhance(TEMPERANCE).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn enhance__tarot__devil() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(DEVIL).get_chips(), 7);
+        assert_eq!(card.enhance(DEVIL).enhancement, MPip::DEVIL);
+    }
+
+    #[test]
+    fn enhance__tarot__tower() {
+        let card = SEVEN_CLUBS;
+
+        assert_eq!(card.get_chips(), 7);
+        assert_eq!(card.enhancement, MPip::Blank);
+        assert_eq!(card.enhance(TOWER).enhancement, MPip::TOWER);
+
+        // The Tower makes it a Stone card: a flat 50 chips, *not* 50 + its
+        // rank's 7 and not the bare 7 it used to score. The rank value is masked
+        // along with the rank.
+        assert_eq!(card.enhance(TOWER).get_chips(), 50);
+        assert!(card.enhance(TOWER).is_stone());
+    }
+
+    #[test]
+    fn enhance__tarot__tower_masks_the_rank_rather_than_erasing_it() {
+        // Balatro's Stone card overrides at the accessor layer; the base data
+        // survives underneath. Observable through Vampire, which eats the
+        // enhancement — after which the original rank and suit must come back.
+        let stone = SEVEN_CLUBS.enhance(TOWER);
+        assert_eq!(stone.rank, SEVEN_CLUBS.rank, "the rank is still there …");
+        assert_eq!(stone.suit, SEVEN_CLUBS.suit, "… and so is the suit");
+
+        let eaten = BuffoonCard {
+            enhancement: MPip::Blank,
+            ..stone
+        };
+        assert_eq!(
+            eaten.get_chips(),
+            7,
+            "strip the Stone and the Seven returns"
+        );
+        assert!(!eaten.is_stone());
+    }
+
+    #[test]
+    fn enhance__tarot__suits() {
+        assert_eq!(SIX_CLUBS.enhance(STAR).enhancement, MPip::Blank);
+        assert_eq!(SIX_CLUBS.enhance(STAR).suit, FrenchSuit::DIAMONDS);
+        assert_eq!(SIX_CLUBS.enhance(MOON).enhancement, MPip::Blank);
+        assert_eq!(SIX_CLUBS.enhance(MOON).suit, FrenchSuit::CLUBS);
+        assert_eq!(SIX_CLUBS.enhance(SUN).enhancement, MPip::Blank);
+        assert_eq!(SIX_CLUBS.enhance(SUN).suit, FrenchSuit::HEARTS);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).enhancement, MPip::Blank);
+        assert_eq!(SIX_CLUBS.enhance(WORLD).suit, FrenchSuit::SPADES);
+    }
+
+    #[test]
+    fn enhance__tarot__judgement() {
+        assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn from_str() {
+        assert_eq!(BuffoonCard::from_str("__").unwrap(), BuffoonCard::default());
+        assert_eq!(BuffoonCard::from_str("AS").unwrap(), ACE_SPADES);
+        assert_eq!(BuffoonCard::from_str("2S").unwrap(), DEUCE_SPADES);
+        assert_eq!(BuffoonCard::from_str("3S").unwrap(), TREY_SPADES);
+        assert_eq!(BuffoonCard::from_str("4S").unwrap(), FOUR_SPADES);
+        assert_eq!(BuffoonCard::from_str("5S").unwrap(), FIVE_SPADES);
+        assert_eq!(BuffoonCard::from_str("6S").unwrap(), SIX_SPADES);
+        assert_eq!(BuffoonCard::from_str("7S").unwrap(), SEVEN_SPADES);
+        assert_eq!(BuffoonCard::from_str("8S").unwrap(), EIGHT_SPADES);
+        assert_eq!(BuffoonCard::from_str("9S").unwrap(), NINE_SPADES);
+        assert_eq!(BuffoonCard::from_str("TS").unwrap(), TEN_SPADES);
+        assert_eq!(BuffoonCard::from_str("JS").unwrap(), JACK_SPADES);
+        assert_eq!(BuffoonCard::from_str("QS").unwrap(), QUEEN_SPADES);
+        assert_eq!(BuffoonCard::from_str("KS").unwrap(), KING_SPADES);
+        assert_eq!(BuffoonCard::from_str("AD").unwrap(), ACE_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("2D").unwrap(), DEUCE_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("3D").unwrap(), TREY_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("4D").unwrap(), FOUR_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("5D").unwrap(), FIVE_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("6D").unwrap(), SIX_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("7D").unwrap(), SEVEN_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("8D").unwrap(), EIGHT_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("9D").unwrap(), NINE_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("TD").unwrap(), TEN_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("JD").unwrap(), JACK_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("QD").unwrap(), QUEEN_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("KD").unwrap(), KING_DIAMONDS);
+        assert_eq!(BuffoonCard::from_str("AH").unwrap(), ACE_HEARTS);
+        assert_eq!(BuffoonCard::from_str("2H").unwrap(), DEUCE_HEARTS);
+        assert_eq!(BuffoonCard::from_str("3H").unwrap(), TREY_HEARTS);
+        assert_eq!(BuffoonCard::from_str("4H").unwrap(), FOUR_HEARTS);
+        assert_eq!(BuffoonCard::from_str("5H").unwrap(), FIVE_HEARTS);
+        assert_eq!(BuffoonCard::from_str("6H").unwrap(), SIX_HEARTS);
+        assert_eq!(BuffoonCard::from_str("7H").unwrap(), SEVEN_HEARTS);
+        assert_eq!(BuffoonCard::from_str("8H").unwrap(), EIGHT_HEARTS);
+        assert_eq!(BuffoonCard::from_str("9H").unwrap(), NINE_HEARTS);
+        assert_eq!(BuffoonCard::from_str("TH").unwrap(), TEN_HEARTS);
+        assert_eq!(BuffoonCard::from_str("JH").unwrap(), JACK_HEARTS);
+        assert_eq!(BuffoonCard::from_str("QH").unwrap(), QUEEN_HEARTS);
+        assert_eq!(BuffoonCard::from_str("KH").unwrap(), KING_HEARTS);
+        assert_eq!(BuffoonCard::from_str("AC").unwrap(), ACE_CLUBS);
+        assert_eq!(BuffoonCard::from_str("2C").unwrap(), DEUCE_CLUBS);
+        assert_eq!(BuffoonCard::from_str("3C").unwrap(), TREY_CLUBS);
+        assert_eq!(BuffoonCard::from_str("4C").unwrap(), FOUR_CLUBS);
+        assert_eq!(BuffoonCard::from_str("5C").unwrap(), FIVE_CLUBS);
+        assert_eq!(BuffoonCard::from_str("6C").unwrap(), SIX_CLUBS);
+        assert_eq!(BuffoonCard::from_str("7C").unwrap(), SEVEN_CLUBS);
+        assert_eq!(BuffoonCard::from_str("8C").unwrap(), EIGHT_CLUBS);
+        assert_eq!(BuffoonCard::from_str("9C").unwrap(), NINE_CLUBS);
+        assert_eq!(BuffoonCard::from_str("TC").unwrap(), TEN_CLUBS);
+        assert_eq!(BuffoonCard::from_str("JC").unwrap(), JACK_CLUBS);
+        assert_eq!(BuffoonCard::from_str("QC").unwrap(), QUEEN_CLUBS);
+        assert_eq!(BuffoonCard::from_str("KC").unwrap(), KING_CLUBS);
+
+        assert_eq!(BuffoonCard::from_str("0M").unwrap(), FOOL);
+        assert_eq!(BuffoonCard::from_str("1M").unwrap(), MAGICIAN);
+        assert_eq!(BuffoonCard::from_str("2M").unwrap(), HIGH_PRIESTESS);
+        assert_eq!(BuffoonCard::from_str("3M").unwrap(), EMPRESS);
+        assert_eq!(BuffoonCard::from_str("4M").unwrap(), EMPEROR);
+        assert_eq!(BuffoonCard::from_str("5M").unwrap(), HIEROPHANT);
+        assert_eq!(BuffoonCard::from_str("6M").unwrap(), LOVERS);
+        assert_eq!(BuffoonCard::from_str("7M").unwrap(), THE_CHARIOT);
+        assert_eq!(BuffoonCard::from_str("8M").unwrap(), STRENGTH);
+        assert_eq!(BuffoonCard::from_str("9M").unwrap(), HERMIT);
+        assert_eq!(BuffoonCard::from_str("AM").unwrap(), WHEEL_OF_FORTUNE);
+        assert_eq!(BuffoonCard::from_str("BM").unwrap(), JUSTICE);
+        assert_eq!(BuffoonCard::from_str("CM").unwrap(), HANGED_MAN);
+        assert_eq!(BuffoonCard::from_str("DM").unwrap(), DEATH);
+        assert_eq!(BuffoonCard::from_str("EM").unwrap(), TEMPERANCE);
+        assert_eq!(BuffoonCard::from_str("FM").unwrap(), DEVIL);
+        assert_eq!(BuffoonCard::from_str("GM").unwrap(), TOWER);
+        assert_eq!(BuffoonCard::from_str("HM").unwrap(), STAR);
+        assert_eq!(BuffoonCard::from_str("IM").unwrap(), MOON);
+        assert_eq!(BuffoonCard::from_str("JM").unwrap(), SUN);
+        assert_eq!(BuffoonCard::from_str("KM").unwrap(), JUDGEMENT);
+        assert_eq!(BuffoonCard::from_str("LM").unwrap(), WORLD);
+    }
+}

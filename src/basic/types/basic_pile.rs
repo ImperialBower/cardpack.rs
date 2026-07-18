@@ -144,6 +144,11 @@ impl BasicPile {
     }
 
     #[must_use]
+    pub fn first(&self) -> Option<&BasicCard> {
+        self.0.first()
+    }
+
+    #[must_use]
     pub fn get(&self, position: usize) -> Option<&BasicCard> {
         self.0.get(position)
     }
@@ -516,12 +521,26 @@ mod basic__types__pile_tests {
         assert!(!basic!("AS AD KS").of_same_or_greater_rank(FrenchRank::ACE));
     }
 
+    /// **DIARY** This is an example of chaining tests in order to have the coverage you want
+    /// without having to write test for both functions. I can see arguments for and against it.
+    /// For me it's a question of utility. They make it easier for me so I do it.
     #[test]
     fn map_by_rank() {
         assert_eq!(
             "9♠ 9♦ 9♣, Q♠ Q♦, T♠, J♠",
             basic!("QD 9C QS 9S 9D TS JS")
                 .combos_by_rank()
+                .sort_internal()
+                .to_string()
+        );
+    }
+
+    #[test]
+    fn map_by_suit() {
+        assert_eq!(
+            "Q♠ J♠ T♠ 9♠, Q♦ 9♦, 9♣",
+            basic!("QD 9C QS 9S 9D TS JS")
+                .combos_by_suit()
                 .sort_internal()
                 .to_string()
         );
@@ -815,7 +834,7 @@ mod basic__types__pile_tests {
     #[test]
     fn shuffled_with_seed__same_cards() {
         let pile = Pile::<French>::basic_pile();
-        let shuffled = pile.shuffled_with_seed(0xC0FFEE);
+        let shuffled = pile.shuffled_with_seed(0x00C0_FFEE);
         assert_eq!(pile.len(), shuffled.len());
         let mut o_vec = pile.v().clone();
         let mut s_vec = shuffled.v().clone();

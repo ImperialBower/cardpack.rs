@@ -23,6 +23,7 @@
 use cardpack::prelude::*;
 
 #[cfg_attr(target_arch = "wasm32", unsafe(no_mangle))]
+#[must_use]
 pub extern "C" fn deal_hand(seed: u64, n: usize) -> usize {
     // The classic "shuffle and deal" flow, all in pure deterministic land:
     let mut deck = Standard52::deck().shuffled_with_seed(seed);

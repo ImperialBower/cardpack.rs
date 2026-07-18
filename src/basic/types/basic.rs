@@ -298,7 +298,7 @@ mod basic__types__basic_tests {
     fn debug() {
         let cell = Pile::<Standard52>::basic_pile_cell();
 
-        let debug_str = format!("{:?}", cell);
+        let debug_str = format!("{cell:?}");
         assert!(debug_str.contains("BasicPileCell"));
     }
 

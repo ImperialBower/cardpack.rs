@@ -1225,16 +1225,16 @@ mod basic__types__deck_tests {
         assert_eq!(
             map[&FrenchSuit::CLUBS].to_string(),
             "A♣ K♣ Q♣ J♣ T♣ 9♣ 8♣ 7♣ 6♣ 5♣ 4♣ 3♣ 2♣"
-        )
+        );
     }
 
     #[test]
     fn pile_on() {
         let pile1 = Pile::<French>::from_str("2♠ 8♠ 4♠").unwrap();
         let pile2 = Pile::<French>::from_str("5♠ 6♠ 7♠").unwrap();
-        let piles = vec![pile1, pile2];
+        let parts = vec![pile1, pile2];
 
-        let pile = Pile::<French>::pile_on(&piles);
+        let pile = Pile::<French>::pile_on(&parts);
 
         assert_eq!(pile.to_string(), "2♠ 8♠ 4♠ 5♠ 6♠ 7♠");
     }
@@ -1405,7 +1405,7 @@ mod basic__types__deck_tests {
         impl Tiny {
             pub const DECK_SIZE: usize = 4;
 
-            pub const DECK: [BasicCard; Tiny::DECK_SIZE] = [
+            pub const DECK: [BasicCard; Self::DECK_SIZE] = [
                 FrenchBasicCard::ACE_SPADES,
                 FrenchBasicCard::KING_SPADES,
                 FrenchBasicCard::ACE_HEARTS,
@@ -1415,7 +1415,7 @@ mod basic__types__deck_tests {
 
         impl DeckedBase for Tiny {
             fn base_vec() -> Vec<BasicCard> {
-                Tiny::DECK.to_vec()
+                Self::DECK.to_vec()
             }
 
             #[cfg(feature = "colored-display")]
@@ -1519,8 +1519,8 @@ mod basic__types__deck_tests {
     fn piles_to_string__not_empty() {
         let pile1 = cards!("AS KS");
         let pile2 = cards!("AH KH");
-        let piles = vec![pile1, pile2];
-        let result = Pile::<Standard52>::piles_to_string(&piles);
+        let parts = vec![pile1, pile2];
+        let result = Pile::<Standard52>::piles_to_string(&parts);
         assert!(!result.is_empty());
         assert_ne!(result, "xyzzy");
     }
@@ -1631,7 +1631,7 @@ mod basic__types__deck_tests {
     #[test]
     fn shuffled_with_seed__same_cards() {
         let deck = Pile::<Standard52>::deck();
-        let shuffled = deck.shuffled_with_seed(0xC0FFEE);
+        let shuffled = deck.shuffled_with_seed(0x00C0_FFEE);
         assert_eq!(deck.len(), shuffled.len());
         let mut o = deck.cards().clone();
         let mut s = shuffled.cards().clone();

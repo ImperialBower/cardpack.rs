@@ -17,7 +17,7 @@ fn main() {
 
     println!();
     println!("How does it look as a traditional compass?");
-    let s = BridgeCompass::new(bridge_board);
+    let s = BridgeCompass::render(&bridge_board);
     println!("{s}");
 
     println!();
@@ -30,7 +30,7 @@ fn main() {
     println!();
     println!("As a bridge compass:");
     println!();
-    let s = BridgeCompass::new(bridge_board);
+    let s = BridgeCompass::render(&bridge_board);
     println!("{s}");
 }
 
@@ -56,7 +56,7 @@ impl BridgeDirection {
         }
     }
 
-    fn next(&self) -> BridgeDirection {
+    fn next(self) -> BridgeDirection {
         match self {
             BridgeDirection::S => BridgeDirection::W,
             BridgeDirection::W => BridgeDirection::N,
@@ -86,7 +86,7 @@ impl Display for BridgeDirection {
             BridgeDirection::Unknown => "Unknown",
         };
 
-        write!(f, "{}", dir)
+        write!(f, "{dir}")
     }
 }
 
@@ -106,6 +106,13 @@ pub struct BridgeBoard {
 }
 
 impl BridgeBoard {
+    /// Deals a random, valid bridge board.
+    ///
+    /// # Panics
+    ///
+    /// Panics if a freshly shuffled 52-card deck cannot be split into four
+    /// 13-card hands — which cannot happen for a standard deck.
+    #[must_use]
     pub fn deal() -> BridgeBoard {
         let mut cards = Pile::<Standard52>::deck().shuffled();
         let pack = cards.clone();
@@ -186,37 +193,44 @@ impl BridgeBoard {
     pub fn from_pbn_deal(deal: &str) -> Self {
         let (mut direction, pbn) = BridgeBoard::split_on_direction(deal);
 
-        let mut board = BridgeBoard::default();
-        board.dealer = direction;
+        let mut board = BridgeBoard {
+            dealer: direction,
+            ..BridgeBoard::default()
+        };
 
         for s in pbn.split_whitespace() {
-            board.fold_in(&direction, board.to_pile(s));
+            board.fold_in(direction, board.to_pile(s));
             direction = direction.next();
         }
 
         board
     }
 
+    #[must_use]
     pub fn hand_to_pbn_deal_segment(hand: &Pile<Standard52>) -> String {
-        let spades = BridgeBoard::get_suit_string(FrenchSuit::SPADES, &hand);
-        let hearts = BridgeBoard::get_suit_string(FrenchSuit::HEARTS, &hand);
-        let diamonds = BridgeBoard::get_suit_string(FrenchSuit::DIAMONDS, &hand);
-        let clubs = BridgeBoard::get_suit_string(FrenchSuit::CLUBS, &hand);
+        let spades = BridgeBoard::get_suit_string(FrenchSuit::SPADES, hand);
+        let hearts = BridgeBoard::get_suit_string(FrenchSuit::HEARTS, hand);
+        let diamonds = BridgeBoard::get_suit_string(FrenchSuit::DIAMONDS, hand);
+        let clubs = BridgeBoard::get_suit_string(FrenchSuit::CLUBS, hand);
 
         format!("{spades}.{hearts}.{diamonds}.{clubs}")
     }
 
     fn get_suit_string(suit: Pip, hand: &Pile<Standard52>) -> String {
-        hand.ranks_index_by_suit(suit, "")
-            .unwrap_or_else(|| String::new())
+        hand.ranks_index_by_suit(suit, "").unwrap_or_default()
     }
 
     /// NOTE: index string is a really horrible name for something used in code. Index has too
     /// many implications.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CardError`] if `index` is not a valid Standard52 card index string.
     pub fn pile_by_index(index: &str) -> Result<Pile<Standard52>, CardError> {
         Pile::<Standard52>::from_str(index)
     }
 
+    #[must_use]
     pub fn as_pile(&self) -> Pile<Standard52> {
         let mut pile = Pile::<Standard52>::default();
         pile.prepend(&self.south);
@@ -227,7 +241,7 @@ impl BridgeBoard {
         pile
     }
 
-    fn fold_in(&mut self, direction: &BridgeDirection, hand: Pile<Standard52>) {
+    fn fold_in(&mut self, direction: BridgeDirection, hand: Pile<Standard52>) {
         match direction {
             BridgeDirection::S => self.south = hand.sorted(),
             BridgeDirection::W => self.west = hand.sorted(),
@@ -237,6 +251,7 @@ impl BridgeBoard {
         }
     }
 
+    #[must_use]
     pub fn is_valid(&self) -> bool {
         self.as_pile().unique_cards().len() == 52
     }
@@ -279,7 +294,7 @@ impl BridgeBoard {
         ));
 
         v.iter()
-            .map(|s| self.pack.card_by_index(s).unwrap().clone())
+            .map(|s| self.pack.card_by_index(s).unwrap())
             .collect()
     }
 }
@@ -315,49 +330,35 @@ impl Display for BridgeBoard {
 struct BridgeCompass;
 
 impl BridgeCompass {
-    pub fn new(board: BridgeBoard) -> String {
-        let north = BridgeCompass::cell_string(board.north);
-        let west = BridgeCompass::cell_string(board.west);
-        let east = BridgeCompass::cell_string(board.east);
-        let south = BridgeCompass::cell_string(board.south);
+    #[must_use]
+    pub fn render(board: &BridgeBoard) -> String {
+        let north = BridgeCompass::cell_string(&board.north);
+        let west = BridgeCompass::cell_string(&board.west);
+        let east = BridgeCompass::cell_string(&board.east);
+        let south = BridgeCompass::cell_string(&board.south);
 
-        format!(
-            "{}",
-            BridgeCompass::compass(
-                BridgeCompass::compass_cell("NORTH", north.as_str()),
-                BridgeCompass::compass_cell("WEST", west.as_str()),
-                BridgeCompass::compass_cell("EAST", east.as_str()),
-                BridgeCompass::compass_cell("SOUTH", south.as_str()),
-            )
+        BridgeCompass::compass(
+            BridgeCompass::compass_cell("NORTH", north.as_str()),
+            BridgeCompass::compass_cell("WEST", west.as_str()),
+            BridgeCompass::compass_cell("EAST", east.as_str()),
+            BridgeCompass::compass_cell("SOUTH", south.as_str()),
         )
     }
 
-    fn cell_string(cards: Pile<Standard52>) -> String {
+    fn cell_string(cards: &Pile<Standard52>) -> String {
         let mut v = Vec::<String>::new();
 
-        match cards.ranks_index_by_suit(FrenchSuit::SPADES, " ") {
-            Some(index) => {
-                v.push(format!("♠ {index}"));
-            }
-            None => {}
+        if let Some(index) = cards.ranks_index_by_suit(FrenchSuit::SPADES, " ") {
+            v.push(format!("♠ {index}"));
         }
-        match cards.ranks_index_by_suit(FrenchSuit::HEARTS, " ") {
-            Some(index) => {
-                v.push(format!("♥ {index}"));
-            }
-            None => {}
+        if let Some(index) = cards.ranks_index_by_suit(FrenchSuit::HEARTS, " ") {
+            v.push(format!("♥ {index}"));
         }
-        match cards.ranks_index_by_suit(FrenchSuit::DIAMONDS, " ") {
-            Some(index) => {
-                v.push(format!("♦ {index}"));
-            }
-            None => {}
+        if let Some(index) = cards.ranks_index_by_suit(FrenchSuit::DIAMONDS, " ") {
+            v.push(format!("♦ {index}"));
         }
-        match cards.ranks_index_by_suit(FrenchSuit::CLUBS, " ") {
-            Some(index) => {
-                v.push(format!("♣ {index}"));
-            }
-            None => {}
+        if let Some(index) = cards.ranks_index_by_suit(FrenchSuit::CLUBS, " ") {
+            v.push(format!("♣ {index}"));
         }
 
         v.join("\n")
@@ -590,23 +591,23 @@ mod bridge_tests {
     fn bridge_direction__next() {
         assert_eq!(
             BridgeDirection::W,
-            BridgeDirection::next(&BridgeDirection::S)
+            BridgeDirection::next(BridgeDirection::S)
         );
         assert_eq!(
             BridgeDirection::N,
-            BridgeDirection::next(&BridgeDirection::W)
+            BridgeDirection::next(BridgeDirection::W)
         );
         assert_eq!(
             BridgeDirection::E,
-            BridgeDirection::next(&BridgeDirection::N)
+            BridgeDirection::next(BridgeDirection::N)
         );
         assert_eq!(
             BridgeDirection::S,
-            BridgeDirection::next(&BridgeDirection::E)
+            BridgeDirection::next(BridgeDirection::E)
         );
         assert_eq!(
             BridgeDirection::Unknown,
-            BridgeDirection::next(&BridgeDirection::Unknown)
+            BridgeDirection::next(BridgeDirection::Unknown)
         );
     }
 

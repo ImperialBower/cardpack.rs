@@ -186,7 +186,7 @@ mod basic__decks__canasta_tests {
 
     /// `suits_index` deduplicates and sorts by `Pip` weight, so the result is deterministic
     /// regardless of card order. Canasta has 11 distinct suit `Pip` objects (7 canasta-specific
-    /// + 4 French), some sharing an index character (e.g. two different 'H' pips with different
+    /// and 4 French), some sharing an index character (e.g. two different 'H' pips with different
     /// weights), which is why the output contains apparent duplicates.
     #[test]
     pub fn suits_index() {
