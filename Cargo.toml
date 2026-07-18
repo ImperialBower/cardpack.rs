@@ -111,6 +111,10 @@ required-features = []
 name = "buffoon"
 required-features = ["funky"]
 
+[[example]]
+name = "funky_tour"
+required-features = ["funky"]
+
 [[bench]]
 name = "draw"
 harness = false
