@@ -94,6 +94,7 @@ consumers can trim what they don't need:
 | `colored-display` | yes     | `colored`          | `Color`, `Colorize`, `Card::color*`, `Pile::to_color_*`       |
 | `yaml`            | yes     | `serde_norway`     | `BasicCard::cards_from_yaml_*`, the `Razz` deck (YAML-loaded) |
 | `serde`           | yes     | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
+| `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
 
 Default-features builds behave exactly like prior versions. To trim:
 
@@ -102,6 +103,42 @@ cardpack = { version = "0.6", default-features = false, features = ["serde"] }
 ```
 
 `yaml` implies `serde` (it deserializes into the serde-derived structs).
+
+## Funky — Balatro-style cards
+
+The `funky` feature is a result of having my mind blown🤯 playing the 
+amazing solitare game [Balatro](https://www.playbalatro.com/). It honestly
+changed the way I look at playing cards. Suddenly, suits and ranks are 
+just two of an infinite possible number of pips that can be attached to a
+"playing card". I started realizing that there is little difference between
+a French Deck of cards and creating heros in the
+[Evercraft Kata](https://github.com/guyroyse/evercraft-kata).
+
+The goal of the feature is to see how hard I need to push the architecture of
+this library to support decks such as those in Balatro. I guess the big idea
+was the `MPip`, a sort of functional version of a pip on a card. 
+
+TBH, this experiment demonstrates the rational behind designing games in flexible
+languages such as [Lua](https://www.lua.org/), over tyrannical ones such as my
+beloved Rust.
+
+There are a couple of use cases that are in the back of my mind for something like this.
+One is a Balatro score solver, as a way to teach the math mechanics behind the game. The
+other is a library that would be able to create modded Balatro decks from simple yaml
+configuration files, similar to what the library already supports in simpler decks.
+
+It is still very much a work in progress, which is documented here: 
+[`docs/EPIC-01_Funky.md`](docs/EPIC-01_Funky.md).
+
+There are two examples to see it in action:
+
+```shell
+# The four-phase scoring pipeline, phase by phase:
+cargo run --example buffoon --features funky
+
+# A seeded four-act tour — round loop, editions, shop & vouchers, spectrals:
+cargo run --example funky_tour --features funky
+```
 
 ## WebAssembly
 
@@ -209,11 +246,17 @@ Other examples are:
 
 - `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
 - `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
+- `cargo run --example buffoon --features funky` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
+- `cargo run --example funky_tour --features funky` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
 
 ## References
 
 * [Card games in Germany](https://www.pagat.com/national/germany.html)
 * [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
+* [Balatro](https://www.playbalatro.com/)
+  * [balatrowiki.org](https://balatrowiki.org/)
+  * [balatrogame.fandom.com](https://balatrogame.fandom.com/)
+  * [Balatro Modding Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3400691352)
 
 ### Other Deck of Cards Libraries
 
