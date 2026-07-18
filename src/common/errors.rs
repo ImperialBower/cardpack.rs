@@ -12,16 +12,10 @@ pub enum CardError {
     #[error("Invalid Card Count: `{0}`")]
     InvalidCardCount(usize),
 
-    #[error("Invalid File Path: `{0}`")]
-    InvalidFilePath(String),
-
     #[error(
         "Invalid FluentName: `{0}`. Must be alphanumeric with hyphens, en-dashes, or em-dashes."
     )]
     InvalidFluentName(String),
-
-    #[error("Invalid Fluent Rank: `{0}`. Must be single char.")]
-    InvalidFluentRank(String),
 
     #[error("Invalid Index: `{0}`")]
     InvalidIndex(String),

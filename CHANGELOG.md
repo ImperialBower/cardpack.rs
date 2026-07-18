@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   switch to the pure `cards_from_yaml_str` with a compile-time `include_str!`
   (as the `Razz` deck now does). `cards_from_yaml_str` is unchanged and
   remains under `yaml`. (docs/audit-2026-07-18-domain-kernel.md, Finding 1b)
+- **Removed two unused `CardError` variants: `InvalidFilePath` and
+  `InvalidFluentRank`.** Both were declared but never constructed anywhere
+  (masked by the crate-wide `#![allow(dead_code)]`), and both leaked adapter
+  vocabulary — filesystem and i18n — into the pure kernel's public error type.
+  No code produced them, so no error handling changes; only an exhaustive
+  `match` on `CardError` naming those arms is affected. `InvalidFluentName`
+  (which *is* produced by `FluentName` parsing) is unchanged.
+  (docs/audit-2026-07-18-domain-kernel.md, Invariant 2 residue / step 5)
 
 ### Added
 
