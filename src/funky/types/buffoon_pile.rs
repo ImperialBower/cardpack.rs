@@ -293,11 +293,8 @@ impl BuffoonPile {
     pub fn draw(&mut self, n: usize) -> Option<Self> {
         let mut pile = Self::default();
         for _ in 0..n {
-            if let Some(card) = self.pop() {
-                pile.push(card);
-            } else {
-                return None;
-            }
+            let card = self.pop()?;
+            pile.push(card);
         }
         Some(pile)
     }
