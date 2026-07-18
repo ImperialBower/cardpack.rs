@@ -132,7 +132,10 @@ fn act_4_spectrals() {
     println!("jokers before Hex: {}", board.jokers);
     let created = board.create_consumable(HEX);
     let used = board.use_consumable_with_rng(0, &[], &mut rng).is_some();
-    println!("Hex (created {created}, used {used}): jokers after: {}", board.jokers);
+    println!(
+        "Hex (created {created}, used {used}): jokers after: {}",
+        board.jokers
+    );
     for joker in &board.jokers {
         println!("  survivor edition: {}", joker.edition);
     }
