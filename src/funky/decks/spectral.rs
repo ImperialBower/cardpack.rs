@@ -87,19 +87,43 @@ pub mod card {
     spectral!(INCANTATION, 16, 'I', '📜', MPip::Blank);
     spectral!(TALISMAN, 15, 'T', '🧿', MPip::Blank);
     spectral!(AURA, 14, 'A', '✨', MPip::Blank);
-    spectral!(WRAITH, 13, 'W', '👻', MPip::Blank);
+    spectral!(
+        WRAITH,
+        13,
+        'W',
+        '👻',
+        MPip::SpectralCreateRareJokerZeroMoney
+    );
     spectral!(SIGIL, 12, 'S', '🔯', MPip::Blank);
     spectral!(OUIJA, 11, 'O', '🪧', MPip::Blank);
-    spectral!(ECTOPLASM, 10, 'E', '🫧', MPip::Blank);
+    spectral!(
+        ECTOPLASM,
+        10,
+        'E',
+        '🫧',
+        MPip::SpectralNegativeRandomJokerMinusHandSize
+    );
     spectral!(IMMOLATE, 9, 'M', '🔥', MPip::Blank);
-    spectral!(ANKH, 8, 'K', '☥', MPip::Blank);
+    spectral!(
+        ANKH,
+        8,
+        'K',
+        '☥',
+        MPip::SpectralCopyRandomJokerDestroyOthers
+    );
     spectral!(DEJA_VU, 7, 'D', '🔁', MPip::Blank);
-    spectral!(HEX, 6, 'H', '⬡', MPip::Blank);
+    spectral!(
+        HEX,
+        6,
+        'H',
+        '⬡',
+        MPip::SpectralPolychromeRandomJokerDestroyOthers
+    );
     spectral!(TRANCE, 5, 'R', '🌀', MPip::Blank);
     spectral!(MEDIUM, 4, 'U', '🔮', MPip::Blank);
     spectral!(CRYPTID, 3, 'C', '🦎', MPip::Blank);
-    spectral!(THE_SOUL, 2, 'L', '🌟', MPip::Blank);
-    spectral!(BLACK_HOLE, 1, 'B', '🕳', MPip::Blank);
+    spectral!(THE_SOUL, 2, 'L', '🌟', MPip::SpectralCreateLegendaryJoker);
+    spectral!(BLACK_HOLE, 1, 'B', '🕳', MPip::SpectralLevelAllHands);
 }
 
 #[cfg(test)]

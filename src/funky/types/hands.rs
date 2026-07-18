@@ -120,6 +120,41 @@ impl PokerHands {
             poker_hand.times_played += 1;
         }
     }
+
+    /// The per-level chips/mult each hand gains — Balatro's level-up table.
+    ///
+    /// Kept here rather than read off the planet cards because the planet data is
+    /// not a clean per-hand map (two planets both target `FlushFive`, and
+    /// `FlushHouse` has none), so this is the one source of truth a whole-table
+    /// level-up can trust. Reconciling the planet consts against it is EPIC-01
+    /// Story 3 debt, out of scope here.
+    const LEVEL_UP: [(HandType, usize, usize); 12] = [
+        (HandType::HighCard, 10, 1),
+        (HandType::Pair, 15, 1),
+        (HandType::TwoPair, 20, 1),
+        (HandType::ThreeOfAKind, 20, 2),
+        (HandType::Straight, 30, 3),
+        (HandType::Flush, 15, 2),
+        (HandType::FullHouse, 25, 2),
+        (HandType::FourOfAKind, 30, 3),
+        (HandType::StraightFlush, 40, 4),
+        (HandType::FiveOfAKind, 35, 3),
+        (HandType::FlushHouse, 40, 4),
+        (HandType::FlushFive, 50, 3),
+    ];
+
+    /// Level **every** poker hand up by one — Black Hole's effect. Each hand
+    /// gains its canonical per-level chips/mult and one level, exactly as its
+    /// planet card would, but for all twelve at once.
+    pub fn increment_all(&mut self) {
+        for (hand_type, chips, mult) in Self::LEVEL_UP {
+            if let Some(poker_hand) = self.get_mut(&hand_type) {
+                poker_hand.chips += chips;
+                poker_hand.mult += mult;
+                poker_hand.level += 1;
+            }
+        }
+    }
 }
 
 impl Default for PokerHands {
@@ -150,6 +185,33 @@ mod funky__types__hands_tests {
         hands.increment(planet::card::PLUTO);
 
         assert_eq!(hands.get(&HandType::HighCard).unwrap(), &expected);
+    }
+
+    #[test]
+    fn increment_all__levels_every_hand_by_one() {
+        let mut hands = PokerHands::default();
+        hands.increment_all();
+
+        // HighCard: level 1→2, chips 5→15 (+10), mult 1→2 (+1).
+        let high = hands.get(&HandType::HighCard).unwrap();
+        assert_eq!((high.level, high.chips, high.mult), (2, 15, 2));
+
+        // Every hand type gained exactly one level.
+        for hand_type in [
+            HandType::Pair,
+            HandType::TwoPair,
+            HandType::ThreeOfAKind,
+            HandType::Straight,
+            HandType::Flush,
+            HandType::FullHouse,
+            HandType::FourOfAKind,
+            HandType::StraightFlush,
+            HandType::FiveOfAKind,
+            HandType::FlushHouse,
+            HandType::FlushFive,
+        ] {
+            assert_eq!(hands.get(&hand_type).unwrap().level, 2, "{hand_type:?}");
+        }
     }
 
     #[test]

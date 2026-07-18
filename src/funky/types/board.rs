@@ -213,6 +213,11 @@ pub struct BuffoonBoard {
     /// existed. Read live by the draw recompute and the shop's cost/weight
     /// readers (EPIC-01c Phases 2–5).
     pub vouchers: Vec<Voucher>,
+    /// Permanent hand-size reduction accrued from **Ectoplasm** (−1 each use).
+    ///
+    /// A persistent run modifier the draw recompute subtracts, the vouchers
+    /// shape — 0 by default, so a run that never uses Ectoplasm is unchanged.
+    pub spectral_hand_size_penalty: usize,
 }
 
 /// An empty board with Balatro's base slot counts.
@@ -266,6 +271,7 @@ impl BuffoonBoard {
             joker_state: Vec::new(),
             shop: None,
             vouchers: Vec::new(),
+            spectral_hand_size_penalty: 0,
         }
     }
 
@@ -1152,6 +1158,29 @@ impl BuffoonBoard {
     ///
     /// [`PokerHands::increment`]: crate::funky::types::hands::PokerHands::increment
     pub fn use_consumable(&mut self, index: usize, targets: &[usize]) -> Option<BuffoonCard> {
+        self.use_consumable_inner::<StdRng>(index, targets, None)
+    }
+
+    /// [`use_consumable`](Self::use_consumable)'s seeded twin — the entry point a
+    /// **Spectral** effect that rolls (a random joker / edition) needs, mirroring
+    /// the `score`/`score_with_rng` split. A rolling spectral used through the
+    /// pure `use_consumable` is inert (no RNG), the way a Lucky card is in the
+    /// pure `score`; a deterministic one (Black Hole) applies on either path.
+    pub fn use_consumable_with_rng<R: Rng + ?Sized>(
+        &mut self,
+        index: usize,
+        targets: &[usize],
+        rng: &mut R,
+    ) -> Option<BuffoonCard> {
+        self.use_consumable_inner(index, targets, Some(rng))
+    }
+
+    fn use_consumable_inner<R: Rng + ?Sized>(
+        &mut self,
+        index: usize,
+        targets: &[usize],
+        rng: Option<&mut R>,
+    ) -> Option<BuffoonCard> {
         if index >= self.consumables.len() {
             return None;
         }
@@ -1168,11 +1197,96 @@ impl BuffoonBoard {
                 }
                 self.tarots_used += 1;
             }
+            BCardType::Spectral => self.apply_spectral(card.enhancement, rng),
             _ => {}
         }
 
         self.apply_growth(&GrowthEvent::ConsumableUsed(card));
         Some(card)
+    }
+
+    /// Apply a spectral card's effect. Deterministic effects (Black Hole) apply
+    /// on either path; the rolling ones are inert without `rng`, the way a Lucky
+    /// card is in the pure `score`.
+    fn apply_spectral<R: Rng + ?Sized>(&mut self, effect: MPip, rng: Option<&mut R>) {
+        if effect == MPip::SpectralLevelAllHands {
+            self.poker_hands.increment_all();
+            return;
+        }
+        let Some(rng) = rng else {
+            return;
+        };
+        match effect {
+            // The Soul: a random Legendary joker.
+            MPip::SpectralCreateLegendaryJoker => {
+                self.create_random_joker(BCardType::LegendaryJoker, rng);
+            }
+            // Wraith: a random Rare joker, and every dollar spent.
+            MPip::SpectralCreateRareJokerZeroMoney => {
+                self.create_random_joker(BCardType::RareJoker, rng);
+                self.money = 0;
+            }
+            // Ectoplasm: Negative onto a random joker (if any), always −1 hand
+            // size. The recompute is called so the smaller hand takes effect now.
+            MPip::SpectralNegativeRandomJokerMinusHandSize => {
+                if !self.jokers.is_empty() {
+                    let index = rng.random_range(0..self.jokers.len());
+                    self.set_joker_edition(index, Edition::Negative);
+                }
+                self.spectral_hand_size_penalty += 1;
+                self.recompute_draws();
+            }
+            // Hex: Polychrome onto a random joker, then destroy the others.
+            MPip::SpectralPolychromeRandomJokerDestroyOthers if !self.jokers.is_empty() => {
+                let index = rng.random_range(0..self.jokers.len());
+                self.set_joker_edition(index, Edition::Polychrome);
+                self.destroy_other_jokers(index);
+            }
+            // Ankh: copy a random joker (Negative stripped from the copy), then
+            // destroy the others — the original and its copy remain.
+            MPip::SpectralCopyRandomJokerDestroyOthers if !self.jokers.is_empty() => {
+                let index = rng.random_range(0..self.jokers.len());
+                let mut copy = self.jokers.get(index).copied().unwrap_or_default();
+                if copy.edition.is_negative() {
+                    copy = copy.with_edition(Edition::None);
+                }
+                self.destroy_other_jokers(index);
+                self.push_joker(copy);
+            }
+            _ => {}
+        }
+    }
+
+    /// Swap the joker at `index` for the same joker wearing `edition`, keeping
+    /// its `joker_state` counter (only `jokers` is touched, not `joker_state`).
+    fn set_joker_edition(&mut self, index: usize, edition: Edition) {
+        if let Some(joker) = self.jokers.get(index).copied() {
+            self.jokers.remove(index);
+            self.jokers.insert(index, joker.with_edition(edition));
+        }
+    }
+
+    /// Destroy every joker except the one at `keep` — Hex and Ankh's cleanup.
+    /// Removed high-to-low so `keep` stays valid until it is the last one.
+    fn destroy_other_jokers(&mut self, keep: usize) {
+        for index in (0..self.jokers.len()).rev() {
+            if index != keep {
+                self.remove_joker(index);
+            }
+        }
+    }
+
+    /// Create a random joker of `rarity` from its pool, if the pool exists and
+    /// there is room — the shared body of the spectral joker creators (The Soul,
+    /// Wraith), the same pattern Riff-Raff uses at blind select.
+    fn create_random_joker<R: Rng + ?Sized>(&mut self, rarity: BCardType, rng: &mut R) {
+        let Some(pool) = Self::joker_pool(rarity) else {
+            return;
+        };
+        if !pool.is_empty() && self.has_joker_room() {
+            let pick = pool[rng.random_range(0..pool.len())];
+            self.push_joker(pick);
+        }
     }
 
     /// Where `card` sits in the roster, or `None` if the run does not own it.
@@ -1608,6 +1722,11 @@ impl BuffoonBoard {
                 _ => {}
             }
         }
+        // Ectoplasm's permanent −1-per-use hand-size penalty (EPIC-01e), read
+        // live like the vouchers and floored at 0.
+        draws.hand_size = draws
+            .hand_size
+            .saturating_sub(self.spectral_hand_size_penalty);
         if lose_discards {
             draws.discards = 0;
         }
@@ -2836,8 +2955,10 @@ mod funky__types__board__buffoon_board_tests {
     use crate::funky::decks::joker::card;
     use crate::funky::decks::planet;
     use crate::funky::decks::planet::card as planet_card;
+    use crate::funky::decks::spectral::card as spectral_card;
     use crate::funky::decks::tarot::card as tarot_card;
     use crate::funky::types::effect::{Effect, ScoreOp};
+    use crate::funky::types::hands::HandType;
     use crate::funky::types::mpip::MPip;
     use crate::preludes::funky::{Blind, BossBlind};
     use crate::preludes::funky::{BuffoonCard, Deck};
@@ -6556,6 +6677,127 @@ mod funky__types__board__buffoon_board_tests {
         board.push_joker(card::SIXTH_SENSE);
         board.on_scored_with_rng(&mut StdRng::seed_from_u64(1));
         assert!(board.consumables.is_empty(), "a single card only");
+    }
+
+    // ---- Run-level spectrals, EPIC-01e Phase 2 ----------------------------
+
+    #[test]
+    fn use_consumable_with_rng__black_hole_levels_every_hand() {
+        let mut board = board_for_a_round();
+        assert!(board.create_consumable(spectral_card::BLACK_HOLE));
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        // HighCard: level 1→2, chips 5→15, mult 1→2.
+        let high = board.poker_hands.get(&HandType::HighCard).unwrap();
+        assert_eq!((high.level, high.chips, high.mult), (2, 15, 2));
+        // Every hand leveled — spot-check across the range.
+        for hand_type in [HandType::Pair, HandType::Flush, HandType::FlushFive] {
+            assert_eq!(board.poker_hands.get(&hand_type).unwrap().level, 2);
+        }
+        assert!(board.consumables.is_empty(), "the spectral was spent");
+    }
+
+    #[test]
+    fn use_consumable__black_hole_levels_hands_on_the_pure_path_too() {
+        // Black Hole is deterministic, so it applies without RNG.
+        let mut board = board_for_a_round();
+        board.create_consumable(spectral_card::BLACK_HOLE);
+        board.use_consumable(0, &[]);
+        assert_eq!(board.poker_hands.get(&HandType::HighCard).unwrap().level, 2);
+    }
+
+    #[test]
+    fn use_consumable_with_rng__the_soul_creates_a_legendary_joker() {
+        let mut board = board_for_a_round();
+        board.create_consumable(spectral_card::THE_SOUL);
+        assert!(board.jokers.is_empty());
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.jokers.len(), 1, "a joker was created");
+        assert_eq!(
+            board.jokers.get(0).unwrap().card_type,
+            BCardType::LegendaryJoker,
+            "and it is Legendary"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__wraith_creates_a_rare_joker_and_zeroes_money() {
+        let mut board = board_for_a_round();
+        board.money = 20;
+        board.create_consumable(spectral_card::WRAITH);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.money, 0, "Wraith spent every dollar");
+        assert_eq!(board.jokers.len(), 1);
+        assert_eq!(
+            board.jokers.get(0).unwrap().card_type,
+            BCardType::RareJoker,
+            "a Rare joker"
+        );
+    }
+
+    #[test]
+    fn use_consumable__the_soul_is_inert_on_the_pure_no_rng_path() {
+        // A rolling spectral used without RNG does nothing (the Lucky-card rule).
+        let mut board = board_for_a_round();
+        board.create_consumable(spectral_card::THE_SOUL);
+        board.use_consumable(0, &[]);
+        assert!(board.jokers.is_empty(), "no RNG, no joker");
+    }
+
+    #[test]
+    fn use_consumable_with_rng__ectoplasm_negates_a_joker_and_shrinks_the_hand() {
+        let mut board = board_for_a_round();
+        board.push_joker(card::JOKER);
+        board.on_blind_selected();
+        let hand_before = board.draws.hand_size;
+        board.create_consumable(spectral_card::ECTOPLASM);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        assert!(
+            board.jokers.get(0).unwrap().edition.is_negative(),
+            "the joker went Negative"
+        );
+        assert_eq!(board.draws.hand_size, hand_before - 1, "−1 hand size");
+        assert_eq!(board.spectral_hand_size_penalty, 1, "and it is permanent");
+    }
+
+    #[test]
+    fn use_consumable_with_rng__hex_polychromes_one_joker_and_destroys_the_rest() {
+        let mut board = board_for_a_round();
+        board.push_joker(card::JOKER);
+        board.push_joker(card::GREEDY_JOKER);
+        board.push_joker(card::LUSTY_JOKER);
+        board.create_consumable(spectral_card::HEX);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.jokers.len(), 1, "only one joker survives");
+        assert_eq!(
+            board.jokers.get(0).unwrap().edition,
+            Edition::Polychrome,
+            "and it is Polychrome"
+        );
+    }
+
+    #[test]
+    fn use_consumable_with_rng__ankh_copies_one_joker_and_destroys_the_rest() {
+        let mut board = board_for_a_round();
+        board.push_joker(card::JOKER);
+        board.push_joker(card::GREEDY_JOKER);
+        board.push_joker(card::LUSTY_JOKER);
+        board.create_consumable(spectral_card::ANKH);
+
+        board.use_consumable_with_rng(0, &[], &mut StdRng::seed_from_u64(1));
+
+        assert_eq!(board.jokers.len(), 2, "the original and its copy remain");
+        // Both remaining jokers are the same card (a joker and its copy).
+        assert_eq!(board.jokers.get(0).copied(), board.jokers.get(1).copied());
     }
 
     // ---- Booster packs, Phase 4 -------------------------------------------

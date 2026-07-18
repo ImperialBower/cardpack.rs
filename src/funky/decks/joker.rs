@@ -2518,6 +2518,15 @@ mod funky__decks__joker_tests {
             // the created card's arm, not theirs; non-scoring like the tarot pair.
             | MPip::CreateSpectralOnStraightFlush
             | MPip::CreateSpectralOnFirstSingleSix
+            // Spectral-card effects act on the run (hands, jokers, money), never
+            // on the played hand's score — non-scoring like the consumables they
+            // are.
+            | MPip::SpectralLevelAllHands
+            | MPip::SpectralCreateLegendaryJoker
+            | MPip::SpectralCreateRareJokerZeroMoney
+            | MPip::SpectralNegativeRandomJokerMinusHandSize
+            | MPip::SpectralPolychromeRandomJokerDestroyOthers
+            | MPip::SpectralCopyRandomJokerDestroyOthers
             // The Boss Blind pair act on the *blind*, never on the hand.
             // Luchador and Chicot switch a boss's ability off, which reaches the
             // score only through what that ability was doing to the round's

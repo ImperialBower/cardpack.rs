@@ -9,8 +9,8 @@
 > the effects that ride existing seams, and **unblocks Sixth Sense and Séance** —
 > the two jokers whose whole purpose is to *create* a spectral.
 
-**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–1 complete
-(2026-07-17); Phases 2–3 planned
+**Date:** 2026-07-17 · **Branch:** `funky` · **Status:** Phases 0–2 complete
+(2026-07-17); Phase 3 planned
 
 ---
 
@@ -58,7 +58,7 @@ Sixth Sense / Séance unblock.
 |---|---|---|
 | 0 — `spectral.rs` deck (18 cards) | the 18 cards behind the tag | **Complete** (2026-07-17) |
 | 1 — Sixth Sense & Séance | the two jokers that *create* a spectral | **Complete** (2026-07-17) |
-| 2 — Run-level spectrals (Black Hole, The Soul, Wraith, Ectoplasm, Hex, Ankh) | leveling / joker creation / joker editions / money | Planned |
+| 2 — Run-level spectrals (Black Hole, The Soul, Wraith, Ectoplasm, Hex, Ankh) | leveling / joker creation / joker editions / money | **Complete** (2026-07-17) |
 | 3 — In-hand seam + hand spectrals (Aura, Sigil, Ouija, Immolate, Familiar, Grim, Incantation, Cryptid) | the new `in_hand` mutation seam | Planned |
 | — Seal spectrals (Talisman, Deja Vu, Trance, Medium) | — | **Deferred** (no seals) |
 
@@ -243,14 +243,31 @@ were before this EPIC.
   condition; Sixth Sense also drops the roster 52 → 51; and it stays silent on a
   non-6, after the first hand, and on a multi-card hand.
 
-### Phase 2 — run-level spectrals
+### Phase 2 — run-level spectrals — **Complete 2026-07-17**
 
-- [ ] **2a.** `PokerHands::increment_all` + **Black Hole**: every hand +1 level.
-- [ ] **2b.** **The Soul** (Legendary) / **Wraith** (Rare + money $0) via the
-  creation pattern.
-- [ ] **2c.** **Ectoplasm** (Negative joker + persistent −1 hand size) / **Hex**
-  (Polychrome joker + destroy rest) / **Ankh** (copy + destroy rest). Each at its
-  exact effect, seeded.
+- [x] **2a.** The dispatch seam finally lands: `use_consumable_with_rng` +
+  `use_consumable_inner` (shared with the pure `use_consumable`) + a
+  `BCardType::Spectral` arm calling `apply_spectral`. **Black Hole** →
+  `PokerHands::increment_all`, backed by a canonical `LEVEL_UP` table in
+  `hands.rs` (the planet data is not a clean per-hand map — two planets both
+  target `FlushFive`, `FlushHouse` has none — so the table is the one source of
+  truth; reconciling the planets against it is noted Story-3 debt). Black Hole is
+  deterministic, so it applies on **both** paths (pure + `_with_rng`); the
+  rolling spectrals are inert without RNG (the Lucky-card rule), pinned.
+- [x] **2b.** **The Soul** (`SpectralCreateLegendaryJoker`) / **Wraith**
+  (`SpectralCreateRareJokerZeroMoney`) via a shared `create_random_joker(rarity)`
+  (the Riff-Raff pool pattern); Wraith then `money = 0`. Tests pin the created
+  joker's rarity and Wraith's zeroed money.
+- [x] **2c.** **Ectoplasm** (`SpectralNegativeRandomJokerMinusHandSize`):
+  Negative onto a random joker via a new `set_joker_edition` (keeps `joker_state`
+  aligned) + a persistent `spectral_hand_size_penalty` field the draw recompute
+  subtracts (the vouchers shape), applied immediately via `recompute_draws`.
+  **Hex** (`SpectralPolychromeRandomJokerDestroyOthers`) and **Ankh**
+  (`SpectralCopyRandomJokerDestroyOthers`) share a new `destroy_other_jokers(keep)`
+  (removed high-to-low so `keep` stays valid); Ankh strips Negative from the copy
+  and leaves original + copy. Six MPip variants added across the phase, all
+  classified non-scoring. The two destructive arms collapse their empty-check
+  into a match guard (clippy), the Sixth Sense pattern again.
 
 ### Phase 3 — in-hand seam + hand spectrals
 

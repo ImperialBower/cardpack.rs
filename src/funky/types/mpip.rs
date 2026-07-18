@@ -245,6 +245,22 @@ pub enum MPip {
     /// Sixth Sense: when the **first hand of the round** is a **single 6**,
     /// destroy that 6 and create a random Spectral (if there is room).
     CreateSpectralOnFirstSingleSix,
+    /// Black Hole (spectral): level **every** poker hand up by one.
+    SpectralLevelAllHands,
+    /// The Soul (spectral): create a random **Legendary** joker (if there is room).
+    SpectralCreateLegendaryJoker,
+    /// Wraith (spectral): create a random **Rare** joker (if there is room) and
+    /// set money to **$0**.
+    SpectralCreateRareJokerZeroMoney,
+    /// Ectoplasm (spectral): add **Negative** to a random joker and reduce hand
+    /// size by 1 (permanent, per use).
+    SpectralNegativeRandomJokerMinusHandSize,
+    /// Hex (spectral): add **Polychrome** to a random joker, then destroy the
+    /// others.
+    SpectralPolychromeRandomJokerDestroyOthers,
+    /// Ankh (spectral): copy a random joker, then destroy the others — the
+    /// original and its copy remain.
+    SpectralCopyRandomJokerDestroyOthers,
     /// Card Sharp: ×n mult if the played hand type has **already been played
     /// this round**. Reads `BuffoonBoard::hands_by_type_this_round`.
     MultTimesOnRepeatedHandThisRound(usize),
@@ -571,6 +587,20 @@ impl Display for MPip {
             Self::CreateTarotOnLowMoney(n) => write!(f, "CreateTarotOnLowMoney({n})"),
             Self::CreateSpectralOnStraightFlush => write!(f, "CreateSpectralOnStraightFlush"),
             Self::CreateSpectralOnFirstSingleSix => write!(f, "CreateSpectralOnFirstSingleSix"),
+            Self::SpectralLevelAllHands => write!(f, "SpectralLevelAllHands"),
+            Self::SpectralCreateLegendaryJoker => write!(f, "SpectralCreateLegendaryJoker"),
+            Self::SpectralCreateRareJokerZeroMoney => {
+                write!(f, "SpectralCreateRareJokerZeroMoney")
+            }
+            Self::SpectralNegativeRandomJokerMinusHandSize => {
+                write!(f, "SpectralNegativeRandomJokerMinusHandSize")
+            }
+            Self::SpectralPolychromeRandomJokerDestroyOthers => {
+                write!(f, "SpectralPolychromeRandomJokerDestroyOthers")
+            }
+            Self::SpectralCopyRandomJokerDestroyOthers => {
+                write!(f, "SpectralCopyRandomJokerDestroyOthers")
+            }
             Self::MultTimesOnRepeatedHandThisRound(n) => {
                 write!(f, "MultTimesOnRepeatedHandThisRound({n})")
             }
