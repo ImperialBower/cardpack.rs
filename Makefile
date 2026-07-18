@@ -180,9 +180,11 @@ build_test: clean build test
 fmt:
 	cargo fmt
 
-# Run clippy linter
+# Run clippy exactly as the CI clippy job does: default features first, then
+# the funky feature across all targets (lib, tests, examples, benches)
 clippy:
-	cargo clippy -- -W clippy::pedantic
+	cargo clippy -- -Dclippy::all -Dclippy::pedantic
+	cargo clippy --features funky --all-targets -- -Dclippy::all -Dclippy::pedantic
 
 test-nightly:
 	cargo +nightly test --all-targets --all-features
