@@ -3,3 +3,4 @@ pub mod french;
 pub mod pinochle;
 pub mod skat;
 pub mod tarot;
+pub mod ganjifa;
