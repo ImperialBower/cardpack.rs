@@ -6,7 +6,7 @@ authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.85.0"
 license = "Apache-2.0"
 keywords = ["poker", "cards", "library"]
 categories = ["game-development"] # https://crates.io/category_slugs
@@ -31,7 +31,7 @@ full = ["std", "i18n", "colored-display", "yaml", "serde"]
 std = ["alloc", "rand/std", "rand/thread_rng", "serde?/std", "log/std"]
 # The crate's one filesystem seam: `BasicCard::cards_from_yaml_file`. Kept out
 # of `full` on purpose so both the pure kernel and the convenience stack stay
-# I/O-free; opt in explicitly to read decks from YAML *files*. Deck-from-YAML
+# I/O-free; opt in explicitly to read decks from YAML *files*. Deck-from-YAM
 # without the filesystem is already available via `cards_from_yaml_str` + a
 # compile-time `include_str!` (see the `Razz` deck).
 std-io = ["std", "yaml"]
