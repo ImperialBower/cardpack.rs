@@ -1,8 +1,10 @@
 pub mod canasta;
 pub mod cards;
+pub mod dashavatara;
 pub mod euchre24;
 pub mod euchre32;
 pub mod french;
+pub mod mughal;
 pub mod pinochle;
 #[cfg(feature = "yaml")]
 pub mod razz;

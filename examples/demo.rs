@@ -46,6 +46,14 @@ struct Args {
 
     #[clap(short = 't', long)]
     tarot: bool,
+
+    /// Mughal Ganjifa (long-only; -m is taken by --short).
+    #[clap(long)]
+    mughal: bool,
+
+    /// Dashavatara Ganjifa (long-only).
+    #[clap(long)]
+    dashavatara: bool,
 }
 
 fn main() {
@@ -92,5 +100,13 @@ fn main() {
 
     if args.standard {
         DeckKind::Standard52.demo(args.verbose);
+    }
+
+    if args.mughal {
+        DeckKind::Mughal.demo(args.verbose);
+    }
+
+    if args.dashavatara {
+        DeckKind::Dashavatara.demo(args.verbose);
     }
 }

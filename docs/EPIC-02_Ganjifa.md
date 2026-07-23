@@ -128,11 +128,11 @@ Also export: `pub const FLUENT_KEY_BASE_NAME_MUGHAL: &str = "mughal";`, `pub con
 
 ### Tasks
 
-- [ ] Write `GanjifaRank` courts + strong + weak pip consts and `STRONG`/`WEAK` ladder arrays
-- [ ] Write `MughalSuit` and `DashavataraSuit` consts per the tables above
-- [ ] Write `ganjifa_deck` const builder + fluent key base consts
-- [ ] Tests: const-guard (`const _GUARD: [BasicCard; 96] = ganjifa_deck(...)`), ladder weights strictly descending, suit/rank index-char uniqueness sweeps
-- [ ] Register `pub mod ganjifa;` in `src/basic/decks/cards.rs`; `cargo check`
+- [x] Write `GanjifaRank` courts + strong + weak pip consts and `STRONG`/`WEAK` ladder arrays
+- [x] Write `MughalSuit` and `DashavataraSuit` consts per the tables above
+- [x] Write `ganjifa_deck` const builder + fluent key base consts
+- [x] Tests: const-guard (`const _GUARD: [BasicCard; 96] = ganjifa_deck(...)`), ladder weights strictly descending, suit/rank index-char uniqueness sweeps
+- [x] Register `pub mod ganjifa;` in `src/basic/decks/cards.rs`; `cargo check`
 
 ---
 
@@ -169,10 +169,10 @@ impl Mughal {
 
 ### Tasks
 
-- [ ] Marker struct, type aliases, `DECK_SIZE`/`SUITS`/`STRONG`/`DECK` consts
-- [ ] `DeckedBase` + `Decked` impls with no_std-clean imports
-- [ ] `pub mod mughal;` in `src/basic/decks.rs` (alphabetical); prelude re-exports for `cards::ganjifa::*` and `mughal::*`
-- [ ] Test battery (`mod basic__card__mughal_tests`, mirroring `skat.rs:94-156`):
+- [x] Marker struct, type aliases, `DECK_SIZE`/`SUITS`/`STRONG`/`DECK` consts
+- [x] `DeckedBase` + `Decked` impls with no_std-clean imports
+- [x] `pub mod mughal;` in `src/basic/decks.rs` (alphabetical); prelude re-exports for `cards::ganjifa::*` and `mughal::*`
+- [x] Test battery (`mod basic__card__mughal_tests`, mirroring `skat.rs:94-156`):
   - `decked__validate` — **the load-bearing test** (round-trips deck↔string; seeded-shuffle→sort == original)
   - `decked__deck` — full `deck.index()` string (strong suits read `K V T 9 8 7 6 5 4 3 2 A`, weak suits `K V A 2 3 4 5 6 7 8 9 T`), `to_string()` with emoji, `len() == 96`
   - `weak_suit__inversion` — domain test via `sorted()` output: `MughalDeck::from_str("TR AR")` sorts Ace first (weak suit), `"AG TG"` sorts Ten first (strong suit). NB: `BasicCard::Ord` is inverted (highest first, `basic_card.rs:179`) — assert through `sorted()` strings or `rank.weight`, never `<`/`>` intuition
@@ -188,9 +188,9 @@ Twin of Story 2: `DECK_SIZE: 120`, `SUITS: [Pip; 10]` (Matsya → Kalki), `STRON
 
 ### Tasks
 
-- [ ] Deck file with consts, impls, no_std-clean imports
-- [ ] `pub mod dashavatara;` in `src/basic/decks.rs`; prelude re-export
-- [ ] Test battery as Story 2, with 120-card index string and weak/strong boundary check (Matsya weak, Kalki strong)
+- [x] Deck file with consts, impls, no_std-clean imports
+- [x] `pub mod dashavatara;` in `src/basic/decks.rs`; prelude re-export
+- [x] Test battery as Story 2, with 120-card index string and weak/strong boundary check (Matsya weak, Kalki strong)
 
 ---
 
@@ -212,10 +212,10 @@ Non-English locales follow the DRAFT-header convention (see `tlh/tarot.ftl`); av
 
 ### Tasks
 
-- [ ] en-US `mughal.ftl` + `dashavatara.ftl` (write these first — Story 2/3 `fluent__name` tests depend on them)
-- [ ] de, fr, la, tlh files with DRAFT headers
-- [ ] `fluent__name` tests (cfg i18n): `"KG"` → "King of Slaves"; `"AR"` → "Ace of Red Coins" (proves the weak ladder resolves shared rank keys); `"KM"` → "Raja of Matsya"
-- [ ] Update fr/la/tlh locale README status tables
+- [x] en-US `mughal.ftl` + `dashavatara.ftl` (write these first — Story 2/3 `fluent__name` tests depend on them)
+- [x] de, fr, la, tlh files with DRAFT headers
+- [x] `fluent__name` tests (cfg i18n): `"KG"` → "King of Slaves"; `"AR"` → "Ace of Red Coins" (proves the weak ladder resolves shared rank keys); `"KM"` → "Raja of Matsya"
+- [x] Update fr/la/tlh locale README status tables
 
 ---
 
@@ -223,31 +223,31 @@ Non-English locales follow the DRAFT-header convention (see `tlh/tarot.ftl`); av
 
 **Acceptance:** registry tests green, including the renamed key test.
 
-- [ ] Add `DeckKind::Dashavatara` and `DeckKind::Mughal` variants (alphabetical order among existing variants)
-- [ ] Add arms in `all()`, `deck_name()`, `base_vec()`, `fluent_deck_key()`, `demo()`
-- [ ] Update `all()` doc comment slice counts (12 with yaml / 11 without → 14/13)
-- [ ] Rename test `fluent_deck_key__is_one_of_three` (`registry.rs:238-246`) → `fluent_deck_key__is_one_of_five`, accepting `"mughal"` and `"dashavatara"` — **same commit as the variants** (the old test fails the moment they land)
+- [x] Add `DeckKind::Dashavatara` and `DeckKind::Mughal` variants (alphabetical order among existing variants)
+- [x] Add arms in `all()`, `deck_name()`, `base_vec()`, `fluent_deck_key()`, `demo()`
+- [x] Update `all()` doc comment slice counts (12 with yaml / 11 without → 14/13)
+- [x] Rename test `fluent_deck_key__is_one_of_three` (`registry.rs:238-246`) → `fluent_deck_key__is_one_of_five`, accepting `"mughal"` and `"dashavatara"` — **same commit as the variants** (the old test fails the moment they land)
 
 ---
 
 ## Story 6: Docs + polish
 
-- [ ] `CHANGELOG.md` — `[Unreleased] ### Added` entry (Keep-a-Changelog format; purely additive → minor version, `cargo-semver-checks` unaffected)
-- [ ] README deck list additions
-- [ ] Optional: `examples/demo.rs` flags for the new decks (long-only flags; short `-m` is taken by `short`)
-- [ ] `cargo fmt`
+- [x] `CHANGELOG.md` — `[Unreleased] ### Added` entry (Keep-a-Changelog format; ~~purely additive → minor version, `cargo-semver-checks` unaffected~~ **correction from final review:** the `DeckKind` variant additions are semver-major vs 0.8.1 — resolved by bumping to 0.9.0 and marking `DeckKind` `#[non_exhaustive]`, with a `### Breaking` CHANGELOG entry)
+- [x] README deck list additions
+- [x] Optional: `examples/demo.rs` flags for the new decks (long-only flags; short `-m` is taken by `short`)
+- [x] `cargo fmt`
 
 ---
 
 ## Verification matrix (from Makefile / CI)
 
-- [ ] `cargo test --all` (or `cargo nextest run`)
-- [ ] `cargo clippy -- -Dclippy::all -Dclippy::pedantic` (CI denies pedantic)
-- [ ] `cargo fmt --all -- --check`
-- [ ] no_std: `cargo build --no-default-features` · `cargo build --no-default-features --features serde` · `cargo test --no-default-features --lib` (catches ungated `std::`/`HashMap`/`colored` in new files)
-- [ ] wasm: `cargo build --target wasm32-unknown-unknown --all-features` and `--no-default-features` (exercises the 32-bit CKC shift path; max shift 27)
-- [ ] `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features`
-- [ ] Manual smoke: `cargo run --example demo -- -v` — visually confirms weak-suit inverted order and fluent resolution
+- [x] `cargo test --all` (or `cargo nextest run`)
+- [x] `cargo clippy -- -Dclippy::all -Dclippy::pedantic` (CI denies pedantic)
+- [x] `cargo fmt --all -- --check`
+- [x] no_std: `cargo build --no-default-features` · `cargo build --no-default-features --features serde` · `cargo test --no-default-features --lib` (catches ungated `std::`/`HashMap`/`colored` in new files)
+- [x] wasm: `cargo build --target wasm32-unknown-unknown --all-features` and `--no-default-features` (exercises the 32-bit CKC shift path; max shift 27)
+- [x] `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features`
+- [x] Manual smoke: `cargo run --example demo -- -v` — visually confirms weak-suit inverted order and fluent resolution
 
 ---
 

@@ -5,6 +5,8 @@
 | `french.ftl` | DRAFT | High (~95%) | Quick proofread by any French speaker |
 | `tarot.ftl` | DRAFT | Medium (~75%) | Tarot practitioner review (Marseille vs RWS choices) |
 | `skat.ftl`  | DRAFT | Low (~50%) | **French Skat player or pagat.com cross-reference** |
+| `mughal.ftl` | DRAFT | Medium (~70%) | French speaker; Ganjifa terminology cross-check |
+| `dashavatara.ftl` | DRAFT | Medium (~75%) | French speaker (avatar names stay Sanskrit) |
 
 These files were drafted as a starting point. They are wired up automatically
 — adding a locale directory under `src/localization/locales/` is enough; the
