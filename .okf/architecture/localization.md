@@ -3,7 +3,7 @@ type: Architecture
 title: Localization (Fluent i18n)
 description: Card, rank, and suit names resolve per locale via Project Fluent — en-US, de, fr, la (Latin), tlh (Klingon) — behind the i18n feature.
 tags: [i18n, fluent, locales]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-07-23T00:00:00Z
 ---
 
 # How it works
@@ -14,7 +14,7 @@ card names. `Card::fluent_name_default()` gives English;
 `Card::fluent_name(&FluentName::DEUTSCH)` etc. select a locale. Each deck type
 carries a `fluent_deck_key()` ([card model](/architecture/card-model.md))
 that routes lookups to the right `.ftl` resource set (`french`, `skat`,
-`tarot`).
+`tarot`, `mughal`, `dashavatara`).
 
 # Locales
 

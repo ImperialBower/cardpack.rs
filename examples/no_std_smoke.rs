@@ -1,5 +1,13 @@
 //! No-std compile + link smoke binary.
 //!
+//! # Features
+//!
+//! None — deliberately. This example exists to prove the pure kernel links with
+//! **zero** features (`required-features = []`), so a bare `cardpack = "0.9"`
+//! (`default = []`) is exactly what it exercises. Adding any feature here would
+//! defeat its purpose. Built with
+//! `cargo build --target thumbv7em-none-eabihf --example no_std_smoke`.
+//!
 //! Built only against `--target thumbv7em-none-eabihf` (or any other
 //! `target_os = "none"` target) to verify cardpack monomorphizes
 //! cleanly without `std`. On any host target the binary is a no-op

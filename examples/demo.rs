@@ -1,3 +1,13 @@
+//! # Features
+//!
+//! Uses `i18n` + `colored-display` (for `demo_cards`, fluent names and colored
+//! output). cardpack is pure by default (`default = []`), so to use these APIs
+//! in your own crate enable them explicitly:
+//! `cardpack = { version = "0.9", features = ["i18n", "colored-display"] }`
+//!
+//! Run it from this repo with `cargo ex demo` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
+
 use cardpack::prelude::*;
 use clap::Parser;
 
@@ -46,6 +56,14 @@ struct Args {
 
     #[clap(short = 't', long)]
     tarot: bool,
+
+    /// Mughal Ganjifa (long-only; -m is taken by --short).
+    #[clap(long)]
+    mughal: bool,
+
+    /// Dashavatara Ganjifa (long-only).
+    #[clap(long)]
+    dashavatara: bool,
 }
 
 fn main() {
@@ -92,5 +110,13 @@ fn main() {
 
     if args.standard {
         DeckKind::Standard52.demo(args.verbose);
+    }
+
+    if args.mughal {
+        DeckKind::Mughal.demo(args.verbose);
+    }
+
+    if args.dashavatara {
+        DeckKind::Dashavatara.demo(args.verbose);
     }
 }

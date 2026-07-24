@@ -70,6 +70,9 @@ decks of various sizes and suits. Out of the box, the library supports:
   * [Canasta](https://en.wikipedia.org/wiki/Canasta#Cards_and_deal)
     * [Hand and Foot](https://www.pagat.com/rummy/handfoot.html)
   * [Euchre](https://en.wikipedia.org/wiki/Euchre)
+* [Ganjifa](https://en.wikipedia.org/wiki/Ganjifa) with per-suit inverted pip ranking
+  * Mughal (8 suits × 12 = 96 cards)
+  * Dashavatara (10 suits × 12 = 120 cards)
 * [Short Deck](https://en.wikipedia.org/wiki/Six-plus_hold_'em)
 * [Skat](https://en.wikipedia.org/wiki/Skat_(card_game)#Deck)
 * [Tarot](https://en.wikipedia.org/wiki/Tarot#Tarot_gaming_decks) with [Major](https://en.wikipedia.org/wiki/Major_Arcana) and [Minor](https://en.wikipedia.org/wiki/Minor_Arcana) Arcana
@@ -149,10 +152,10 @@ There are two examples to see it in action:
 
 ```shell
 # The four-phase scoring pipeline, phase by phase:
-cargo run --example buffoon --features funky
+cargo ex buffoon
 
 # A seeded four-act tour — round loop, editions, shop & vouchers, spectrals:
-cargo run --example funky_tour --features funky
+cargo ex funky_tour
 ```
 
 ## WebAssembly
@@ -175,10 +178,16 @@ combos, and runtime gotchas. A working example lives at
 The library has several examples programs, including `demo` which shows you the different decks
 available.
 
+Run them with **`cargo ex <name>`**. Because cardpack is pure by default
+(`default = []`, see [Cargo features](#cargo-features)), most examples need
+`--features` to compile; `cargo ex` is an alias in
+[`.cargo/config.toml`](.cargo/config.toml) that supplies them for you, so
+`cargo ex demo` beats `cargo run --features full,funky --example demo`.
+
 For the traditional 54 card French Deck with Jokers:
 
 ```shell
-❯ cargo run --example demo -- --french -v
+❯ cargo ex demo -- --french -v
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
      Running `target/debug/examples/demo --french -v`
 
@@ -201,7 +210,7 @@ French Deck Shuffled: K♣ 7♦ 8♣ Q♥ 6♠ J♦ 4♦ J♥ K♠ 9♥ 6♥ T�
 Display a hand of [Bridge](https://en.wikipedia.org/wiki/Contract_bridge):
 
 ```shell
-❯ cargo run --example bridge                                                          
+❯ cargo ex bridge                                                          
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s
      Running `target/debug/examples/bridge`
 First, let's deal out a random bridge hand.
@@ -255,14 +264,17 @@ As a bridge compass:
 ```
 
 Other decks in the demo program are `canasta`, `euchre`, `short`, `pinochle`, `skat`, `spades`,
-`standard`, and `tarot`.
+`standard`, `tarot`, `mughal`, and `dashavatara`.
 
 Other examples are:
 
-- `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
-- `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
-- `cargo run --example buffoon --features funky` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
-- `cargo run --example funky_tour --features funky` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
+- `cargo ex handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
+- `cargo ex poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
+- `cargo ex poker_eval` - Scores a Texas Hold'em board via the [`ckc-rs`](https://crates.io/crates/ckc-rs) evaluator, picking each player's best 5-card hand from their 7.
+- `cargo ex range` - Prints a 13×13 starting-hand range chart.
+- `cargo ex buffoon` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
+- `cargo ex funky_tour` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
+- `cargo build --target wasm32-unknown-unknown --example wasm` - Minimal browser-WASM build showing wasm-friendly API patterns (seeded shuffle, no filesystem). See [`docs/wasm.md`](docs/wasm.md).
 
 ## References
 

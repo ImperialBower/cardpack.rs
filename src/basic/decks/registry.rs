@@ -16,9 +16,11 @@
 //! ```
 
 use crate::basic::decks::canasta::Canasta;
+use crate::basic::decks::dashavatara::Dashavatara;
 use crate::basic::decks::euchre24::Euchre24;
 use crate::basic::decks::euchre32::Euchre32;
 use crate::basic::decks::french::French;
+use crate::basic::decks::mughal::Mughal;
 use crate::basic::decks::pinochle::Pinochle;
 #[cfg(feature = "yaml")]
 use crate::basic::decks::razz::Razz;
@@ -39,12 +41,19 @@ use alloc::vec::Vec;
 ///
 /// `Razz` is gated behind the `yaml` feature (it loads its cards from a
 /// YAML file at runtime); other variants are always available.
+///
+/// The enum is `#[non_exhaustive]`: new decks can be added in minor
+/// releases without breaking downstream code. Match with a wildcard arm,
+/// or iterate [`DeckKind::all()`] instead of matching exhaustively.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 pub enum DeckKind {
     Canasta,
+    Dashavatara,
     Euchre24,
     Euchre32,
     French,
+    Mughal,
     Pinochle,
     #[cfg(feature = "yaml")]
     Razz,
@@ -59,7 +68,7 @@ pub enum DeckKind {
 impl DeckKind {
     /// Returns every shipped deck, in a stable order.
     ///
-    /// The slice length is 12 with `yaml` (the default) and 11 without.
+    /// The slice length is 14 with `yaml` (the default) and 13 without.
     ///
     /// ```
     /// use cardpack::prelude::*;
@@ -71,9 +80,11 @@ impl DeckKind {
     pub fn all() -> &'static [Self] {
         &[
             Self::Canasta,
+            Self::Dashavatara,
             Self::Euchre24,
             Self::Euchre32,
             Self::French,
+            Self::Mughal,
             Self::Pinochle,
             #[cfg(feature = "yaml")]
             Self::Razz,
@@ -98,9 +109,11 @@ impl DeckKind {
     pub fn deck_name(self) -> String {
         match self {
             Self::Canasta => Canasta::deck_name(),
+            Self::Dashavatara => Dashavatara::deck_name(),
             Self::Euchre24 => Euchre24::deck_name(),
             Self::Euchre32 => Euchre32::deck_name(),
             Self::French => French::deck_name(),
+            Self::Mughal => Mughal::deck_name(),
             Self::Pinochle => Pinochle::deck_name(),
             #[cfg(feature = "yaml")]
             Self::Razz => Razz::deck_name(),
@@ -129,9 +142,11 @@ impl DeckKind {
     pub fn base_vec(self) -> Vec<BasicCard> {
         match self {
             Self::Canasta => Canasta::base_vec(),
+            Self::Dashavatara => Dashavatara::base_vec(),
             Self::Euchre24 => Euchre24::base_vec(),
             Self::Euchre32 => Euchre32::base_vec(),
             Self::French => French::base_vec(),
+            Self::Mughal => Mughal::base_vec(),
             Self::Pinochle => Pinochle::base_vec(),
             #[cfg(feature = "yaml")]
             Self::Razz => Razz::base_vec(),
@@ -146,14 +161,17 @@ impl DeckKind {
 
     /// The fluent localization key the deck resolves through.
     ///
-    /// All decks share one of three keys: `french`, `skat`, or `tarot`.
+    /// All decks share one of five keys: `dashavatara`, `french`, `mughal`,
+    /// `skat`, or `tarot`.
     #[must_use]
     pub fn fluent_deck_key(self) -> String {
         match self {
             Self::Canasta => Canasta::fluent_deck_key(),
+            Self::Dashavatara => Dashavatara::fluent_deck_key(),
             Self::Euchre24 => Euchre24::fluent_deck_key(),
             Self::Euchre32 => Euchre32::fluent_deck_key(),
             Self::French => French::fluent_deck_key(),
+            Self::Mughal => Mughal::fluent_deck_key(),
             Self::Pinochle => Pinochle::fluent_deck_key(),
             #[cfg(feature = "yaml")]
             Self::Razz => Razz::fluent_deck_key(),
@@ -173,9 +191,11 @@ impl DeckKind {
     pub fn demo(self, verbose: bool) {
         match self {
             Self::Canasta => Canasta::demo(verbose),
+            Self::Dashavatara => Dashavatara::demo(verbose),
             Self::Euchre24 => Euchre24::demo(verbose),
             Self::Euchre32 => Euchre32::demo(verbose),
             Self::French => French::demo(verbose),
+            Self::Mughal => Mughal::demo(verbose),
             Self::Pinochle => Pinochle::demo(verbose),
             #[cfg(feature = "yaml")]
             Self::Razz => Razz::demo(verbose),
@@ -224,6 +244,8 @@ mod basic__decks__registry_tests {
         assert_eq!(DeckKind::Standard52.base_vec(), Standard52::base_vec());
         assert_eq!(DeckKind::Tarot.base_vec(), Tarot::base_vec());
         assert_eq!(DeckKind::Tiny.base_vec(), Tiny::base_vec());
+        assert_eq!(DeckKind::Mughal.base_vec(), Mughal::base_vec());
+        assert_eq!(DeckKind::Dashavatara.base_vec(), Dashavatara::base_vec());
     }
 
     #[test]
@@ -235,11 +257,15 @@ mod basic__decks__registry_tests {
     }
 
     #[test]
-    fn fluent_deck_key__is_one_of_three() {
+    fn fluent_deck_key__is_one_of_five() {
         for kind in DeckKind::all() {
             let key = kind.fluent_deck_key();
             assert!(
-                key == "french" || key == "skat" || key == "tarot",
+                key == "dashavatara"
+                    || key == "french"
+                    || key == "mughal"
+                    || key == "skat"
+                    || key == "tarot",
                 "{kind:?} returned unexpected fluent_deck_key {key:?}"
             );
         }

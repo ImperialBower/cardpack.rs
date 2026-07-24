@@ -5,6 +5,8 @@
 | `french.ftl` | DRAFT | Low (~40%) | KLI-savvy reviewer |
 | `skat.ftl`   | DRAFT | Low (~30%) | KLI-savvy reviewer with Skat awareness |
 | `tarot.ftl`  | DRAFT | Low (~25%) | KLI-savvy reviewer with Tarot familiarity |
+| `mughal.ftl` | DRAFT | Low (~35%) | KLI-savvy reviewer |
+| `dashavatara.ftl` | DRAFT | Low (~40%) | KLI-savvy reviewer (avatar names stay Sanskrit) |
 
 These files were drafted as a starting point. They are wired up automatically
 — adding a locale directory under `src/localization/locales/` is enough; the

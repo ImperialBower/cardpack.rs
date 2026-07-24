@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking
+
+- **`DeckKind` gained `Dashavatara` and `Mughal` variants and is now
+  `#[non_exhaustive]`.** Downstream exhaustive `match` statements over
+  `DeckKind` no longer compile: add a wildcard arm, or iterate
+  `DeckKind::all()` (the intended interface) instead. Marking the enum
+  `#[non_exhaustive]` means future deck additions will *not* be breaking
+  changes. Version bumped to 0.9.0 (the 0.x breaking slot) accordingly.
+
+### Added
+
+- **Ganjifa decks** — two traditional Indian/Persian playing-card decks
+  ([EPIC-02](docs/EPIC-02_Ganjifa.md)) with the signature per-suit inverted
+  pip ranking (weak suits rank `A > 2 > … > 10`):
+  - `Mughal` (8 suits × 12 = 96 cards) and `Dashavatara` (10 avatar suits
+    × 12 = 120 cards), built from a shared `cards::ganjifa` vocabulary via
+    a `const fn` deck builder — no core-type changes.
+  - `DeckKind::Mughal` / `DeckKind::Dashavatara` registry variants.
+  - Fluent localization in all 5 locales (en-US, de, fr, la, tlh); the
+    non-English files follow the draft/confidence-header convention.
+  - `--mughal` / `--dashavatara` flags on `examples/demo.rs`.
+
 ## [0.8.0] — 2026-07-18
 
 ### Breaking

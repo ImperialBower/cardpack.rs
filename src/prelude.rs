@@ -1,15 +1,18 @@
 pub use crate::basic::decks::canasta::*;
 pub use crate::basic::decks::cards::canasta::*;
 pub use crate::basic::decks::cards::french::*;
+pub use crate::basic::decks::cards::ganjifa::*;
 pub use crate::basic::decks::cards::pinochle::*;
 pub use crate::basic::decks::cards::skat::*;
 pub use crate::basic::decks::cards::tarot::*;
+pub use crate::basic::decks::dashavatara::*;
 pub use crate::basic::decks::euchre24::*;
 pub use crate::basic::decks::euchre32::*;
 pub use crate::basic::decks::french::*;
 // I love how CoPilot keeps recommending hand_and_foot::HandAndFoot even though it's no longer there.
 // pub use crate::rev6::decks::hand_and_foot::*;
 // guess this is a form of hallucination.
+pub use crate::basic::decks::mughal::*;
 pub use crate::basic::decks::pinochle::*;
 #[cfg(feature = "yaml")]
 pub use crate::basic::decks::razz::*;

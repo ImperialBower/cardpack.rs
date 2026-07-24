@@ -1,3 +1,13 @@
+//! # Features
+//!
+//! Uses `std` (the no-arg `shuffle()`, which needs a thread RNG). cardpack is
+//! pure by default (`default = []`), so to use these APIs in your own crate
+//! enable it explicitly: `cardpack = { version = "0.9", features = ["std"] }`
+//! (under `no_std`, use `shuffle_with_seed(seed)` instead).
+//!
+//! Run it from this repo with `cargo ex poker` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
+
 use cardpack::prelude::*;
 
 fn main() {

@@ -1,3 +1,14 @@
+//! # Features
+//!
+//! Uses `funky` (the Balatro-style engine, `cardpack::preludes::funky`).
+//! cardpack is pure by default (`default = []`), so to use these APIs in your
+//! own crate enable it explicitly:
+//! `cardpack = { version = "0.9", features = ["funky"] }`
+//! — `funky` implies `std` + `serde`, since every funky type derives both.
+//!
+//! Run it from this repo with `cargo ex funky_tour` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
+
 use cardpack::preludes::funky::*;
 use rand::SeedableRng;
 use rand::rngs::StdRng;

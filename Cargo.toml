@@ -1,12 +1,12 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.8.1"
+version = "0.9.0"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.85.0"
 license = "Apache-2.0"
 keywords = ["poker", "cards", "library"]
 categories = ["game-development"] # https://crates.io/category_slugs
@@ -31,7 +31,7 @@ full = ["std", "i18n", "colored-display", "yaml", "serde"]
 std = ["alloc", "rand/std", "rand/thread_rng", "serde?/std", "log/std"]
 # The crate's one filesystem seam: `BasicCard::cards_from_yaml_file`. Kept out
 # of `full` on purpose so both the pure kernel and the convenience stack stay
-# I/O-free; opt in explicitly to read decks from YAML *files*. Deck-from-YAML
+# I/O-free; opt in explicitly to read decks from YAML *files*. Deck-from-YAM
 # without the filesystem is already available via `cards_from_yaml_str` + a
 # compile-time `include_str!` (see the `Razz` deck).
 std-io = ["std", "yaml"]
@@ -40,7 +40,7 @@ i18n = ["std", "dep:fluent-templates"]
 colored-display = ["std", "dep:colored"]
 yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde", "alloc"]
-funky = ["std"]
+funky = ["std", "serde"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
@@ -82,6 +82,14 @@ term-table = "1.4.0"
 # criterion uses std::time / std::process and won't build for wasm either.
 # Both also require std, so gate off bare-metal targets as well.
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
+# NOTE: do NOT add a self dev-dependency (`cardpack = { path = "." , features
+# = [...] }`) here to make examples flag-free. It force-enables those features
+# on the `cardpack` node of `cargo metadata`'s feature-unified resolve, which
+# turns `colored`/`serde_norway`/`fluent-templates` into NORMAL edges as far as
+# cargo-deny is concerned — `cargo deny check bans` then fails the kernel-purity
+# gate and no cargo-deny setting (`--exclude-dev`, `[graph] exclude-dev`,
+# `no-default-features`) can undo it. Use the `cargo ex <name>` alias in
+# .cargo/config.toml instead. See .okf/decisions/examples-flag-free-alias.md.
 criterion = "0.7"
 proptest = "1"
 
@@ -94,7 +102,7 @@ name = "demo"
 required-features = ["i18n", "colored-display"]
 
 [[example]]
-name = "headandfoot"
+name = "handandfoot"
 required-features = ["i18n", "colored-display"]
 
 [[example]]

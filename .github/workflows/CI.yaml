@@ -168,6 +168,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      # These host purity gates only mean something while NO dev-dependency
+      # force-enables features on cardpack itself. Examples are made flag-free
+      # by the `cargo ex` alias in .cargo/config.toml, which lives in developer
+      # tooling rather than the dependency graph, so all four steps below stay
+      # genuinely pure. See .okf/decisions/examples-flag-free-alias.md.
       - run: cargo build --locked --no-default-features
       - run: cargo build --locked --no-default-features --features serde
       - run: cargo test --locked --no-default-features --lib

@@ -5,6 +5,8 @@
 | `french.ftl` | DRAFT | High (~85%) | Latinist proofread (suit name choices) |
 | `tarot.ftl`  | DRAFT | Medium-High (~80%) | Latinist with Renaissance Tarot familiarity |
 | `skat.ftl`   | DRAFT | Low-Medium (~55%) | Latinist with Skat awareness; pagat.com cross-reference |
+| `mughal.ftl` | DRAFT | Medium (~65%) | Latinist proofread (Syngraphae for Bills is speculative) |
+| `dashavatara.ftl` | DRAFT | Medium (~75%) | Latinist proofread (avatar names stay Sanskrit) |
 
 These files were drafted as a starting point. They are wired up automatically
 — adding a locale directory under `src/localization/locales/` is enough; the

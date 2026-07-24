@@ -1,5 +1,12 @@
 //! Minimal cardpack example targeting wasm32-unknown-unknown.
 //!
+//! # Features
+//!
+//! None. A bare `cardpack = "0.9"` (`default = []`) is enough — every pattern
+//! below is pure-default API. What wasm needs is a *target* and a getrandom
+//! backend, not a feature flag (see **Build** below). Steer clear of `std-io`
+//! (filesystem) in a browser, and note `colored-display` output is inert there.
+//!
 //! Demonstrates wasm-friendly API patterns:
 //! - Use `shuffle_with_seed(seed)` instead of `shuffle()` to keep
 //!   randomness deterministic and avoid runtime panics from

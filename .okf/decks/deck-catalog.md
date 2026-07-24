@@ -1,12 +1,12 @@
 ---
 type: Catalog
 title: Shipped deck catalog
-description: The 12 deck kinds the crate ships, their sizes, and their quirks; DeckKind is the runtime registry over all of them.
+description: The 14 deck kinds the crate ships, their sizes, and their quirks; DeckKind is the runtime registry over all of them.
 tags: [decks, catalog, registry]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-07-23T12:00:00Z
 ---
 
-# The 12 deck kinds
+# The 14 deck kinds
 
 All in `src/basic/decks/`, each a marker struct implementing `DeckedBase`
 ([card model](/architecture/card-model.md)):
@@ -23,15 +23,19 @@ All in `src/basic/decks/`, each a marker struct implementing `DeckedBase`
 | `Canasta` | 108 | 2 modern decks, red 3s promoted to jokers |
 | `Skat` | 32 | German suits/ranks (own `.ftl` locale files) |
 | `Tarot` | 78 | 22 Major + 56 Minor Arcana, trump precedence |
+| `Mughal` | 96 | Mughal Ganjifa: 8 suits × 12; weak suits (Red Coins, Harps, Bills, Cloth) use **inverted pip ranking** (A > 2 > … > 10) via a second weight-inverted rank ladder |
+| `Dashavatara` | 120 | Dashavatara Ganjifa: 10 avatar suits × 12; Matsya–Vamana weak (inverted pips), Parashurama–Kalki strong; shares the `cards::ganjifa` vocabulary with Mughal |
 | `Razz` | 52 | **Ace-low** (inverted rank weights); built from YAML via `include_str!`; requires the `yaml` feature |
 | `Tiny` | 4 | A♠ K♠ A♥ K♥ — minimal teaching/testing deck |
 
 # The registry
 
-`DeckKind` (`src/basic/decks/registry.rs`) is a runtime enum over all 12 —
+`DeckKind` (`src/basic/decks/registry.rs`) is a runtime enum over all 14 —
 `DeckKind::all()`, `.deck_name()`, `.base_vec()`, `.fluent_deck_key()` — for
 "give me every deck this crate ships" use-cases the generic
-`Pile<DeckType>` API can't express.
+`Pile<DeckType>` API can't express. The enum is `#[non_exhaustive]` (since
+0.9.0), so new decks land in minor releases; match with a wildcard arm or
+iterate `DeckKind::all()`.
 
 # No dedicated multi-deck types
 
