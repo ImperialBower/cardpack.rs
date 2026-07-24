@@ -40,7 +40,7 @@ i18n = ["std", "dep:fluent-templates"]
 colored-display = ["std", "dep:colored"]
 yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde", "alloc"]
-funky = ["std"]
+funky = ["std", "serde"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
@@ -82,6 +82,18 @@ term-table = "1.4.0"
 # criterion uses std::time / std::process and won't build for wasm either.
 # Both also require std, so gate off bare-metal targets as well.
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
+# Self dev-dependency: makes `cargo run --example <x>` work with NO `--features`
+# flag. Cargo only compiles dev-dependencies when building dev artifacts
+# (examples/tests/benches), so this force-enables `full`+`funky` for those
+# builds ONLY — it does NOT change `default = []` for downstream consumers
+# (Invariant 3 holds; verified by the plain `cargo build --no-default-features`
+# and `kernel-purity` CI gates, which don't compile dev-deps). It IS gated off
+# wasm32 and bare-metal here because `full`/`funky` need std; the authoritative
+# no_std/no-features *example* purity gates are therefore the target jobs this
+# gate can't reach (thumbv7em `no_std_smoke`, wasm `wasm`). Consequence: a HOST
+# `--no-default-features` example or `--lib` test build is no longer pure — see
+# .okf/decisions/examples-self-dev-dependency.md before "cleaning this up."
+cardpack = { path = ".", features = ["full", "funky"] }
 criterion = "0.7"
 proptest = "1"
 
@@ -94,7 +106,7 @@ name = "demo"
 required-features = ["i18n", "colored-display"]
 
 [[example]]
-name = "headandfoot"
+name = "handandfoot"
 required-features = ["i18n", "colored-display"]
 
 [[example]]

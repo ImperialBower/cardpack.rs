@@ -152,10 +152,10 @@ There are two examples to see it in action:
 
 ```shell
 # The four-phase scoring pipeline, phase by phase:
-cargo run --example buffoon --features funky
+cargo run --example buffoon
 
 # A seeded four-act tour — round loop, editions, shop & vouchers, spectrals:
-cargo run --example funky_tour --features funky
+cargo run --example funky_tour
 ```
 
 ## WebAssembly
@@ -264,8 +264,8 @@ Other examples are:
 
 - `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
 - `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
-- `cargo run --example buffoon --features funky` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
-- `cargo run --example funky_tour --features funky` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
+- `cargo run --example buffoon` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
+- `cargo run --example funky_tour` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
 
 ## References
 

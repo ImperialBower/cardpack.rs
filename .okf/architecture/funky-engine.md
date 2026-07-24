@@ -3,12 +3,13 @@ type: Architecture
 title: Funky — the Balatro-style engine
 description: std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals.
 tags: [funky, balatro, feature-gated, scoring]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-07-23T00:00:00Z
 ---
 
 # What it is
 
-`src/funky/` (behind `funky = ["std"]`) models
+`src/funky/` (behind `funky = ["std", "serde"]`; every `funky/types/*` file
+uses and derives serde unconditionally, so the feature pulls in `serde`) models
 [Balatro](https://www.playbalatro.com/)-style cards well enough to (a) power a
 Balatro **score solver** and (b) enable **custom mod decks**. It layers on the
 core [card model](/architecture/card-model.md) rather than forking it.
