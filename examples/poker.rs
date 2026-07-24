@@ -3,7 +3,7 @@
 //! Uses `std` (the no-arg `shuffle()`, which needs a thread RNG). cardpack is
 //! pure by default (`default = []`), so to use these APIs in your own crate
 //! enable it explicitly: `cardpack = { version = "0.9", features = ["std"] }`
-//! (under no_std, use `shuffle_with_seed(seed)` instead).
+//! (under `no_std`, use `shuffle_with_seed(seed)` instead).
 //!
 //! Running this example needs no `--features` flag — the self dev-dependency in
 //! Cargo.toml turns it on for the repo's own examples.
