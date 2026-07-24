@@ -11,3 +11,13 @@
 [target.wasm32-unknown-unknown]
 rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
 runner = "wasm-bindgen-test-runner"
+
+# `cargo ex <name>` runs any example without spelling out `--features`.
+# The crate is pure by default (`default = []`, domain-kernel Invariant 3), so
+# examples that touch std/i18n/colored-display/yaml/funky would otherwise need a
+# per-example flag. An alias solves that in the DEVELOPER's tooling instead of
+# in the dependency graph, which is what keeps `cargo deny check bans` and the
+# host `--no-default-features` purity gates honest.
+# See .okf/decisions/examples-flag-free-alias.md.
+[alias]
+ex = "run --features full,funky --example"

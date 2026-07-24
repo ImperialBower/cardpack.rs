@@ -5,8 +5,8 @@
 //! enable it explicitly: `cardpack = { version = "0.9", features = ["std"] }`
 //! (under `no_std`, use `shuffle_with_seed(seed)` instead).
 //!
-//! Running this example needs no `--features` flag — the self dev-dependency in
-//! Cargo.toml turns it on for the repo's own examples.
+//! Run it from this repo with `cargo ex poker` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
 
 use cardpack::prelude::*;
 

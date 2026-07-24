@@ -4,8 +4,8 @@
 //! by default (`default = []`), so to use these APIs in your own crate enable it
 //! explicitly: `cardpack = { version = "0.9", features = ["std"] }`
 //!
-//! Running this example needs no `--features` flag — the self dev-dependency in
-//! Cargo.toml turns it on for the repo's own examples.
+//! Run it from this repo with `cargo ex bridge` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
 
 use cardpack::basic::types::traits::Ranged;
 use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};

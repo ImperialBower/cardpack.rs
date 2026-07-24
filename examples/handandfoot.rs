@@ -5,8 +5,8 @@
 //! in your own crate enable them explicitly:
 //! `cardpack = { version = "0.9", features = ["i18n", "colored-display"] }`
 //!
-//! Running this example needs no `--features` flag — the self dev-dependency in
-//! Cargo.toml turns them on for the repo's own examples.
+//! Run it from this repo with `cargo ex handandfoot` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
 
 use cardpack::prelude::*;
 

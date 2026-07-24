@@ -82,18 +82,14 @@ term-table = "1.4.0"
 # criterion uses std::time / std::process and won't build for wasm either.
 # Both also require std, so gate off bare-metal targets as well.
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "none")))'.dev-dependencies]
-# Self dev-dependency: makes `cargo run --example <x>` work with NO `--features`
-# flag. Cargo only compiles dev-dependencies when building dev artifacts
-# (examples/tests/benches), so this force-enables `full`+`funky` for those
-# builds ONLY — it does NOT change `default = []` for downstream consumers
-# (Invariant 3 holds; verified by the plain `cargo build --no-default-features`
-# and `kernel-purity` CI gates, which don't compile dev-deps). It IS gated off
-# wasm32 and bare-metal here because `full`/`funky` need std; the authoritative
-# no_std/no-features *example* purity gates are therefore the target jobs this
-# gate can't reach (thumbv7em `no_std_smoke`, wasm `wasm`). Consequence: a HOST
-# `--no-default-features` example or `--lib` test build is no longer pure — see
-# .okf/decisions/examples-self-dev-dependency.md before "cleaning this up."
-cardpack = { path = ".", features = ["full", "funky"] }
+# NOTE: do NOT add a self dev-dependency (`cardpack = { path = "." , features
+# = [...] }`) here to make examples flag-free. It force-enables those features
+# on the `cardpack` node of `cargo metadata`'s feature-unified resolve, which
+# turns `colored`/`serde_norway`/`fluent-templates` into NORMAL edges as far as
+# cargo-deny is concerned — `cargo deny check bans` then fails the kernel-purity
+# gate and no cargo-deny setting (`--exclude-dev`, `[graph] exclude-dev`,
+# `no-default-features`) can undo it. Use the `cargo ex <name>` alias in
+# .cargo/config.toml instead. See .okf/decisions/examples-flag-free-alias.md.
 criterion = "0.7"
 proptest = "1"
 

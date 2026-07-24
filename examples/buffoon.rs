@@ -6,8 +6,8 @@
 //! `cardpack = { version = "0.9", features = ["funky"] }`
 //! — `funky` implies `std` + `serde`, since every funky type derives both.
 //!
-//! Running this example needs no `--features` flag — the self dev-dependency in
-//! Cargo.toml turns it on for the repo's own examples.
+//! Run it from this repo with `cargo ex buffoon` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
 
 use cardpack::preludes::funky::*;
 

@@ -168,21 +168,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      # These two PLAIN builds are the host purity gates. They compile no
-      # dev-dependencies, so the self dev-dependency in Cargo.toml (which makes
-      # examples flag-free) cannot reach them — the pure kernel stays pure here.
+      # These host purity gates only mean something while NO dev-dependency
+      # force-enables features on cardpack itself. Examples are made flag-free
+      # by the `cargo ex` alias in .cargo/config.toml, which lives in developer
+      # tooling rather than the dependency graph, so all four steps below stay
+      # genuinely pure. See .okf/decisions/examples-flag-free-alias.md.
       - run: cargo build --locked --no-default-features
       - run: cargo build --locked --no-default-features --features serde
-      # NOTE: a host `cargo test --no-default-features --lib` or
-      # `cargo build --no-default-features --examples` is deliberately NOT run
-      # here anymore. The self dev-dependency (Cargo.toml) force-enables
-      # `full`+`funky` for every HOST dev-artifact build, so those commands can
-      # no longer verify purity — Cargo would build examples/tests with all
-      # features on. Example/no-features purity is instead gated authoritatively
-      # by the target jobs the self dev-dep can't reach: `no-std-thumbv7em`
-      # (builds `no_std_smoke` against the pure lib) and the wasm job (builds the
-      # `wasm` example against the pure lib). Lib unit tests run in the main test
-      # job. See .okf/decisions/examples-self-dev-dependency.md.
+      - run: cargo test --locked --no-default-features --lib
+      # Build all examples under default features to catch any missing
+      # required-features = ["std"] declarations on examples that use
+      # std-gated APIs (rand::random, no-arg shuffle, draw_random, etc.).
+      # Examples with required-features matching off are silently skipped
+      # by Cargo, so this is what enforces the gating discipline.
+      - run: cargo build --locked --no-default-features --examples
 
   no-std-thumbv7em:
     name: no_std bare-metal target

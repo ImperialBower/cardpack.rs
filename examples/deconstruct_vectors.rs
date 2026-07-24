@@ -10,8 +10,8 @@
 //! its own `std::fs` — reading decks from a YAML *file* via cardpack would need
 //! the separate `std-io` feature.
 //!
-//! Running this example needs no `--features` flag — the self dev-dependency in
-//! Cargo.toml turns them on for the repo's own examples.
+//! Run it from this repo with `cargo ex deconstruct_vectors` — the alias in `.cargo/config.toml`
+//! supplies the features, so no `--features` flag is needed.
 
 // This example is a *consumer* of the crate (a golden-vector dumper), not part
 // of the pure kernel, so it deliberately performs filesystem I/O. The

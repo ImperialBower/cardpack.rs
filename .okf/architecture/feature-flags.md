@@ -33,13 +33,15 @@ else is opt-in.
   `#[cfg(feature = "serde")]`), every `src/funky/types/*` file `use`s and
   derives serde **unconditionally**, so the `funky` feature must pull it in or
   the module won't compile.
-* **Examples are flag-free.** `cargo run --example <x>` needs no `--features`
-  despite `default = []`, because Cargo.toml carries a **self dev-dependency**
-  (`cardpack = { path = ".", features = ["full", "funky"] }`) that force-enables
-  features for host dev-artifact builds only. Consumers still get `default = []`.
-  The trade-off (host no-default example/lib-test purity moves to the target CI
-  jobs) is load-bearing — see
-  [the self-dev-dependency decision](/decisions/examples-self-dev-dependency.md).
+* **Examples run flag-free via `cargo ex <x>`**, an alias in
+  `.cargo/config.toml` expanding to `run --features full,funky --example`.
+  Keeping this in developer tooling is deliberate: a **self dev-dependency**
+  (`cardpack = { path = ".", features = ["full", "funky"] }`) achieves the same
+  ergonomics but feature-activates those crates on cardpack's own node in
+  `cargo metadata`, which breaks `cargo deny check bans` and every host purity
+  gate — and no cargo-deny setting can undo it. Read
+  [the flag-free-examples decision](/decisions/examples-flag-free-alias.md)
+  before changing this.
 * Deck-from-YAML **without** the filesystem is available under plain `yaml`:
   `cards_from_yaml_str` + compile-time `include_str!` (how `Razz` works).
 * `rand`'s `std_rng` feature is enabled unconditionally, *not* gated on
