@@ -114,6 +114,19 @@ mod basic__card__dashavatara_tests {
         );
     }
 
+    #[test]
+    fn sorted() {
+        let deck = Dashavatara::deck();
+
+        let shuffled = deck.shuffled_with_seed(42);
+        let sorted = shuffled.sorted();
+
+        assert_eq!(
+            sorted.to_string(),
+            "K🐟 V🐟 A🐟 2🐟 3🐟 4🐟 5🐟 6🐟 7🐟 8🐟 9🐟 T🐟 K🐢 V🐢 A🐢 2🐢 3🐢 4🐢 5🐢 6🐢 7🐢 8🐢 9🐢 T🐢 K🐗 V🐗 A🐗 2🐗 3🐗 4🐗 5🐗 6🐗 7🐗 8🐗 9🐗 T🐗 K🦁 V🦁 A🦁 2🦁 3🦁 4🦁 5🦁 6🦁 7🦁 8🦁 9🦁 T🦁 K☂ V☂ A☂ 2☂ 3☂ 4☂ 5☂ 6☂ 7☂ 8☂ 9☂ T☂ K🪓 V🪓 T🪓 9🪓 8🪓 7🪓 6🪓 5🪓 4🪓 3🪓 2🪓 A🪓 K🏹 V🏹 T🏹 9🏹 8🏹 7🏹 6🏹 5🏹 4🏹 3🏹 2🏹 A🏹 K🐄 V🐄 T🐄 9🐄 8🐄 7🐄 6🐄 5🐄 4🐄 3🐄 2🐄 A🐄 K☸ V☸ T☸ 9☸ 8☸ 7☸ 6☸ 5☸ 4☸ 3☸ 2☸ A☸ K🐎 V🐎 T🐎 9🐎 8🐎 7🐎 6🐎 5🐎 4🐎 3🐎 2🐎 A🐎"
+        );
+    }
+
     /// Weak/strong boundary: Matsya (weak, Ace high) vs Kalki (strong, Ten high).
     #[test]
     fn weak_suit__inversion() {

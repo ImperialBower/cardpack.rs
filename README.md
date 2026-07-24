@@ -264,8 +264,11 @@ Other examples are:
 
 - `cargo run --example handandfoot` - Shows how to support more than one decks like in the game [Hand and Foot](https://www.wikihow.com/Play-Hand-and-Foot).
 - `cargo run --example poker` - A random heads up [no-limit Poker](https://en.wikipedia.org/wiki/Texas_hold_%27em) deal.
+- `cargo run --example poker_eval` - Scores a Texas Hold'em board via the [`ckc-rs`](https://crates.io/crates/ckc-rs) evaluator, picking each player's best 5-card hand from their 7.
+- `cargo run --example range` - Prints a 13×13 starting-hand range chart.
 - `cargo run --example buffoon` - The Balatro four-phase scoring pipeline, phase by phase (see [Funky](#funky--balatro-style-cards)).
 - `cargo run --example funky_tour` - A seeded tour of the funky engine: round loop, editions, shop & vouchers, spectral cards.
+- `cargo build --target wasm32-unknown-unknown --example wasm` - Minimal browser-WASM build showing wasm-friendly API patterns (seeded shuffle, no filesystem). See [`docs/wasm.md`](docs/wasm.md).
 
 ## References
 

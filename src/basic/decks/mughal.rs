@@ -108,6 +108,19 @@ mod basic__card__mughal_tests {
         );
     }
 
+    #[test]
+    fn sorted() {
+        let deck = Mughal::deck();
+
+        let shuffled = deck.shuffled_with_seed(42);
+        let sorted = shuffled.sorted();
+
+        assert_eq!(
+            sorted.to_string(),
+            "K👤 V👤 T👤 9👤 8👤 7👤 6👤 5👤 4👤 3👤 2👤 A👤 K👑 V👑 T👑 9👑 8👑 7👑 6👑 5👑 4👑 3👑 2👑 A👑 K⚔ V⚔ T⚔ 9⚔ 8⚔ 7⚔ 6⚔ 5⚔ 4⚔ 3⚔ 2⚔ A⚔ K🔴 V🔴 A🔴 2🔴 3🔴 4🔴 5🔴 6🔴 7🔴 8🔴 9🔴 T🔴 K🎵 V🎵 A🎵 2🎵 3🎵 4🎵 5🎵 6🎵 7🎵 8🎵 9🎵 T🎵 K📜 V📜 A📜 2📜 3📜 4📜 5📜 6📜 7📜 8📜 9📜 T📜 K⚪ V⚪ T⚪ 9⚪ 8⚪ 7⚪ 6⚪ 5⚪ 4⚪ 3⚪ 2⚪ A⚪ K🧵 V🧵 A🧵 2🧵 3🧵 4🧵 5🧵 6🧵 7🧵 8🧵 9🧵 T🧵"
+        );
+    }
+
     /// The Ganjifa signature rule, asserted through `sorted()` output
     /// (`BasicCard::Ord` is inverted — never assert with `<`/`>`).
     #[test]
