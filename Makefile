@@ -14,6 +14,7 @@ help:
 	@echo "  make test-doc        - Run doc tests via cargo test --doc"
 	@echo "  make build-wasm      - Build the lib + example for wasm32-unknown-unknown"
 	@echo "  make test-wasm       - Run wasm runtime tests (requires wasm-bindgen-cli + node)"
+	@echo "  make yaml-fixtures   - Regenerate golden YAML deck fixtures"
 	@echo "  make coverage        - Generate test coverage report via cargo-llvm-cov"
 	@echo "  make bench           - Run criterion benchmarks (benches/draw.rs)"
 	@echo "  make build_test      - Clean once, then build and test"
@@ -95,6 +96,13 @@ test-std-io:
 # Run all tests: unit tests via nextest, doc tests via cargo test, plus the
 # std-io filesystem seam.
 test: test-unit test-doc test-std-io
+
+# Regenerate the golden YAML deck fixtures that tests/yaml_golden.rs compares
+# byte for byte. Run this whenever a deck's card data legitimately changes,
+# then review the diff — an unexpected diff means deck data drifted, which is
+# exactly what the golden tests exist to catch.
+yaml-fixtures:
+	cargo ex yaml_decks
 
 # Build cardpack for wasm32-unknown-unknown across feature combos.
 # The repo's .cargo/config.toml supplies the required getrandom backend cfg.

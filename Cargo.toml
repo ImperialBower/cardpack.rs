@@ -132,6 +132,10 @@ name = "deconstruct_vectors"
 required-features = ["std", "i18n", "yaml"]
 
 [[example]]
+name = "yaml_decks"
+required-features = ["std", "yaml"]
+
+[[example]]
 name = "buffoon"
 required-features = ["funky"]
 
