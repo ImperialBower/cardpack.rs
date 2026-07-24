@@ -96,6 +96,15 @@ where
 
 /// Just the variant name of a `CardError`, discarding the payload — the
 /// payload is the input string we already recorded separately.
+///
+/// Deliberately exhaustive rather than using a wildcard: this dumper writes
+/// golden vectors, so a new `CardError` variant should break the build and
+/// force a decision about whether it belongs in the vectors, rather than
+/// silently collapsing into a catch-all.
+///
+/// The YAML variants are unconditional here because this example declares
+/// `required-features = ["std", "i18n", "yaml"]` in Cargo.toml, so it cannot
+/// be compiled without them.
 fn error_variant_name(e: &CardError) -> &'static str {
     match e {
         CardError::Fubar => "Fubar",
@@ -105,6 +114,12 @@ fn error_variant_name(e: &CardError) -> &'static str {
         CardError::InvalidIndex(_) => "InvalidIndex",
         CardError::NotEnoughCards(_) => "NotEnoughCards",
         CardError::TooManyCards(_) => "TooManyCards",
+        CardError::YamlCountMismatch { .. } => "YamlCountMismatch",
+        CardError::YamlDeckMismatch { .. } => "YamlDeckMismatch",
+        CardError::YamlUnknownDeck(_) => "YamlUnknownDeck",
+        CardError::YamlEmptyDeck => "YamlEmptyDeck",
+        CardError::YamlForeignCard { .. } => "YamlForeignCard",
+        CardError::YamlMalformed => "YamlMalformed",
     }
 }
 
