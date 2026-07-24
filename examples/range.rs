@@ -1,3 +1,11 @@
+//! Prints a 13×13 Texas Hold'em starting-hand range chart.
+//!
+//! # Features
+//!
+//! None. This example uses only the pure default API, so a bare
+//! `cardpack = "0.9"` (`default = []`, alloc-only `no_std`) is enough — no
+//! `--features` flag and no optional features required.
+
 use std::cmp::Ordering;
 
 fn main() {

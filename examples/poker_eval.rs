@@ -8,6 +8,16 @@
 //! and pick the lowest score (best hand) per player.
 //!
 //! Run with: `cargo run --example poker_eval`
+//!
+//! # Features
+//!
+//! Uses `std`. cardpack is pure by default (`default = []`), so to use these
+//! APIs in your own crate enable it explicitly:
+//! `cardpack = { version = "0.9", features = ["std"] }`. The evaluator itself is
+//! a separate crate (`ckc-rs`); cardpack only ships the Cactus Kev primitives.
+//!
+//! Running this example needs no `--features` flag — the self dev-dependency in
+//! Cargo.toml turns it on for the repo's own examples.
 
 use cardpack::basic::types::traits::Ranged;
 use cardpack::prelude::*;

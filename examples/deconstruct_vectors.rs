@@ -1,5 +1,17 @@
 //! Dumps golden vectors for the /deconstruct regeneration pack.
 //! Public API only — this program is a consumer of the crate.
+//!
+//! # Features
+//!
+//! Uses `std` + `i18n` + `yaml`. cardpack is pure by default (`default = []`),
+//! so to use these APIs in your own crate enable them explicitly:
+//! `cardpack = { version = "0.9", features = ["std", "i18n", "yaml"] }`
+//! (`yaml` implies `serde`). Note this dumper writes files, but it does so with
+//! its own `std::fs` — reading decks from a YAML *file* via cardpack would need
+//! the separate `std-io` feature.
+//!
+//! Running this example needs no `--features` flag — the self dev-dependency in
+//! Cargo.toml turns them on for the repo's own examples.
 
 // This example is a *consumer* of the crate (a golden-vector dumper), not part
 // of the pure kernel, so it deliberately performs filesystem I/O. The

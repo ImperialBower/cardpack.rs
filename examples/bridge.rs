@@ -1,3 +1,12 @@
+//! # Features
+//!
+//! Uses `std` (thread-RNG shuffle and other std-gated helpers). cardpack is pure
+//! by default (`default = []`), so to use these APIs in your own crate enable it
+//! explicitly: `cardpack = { version = "0.9", features = ["std"] }`
+//!
+//! Running this example needs no `--features` flag — the self dev-dependency in
+//! Cargo.toml turns it on for the repo's own examples.
+
 use cardpack::basic::types::traits::Ranged;
 use cardpack::prelude::{CardError, Decked, FrenchSuit, Pile, Pip, Standard52};
 use std::fmt;
