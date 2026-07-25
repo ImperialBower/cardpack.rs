@@ -3,7 +3,7 @@ type: Playbook
 title: Build, test, and quality gates
 description: make (ayce) is the everything gate — fmt, build, three test layers, clippy-pedantic, MSRV, no_std, docs; plus mutants, miri, coverage, and deny.
 tags: [workflow, make, ci, testing]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-07-25T00:00:00Z
 ---
 
 # Day-to-day
@@ -33,6 +33,21 @@ filesystem seam gets its own pass since `std-io` is outside `full` —
   `benches/draw.rs`), `make deny` / `make audit` / `make unused-deps`.
 * `make nightly` — nightly test + clippy.
 * Property tests: `tests/properties.rs` (proptest).
+
+# Golden YAML fixtures
+
+`make yaml-fixtures` runs `cargo ex yaml_decks`, regenerating one fixture per
+`DeckKind` into `tests/fixtures/yaml/`. It is **idempotent**: run it twice and
+`git status` is clean the second time, so CI can assert
+`git diff --exit-code tests/fixtures/yaml/`.
+
+`tests/yaml_golden.rs` compares generated output to those files **byte-for-byte**,
+which makes `serde_norway`'s formatting part of the contract — a dependency bump
+that changes quoting or indentation is *supposed* to turn it red. Regenerate,
+review the diff, note it in the CHANGELOG; do not loosen the comparison
+([envelope decision](/decisions/yaml-envelope-format.md)). A companion test
+pins the fixture count to `DeckKind::all().len()`, so a 15th deck cannot land
+without a fixture.
 
 # Conventions
 

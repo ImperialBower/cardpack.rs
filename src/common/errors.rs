@@ -1,7 +1,16 @@
 use alloc::string::String;
 use thiserror::Error;
 
+/// The crate's single error type.
+///
+/// The enum is `#[non_exhaustive]`: new error cases can be added in minor
+/// releases without breaking downstream `match` statements. Follow the same
+/// rule [`DeckKind`](crate::basic::decks::registry::DeckKind) does and always
+/// include a wildcard arm. Some variants are gated behind the `yaml` feature,
+/// so the set of reachable cases depends on the features you enable — another
+/// reason not to match exhaustively.
 #[derive(Error, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum CardError {
     #[error("Fubar should not be possible.")]
     Fubar,

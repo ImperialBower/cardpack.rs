@@ -286,6 +286,64 @@
 //! // fundamental is the validate method.
 //! assert!(Tiny::validate());
 //! ```
+//!
+//! ## Decks as YAML
+//!
+//! With the `yaml` feature every deck round-trips through YAML —
+//! `deck → YAML → deck` — using a self-describing *envelope* that carries the
+//! deck's identity alongside its cards, rather than a bare card list:
+//!
+//! ```yaml
+//! version: 1
+//! name: Tiny
+//! fluent_deck_key: french
+//! count: 4
+//! cards:
+//! - suit: { weight: 3, pip_type: Suit, index: 'S', symbol: '♠', value: 4 }
+//!   rank: { weight: 12, pip_type: Rank, index: 'A', symbol: 'A', value: 11 }
+//! # ...
+//! ```
+//!
+//! There are three entry points, one per layer:
+//!
+//! - [`YamlDecked`](basic::types::traits::YamlDecked) — blanket-implemented for
+//!   every [`DeckedBase`](basic::types::traits::DeckedBase) type, so the `Tiny`
+//!   deck defined above gets `to_yaml`, `deck_from_yaml`, and `validate_yaml`
+//!   for free, exactly like the decks shipped in this crate.
+//! - [`DeckKind`](basic::decks::registry::DeckKind) — the non-generic path:
+//!   serialize a deck you only know at runtime, and parse a document back into
+//!   the registry variant that produced it.
+//! - [`Pile<T>`](basic::types::pile::Pile) — the *instance* path. Order is
+//!   preserved, so a shuffled deck or a dealt hand round-trips as-is. Unlike the
+//!   deck-level paths, a `Pile` may legitimately be empty (fully drawn) and need
+//!   not hold every card in the deck; membership, not cardinality, is the rule.
+//!
+//! ```ignore
+//! // ignored under cargo test --no-default-features (needs the `yaml` feature)
+//! use cardpack::prelude::*;
+//!
+//! // Type level: any DeckedBase implementor, including your own.
+//! let yaml = French::to_yaml().unwrap();
+//! assert_eq!(French::deck_from_yaml(&yaml).unwrap(), French::base_vec());
+//!
+//! // A well-formed document describing the *wrong* deck is still an error:
+//! assert!(Tarot::validate_yaml(&yaml).is_err());
+//!
+//! // Registry level: round-trips through the deck's identity.
+//! for kind in DeckKind::all() {
+//!     assert_eq!(DeckKind::from_yaml(&kind.to_yaml().unwrap()).unwrap(), *kind);
+//! }
+//!
+//! // Instance level: order survives, and so does a partial hand.
+//! let shuffled = Pile::<Standard52>::deck().shuffled_with_seed(42);
+//! let restored = Pile::<Standard52>::from_yaml(&shuffled.to_yaml().unwrap()).unwrap();
+//! assert_eq!(restored, shuffled);
+//! ```
+//!
+//! The reader accepts the legacy bare-sequence form as well — the format
+//! `BasicCard::cards_from_yaml_str` has always taken, and the one
+//! `src/basic/decks/yaml/razz.yaml` is written in — so envelope support is a
+//! strict superset of what came before.
 
 #![allow(clippy::needless_doctest_main)]
 #![cfg_attr(doc, doc = include_str!("../README.md"))]

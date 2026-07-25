@@ -37,17 +37,17 @@ Three shipped YAML files exist under `src/basic/decks/yaml/`: `french.yaml` (54 
 
 | Component | Status |
 |---|---|
-| `DeckYaml` envelope type + shape-sniffing reader | Planned |
-| `CardError` YAML variants | Planned |
-| `YamlDecked` blanket trait | Planned |
-| `DeckKind::to_yaml` / `from_yaml` | Planned |
-| `Pile<T>::to_yaml` / `from_yaml` | Planned |
-| `examples/yaml_decks.rs` fixture generator | Planned |
-| 14 golden fixtures under `tests/fixtures/yaml/` | Planned |
-| `tests/yaml_roundtrip.rs` | Planned |
-| `tests/yaml_golden.rs` | Planned |
-| `tests/yaml_errors.rs` | Planned |
-| Docs / CHANGELOG / `.okf/` bundle | Planned |
+| `DeckYaml` envelope type + shape-sniffing reader | Done |
+| `CardError` YAML variants | Done |
+| `YamlDecked` blanket trait | Done |
+| `DeckKind::to_yaml` / `from_yaml` | Done |
+| `Pile<T>::to_yaml` / `from_yaml` | Done |
+| `examples/yaml_decks.rs` fixture generator | Done |
+| 14 golden fixtures under `tests/fixtures/yaml/` | Done |
+| `tests/yaml_roundtrip.rs` | Done |
+| `tests/yaml_golden.rs` | Done |
+| `tests/yaml_errors.rs` | Done |
+| Docs / CHANGELOG / `.okf/` bundle | Done |
 
 ---
 
@@ -331,14 +331,14 @@ Deliberately **not** length-checked: `French::decks(4)` produces a 216-card pile
 
 ### Tasks
 
-- [ ] Add the six `#[cfg(feature = "yaml")] CardError` variants; confirm `CardError` keeps `Eq + PartialEq` and that `cargo build --no-default-features` is still green
-- [ ] Write the `DeckYaml` struct with `version`/`name`/`fluent_deck_key`/`count`/`cards`, deriving `Serialize`/`Deserialize`
-- [ ] `from_decked::<T>()` and `new(...)` constructors; `to_yaml()`
-- [ ] `from_yaml()` with `serde_norway::Value` shape-sniffing (Mapping → envelope, Sequence → legacy, else `YamlMalformed`) and the `count == cards.len()` guard
-- [ ] Reroute `BasicCard::cards_from_yaml_str` (`basic_card.rs:109`) through `DeckYaml::from_yaml`; keep its signature and doc comment contract intact
-- [ ] Unit tests (`mod basic__types__deck_yaml_tests`): envelope round-trip; legacy sequence parse yields empty `name`; `count` mismatch errors with `YamlCountMismatch`; scalar document errors with `YamlMalformed`; flow-style sequence (`[{...}]`) parses as legacy
-- [ ] Regression test: `BasicCard::cards_from_yaml_str(include_str!("../decks/yaml/razz.yaml"))` still yields 52 cards (path is relative to `src/basic/types/deck_yaml.rs`)
-- [ ] `cargo test --features yaml --lib` green
+- [x] Add the six `#[cfg(feature = "yaml")] CardError` variants; confirm `CardError` keeps `Eq + PartialEq` and that `cargo build --no-default-features` is still green
+- [x] Write the `DeckYaml` struct with `version`/`name`/`fluent_deck_key`/`count`/`cards`, deriving `Serialize`/`Deserialize`
+- [x] `from_decked::<T>()` and `new(...)` constructors; `to_yaml()`
+- [x] `from_yaml()` with `serde_norway::Value` shape-sniffing (Mapping → envelope, Sequence → legacy, else `YamlMalformed`) and the `count == cards.len()` guard
+- [x] Reroute `BasicCard::cards_from_yaml_str` (`basic_card.rs:109`) through `DeckYaml::from_yaml`; keep its signature and doc comment contract intact
+- [x] Unit tests (`mod basic__types__deck_yaml_tests`): envelope round-trip; legacy sequence parse yields empty `name`; `count` mismatch errors with `YamlCountMismatch`; scalar document errors with `YamlMalformed`; flow-style sequence (`[{...}]`) parses as legacy
+- [x] Regression test: `BasicCard::cards_from_yaml_str(include_str!("../decks/yaml/razz.yaml"))` still yields 52 cards (path is relative to `src/basic/types/deck_yaml.rs`)
+- [x] `cargo test --features yaml --lib` green
 
 ---
 
@@ -352,12 +352,12 @@ Deliberately **not** length-checked: `French::decks(4)` produces a 216-card pile
 
 ### Tasks
 
-- [ ] Define `YamlDecked: DeckedBase` with default bodies for `to_yaml` and `deck_from_yaml`
-- [ ] Implement `validate_yaml`: reject empty `cards` (`YamlEmptyDeck`); if `name` is non-empty and `!= Self::deck_name()`, reject (`YamlDeckMismatch`); compare `cards` against `Self::base_vec()` and reject on difference
-- [ ] `impl<T: DeckedBase> YamlDecked for T {}`
-- [ ] Doc examples on each method (they become doctests under `--features yaml`)
-- [ ] Unit tests: `French::to_yaml()` → `French::deck_from_yaml()` equals `French::base_vec()`; `Tarot::validate_yaml(&French::to_yaml()?)` errors; a local `struct FakeDeck` implementing only `DeckedBase` gets all three methods (proves the blanket impl reaches consumer types)
-- [ ] `cargo test --features yaml --lib` and `cargo test --doc --features full` green
+- [x] Define `YamlDecked: DeckedBase` with default bodies for `to_yaml` and `deck_from_yaml`
+- [x] Implement `validate_yaml`: reject empty `cards` (`YamlEmptyDeck`); if `name` is non-empty and `!= Self::deck_name()`, reject (`YamlDeckMismatch`); compare `cards` against `Self::base_vec()` and reject on difference
+- [x] `impl<T: DeckedBase> YamlDecked for T {}`
+- [x] Doc examples on each method (they become doctests under `--features yaml`)
+- [x] Unit tests: `French::to_yaml()` → `French::deck_from_yaml()` equals `French::base_vec()`; `Tarot::validate_yaml(&French::to_yaml()?)` errors; a local `struct FakeDeck` implementing only `DeckedBase` gets all three methods (proves the blanket impl reaches consumer types)
+- [x] `cargo test --features yaml --lib` and `cargo test --doc --features full` green
 
 ---
 
@@ -370,12 +370,12 @@ Deliberately **not** length-checked: `French::decks(4)` produces a 216-card pile
 
 ### Tasks
 
-- [ ] Add a `#[cfg(feature = "yaml")] impl DeckKind` block with `to_yaml`/`from_yaml`
-- [ ] `to_yaml` builds the envelope from `self.deck_name()` (`:109`), `self.fluent_deck_key()` (`:167`), `self.base_vec()` (`:142`)
-- [ ] `from_yaml` parses, rejects empty `cards` (`YamlEmptyDeck`) and empty `name` (`YamlUnknownDeck("")` — a legacy sequence is unidentifiable), then matches `name` against `all()`
-- [ ] Module doc example showing the `for kind in DeckKind::all()` round-trip, mirroring the existing example at `registry.rs:9-16`
-- [ ] Unit tests: `deck_name__all_distinct` (pins the assumption `from_yaml` rests on); round-trip over `all()`; unknown name errors with `YamlUnknownDeck`; legacy sequence errors
-- [ ] `cargo test --features yaml --lib` green
+- [x] Add a `#[cfg(feature = "yaml")] impl DeckKind` block with `to_yaml`/`from_yaml`
+- [x] `to_yaml` builds the envelope from `self.deck_name()` (`:109`), `self.fluent_deck_key()` (`:167`), `self.base_vec()` (`:142`)
+- [x] `from_yaml` parses, rejects empty `cards` (`YamlEmptyDeck`) and empty `name` (`YamlUnknownDeck("")` — a legacy sequence is unidentifiable), then matches `name` against `all()`
+- [x] Module doc example showing the `for kind in DeckKind::all()` round-trip, mirroring the existing example at `registry.rs:9-16`
+- [x] Unit tests: `deck_name__all_distinct` (pins the assumption `from_yaml` rests on); round-trip over `all()`; unknown name errors with `YamlUnknownDeck`; legacy sequence errors
+- [x] `cargo test --features yaml --lib` green
 
 ---
 
@@ -388,12 +388,12 @@ Deliberately **not** length-checked: `French::decks(4)` produces a 216-card pile
 
 ### Tasks
 
-- [ ] `to_yaml(&self)` — envelope from `DeckType::deck_name()`, `DeckType::fluent_deck_key()`, and `self.into_basic_cards()` (`:387`), preserving order
-- [ ] `from_yaml(yaml_str)` — parse; if `name` is non-empty and `!= DeckType::deck_name()`, error with `YamlDeckMismatch`; validate each card is present in `DeckType::base_vec()` (else `YamlForeignCard`); build via `From<Vec<BasicCard>>` (`:994`)
-- [ ] Explicitly allow an empty `cards` list (a fully-drawn deck), and explicitly do **not** compare lengths against `base_vec()`
-- [ ] Doc examples: shuffled round-trip with `shuffled_with_seed` (`:775`); a five-card dealt hand round-trip
-- [ ] Unit tests: `Standard52::deck().shuffled_with_seed(42)` round-trips with order intact; `French::decks(4)` (216 cards) round-trips; empty pile round-trips; `Pile::<Tarot>::from_yaml(&French::deck().to_yaml()?)` errors with `YamlDeckMismatch`; an envelope carrying the right name but a foreign card errors with `YamlForeignCard`
-- [ ] `cargo test --features yaml --lib` green
+- [x] `to_yaml(&self)` — envelope from `DeckType::deck_name()`, `DeckType::fluent_deck_key()`, and `self.into_basic_cards()` (`:387`), preserving order
+- [x] `from_yaml(yaml_str)` — parse; if `name` is non-empty and `!= DeckType::deck_name()`, error with `YamlDeckMismatch`; validate each card is present in `DeckType::base_vec()` (else `YamlForeignCard`); build via `From<Vec<BasicCard>>` (`:994`)
+- [x] Explicitly allow an empty `cards` list (a fully-drawn deck), and explicitly do **not** compare lengths against `base_vec()`
+- [x] Doc examples: shuffled round-trip with `shuffled_with_seed` (`:775`); a five-card dealt hand round-trip
+- [x] Unit tests: `Standard52::deck().shuffled_with_seed(42)` round-trips with order intact; `French::decks(4)` (216 cards) round-trips; empty pile round-trips; `Pile::<Tarot>::from_yaml(&French::deck().to_yaml()?)` errors with `YamlDeckMismatch`; an envelope carrying the right name but a foreign card errors with `YamlForeignCard`
+- [x] `cargo test --features yaml --lib` green
 
 ---
 
@@ -409,12 +409,12 @@ Deliberately **not** length-checked: `French::decks(4)` produces a 216-card pile
 
 ### Tasks
 
-- [ ] Write the generator following the `examples/deconstruct_vectors.rs` template exactly: `# Features` doc section naming `std` + `yaml`, and the `#![allow(clippy::disallowed_types, clippy::disallowed_methods)]` header with the same "this is a consumer, not the kernel" rationale (`deconstruct_vectors.rs:16-20`)
-- [ ] Iterate `DeckKind::all()`; slug each `deck_name()` via `to_lowercase().replace(' ', "_")`; write `tests/fixtures/yaml/<slug>.yaml`
-- [ ] Add the `[[example]]` entry to `Cargo.toml` with `required-features` — do **not** add a self dev-dependency (`Cargo.toml:85-92` documents why that breaks `cargo deny check bans`)
-- [ ] Add `make yaml-fixtures` running `cargo ex yaml_decks`, and mention it in `make help`
-- [ ] Generate the 14 fixtures; eyeball `tiny.yaml` (4 cards) and `standard_52.yaml` for shape
-- [ ] Verify idempotence: run twice, `git status` clean the second time
+- [x] Write the generator following the `examples/deconstruct_vectors.rs` template exactly: `# Features` doc section naming `std` + `yaml`, and the `#![allow(clippy::disallowed_types, clippy::disallowed_methods)]` header with the same "this is a consumer, not the kernel" rationale (`deconstruct_vectors.rs:16-20`)
+- [x] Iterate `DeckKind::all()`; slug each `deck_name()` via `to_lowercase().replace(' ', "_")`; write `tests/fixtures/yaml/<slug>.yaml`
+- [x] Add the `[[example]]` entry to `Cargo.toml` with `required-features` — do **not** add a self dev-dependency (`Cargo.toml:85-92` documents why that breaks `cargo deny check bans`)
+- [x] Add `make yaml-fixtures` running `cargo ex yaml_decks`, and mention it in `make help`
+- [x] Generate the 14 fixtures; eyeball `tiny.yaml` (4 cards) and `standard_52.yaml` for shape
+- [x] Verify idempotence: run twice, `git status` clean the second time
 
 ---
 
@@ -431,33 +431,33 @@ Each carries `#![cfg(all(feature = "yaml", not(target_arch = "wasm32")))]` and `
 
 ### Tasks — `tests/yaml_roundtrip.rs`
 
-- [ ] `every_deck_kind__roundtrips` — for each `DeckKind::all()`: `DeckKind::from_yaml(&kind.to_yaml()?)? == *kind`
-- [ ] `every_deck_kind__preserves_cards` — the parsed envelope's `cards` equals `kind.base_vec()`
-- [ ] `every_deck_kind__preserves_metadata` — `name` and `fluent_deck_key` survive
-- [ ] `typed_decks__roundtrip` — `T::deck_from_yaml(&T::to_yaml()?)? == T::base_vec()` for all 14 types (this is the type-level twin of the registry test, and it is what a consumer's custom deck would run)
-- [ ] `pile__shuffled_roundtrips_in_order` — `Pile::<French>::from_yaml(&shuffled.to_yaml()?)? == shuffled` for a seeded shuffle
-- [ ] `pile__partial_and_multideck_roundtrip` — a five-card hand and `French::decks(4)`
-- [ ] `proptest`: for any `seed: u64`, `Pile::<Standard52>::deck().shuffled_with_seed(seed)` round-trips — the reproducible-from-seed property `tests/properties.rs:1-13` is built on
+- [x] `every_deck_kind__roundtrips` — for each `DeckKind::all()`: `DeckKind::from_yaml(&kind.to_yaml()?)? == *kind`
+- [x] `every_deck_kind__preserves_cards` — the parsed envelope's `cards` equals `kind.base_vec()`
+- [x] `every_deck_kind__preserves_metadata` — `name` and `fluent_deck_key` survive
+- [x] `typed_decks__roundtrip` — `T::deck_from_yaml(&T::to_yaml()?)? == T::base_vec()` for all 14 types (this is the type-level twin of the registry test, and it is what a consumer's custom deck would run)
+- [x] `pile__shuffled_roundtrips_in_order` — `Pile::<French>::from_yaml(&shuffled.to_yaml()?)? == shuffled` for a seeded shuffle
+- [x] `pile__partial_and_multideck_roundtrip` — a five-card hand and `French::decks(4)`
+- [x] `proptest`: for any `seed: u64`, `Pile::<Standard52>::deck().shuffled_with_seed(seed)` round-trips — the reproducible-from-seed property `tests/properties.rs:1-13` is built on
 
 ### Tasks — `tests/yaml_golden.rs`
 
-- [ ] `fixture_count__matches_registry` — the number of `.yaml` files in `tests/fixtures/yaml/` equals `DeckKind::all().len()`, so adding deck 15 without a fixture fails
-- [ ] `every_deck_kind__matches_golden_bytes` — `kind.to_yaml()?` is byte-identical to its fixture
-- [ ] `every_golden__deserializes_to_its_deck` — each fixture round-trips back to the right `DeckKind` and the right `base_vec()`
-- [ ] `every_golden__passes_validate_yaml` — each fixture passes the corresponding `T::validate_yaml`
+- [x] `fixture_count__matches_registry` — the number of `.yaml` files in `tests/fixtures/yaml/` equals `DeckKind::all().len()`, so adding deck 15 without a fixture fails
+- [x] `every_deck_kind__matches_golden_bytes` — `kind.to_yaml()?` is byte-identical to its fixture
+- [x] `every_golden__deserializes_to_its_deck` — each fixture round-trips back to the right `DeckKind` and the right `base_vec()`
+- [x] `every_golden__passes_validate_yaml` — each fixture passes the corresponding `T::validate_yaml`
 
 ### Tasks — `tests/yaml_errors.rs`
 
-- [ ] `malformed_yaml__errors` — a syntactically invalid document
-- [ ] `scalar_document__errors_malformed` — a bare scalar yields `YamlMalformed`
-- [ ] `truncated_envelope__errors_count_mismatch` — `count: 52` with 51 cards yields `YamlCountMismatch`
-- [ ] `empty_deck__errors` — an envelope with `cards: []` is rejected by `DeckKind::from_yaml` and `validate_yaml`, and **accepted** by `Pile::from_yaml`
-- [ ] `unknown_deck_name__errors` — `name: Bicycle` yields `YamlUnknownDeck`
-- [ ] `legacy_sequence__errors_in_deck_kind` — a bare list is unidentifiable, but the same input succeeds through `cards_from_yaml_str`
-- [ ] `foreign_card__errors` — a French card in a Tarot-named envelope yields `YamlForeignCard`
-- [ ] `wrong_deck_name__errors` — `Pile::<Tarot>::from_yaml(french_yaml)` yields `YamlDeckMismatch`
-- [ ] **`razz_bad__is_caught`** — `include_str!("../src/basic/decks/yaml/razz_bad.yml")` parses successfully (it is well-formed YAML) but fails `Razz::validate_yaml`. The headline test: it promotes the near-miss documented at `razz.rs:19-24` from a doc-comment anecdote to an enforced guarantee
-- [ ] All error assertions downcast to `CardError` and match the specific variant — not just `is_err()`, which would pass for the wrong reason
+- [x] `malformed_yaml__errors` — a syntactically invalid document
+- [x] `scalar_document__errors_malformed` — a bare scalar yields `YamlMalformed`
+- [x] `truncated_envelope__errors_count_mismatch` — `count: 52` with 51 cards yields `YamlCountMismatch`
+- [x] `empty_deck__errors` — an envelope with `cards: []` is rejected by `DeckKind::from_yaml` and `validate_yaml`, and **accepted** by `Pile::from_yaml`
+- [x] `unknown_deck_name__errors` — `name: Bicycle` yields `YamlUnknownDeck`
+- [x] `legacy_sequence__errors_in_deck_kind` — a bare list is unidentifiable, but the same input succeeds through `cards_from_yaml_str`
+- [x] `foreign_card__errors` — a French card in a Tarot-named envelope yields `YamlForeignCard`
+- [x] `wrong_deck_name__errors` — `Pile::<Tarot>::from_yaml(french_yaml)` yields `YamlDeckMismatch`
+- [x] **`razz_bad__is_caught`** — `include_str!("../src/basic/decks/yaml/razz_bad.yml")` parses successfully (it is well-formed YAML) but fails `Razz::validate_yaml`. The headline test: it promotes the near-miss documented at `razz.rs:19-24` from a doc-comment anecdote to an enforced guarantee
+- [x] All error assertions downcast to `CardError` and match the specific variant — not just `is_err()`, which would pass for the wrong reason
 
 ---
 
@@ -467,16 +467,16 @@ Each carries `#![cfg(all(feature = "yaml", not(target_arch = "wasm32")))]` and `
 
 ### Tasks
 
-- [ ] `src/prelude.rs` — gated re-exports for `DeckYaml` and `YamlDecked`
-- [ ] `src/prelude.rs` — add the missing `pub use crate::basic::decks::tiny::*;` (design decision 4: every other deck is re-exported, `Tiny` is not)
-- [ ] `src/lib.rs` — a short "Decks as YAML" section in the crate docs, next to the existing custom-deck example
-- [ ] `CHANGELOG.md` — `[Unreleased] ### Added` entry (Keep-a-Changelog). Purely additive: new gated API + new `CardError` variants. **Check whether the `CardError` variant additions are semver-major** — EPIC-02 Story 6 hit exactly this with `DeckKind` and resolved it by marking the enum `#[non_exhaustive]`; consider the same for `CardError`, and run `cargo semver-checks` to confirm
-- [ ] `README.md` — mention YAML serialization in the feature list
-- [ ] `.okf/decks/extending-decks.md` — expand the "Alternative: decks from YAML" section with the envelope format and `YamlDecked`; refresh `timestamp`
-- [ ] `.okf/architecture/feature-flags.md` — note what `yaml` now buys; refresh `timestamp`
-- [ ] Create `.okf/decisions/yaml-envelope-format.md` — the load-bearing decision: **the back-compat sequence reader must not be deleted**, because `razz.yaml` (`razz.rs:36`) depends on it at build time. A future "clean up the two code paths" refactor would pass CI on the new format and break `Razz`. Add it to `.okf/decisions/index.md`
-- [ ] Append a dated entry to `.okf/log.md`
-- [ ] `/okf:validate .okf --strict`
+- [x] `src/prelude.rs` — gated re-exports for `DeckYaml` and `YamlDecked`
+- [x] `src/prelude.rs` — add the missing `pub use crate::basic::decks::tiny::*;` (design decision 4: every other deck is re-exported, `Tiny` is not)
+- [x] `src/lib.rs` — a short "Decks as YAML" section in the crate docs, next to the existing custom-deck example
+- [x] `CHANGELOG.md` — `[Unreleased] ### Added` entry (Keep-a-Changelog). Purely additive: new gated API + new `CardError` variants. **Check whether the `CardError` variant additions are semver-major** — EPIC-02 Story 6 hit exactly this with `DeckKind` and resolved it by marking the enum `#[non_exhaustive]`; consider the same for `CardError`, and run `cargo semver-checks` to confirm
+- [x] `README.md` — mention YAML serialization in the feature list
+- [x] `.okf/decks/extending-decks.md` — expand the "Alternative: decks from YAML" section with the envelope format and `YamlDecked`; refresh `timestamp`
+- [x] `.okf/architecture/feature-flags.md` — note what `yaml` now buys; refresh `timestamp`
+- [x] Create `.okf/decisions/yaml-envelope-format.md` — the load-bearing decision: **the back-compat sequence reader must not be deleted**, because `razz.yaml` (`razz.rs:36`) depends on it at build time. A future "clean up the two code paths" refactor would pass CI on the new format and break `Razz`. Add it to `.okf/decisions/index.md`
+- [x] Append a dated entry to `.okf/log.md`
+- [x] `/okf:validate .okf --strict`
 
 ---
 

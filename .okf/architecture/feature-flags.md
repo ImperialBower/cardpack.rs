@@ -3,7 +3,7 @@ type: Architecture
 title: Cargo feature flags
 description: The pure-by-default feature matrix — default is an alloc-only no_std kernel; std, i18n, color, yaml, serde, std-io, and funky are opt-in.
 tags: [features, cargo, no_std, purity]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-07-25T00:00:00Z
 ---
 
 # Principle
@@ -21,7 +21,7 @@ else is opt-in.
 | `alloc` | (implied) | — | base of the kernel; `serde?/alloc` |
 | `i18n` | yes | `fluent-templates` (implies `std`) | `FluentName`, `Named`, `Card::fluent_name*`, [localization](/architecture/localization.md) |
 | `colored-display` | yes | `colored` (implies `std`) | `Color`, `Card::color*`, `Pile::to_color_*` |
-| `yaml` | yes | `serde_norway` (implies `std`, `serde`) | `BasicCard::cards_from_yaml_str` (pure, in-memory), the `Razz` deck |
+| `yaml` | yes | `serde_norway` (implies `std`, `serde`) | Full deck ↔ YAML round-tripping, pure and in-memory: `DeckYaml`, the `YamlDecked` blanket trait, `DeckKind::to_yaml`/`from_yaml`, `Pile::to_yaml`/`from_yaml`, `BasicCard::cards_from_yaml_str`, six `CardError::Yaml*` variants, and the `Razz` deck ([envelope decision](/decisions/yaml-envelope-format.md)) |
 | `serde` | yes | `serde` (implies `alloc`) | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io` | **no** | (implies `std`, `yaml`) | `BasicCard::cards_from_yaml_file` — the crate's one filesystem seam; deliberately excluded from `full` ([decision](/decisions/std-io-outside-full.md)) |
 | `funky` | **no** | (implies `std`, `serde`) | Balatro-style engine ([funky engine](/architecture/funky-engine.md)) |
@@ -43,7 +43,16 @@ else is opt-in.
   [the flag-free-examples decision](/decisions/examples-flag-free-alias.md)
   before changing this.
 * Deck-from-YAML **without** the filesystem is available under plain `yaml`:
-  `cards_from_yaml_str` + compile-time `include_str!` (how `Razz` works).
+  `cards_from_yaml_str` + compile-time `include_str!` (how `Razz` works). The
+  *write* side (`to_yaml`) is equally pure — it returns a `String`; nothing in
+  `yaml` touches `std::fs`. That is what keeps `std-io` a separate seam.
+* `yaml` is the only feature that changes `DeckKind::all()`'s **length**: the
+  `Razz` variant is gated, so the registry is 13 kinds without it and 14 with.
+  Anything sweeping the registry must read `DeckKind::all().len()` rather than
+  hardcode a count.
+* The `CardError::Yaml*` variants only exist under `yaml`, which is one reason
+  `CardError` is `#[non_exhaustive]` — exhaustive downstream matching could
+  never have been feature-portable.
 * `rand`'s `std_rng` feature is enabled unconditionally, *not* gated on
   `std` — see [the rand decision](/decisions/rand-std-rng-unconditional.md)
   before "cleaning that up."

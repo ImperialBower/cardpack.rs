@@ -22,6 +22,7 @@ pub use crate::basic::decks::skat::*;
 pub use crate::basic::decks::spades::*;
 pub use crate::basic::decks::standard52::*;
 pub use crate::basic::decks::tarot::*;
+pub use crate::basic::decks::tiny::*;
 pub use crate::basic::types::basic::BasicPileCell;
 pub use crate::basic::types::basic_card::BasicCard;
 pub use crate::basic::types::basic_pile::BasicPile;
