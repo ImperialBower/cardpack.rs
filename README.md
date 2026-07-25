@@ -32,7 +32,9 @@ use cardpack::prelude::*;
 fn main() {
   let mut pack = Standard52::deck();
 
-  pack.shuffle();
+  // Deterministic shuffle — works in the pure, `no_std` default build.
+  // With the `std` feature you can call `pack.shuffle()` for a thread-RNG shuffle.
+  pack.shuffle_with_seed(42);
 
   // Deal no-limit hold'em hands for two players:
   let small_blind = pack.draw(2).unwrap().sorted_by_rank();

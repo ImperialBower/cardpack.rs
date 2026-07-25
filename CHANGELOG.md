@@ -7,14 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Breaking
+Released as 0.10.0 — `Cargo.toml` is already bumped; this section is renamed
+to `## [0.10.0] — <date>` at tag time.
 
-- **`DeckKind` gained `Dashavatara` and `Mughal` variants and is now
-  `#[non_exhaustive]`.** Downstream exhaustive `match` statements over
-  `DeckKind` no longer compile: add a wildcard arm, or iterate
-  `DeckKind::all()` (the intended interface) instead. Marking the enum
-  `#[non_exhaustive]` means future deck additions will *not* be breaking
-  changes. Version bumped to 0.9.0 (the 0.x breaking slot) accordingly.
+### Breaking
 
 - **`CardError` is now `#[non_exhaustive]`.** Downstream exhaustive `match`
   statements over `CardError` no longer compile: add a wildcard arm. This
@@ -52,6 +48,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DeckYaml` and `YamlDecked` are re-exported from the prelude under `yaml`.
 
 - `Tiny` is now re-exported from the prelude, like every other deck.
+
+## [0.9.0] — 2026-07-23
+
+### Breaking
+
+- **`DeckKind` gained `Dashavatara` and `Mughal` variants and is now
+  `#[non_exhaustive]`.** Downstream exhaustive `match` statements over
+  `DeckKind` no longer compile: add a wildcard arm, or iterate
+  `DeckKind::all()` (the intended interface) instead. Marking the enum
+  `#[non_exhaustive]` means future deck additions will *not* be breaking
+  changes. Version bumped to 0.9.0 (the 0.x breaking slot) accordingly.
+
+### Added
 
 - **Ganjifa decks** — two traditional Indian/Persian playing-card decks
   ([EPIC-02](docs/EPIC-02_Ganjifa.md)) with the signature per-suit inverted
@@ -412,7 +421,9 @@ Single-focus release: serde support for piles.
 `serde` was a hard dependency in this release. In v0.6.12 it was moved
 behind an opt-out `serde` feature flag (still on by default).
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.8.1...v0.9.0
+[0.8.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.1...v0.8.0
 [0.7.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...v0.7.0
 [0.6.12]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.11...v0.6.12
 [0.6.11]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.10...v0.6.11

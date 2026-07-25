@@ -542,7 +542,9 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// use cardpack::prelude::*;
     ///
     /// /// The flaw in this is that there can be duplicate Cards.
-    /// let pile = Pile::<Standard52>::pile_up(3, || Standard52::deck().shuffled().draw(3).unwrap());
+    /// let pile = Pile::<Standard52>::pile_up(3, || {
+    ///     Standard52::deck().shuffled_with_seed(42).draw(3).unwrap()
+    /// });
     ///
     /// assert_eq!(pile.len(), 9);
     /// ```
@@ -664,7 +666,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let mut pile = Pile::<Standard52>::from_str("7♠ 6♠ 8♠").unwrap().shuffled();
+    /// let mut pile = Pile::<Standard52>::from_str("7♠ 6♠ 8♠").unwrap().shuffled_with_seed(42);
     /// let eight_of_spades = Card::<Standard52>::from_str("8S").unwrap();
     ///
     /// assert_eq!(pile.remove_card(&eight_of_spades).unwrap().to_string(), "8♠");
@@ -807,7 +809,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// use cardpack::prelude::*;
     ///
     /// let deck = Euchre32::deck();
-    /// let shuffled = deck.shuffled();
+    /// let shuffled = deck.shuffled_with_seed(42);
     ///
     /// assert!(deck.same(&shuffled));
     /// assert_eq!(deck, shuffled.sorted());

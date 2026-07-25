@@ -615,6 +615,28 @@ mod basic__types__traits_tests {
             );
         }
 
+        /// The header check earns its keep only on this case: cards that match
+        /// `base_vec()` exactly, under a name that claims a different deck.
+        /// `validate_yaml__rejects_other_deck` cannot pin it, because there
+        /// both the name *and* the cards disagree, so the card comparison
+        /// below would reject the document on its own. Delete the name guard
+        /// and this is the test that goes red.
+        #[test]
+        fn validate_yaml__rejects_right_cards_under_wrong_name() {
+            let forged = French::to_yaml()
+                .unwrap()
+                .replace("name: French", "name: Tarot");
+            let err = French::validate_yaml(&forged).unwrap_err();
+
+            assert_eq!(
+                *err.downcast_ref::<CardError>().unwrap(),
+                CardError::YamlDeckMismatch {
+                    expected: "French".to_string(),
+                    found: "Tarot".to_string(),
+                }
+            );
+        }
+
         #[test]
         fn validate_yaml__rejects_empty() {
             let empty = "version: 1\nname: French\nfluent_deck_key: french\ncount: 0\ncards: []\n";

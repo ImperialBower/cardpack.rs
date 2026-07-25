@@ -57,7 +57,19 @@ else is opt-in.
   `std` — see [the rand decision](/decisions/rand-std-rng-unconditional.md)
   before "cleaning that up."
 * Doctests that need optional features are marked `ignore` with a comment so
-  `cargo test --no-default-features` stays green.
+  `cargo test --no-default-features` stays green. **Prefer the ungated API
+  first** — reach for `ignore` only when there is no pure equivalent. Several
+  examples were needlessly `std`-only because they called `shuffle()`/
+  `shuffled()` (thread RNG, `#[cfg(feature = "std")]`) where
+  `shuffle_with_seed`/`shuffled_with_seed` are ungated and deterministic, which
+  makes the doctest both portable and reproducible.
+* `README.md` is pulled into the crate docs by
+  `#![cfg_attr(doc, doc = include_str!("../README.md"))]`, so **its fenced
+  `rust` blocks are compiled as doctests too** and are attributed to `src/lib.rs`
+  line numbers in failure output. A README example using a gated API breaks
+  `cargo test --no-default-features --doc`. Note that gate runs the **doc**
+  tests; `--no-default-features --lib` (what most of the Makefile targets use)
+  will not catch it.
 
 # Citations
 
