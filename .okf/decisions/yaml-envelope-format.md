@@ -66,5 +66,5 @@ round-tripping through the registry possible at all.
 [1] [src/basic/types/deck_yaml.rs](../../src/basic/types/deck_yaml.rs)
 [2] [src/basic/decks/razz.rs `base_vec()`](../../src/basic/decks/razz.rs)
 [3] [src/basic/decks/yaml/razz.yaml](../../src/basic/decks/yaml/razz.yaml)
-[4] [EPIC-03 YAML Deck Serialization](../../docs/EPIC-03_Yaml_Deck_Serialization.md)
+[4] [EPIC-03 YAML Deck Serialization](/references/epic-03-yaml-serialization.md)
 [5] [Creating a custom deck](/decks/extending-decks.md)

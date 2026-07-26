@@ -40,13 +40,13 @@ an Ace-low game needs a separate deck type with inverted rank weights (the
   (`AS KS …`). Jokers use `B`/`L` (big/little) with suit symbol `🃟`.
 * `draw(n)` is all-or-nothing (`Option`); `draw_first`/`draw_last` deal from
   top/bottom. Note: top-of-deck is the *front* of the vector today
-  (`remove(0)`, O(n)) — a tracked refactor candidate in
-  [docs/TECHNICAL_DEBT.md](../../docs/TECHNICAL_DEBT.md).
+  (`remove(0)`, O(n)) — a tracked refactor candidate in the
+  [technical debt register](/references/technical-debt.md).
 * Macros (`card!`, `cards!`, `french_cards!`) parse index strings into typed
   cards.
 
 # Citations
 
 [1] [src/lib.rs module docs](../../src/lib.rs)
-[2] [DECON-01 Card Model](../../docs/deconstruct/DECON-01_Card_Model_And_Ordering.md)
-[3] [DECON-02 Pile Operations](../../docs/deconstruct/DECON-02_Pile_Operations.md)
+[2] [DECON-01 Card Model](/references/decon-01-card-model.md)
+[3] [DECON-02 Pile Operations](/references/decon-02-pile-operations.md)

@@ -47,4 +47,4 @@ under `cfg(test)`. CI keeps the whole crate clippy-pedantic-clean at
 
 [1] [Cargo.toml](../../Cargo.toml)
 [2] [src/lib.rs](../../src/lib.rs)
-[3] [README.md](../../README.md)
+[3] [README.md](/references/readme.md)

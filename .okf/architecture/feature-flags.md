@@ -74,4 +74,4 @@ else is opt-in.
 # Citations
 
 [1] [Cargo.toml `[features]`](../../Cargo.toml)
-[2] [README "Cargo features"](../../README.md)
+[2] [README "Cargo features"](/references/readme.md)

@@ -34,12 +34,12 @@ component boundary was assessed and explicitly *not* recommended.
 
 # Where it's documented
 
-The authoritative assessment is
-[docs/audit-2026-07-18-domain-kernel.md](../../docs/audit-2026-07-18-domain-kernel.md)
-(scorecard, findings, fix sequencing). Cargo.toml's `[features]` comment cites
-it as "Invariant 3."
+The authoritative assessment is the
+[domain-kernel audit](/references/audit-domain-kernel.md)
+(`docs/audit-2026-07-18-domain-kernel.md` — scorecard, findings, fix
+sequencing). Cargo.toml's `[features]` comment cites it as "Invariant 3."
 
 # Citations
 
-[1] [docs/audit-2026-07-18-domain-kernel.md](../../docs/audit-2026-07-18-domain-kernel.md)
+[1] [docs/audit-2026-07-18-domain-kernel.md](/references/audit-domain-kernel.md)
 [2] [Cargo.toml](../../Cargo.toml)

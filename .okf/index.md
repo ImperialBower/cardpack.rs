@@ -12,4 +12,4 @@ okf_version: '0.1'
 * [Decks](decks/) - the 14 shipped deck kinds and how to author custom decks.
 * [Workflows](workflows/) - build/test/quality gates and WebAssembly support.
 * [Decisions](decisions/) - load-bearing decisions that are easy to accidentally undo.
-* [References](references/) - map of the in-repo documentation this bundle distills.
+* [References](references/) - map of the in-repo documentation this bundle distills, plus a pointer concept for each mirrored document.

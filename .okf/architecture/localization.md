@@ -33,11 +33,11 @@ Draft locales use **confidence tiering** — see DECON-07 for the contract.
 The `fluent_*` path in `card.rs` carries `HACK` markers: the author suspects
 fluent-templates may be outliving its usefulness, with "deck from YAML"
 floated as the successor direction
-([docs/TECHNICAL_DEBT.md](../../docs/TECHNICAL_DEBT.md)). Treat major
+([technical debt](/references/technical-debt.md)). Treat major
 investment here with caution.
 
 # Citations
 
 [1] [src/localization/](../../src/localization.rs)
-[2] [DECON-07 Localization](../../docs/deconstruct/DECON-07_Localization.md)
-[3] [docs/2026-04-29-la-tlh-locales-design.md](../../docs/2026-04-29-la-tlh-locales-design.md)
+[2] [DECON-07 Localization](/references/decon-07-localization.md)
+[3] [docs/2026-04-29-la-tlh-locales-design.md](/references/la-tlh-locales-design.md)

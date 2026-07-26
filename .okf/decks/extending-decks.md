@@ -80,5 +80,5 @@ that case.
 # Citations
 
 [1] [src/lib.rs "Custom Deck example" and "Decks as YAML"](../../src/lib.rs)
-[2] [DECON-08 Extension and Registry](../../docs/deconstruct/DECON-08_Extension_And_Registry.md)
-[3] [EPIC-03 YAML Deck Serialization](../../docs/EPIC-03_Yaml_Deck_Serialization.md)
+[2] [DECON-08 Extension and Registry](/references/decon-08-extension-and-registry.md)
+[3] [EPIC-03 YAML Deck Serialization](/references/epic-03-yaml-serialization.md)
