@@ -1,0 +1,53 @@
+version: 1
+name: Tiny
+fluent_deck_key: french
+count: 4
+cards:
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    weight: 12
+    pip_type: Rank
+    index: 'A'
+    symbol: 'A'
+    value: 11
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'S'
+    symbol: '♠'
+    value: 4
+  rank:
+    weight: 11
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 10
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    weight: 12
+    pip_type: Rank
+    index: 'A'
+    symbol: 'A'
+    value: 11
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 3
+  rank:
+    weight: 11
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 10

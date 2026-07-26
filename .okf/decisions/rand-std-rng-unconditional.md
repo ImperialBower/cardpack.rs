@@ -30,4 +30,4 @@ this.
 # Citations
 
 [1] [Cargo.toml rand dependency comment](../../Cargo.toml)
-[2] [DECON-03 Shuffling and Determinism](../../docs/deconstruct/DECON-03_Shuffling_And_Determinism.md)
+[2] [DECON-03 Shuffling and Determinism](/references/decon-03-shuffling.md)

@@ -48,6 +48,6 @@ cargo run --example funky_tour --features funky   # seeded tour: rounds, edition
 
 # Citations
 
-[1] [docs/EPIC-01_Funky.md](../../docs/EPIC-01_Funky.md)
-[2] [README "Funky"](../../README.md)
-[3] [docs/2026-07-11-effect-registry-design.md](../../docs/2026-07-11-effect-registry-design.md)
+[1] [docs/EPIC-01_Funky.md](/references/epic-01-funky.md)
+[2] [README "Funky"](/references/readme.md)
+[3] [docs/2026-07-11-effect-registry-design.md](/references/effect-registry-design.md)

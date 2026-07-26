@@ -34,4 +34,4 @@ without the filesystem already exists under plain `yaml`:
 # Citations
 
 [1] [Cargo.toml std-io comment](../../Cargo.toml)
-[2] [docs/audit-2026-07-18-domain-kernel.md](../../docs/audit-2026-07-18-domain-kernel.md)
+[2] [docs/audit-2026-07-18-domain-kernel.md](/references/audit-domain-kernel.md)

@@ -1,0 +1,389 @@
+version: 1
+name: Skat
+fluent_deck_key: skat
+count: 32
+cards:
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 7
+    pip_type: Rank
+    index: 'D'
+    symbol: 'D'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 6
+    pip_type: Rank
+    index: 'Z'
+    symbol: 'Z'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 5
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 4
+    pip_type: Rank
+    index: 'O'
+    symbol: 'O'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 3
+    pip_type: Rank
+    index: 'U'
+    symbol: 'U'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 2
+    pip_type: Rank
+    index: '9'
+    symbol: '9'
+    value: 2
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 1
+    pip_type: Rank
+    index: '8'
+    symbol: '8'
+    value: 0
+- suit:
+    weight: 3
+    pip_type: Suit
+    index: 'E'
+    symbol: '♣'
+    value: 4
+  rank:
+    weight: 0
+    pip_type: Rank
+    index: '7'
+    symbol: '7'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 7
+    pip_type: Rank
+    index: 'D'
+    symbol: 'D'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 6
+    pip_type: Rank
+    index: 'Z'
+    symbol: 'Z'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 5
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 4
+    pip_type: Rank
+    index: 'O'
+    symbol: 'O'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 3
+    pip_type: Rank
+    index: 'U'
+    symbol: 'U'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 2
+    pip_type: Rank
+    index: '9'
+    symbol: '9'
+    value: 2
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 1
+    pip_type: Rank
+    index: '8'
+    symbol: '8'
+    value: 0
+- suit:
+    weight: 2
+    pip_type: Suit
+    index: 'L'
+    symbol: '♠'
+    value: 3
+  rank:
+    weight: 0
+    pip_type: Rank
+    index: '7'
+    symbol: '7'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 7
+    pip_type: Rank
+    index: 'D'
+    symbol: 'D'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 6
+    pip_type: Rank
+    index: 'Z'
+    symbol: 'Z'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 5
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 4
+    pip_type: Rank
+    index: 'O'
+    symbol: 'O'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 3
+    pip_type: Rank
+    index: 'U'
+    symbol: 'U'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 2
+    pip_type: Rank
+    index: '9'
+    symbol: '9'
+    value: 2
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 1
+    pip_type: Rank
+    index: '8'
+    symbol: '8'
+    value: 0
+- suit:
+    weight: 1
+    pip_type: Suit
+    index: 'H'
+    symbol: '♥'
+    value: 2
+  rank:
+    weight: 0
+    pip_type: Rank
+    index: '7'
+    symbol: '7'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 7
+    pip_type: Rank
+    index: 'D'
+    symbol: 'D'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 6
+    pip_type: Rank
+    index: 'Z'
+    symbol: 'Z'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 5
+    pip_type: Rank
+    index: 'K'
+    symbol: 'K'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 4
+    pip_type: Rank
+    index: 'O'
+    symbol: 'O'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 3
+    pip_type: Rank
+    index: 'U'
+    symbol: 'U'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 2
+    pip_type: Rank
+    index: '9'
+    symbol: '9'
+    value: 2
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 1
+    pip_type: Rank
+    index: '8'
+    symbol: '8'
+    value: 0
+- suit:
+    weight: 0
+    pip_type: Suit
+    index: 'S'
+    symbol: '♦'
+    value: 1
+  rank:
+    weight: 0
+    pip_type: Rank
+    index: '7'
+    symbol: '7'
+    value: 0

@@ -27,8 +27,8 @@ rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
 
 # Where to look
 
-* [docs/wasm.md](../../docs/wasm.md) — backend setup, recommended feature
-  combos, runtime gotchas.
+* [wasm guide](/references/wasm-guide.md) (`docs/wasm.md`) — backend setup,
+  recommended feature combos, runtime gotchas.
 * [examples/wasm.rs](../../examples/wasm.rs) — working example.
 * `tests/wasm.rs` — wasm-bindgen-test suite (`make test-wasm`).
 
@@ -38,5 +38,5 @@ rand's `std_rng` feature, enabled unconditionally —
 
 # Citations
 
-[1] [docs/wasm.md](../../docs/wasm.md)
+[1] [docs/wasm.md](/references/wasm-guide.md)
 [2] [Cargo.toml wasm32 target section](../../Cargo.toml)

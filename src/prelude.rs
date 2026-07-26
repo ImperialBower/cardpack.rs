@@ -22,12 +22,17 @@ pub use crate::basic::decks::skat::*;
 pub use crate::basic::decks::spades::*;
 pub use crate::basic::decks::standard52::*;
 pub use crate::basic::decks::tarot::*;
+pub use crate::basic::decks::tiny::*;
 pub use crate::basic::types::basic::BasicPileCell;
 pub use crate::basic::types::basic_card::BasicCard;
 pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
+#[cfg(feature = "yaml")]
+pub use crate::basic::types::deck_yaml::DeckYaml;
 pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
+#[cfg(feature = "yaml")]
+pub use crate::basic::types::traits::YamlDecked;
 pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase, Ranged};
 pub use crate::common::errors::CardError;
 #[cfg(feature = "i18n")]

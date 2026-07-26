@@ -3,13 +3,21 @@ use crate::basic::types::basic_card::BasicCard;
 pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
 use crate::basic::types::combos::Combos;
+#[cfg(feature = "yaml")]
+use crate::basic::types::deck_yaml::DeckYaml;
 pub use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
+#[cfg(feature = "yaml")]
+use crate::common::errors::CardError;
 use crate::prelude::PipType;
+#[cfg(feature = "yaml")]
+use alloc::boxed::Box;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::cell::Cell;
+#[cfg(feature = "yaml")]
+use core::error::Error;
 use core::hash::Hash;
 use core::str::FromStr;
 use itertools::Itertools;
@@ -139,6 +147,103 @@ where
         })
     }
 }
+
+/// YAML serialization for every deck.
+///
+/// Blanket-implemented for all [`DeckedBase`] types, so shipped decks *and*
+/// consumer-authored ones get it with no extra work — the same
+/// "implement one trait, get everything" property [`Decked`] and
+/// [`Ranged`] already have:
+///
+/// ```
+/// use cardpack::prelude::*;
+///
+/// let yml = French::to_yaml().unwrap();
+///
+/// assert!(yml.starts_with("version: 1\nname: French"));
+/// assert_eq!(French::deck_from_yaml(&yml).unwrap(), French::base_vec());
+/// ```
+///
+/// There is deliberately no override hook. One format for every deck is what
+/// makes the golden fixtures and
+/// [`DeckKind::from_yaml`](crate::basic::decks::registry::DeckKind) meaningful.
+#[cfg(feature = "yaml")]
+pub trait YamlDecked: DeckedBase {
+    /// This deck's canonical card list as an envelope YAML document.
+    ///
+    /// # Errors
+    ///
+    /// Propagates serialization failure, boxed.
+    fn to_yaml() -> Result<String, Box<dyn Error>> {
+        DeckYaml::from_decked::<Self>().to_yaml()
+    }
+
+    /// Parse a YAML document — envelope or legacy sequence — into cards.
+    ///
+    /// This does **not** check that the cards belong to this deck; use
+    /// [`validate_yaml`](Self::validate_yaml) for that.
+    ///
+    /// # Errors
+    ///
+    /// Malformed YAML, or a `count` header that disagrees with the card list.
+    fn deck_from_yaml(yaml_str: &str) -> Result<Vec<BasicCard>, Box<dyn Error>> {
+        Ok(DeckYaml::from_yaml(yaml_str)?.cards)
+    }
+
+    /// Verify a YAML document describes *this* deck, exactly.
+    ///
+    /// The YAML analogue of [`Decked::validate`]. This is the check that the
+    /// deliberately-broken `src/basic/decks/yaml/razz_bad.yml` fails: a file
+    /// can be perfectly well-formed YAML, parse without complaint, and still
+    /// be the wrong deck.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let french = French::to_yaml().unwrap();
+    ///
+    /// assert!(French::validate_yaml(&french).is_ok());
+    /// assert!(Tarot::validate_yaml(&french).is_err());
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// [`CardError::YamlEmptyDeck`] for an empty card list, or
+    /// [`CardError::YamlDeckMismatch`] when the document names a different
+    /// deck or its cards differ from `Self::base_vec()`.
+    fn validate_yaml(yaml_str: &str) -> Result<(), Box<dyn Error>> {
+        let deck_yaml = DeckYaml::from_yaml(yaml_str)?;
+
+        // Empty is rejected here but *allowed* for a `Pile`, where a
+        // fully-drawn deck is legitimate. Do not "harmonize" the two: this
+        // asymmetry is what keeps a silently-empty deck from passing as valid.
+        // See src/basic/decks/razz.rs:36-39.
+        if deck_yaml.cards.is_empty() {
+            return Err(Box::new(CardError::YamlEmptyDeck));
+        }
+
+        // An empty `name` means a legacy bare sequence: there is no header to
+        // check, so identity is decided by the card comparison below.
+        if !deck_yaml.name.is_empty() && deck_yaml.name != Self::deck_name() {
+            return Err(Box::new(CardError::YamlDeckMismatch {
+                expected: Self::deck_name(),
+                found: deck_yaml.name,
+            }));
+        }
+
+        if deck_yaml.cards != Self::base_vec() {
+            return Err(Box::new(CardError::YamlDeckMismatch {
+                expected: Self::deck_name(),
+                found: deck_yaml.name,
+            }));
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(feature = "yaml")]
+impl<T: DeckedBase> YamlDecked for T {}
 
 /// Trait of convenience to organize what needs to be done in order to create a revised
 /// [Cactus Kev](https://suffe.cool/poker/evaluator.html) number.
@@ -475,6 +580,124 @@ mod basic__types__traits_tests {
     use super::*;
     use crate::basic::decks::standard52::Standard52;
     use crate::prelude::{Decked, DeckedBase, FrenchBasicCard};
+
+    #[cfg(feature = "yaml")]
+    #[allow(non_snake_case)]
+    mod yaml_decked_tests {
+        use super::*;
+        use crate::basic::decks::french::French;
+        use crate::basic::decks::tarot::Tarot;
+        use crate::common::errors::CardError;
+
+        #[test]
+        fn to_yaml__then_deck_from_yaml__roundtrips() {
+            let yml = French::to_yaml().unwrap();
+
+            assert_eq!(French::deck_from_yaml(&yml).unwrap(), French::base_vec());
+        }
+
+        #[test]
+        fn validate_yaml__accepts_own_deck() {
+            assert!(French::validate_yaml(&French::to_yaml().unwrap()).is_ok());
+        }
+
+        #[test]
+        fn validate_yaml__rejects_other_deck() {
+            let err = Tarot::validate_yaml(&French::to_yaml().unwrap()).unwrap_err();
+            let card_err = err.downcast_ref::<CardError>().unwrap();
+
+            assert_eq!(
+                *card_err,
+                CardError::YamlDeckMismatch {
+                    expected: "Tarot".to_string(),
+                    found: "French".to_string(),
+                }
+            );
+        }
+
+        /// The header check earns its keep only on this case: cards that match
+        /// `base_vec()` exactly, under a name that claims a different deck.
+        /// `validate_yaml__rejects_other_deck` cannot pin it, because there
+        /// both the name *and* the cards disagree, so the card comparison
+        /// below would reject the document on its own. Delete the name guard
+        /// and this is the test that goes red.
+        #[test]
+        fn validate_yaml__rejects_right_cards_under_wrong_name() {
+            let forged = French::to_yaml()
+                .unwrap()
+                .replace("name: French", "name: Tarot");
+            let err = French::validate_yaml(&forged).unwrap_err();
+
+            assert_eq!(
+                *err.downcast_ref::<CardError>().unwrap(),
+                CardError::YamlDeckMismatch {
+                    expected: "French".to_string(),
+                    found: "Tarot".to_string(),
+                }
+            );
+        }
+
+        #[test]
+        fn validate_yaml__rejects_empty() {
+            let empty = "version: 1\nname: French\nfluent_deck_key: french\ncount: 0\ncards: []\n";
+            let err = French::validate_yaml(empty).unwrap_err();
+
+            assert_eq!(
+                *err.downcast_ref::<CardError>().unwrap(),
+                CardError::YamlEmptyDeck
+            );
+        }
+
+        /// A legacy sequence has no name to check, so identity falls through
+        /// to a card-by-card comparison against `base_vec()`.
+        #[test]
+        fn validate_yaml__accepts_legacy_sequence_of_own_cards() {
+            let legacy = serde_norway::to_string(&French::base_vec()).unwrap();
+
+            assert!(French::validate_yaml(&legacy).is_ok());
+        }
+
+        #[test]
+        fn validate_yaml__rejects_legacy_sequence_of_other_cards() {
+            let legacy = serde_norway::to_string(&Tarot::base_vec()).unwrap();
+
+            assert!(French::validate_yaml(&legacy).is_err());
+        }
+
+        /// The blanket impl must reach a type that implements only
+        /// `DeckedBase` — this is what gives consumer-authored decks YAML
+        /// support for free, with no per-deck wiring to forget.
+        #[test]
+        fn blanket_impl__reaches_custom_decks() {
+            #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+            struct OneCard {}
+
+            impl DeckedBase for OneCard {
+                fn base_vec() -> Vec<BasicCard> {
+                    vec![crate::basic::decks::cards::french::FrenchBasicCard::ACE_SPADES]
+                }
+
+                #[cfg(feature = "colored-display")]
+                fn colors() -> HashMap<Pip, colored::Color> {
+                    HashMap::default()
+                }
+
+                fn deck_name() -> String {
+                    "One Card".to_string()
+                }
+
+                fn fluent_deck_key() -> String {
+                    FLUENT_KEY_BASE_NAME_FRENCH.to_string()
+                }
+            }
+
+            let yml = OneCard::to_yaml().unwrap();
+
+            assert!(yml.contains("name: One Card"));
+            assert_eq!(OneCard::deck_from_yaml(&yml).unwrap().len(), 1);
+            assert!(OneCard::validate_yaml(&yml).is_ok());
+        }
+    }
 
     #[test]
     fn basic_pile_cell__not_default() {

@@ -32,7 +32,9 @@ use cardpack::prelude::*;
 fn main() {
   let mut pack = Standard52::deck();
 
-  pack.shuffle();
+  // Deterministic shuffle — works in the pure, `no_std` default build.
+  // With the `std` feature you can call `pack.shuffle()` for a thread-RNG shuffle.
+  pack.shuffle_with_seed(42);
 
   // Deal no-limit hold'em hands for two players:
   let small_blind = pack.draw(2).unwrap().sorted_by_rank();
@@ -99,7 +101,7 @@ what they need:
 | `std`             | no      | libstd             | `std`-only APIs (thread-RNG shuffle, `draw_random`, etc.)     |
 | `i18n`            | no      | `fluent-templates` | `FluentName`, `Named`, `Card::fluent_name*`, `localization`   |
 | `colored-display` | no      | `colored`          | `Color`, `Colorize`, `Card::color*`, `Pile::to_color_*`       |
-| `yaml`            | no      | `serde_norway`     | `BasicCard::cards_from_yaml_str` (pure, in-memory), the `Razz` deck |
+| `yaml`            | no      | `serde_norway`     | Full deck ↔ YAML round-tripping (pure, in-memory) — see [Decks as YAML](#decks-as-yaml); plus the `Razz` deck |
 | `serde`           | no      | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
 | `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
@@ -121,6 +123,39 @@ cardpack = "0.8"
 `std-io` implies `yaml` and adds the filesystem reader on top of it; it is the
 only feature that lets the crate touch `std::fs`, and it is intentionally left
 out of `full` so the pure kernel and the convenience stack both stay I/O-free.
+
+## Decks as YAML
+
+With `yaml`, every deck round-trips `deck → YAML → deck`. Documents use a
+self-describing **envelope** that carries the deck's identity — `version`,
+`name`, `fluent_deck_key`, `count`, `cards` — rather than a bare card list, so
+a document can be checked against the deck it claims to be. The reader still
+accepts the legacy bare sequence, so the new format is a strict superset of
+what `BasicCard::cards_from_yaml_str` always took.
+
+```rust,ignore
+// This README is included in the crate docs, so its code blocks are compiled
+// as doctests. Ignored because it needs the `yaml` feature, which is off by
+// default; the executable versions live on the `YamlDecked` methods.
+use cardpack::prelude::*;
+
+// Any DeckedBase implementor — including a deck you wrote — gets this free
+// via the blanket `YamlDecked` trait:
+let yaml = French::to_yaml().unwrap();
+assert_eq!(French::deck_from_yaml(&yaml).unwrap(), French::base_vec());
+
+// A well-formed document describing the wrong deck is still rejected:
+assert!(Tarot::validate_yaml(&yaml).is_err());
+
+// `Pile` serialization preserves order, so hands and shuffles survive intact:
+let shuffled = Pile::<Standard52>::deck().shuffled_with_seed(42);
+let restored = Pile::<Standard52>::from_yaml(&shuffled.to_yaml().unwrap()).unwrap();
+assert_eq!(restored, shuffled);
+```
+
+`DeckKind::to_yaml` / `DeckKind::from_yaml` cover the non-generic path, for
+decks known only at runtime. Golden fixtures for all shipped decks live in
+`tests/fixtures/yaml/` and are regenerated with `make yaml-fixtures`.
 
 ## Funky — Balatro-style cards
 

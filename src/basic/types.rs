@@ -3,6 +3,8 @@ pub mod basic_card;
 pub mod basic_pile;
 pub mod card;
 pub mod combos;
+#[cfg(feature = "yaml")]
+pub mod deck_yaml;
 pub mod pile;
 pub mod pips;
 pub mod traits;

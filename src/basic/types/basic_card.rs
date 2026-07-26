@@ -102,14 +102,32 @@ impl BasicCard {
 
     /// Takes in a YAML string and returns a vector of `BasicCards`.
     ///
+    /// Accepts **both** supported document shapes: the
+    /// [`DeckYaml`](crate::basic::types::deck_yaml::DeckYaml) envelope, and the
+    /// legacy bare sequence of cards that `src/basic/decks/yaml/razz.yaml` still
+    /// uses. Envelope metadata is discarded — reach for `DeckYaml::from_yaml`
+    /// when you need the deck's name or want to verify its identity.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// // The envelope form:
+    /// let envelope = DeckYaml::from_decked::<French>().to_yaml().unwrap();
+    /// assert_eq!(BasicCard::cards_from_yaml_str(&envelope).unwrap().len(), 54);
+    ///
+    /// // The legacy bare-sequence form:
+    /// let legacy = "- suit: {weight: 3, pip_type: Suit, index: 'S', symbol: 'S', value: 4}\n  \
+    ///                 rank: {weight: 12, pip_type: Rank, index: 'A', symbol: 'A', value: 14}";
+    /// assert_eq!(BasicCard::cards_from_yaml_str(legacy).unwrap().len(), 1);
+    /// ```
+    ///
     /// # Errors
     ///
-    /// Throws an error for an invalid path or invalid data.
+    /// Throws an error for invalid data, or for an envelope whose `count`
+    /// header disagrees with its card list.
     #[cfg(feature = "yaml")]
     pub fn cards_from_yaml_str(yaml_str: &str) -> Result<Vec<Self>, Box<dyn Error>> {
-        let cards: Vec<Self> = serde_norway::from_str(yaml_str)?;
-
-        Ok(cards)
+        Ok(crate::basic::types::deck_yaml::DeckYaml::from_yaml(yaml_str)?.cards)
     }
 
     /// The index is the most basic way to represent a `Card` as a `String` using
@@ -225,6 +243,46 @@ mod basic__types__basic_card_tests {
 
         assert_eq!(cards.len(), 54);
         assert_eq!(cards, Pile::<French>::base_vec());
+    }
+
+    /// The reroute widens `cards_from_yaml_str`: envelopes now parse too,
+    /// while every existing bare-sequence caller is unaffected.
+    #[cfg(feature = "yaml")]
+    #[test]
+    fn cards_from_yaml_str__accepts_envelope() {
+        use crate::basic::types::deck_yaml::DeckYaml;
+
+        let envelope = DeckYaml::from_decked::<French>().to_yaml().unwrap();
+        let cards = BasicCard::cards_from_yaml_str(&envelope).unwrap();
+
+        assert_eq!(cards, Pile::<French>::base_vec());
+    }
+
+    /// The shipped `razz.yaml` is still a legacy bare sequence, and
+    /// `Razz::base_vec()` parses it on every build. This is the regression
+    /// guard for that path.
+    #[cfg(feature = "yaml")]
+    #[test]
+    fn cards_from_yaml_str__still_accepts_bare_sequence() {
+        let cards =
+            BasicCard::cards_from_yaml_str(include_str!("../decks/yaml/razz.yaml")).unwrap();
+
+        assert_eq!(cards.len(), 52);
+    }
+
+    /// The truncation guard reaches this entry point too — a short envelope
+    /// is an error here, not a silently smaller deck.
+    #[cfg(feature = "yaml")]
+    #[test]
+    fn cards_from_yaml_str__rejects_count_mismatch() {
+        use crate::basic::types::deck_yaml::DeckYaml;
+
+        let tampered = DeckYaml::from_decked::<French>()
+            .to_yaml()
+            .unwrap()
+            .replace("count: 54", "count: 55");
+
+        assert!(BasicCard::cards_from_yaml_str(&tampered).is_err());
     }
 
     #[test]

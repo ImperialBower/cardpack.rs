@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Released as 0.10.0 — `Cargo.toml` is already bumped; this section is renamed
+to `## [0.10.0] — <date>` at tag time.
+
+### Breaking
+
+- **`CardError` is now `#[non_exhaustive]`.** Downstream exhaustive `match`
+  statements over `CardError` no longer compile: add a wildcard arm. This
+  lands alongside six new `yaml`-gated variants (below) and, as with
+  `DeckKind`, means future error additions will *not* be breaking changes.
+  Matching exhaustively was never viable across feature combinations anyway,
+  since the `yaml` variants only exist when that feature is on.
+
+### Added
+
+- **YAML deck serialization** — every deck now round-trips
+  `deck → YAML → deck` ([EPIC-03](docs/EPIC-03_Yaml_Deck_Serialization.md)),
+  behind the existing `yaml` feature. The crate previously had a YAML *read*
+  path and no *write* path:
+  - `DeckYaml` — a self-describing envelope carrying `version`, `name`,
+    `fluent_deck_key`, `count`, and `cards`, so a document identifies the deck
+    it came from instead of being a bare card list. Its reader sniffs document
+    shape and still accepts the legacy bare sequence, making envelope support a
+    strict superset of the old format.
+  - `YamlDecked` — a blanket trait over `DeckedBase` supplying `to_yaml`,
+    `deck_from_yaml`, and `validate_yaml`. Consumer-authored decks get YAML for
+    free, with no extra impl.
+  - `DeckKind::to_yaml` / `DeckKind::from_yaml` — the non-generic path, for
+    decks known only at runtime.
+  - `Pile<T>::to_yaml` / `Pile<T>::from_yaml` — the instance path, preserving
+    card order. A `Pile` may be empty (fully drawn) or hold multiple decks'
+    worth of cards; membership, not cardinality, is what is validated.
+  - Six `CardError` variants: `YamlCountMismatch`, `YamlDeckMismatch`,
+    `YamlUnknownDeck`, `YamlEmptyDeck`, `YamlForeignCard`, `YamlMalformed`.
+  - `examples/yaml_decks.rs` (via `make yaml-fixtures`) regenerates 14 golden
+    fixtures under `tests/fixtures/yaml/`, pinned byte-for-byte by
+    `tests/yaml_golden.rs`. `tests/yaml_roundtrip.rs` and `tests/yaml_errors.rs`
+    cover round-trip fidelity and error behavior — including that
+    `razz_bad.yml` parses cleanly yet fails `Razz::validate_yaml`.
+  - `DeckYaml` and `YamlDecked` are re-exported from the prelude under `yaml`.
+
+- `Tiny` is now re-exported from the prelude, like every other deck.
+
+## [0.9.0] — 2026-07-23
+
 ### Breaking
 
 - **`DeckKind` gained `Dashavatara` and `Mughal` variants and is now
@@ -377,7 +421,9 @@ Single-focus release: serde support for piles.
 `serde` was a hard dependency in this release. In v0.6.12 it was moved
 behind an opt-out `serde` feature flag (still on by default).
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.8.1...v0.9.0
+[0.8.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.1...v0.8.0
 [0.7.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...v0.7.0
 [0.6.12]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.11...v0.6.12
 [0.6.11]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.10...v0.6.11

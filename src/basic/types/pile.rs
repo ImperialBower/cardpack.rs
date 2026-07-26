@@ -1,14 +1,20 @@
 use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
+#[cfg(feature = "yaml")]
+use crate::basic::types::deck_yaml::DeckYaml;
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
 use crate::prelude::{BasicPile, Decked};
+#[cfg(feature = "yaml")]
+use alloc::boxed::Box;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::string::{String, ToString};
 use alloc::vec::{IntoIter, Vec};
 #[cfg(feature = "colored-display")]
 use colored::Color;
+#[cfg(feature = "yaml")]
+use core::error::Error;
 use core::fmt::Display;
 use core::hash::Hash;
 use core::str::FromStr;
@@ -536,7 +542,9 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// use cardpack::prelude::*;
     ///
     /// /// The flaw in this is that there can be duplicate Cards.
-    /// let pile = Pile::<Standard52>::pile_up(3, || Standard52::deck().shuffled().draw(3).unwrap());
+    /// let pile = Pile::<Standard52>::pile_up(3, || {
+    ///     Standard52::deck().shuffled_with_seed(42).draw(3).unwrap()
+    /// });
     ///
     /// assert_eq!(pile.len(), 9);
     /// ```
@@ -658,7 +666,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// ```
     /// use cardpack::prelude::*;
     ///
-    /// let mut pile = Pile::<Standard52>::from_str("7♠ 6♠ 8♠").unwrap().shuffled();
+    /// let mut pile = Pile::<Standard52>::from_str("7♠ 6♠ 8♠").unwrap().shuffled_with_seed(42);
     /// let eight_of_spades = Card::<Standard52>::from_str("8S").unwrap();
     ///
     /// assert_eq!(pile.remove_card(&eight_of_spades).unwrap().to_string(), "8♠");
@@ -801,7 +809,7 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     /// use cardpack::prelude::*;
     ///
     /// let deck = Euchre32::deck();
-    /// let shuffled = deck.shuffled();
+    /// let shuffled = deck.shuffled_with_seed(42);
     ///
     /// assert!(deck.same(&shuffled));
     /// assert_eq!(deck, shuffled.sorted());
@@ -941,6 +949,84 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
     pub fn to_color_symbol_string(&self) -> String {
         self.stringify(" ", Card::color_symbol_string)
     }
+
+    /// This pile's **actual** cards, in their **actual** order, as an envelope
+    /// YAML document.
+    ///
+    /// Unlike [`YamlDecked::to_yaml`](crate::basic::types::traits::YamlDecked::to_yaml),
+    /// which always writes the deck's canonical list, this writes what the
+    /// pile currently holds — so a shuffled or partially-drawn pile
+    /// round-trips exactly.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let shuffled = Standard52::deck().shuffled_with_seed(42);
+    /// let yml = shuffled.to_yaml().unwrap();
+    ///
+    /// assert_eq!(Pile::<Standard52>::from_yaml(&yml).unwrap(), shuffled);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Propagates serialization failure, boxed.
+    #[cfg(feature = "yaml")]
+    pub fn to_yaml(&self) -> Result<String, Box<dyn Error>> {
+        DeckYaml::new(
+            DeckType::deck_name(),
+            DeckType::fluent_deck_key(),
+            self.into_basic_cards(),
+        )
+        .to_yaml()
+    }
+
+    /// Rebuild a pile from a YAML document.
+    ///
+    /// Card **membership** is validated against `DeckType::base_vec()`; length
+    /// deliberately is not. A five-card hand and a 216-card `French::decks(4)`
+    /// are both legal piles, and an empty pile is a fully-drawn deck — so a
+    /// length check here would make multi-deck games unserializable.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// // A dealt hand round-trips just as well as a full deck:
+    /// let mut deck = Standard52::deck();
+    /// let hand = deck.draw(5).unwrap();
+    /// let yml = hand.to_yaml().unwrap();
+    ///
+    /// assert_eq!(Pile::<Standard52>::from_yaml(&yml).unwrap(), hand);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// [`CardError::YamlDeckMismatch`] if the envelope names a different deck;
+    /// [`CardError::YamlForeignCard`] if any card is absent from
+    /// `DeckType::base_vec()`.
+    #[cfg(feature = "yaml")]
+    pub fn from_yaml(yaml_str: &str) -> Result<Self, Box<dyn Error>> {
+        let deck_yaml = DeckYaml::from_yaml(yaml_str)?;
+
+        // An empty `name` means a legacy bare sequence: no header to check, so
+        // identity rests entirely on the membership check below.
+        if !deck_yaml.name.is_empty() && deck_yaml.name != DeckType::deck_name() {
+            return Err(Box::new(CardError::YamlDeckMismatch {
+                expected: DeckType::deck_name(),
+                found: deck_yaml.name,
+            }));
+        }
+
+        let base = DeckType::base_vec();
+        if let Some(foreign) = deck_yaml.cards.iter().find(|card| !base.contains(card)) {
+            return Err(Box::new(CardError::YamlForeignCard {
+                deck: DeckType::deck_name(),
+                card: foreign.index(),
+            }));
+        }
+
+        // Note: no length check. See the doc comment above.
+        Ok(Self::from(deck_yaml.cards))
+    }
 }
 
 /// These are all passthroughs to the underlying type parameter. For instance,
@@ -1076,6 +1162,115 @@ mod basic__types__deck_tests {
     use crate::prelude::FLUENT_KEY_BASE_NAME_FRENCH;
     use alloc::string::ToString;
     use core::str::FromStr;
+
+    #[cfg(feature = "yaml")]
+    #[allow(non_snake_case)]
+    mod pile_yaml_tests {
+        use super::*;
+        use crate::basic::decks::tarot::Tarot;
+        use crate::basic::types::deck_yaml::DeckYaml;
+
+        #[test]
+        fn to_yaml__from_yaml__roundtrips_canonical_deck() {
+            let deck = French::deck();
+
+            assert_eq!(
+                Pile::<French>::from_yaml(&deck.to_yaml().unwrap()).unwrap(),
+                deck
+            );
+        }
+
+        /// Order fidelity is the whole point of the instance path. A
+        /// `to_yaml` that serialized `base_vec()` would still pass an equality
+        /// check against a *sorted* pile, so this asserts against the shuffled
+        /// one and pins that it is not merely canonical order.
+        #[test]
+        fn to_yaml__preserves_shuffled_order() {
+            let shuffled = Standard52::deck().shuffled_with_seed(42);
+            let parsed = Pile::<Standard52>::from_yaml(&shuffled.to_yaml().unwrap()).unwrap();
+
+            assert_eq!(parsed, shuffled);
+            assert_ne!(
+                parsed,
+                Standard52::deck(),
+                "seed 42 should not reproduce canonical order"
+            );
+        }
+
+        #[test]
+        fn roundtrips__partial_pile() {
+            let mut deck = Standard52::deck();
+            let hand = deck.draw(5).unwrap();
+
+            assert_eq!(
+                Pile::<Standard52>::from_yaml(&hand.to_yaml().unwrap()).unwrap(),
+                hand
+            );
+        }
+
+        /// Multi-deck piles are full of duplicates and 4x `base_vec()` length —
+        /// proof that membership, not cardinality, is the invariant.
+        #[test]
+        fn roundtrips__multideck_pile() {
+            let quad = French::decks(4);
+            assert_eq!(quad.len(), 216);
+
+            assert_eq!(
+                Pile::<French>::from_yaml(&quad.to_yaml().unwrap()).unwrap(),
+                quad
+            );
+        }
+
+        /// An empty pile is a fully-drawn deck — legitimate, unlike an empty
+        /// *deck* document, which `validate_yaml` rejects.
+        #[test]
+        fn roundtrips__empty_pile() {
+            let empty = Pile::<French>::default();
+
+            assert_eq!(
+                Pile::<French>::from_yaml(&empty.to_yaml().unwrap()).unwrap(),
+                empty
+            );
+        }
+
+        #[test]
+        fn from_yaml__wrong_deck_name__errors() {
+            let err = Pile::<Tarot>::from_yaml(&French::deck().to_yaml().unwrap()).unwrap_err();
+
+            assert_eq!(
+                *err.downcast_ref::<CardError>().unwrap(),
+                CardError::YamlDeckMismatch {
+                    expected: "Tarot".to_string(),
+                    found: "French".to_string(),
+                }
+            );
+        }
+
+        /// Right header, wrong cards: only the membership check catches this.
+        #[test]
+        fn from_yaml__foreign_card__errors() {
+            let mut dy = DeckYaml::from_decked::<Tarot>();
+            dy.cards = French::base_vec();
+            dy.count = dy.cards.len();
+
+            let err = Pile::<Tarot>::from_yaml(&dy.to_yaml().unwrap()).unwrap_err();
+            let card_err = err.downcast_ref::<CardError>().unwrap();
+
+            assert!(
+                matches!(card_err, CardError::YamlForeignCard { deck, .. } if deck == "Tarot"),
+                "expected YamlForeignCard, got {card_err:?}"
+            );
+        }
+
+        /// A legacy sequence has no name, so it is accepted as long as every
+        /// card belongs to the deck.
+        #[test]
+        fn from_yaml__legacy_sequence__accepted() {
+            let legacy = serde_norway::to_string(&French::deck().into_basic_cards()).unwrap();
+
+            assert_eq!(Pile::<French>::from_yaml(&legacy).unwrap(), French::deck());
+        }
+    }
 
     #[test]
     fn basic_cards() {

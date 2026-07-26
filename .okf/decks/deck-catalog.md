@@ -45,5 +45,5 @@ instead of a bespoke deck type.
 # Citations
 
 [1] [src/basic/decks/registry.rs](../../src/basic/decks/registry.rs)
-[2] [DECON-05 French Deck Family](../../docs/deconstruct/DECON-05_French_Deck_Family.md)
-[3] [DECON-06 Tarot and Skat](../../docs/deconstruct/DECON-06_Tarot_And_Skat.md)
+[2] [DECON-05 French Deck Family](/references/decon-05-french-deck-family.md)
+[3] [DECON-06 Tarot and Skat](/references/decon-06-tarot-and-skat.md)
