@@ -3,7 +3,7 @@ type: Reference
 title: Map of the in-repo documentation
 description: Where the deep documentation lives — DECON regeneration pack, EPICs, audits, design docs, technical debt — and which file is authoritative for what.
 tags: [docs, map, reference]
-timestamp: 2026-07-26T12:00:00Z
+timestamp: 2026-07-28T00:00:00Z
 ---
 
 # Authoritative sources by topic
@@ -24,6 +24,7 @@ the authoritative document.
 | no_std/alloc migration design | [no_std + alloc design](/references/no-std-alloc-design.md) — `docs/superpowers/specs/2026-05-01-no-std-alloc-design.md` |
 | Outstanding work | [BACKLOG](/references/backlog.md) and [technical debt](/references/technical-debt.md) (both maintained by the `/backlog` skill) |
 | WASM consumer setup | [wasm guide](/references/wasm-guide.md) — `docs/wasm.md` ([wasm workflow](/workflows/wasm.md) is the distilled version) |
+| Generics/phantom-type deck pattern | [generic decks](/references/generic-decks-doc.md) — `docs/generic-decks.md` ([card model](/architecture/card-model.md) is the distilled version) |
 | Release history | [CHANGELOG](/references/changelog.md); narrative notes in [release v0.7.0](/references/release-v0-7-0.md) |
 | Crate front door | [README](/references/readme.md) |
 

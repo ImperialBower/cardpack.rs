@@ -3,7 +3,7 @@ type: Architecture
 title: Card model — Pip, BasicCard, Card, Pile
 description: The four-layer generic card model and the traits (DeckedBase, Decked, Ranged) that turn a type into a deck.
 tags: [architecture, types, generics]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-07-28T00:00:00Z
 ---
 
 # The layered model
@@ -45,8 +45,14 @@ an Ace-low game needs a separate deck type with inverted rank weights (the
 * Macros (`card!`, `cards!`, `french_cards!`) parse index strings into typed
   cards.
 
+This concept is the distilled version; the extended *why* — PhantomData
+branding, the trait-stack rationale, and a recipe for porting the pattern to
+other card libraries — is the
+[generic decks explainer](/references/generic-decks-doc.md).
+
 # Citations
 
 [1] [src/lib.rs module docs](../../src/lib.rs)
 [2] [DECON-01 Card Model](/references/decon-01-card-model.md)
 [3] [DECON-02 Pile Operations](/references/decon-02-pile-operations.md)
+[4] [Generic decks explainer](/references/generic-decks-doc.md)

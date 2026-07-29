@@ -3,7 +3,7 @@ type: Playbook
 title: Creating a custom deck
 description: Consumers author new deck vocabularies with the same machinery as shipped decks — implement DeckedBase on a marker struct, then Decked for free methods.
 tags: [decks, extension, playbook]
-timestamp: 2026-07-25T00:00:00Z
+timestamp: 2026-07-28T00:00:00Z
 ---
 
 # Steps
@@ -82,3 +82,4 @@ that case.
 [1] [src/lib.rs "Custom Deck example" and "Decks as YAML"](../../src/lib.rs)
 [2] [DECON-08 Extension and Registry](/references/decon-08-extension-and-registry.md)
 [3] [EPIC-03 YAML Deck Serialization](/references/epic-03-yaml-serialization.md)
+[4] [Generic decks explainer](/references/generic-decks-doc.md) — why the marker-struct mechanism works, and how to port it to another library
