@@ -1,22 +1,27 @@
 ---
 type: Playbook
 title: Build, test, and quality gates
-description: make (ayce) is the everything gate — fmt, build, three test layers, clippy-pedantic, MSRV, no_std, docs; plus mutants, miri, coverage, and deny.
+description: make (ayce) is the everything gate — fmt, build, four test layers, clippy-pedantic, MSRV, no_std, docs; plus mutants, miri, coverage, and deny.
 tags: [workflow, make, ci, testing]
-timestamp: 2026-07-25T00:00:00Z
+timestamp: 2026-08-06T00:00:00Z
 ---
 
 # Day-to-day
 
 ```shell
 make            # default target `ayce` ("all you can eat"):
-                # fmt → build → test-unit/doc/std-io → clippy → msrv → no-std → docs
+                # fmt → build → test-unit/doc/std-io/funky → clippy → msrv → no-std → docs
 make help       # list all targets
 ```
 
 Test layers: `test-unit`, `test-doc` (101+ doctests), `test-std-io` (the
 filesystem seam gets its own pass since `std-io` is outside `full` —
-[decision](/decisions/std-io-outside-full.md)).
+[decision](/decisions/std-io-outside-full.md)), `test-funky` (the `funky`
+feature is `std`-only and off by default, so it's outside `full` too;
+previously only `msrv`'s pinned 1.85.0 toolchain compiled it, which meant a
+missing MSRV toolchain silently skipped the entire feature on a stable-only
+machine — this is how the rand 0.10 `RngExt` split shipped broken to `main`
+via a dependabot merge. `test-funky` runs it on stable so it can't hide).
 
 # Portability gates
 
@@ -54,7 +59,10 @@ without a fixture.
 * Clippy runs at `-Dpedantic --all-targets` and must stay clean; `unwrap`/
   `expect` are only allowed under `cfg(test)`.
 * CI is `.github/workflows/CI.yaml` (build/test badge on the README); codecov
-  tracks coverage.
+  tracks coverage. The `clippy` job (the one job that compiles `--all-features
+  --all-targets`, covering `funky`) runs on `pull_request` events too — it
+  used to be push-only, which is how a dependabot PR merged with a
+  `--all-features` build break unreviewed. `fmt`/`doc` are still push-only.
 * Test framework: `rstest` for fixture/case tables.
 
 # Citations

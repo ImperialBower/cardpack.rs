@@ -19,6 +19,8 @@ use core::fmt::Display;
 use core::hash::Hash;
 use core::str::FromStr;
 #[cfg(feature = "std")]
+use rand::RngExt;
+#[cfg(feature = "std")]
 use rand::rng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;

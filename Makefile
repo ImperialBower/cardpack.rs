@@ -12,6 +12,7 @@ help:
 	@echo "  make test            - Run all tests (nextest for unit, cargo test for doc)"
 	@echo "  make test-unit       - Run unit tests via cargo-nextest"
 	@echo "  make test-doc        - Run doc tests via cargo test --doc"
+	@echo "  make test-funky      - Run tests with the funky feature on stable"
 	@echo "  make build-wasm      - Build the lib + example for wasm32-unknown-unknown"
 	@echo "  make test-wasm       - Run wasm runtime tests (requires wasm-bindgen-cli + node)"
 	@echo "  make yaml-fixtures   - Regenerate golden YAML deck fixtures"
@@ -93,9 +94,17 @@ test-std-io:
 	cargo test --features std-io --lib
 	cargo test --features std-io --doc
 
-# Run all tests: unit tests via nextest, doc tests via cargo test, plus the
-# std-io filesystem seam.
-test: test-unit test-doc test-std-io
+# `funky` is a std-only, off-by-default feature that `full` doesn't include
+# (see test-unit/test-doc above), so it otherwise only gets compiled by the
+# `msrv` target's pinned 1.85.0 toolchain — invisible on a stable-only machine.
+# Run it here on stable so a break (e.g. the rand 0.10 RngExt split) can't
+# hide behind a missing MSRV toolchain.
+test-funky:
+	cargo test --features full,funky
+
+# Run all tests: unit tests via nextest, doc tests via cargo test, the
+# std-io filesystem seam, plus the funky feature on stable.
+test: test-unit test-doc test-std-io test-funky
 
 # Regenerate the golden YAML deck fixtures that tests/yaml_golden.rs compares
 # byte for byte. Run this whenever a deck's card data legitimately changes,
