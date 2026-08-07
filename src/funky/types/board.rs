@@ -16,7 +16,7 @@ use crate::preludes::funky::{
 use std::collections::BTreeMap;
 
 use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng};
 use serde::{Deserialize, Serialize};
 
 /// Balatro's Lucky card grants a flat +20 mult on a successful (1-in-N) roll.

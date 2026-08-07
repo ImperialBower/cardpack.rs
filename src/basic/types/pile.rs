@@ -22,7 +22,7 @@ use core::str::FromStr;
 use rand::rng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 // HashMap is gated on `colored-display` rather than `std` because it is only
