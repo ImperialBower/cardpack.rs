@@ -52,7 +52,7 @@ log = { version = "0.4.29", default-features = false }
 # under no_std. rand 0.9's `std_rng` only pulls in `rand_chacha` (no
 # transitive `std`), so this is sound. Do NOT move `std_rng` into the
 # `std` feature — that re-breaks seeded shuffle in no_std consumers.
-rand = { version = "0.9", default-features = false, features = ["std_rng"] }
+rand = { version = "0.10", default-features = false, features = ["std_rng"] }
 serde = { version = "1.0.228", default-features = false, features = ["derive"], optional = true }
 serde_norway = { version = "0.9.42", optional = true }
 thiserror = { version = "2.0.18", default-features = false }
