@@ -315,6 +315,9 @@ Other examples are:
 
 * [Card games in Germany](https://www.pagat.com/national/germany.html)
 * [Playing cards in Unicode](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
+* Videos
+  * [Nobody understands playing cards — not even the experts](https://www.youtube.com/watch?v=kY6DmPs4klU)
+  * [Why Playing Cards Are Perfect](https://www.youtube.com/watch?v=5yJ5Q2c9-z4)
 * [Balatro](https://www.playbalatro.com/)
   * [balatrowiki.org](https://balatrowiki.org/)
   * [balatrogame.fandom.com](https://balatrogame.fandom.com/)
