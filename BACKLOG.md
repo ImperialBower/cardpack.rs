@@ -9,6 +9,21 @@
 
 ## EPICs / Features
 
+### EPIC-04 — Sealed Decks ([docs/EPIC-04_Sealed_Decks.md](docs/EPIC-04_Sealed_Decks.md)) — **designed, not started** (2026-08-24, `1c14440`)
+
+A deck cardpack cannot read. Kernel (dependency-free, always on): `Ordinal`/
+`Codebook<D>` bijection, `CANON_V1` canonical bytes, `Permutation`,
+`Pile::permute`/`cut`, the `Seal<D>` boundary with `SealedCard`/`SealedPile`,
+`PlaintextSeal` behind `seal-test-double`. Mirrors pkcore EPIC-79b's `CardSeal`
+with three recorded divergences. Children:
+
+- [ ] 04a Commit–Reveal Shuffle (`commit-reveal` → `sha2`) — [doc](docs/EPIC-04a_Commit_Reveal_Shuffle.md)
+- [ ] 04b Holder-Key Seal (`seal-aead` → `chacha20poly1305`/`hkdf`/`sha2`/`zeroize`; `RecipientSeal` design-only) — [doc](docs/EPIC-04b_Holder_Key_Seal.md)
+- [ ] 04c Mental Poker Bridge `_spec` (pkmental/pkcore contract; adoption blocked on pkcore's `cardpack = "0.6.9"` pin) — [doc](docs/EPIC-04c_Mental_Poker_Bridge_spec.md)
+
+Sequencing: 04 → (04a ‖ 04b) → 04c review. Semver: 0.11.0 minor. Crypto
+features stay out of `full` ([decision](.okf/decisions/crypto-features-outside-full.md)).
+
 ### EPIC-01a — Joker wiring ([docs/EPIC-01a_Joker_Wiring_Backlog.md](docs/EPIC-01a_Joker_Wiring_Backlog.md)) — **complete** (closed out 2026-07-16, `e9ceeca`)
 
 All eight phases landed, plus the round loop and the Stone card as follow-ons;

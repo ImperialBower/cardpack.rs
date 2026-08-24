@@ -26,6 +26,7 @@ elsewhere in the bundle stay bundle-relative. Each carries a description and a
 * [EPIC-01 — Funky (Balatro-style cards)](epic-01-funky.md) - The Balatro-style joker/effect engine: scope, the five child EPICs, and the deferrals recorded at close-out.
 * [EPIC-02 — Ganjifa decks (Mughal + Dashavatara)](epic-02-ganjifa.md) - Adding the two Ganjifa decks with per-suit inverted pip ranking, full localization, and registry integration.
 * [EPIC-03 — YAML deck serialization](epic-03-yaml-serialization.md) - The DeckYaml envelope, the YamlDecked blanket trait, and the three-layer test suite that makes every deck round-trip through YAML.
+* [EPIC-04 — Sealed Decks (family)](epic-04-sealed-decks.md) - A deck cardpack cannot read: the Ordinal/Codebook bijection, Permutation-as-data, the Seal<D> boundary, and children 04a (commit-reveal shuffle), 04b (holder-key AEAD seal), 04c (mental-poker bridge spec). Designed 2026-08-24; nothing landed.
 
 ## Audits and design docs
 
