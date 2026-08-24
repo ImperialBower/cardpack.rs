@@ -1,7 +1,7 @@
 ---
 type: Reference
 title: EPIC-04 — Sealed Decks (family)
-description: A deck cardpack cannot read — the Ordinal/Codebook bijection, Permutation-as-data, and the Seal<D> boundary with SealedCard/SealedPile — plus three children for commit-reveal shuffles, holder-key AEAD seals, and the mental-poker bridge to pkmental/pkcore.
+description: A deck cardpack cannot read because it never holds one — the Ordinal/Codebook bijection, Permutation-as-data, a non-generic SlotPile of card names, Revealed<D> as the only value map, and a five-item Seal<D> adapter — plus three children for commit-reveal shuffles, holder-key AEAD seals with a plain Custody ledger, and the mental-poker bridge to pkmental/pkcore.
 tags: [epic, seal, crypto, ordinal, permutation, planned]
 resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-04_Sealed_Decks.md
 timestamp: 2026-08-24T12:00:00Z
@@ -13,10 +13,14 @@ The umbrella ships a **dependency-free kernel**: `Ordinal` and `Codebook<D>`
 (a total `Card ↔ 0..V` bijection per deck, over the deduplicated vocabulary),
 versioned canonical pile bytes (`CANON_V1`), `Permutation` (a shuffle as data,
 defined to agree with `Pile::shuffle_with_rng`), `Pile::permute`/`cut`, and a
-new `src/seal/` module — `trait Seal<D>`, `SlotId`, `SealedCard<D, S>` with a
-redacting `Debug`, `SealedPile<D, S>` that shuffles, cuts and deals blind, a
-`SealAudit` that counts but cannot prove distinctness, and a `PlaintextSeal`
-test double behind `seal-test-double`.
+new `src/seal/` module that follows pkcore EPIC-82's rule — *the thing that
+plays the game must not hold hidden cards*: `SlotId`, a **non-generic**
+`SlotPile(Vec<SlotId>)` that shuffles, cuts and deals blind and derives
+everything, `Revealed<D>` as the **only** slot → card map (with `reveal` and a
+verified `reveal_with`), a five-item `Seal<D>` adapter that no container is
+generic over, a `SlotAudit` that counts but cannot prove distinctness, and a
+`PlaintextSeal` test double behind `seal-test-double`. Reshaped the same day it
+was drafted, after reading pkcore's `EPIC-79b` branch.
 
 Children:
 
@@ -24,16 +28,23 @@ Children:
   shuffling: commit-all-then-reveal, SHA-256 counter-mode permutation
   derivation frozen by golden vectors, blind commitments to a pile order.
 * **EPIC-04b Holder-Key Seal** (`seal-aead` → `chacha20poly1305`/`hkdf`/
-  `sha2`/`zeroize`) — the first real `Seal<D>` backend: per-card HKDF keys, a
-  42-byte `SealedBytes`, dealer vs verifier mode, one token reveals one card;
+  `sha2`/`zeroize`) — the first real `Seal<D>` backend and the one
+  dealer-custody shape: per-card HKDF keys, a 42-byte `SealedBytes`, a plain
+  `Custody(Vec<(SlotId, SealedBytes)>)` ledger beside a `SlotPile`, dealer vs
+  verifier mode, one token reveals one card through `Revealed::reveal_with`;
   a public-key `RecipientSeal` is designed, not built.
 * **EPIC-04c Mental Poker Bridge (`_spec`)** — the cross-repo contract: what
   cardpack promises, how `pkmental`'s Barnett–Smart `CardCrypto` maps onto
-  `Seal<D>` (verification *inside* `unseal`), the five-line shim to `pkcore`'s
-  `CardSeal`, and the divergence register.
+  `Seal<D>` (verification *inside* `unseal`), how pkcore EPIC-82's
+  `TableCrypt` fields map onto `SlotPile` + `Revealed<D>`, the five-line shim
+  to `pkcore`'s `CardSeal`, and the divergence register across cardpack,
+  pkcore 79b (landed on its branch), pkcore EPIC-82 (proposed), and pkmental.
 
 # Authoritative for
 
+* **Slots, not custody** (EPIC-04 decision 2): no kernel type is generic over
+  a scheme and none holds ciphertext — `SlotPile` + `Revealed<D>` are the
+  referee state, matching pkcore EPIC-82 Decision 5.
 * **The three divergences from pkcore EPIC-79b's `CardSeal`**: `seal`/`unseal`
   take the `SlotId`; `seal` takes `&mut dyn RngCore`; `SlotId` is `u16`.
 * **The `CANON_V1` byte layout** and the rule that a shipped deck's

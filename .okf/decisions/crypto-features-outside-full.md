@@ -1,16 +1,22 @@
 ---
 type: Decision
 title: Crypto backends are opt-in features outside full
-description: Real cryptographic backends (commit-reveal → sha2; seal-aead → chacha20poly1305/hkdf/sha2/zeroize) sit behind their own features, excluded from `full` like std-io; the seal boundary itself is dependency-free and always on.
+description: The seal kernel holds slots, order, and revealed values — never ciphertext and never a scheme type parameter — and is dependency-free and always on; real crypto backends (commit-reveal → sha2; seal-aead → chacha20poly1305/hkdf/sha2/zeroize) sit behind their own features, excluded from `full` like std-io.
 tags: [decision, purity, features, crypto, seal]
 timestamp: 2026-08-24T12:00:00Z
 ---
 
 # Decision
 
-The **seal boundary** — `Seal<D>`, `SlotId`, `SealedCard`, `SealedPile`,
-`Ordinal`/`Codebook`, `Permutation` — is dependency-free, `alloc`-only, and
-**always on**. There is no `seal` feature.
+The **seal kernel** — `Ordinal`/`Codebook`, `Permutation`, `SlotId`, the
+non-generic `SlotPile`, `Revealed<D>`, and the five-item `Seal<D>` adapter —
+is dependency-free, `alloc`-only, and **always on**. There is no `seal`
+feature. **No kernel type is generic over a scheme, and none holds
+ciphertext**: the kernel knows a card's *slot*, its *order*, and its *value
+once revealed* (the rule stated by pkcore EPIC-82, *The Betting Kernel*).
+Where a deployment must hold sealed payloads — a single trusted dealer — it
+keeps a plain `Vec<(SlotId, Bytes)>` beside a `SlotPile` (EPIC-04b
+`Custody`), never a `SealedPile<D, S>`.
 
 The **real cryptographic backends** are opt-in features that are deliberately
 **not** part of the `full` umbrella:
@@ -34,18 +40,26 @@ cryptographic dependency is a supply-chain and audit commitment a consumer
 must name explicitly — the same reasoning that keeps the one filesystem seam
 out of `full` ([std-io decision](/decisions/std-io-outside-full.md)).
 
-The boundary types stay in the kernel because they cost nothing: they carry
-only fixed-width byte newtypes and generic parameters, so the
-[domain-kernel](/architecture/domain-kernel.md) invariants hold — no I/O, no
-format or cipher type in a public signature, pure by default. Gating a
-dependency-free boundary would add a `cfg` dimension to `CardError`,
-`Pile::permute`, the prelude and every doctest for no benefit
-([feature flags](/architecture/feature-flags.md) "Principle").
+The kernel types stay in the kernel because they cost nothing and hide
+nothing: a type that never contains a secret cannot leak one, and a type with
+no scheme parameter derives `Clone`/`Eq`/`Debug`/`Serialize` without
+hand-written impls — so the [domain-kernel](/architecture/domain-kernel.md)
+invariants hold (no I/O, no format or cipher type in a public signature, pure
+by default) *and* the "a rejected operation changed nothing" property is one
+`assert_eq!`. pkcore paid for the generic-container design first (19 `where`
+bounds, hand-written derives, a cascade into seats) and wrote EPIC-82 to stop;
+cardpack does not repeat the experiment. Gating a dependency-free kernel would
+add a `cfg` dimension to `CardError`, `Pile::permute`, the prelude and every
+doctest for no benefit ([feature flags](/architecture/feature-flags.md)
+"Principle").
 
 # How to apply
 
 * A new backend gets its **own** `seal-*` feature and its own `deny.toml` /
   CI ban entries. Never add a crypto crate to `full` or `default`.
+* **Never add a payload or a scheme parameter to `SlotPile`.** The day it
+  carries bytes beside the slots it is `SealedDeck<S>` again with the type
+  parameter erased, and the derive-free, one-`assert_eq!` property is gone.
 * Cipher, KDF and digest types **never** appear in public signatures. Outputs
   are newtypes over `[u8; N]` (`Commitment`, `SealedBytes`); backends own their
   error enums; `CardError` stays crypto-free.

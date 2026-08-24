@@ -11,38 +11,48 @@
 > contract for `pkmental` / `pkcore`). This document ships the **dependency-free
 > kernel** all three build on. Sequencing: 04 → (04a ‖ 04b) → 04c review.
 
-**Goal:** Give cardpack a deck it **cannot read**. Add a canonical **`Ordinal`** bijection per deck, a **`Permutation`** type so a shuffle is data that can be stored, inverted and verified, and a **`Seal<D>`** boundary with **`SealedCard`** / **`SealedPile`** so shuffling, cutting and dealing happen *blind* — a card's rank and suit exist only after someone presents a token. This is the substrate for distributed-game security in several strengths: commit–reveal fairness (04a), holder-only readability (04b), and full mental poker (04c), each as a pluggable backend rather than one blessed answer.
+> **Reshaped 2026-08-24, same day as drafting.** The first draft mirrored `pkcore`
+> EPIC-79b's generic `SealedCard<S>` / `SealedDeck<S>` containers. `pkcore`'s
+> branch `EPIC-79b` has since moved past that: EPIC-82 *The Betting Kernel*
+> (`pkcore/docs/epics/EPIC-82_The_Betting_Kernel.md`, drafted 2026-08-23) demotes
+> the generic seal containers and states the rule this document now follows —
+> **the thing that plays the game must not hold hidden cards.** It holds a card's
+> *slot*, its *order*, and its *value once revealed*. Never ciphertext. Secrecy
+> by absence, not by type discipline.
 
-**Architecture:** Three additive layers on the existing `basic` engine, none of them requiring a new dependency. (1) `Ordinal` / `Codebook<D>` and `Permutation` land in `src/basic/types/` as plain value types, always on, `no_std` + `alloc`. (2) A new top-level `src/seal/` module declares the `Seal<D>` trait and the two sealed containers; it is generic over the *scheme* and never holds a key. (3) Real backends live in `src/seal/commit/` (04a) and `src/seal/aead/` (04b) behind opt-in features that are deliberately **not** in `full` — the same posture as `std-io` ([`.okf/decisions/std-io-outside-full.md`](../.okf/decisions/std-io-outside-full.md)). The `Seal<D>` shape **mirrors** the `CardSeal` trait designed for `pkcore` in `pkcore/docs/epics/EPIC-79b_Sealed_Deck.md`, with three recorded divergences, so one backend can implement both.
+**Goal:** Give cardpack a deck it **cannot read** — because it never holds one. Add a canonical **`Ordinal`** bijection per deck, a **`Permutation`** type so a shuffle is data that can be stored, inverted and verified, a **`SlotPile`** of card *names* that can be shuffled, cut and dealt with no knowledge at all, and a **`Revealed<D>`** map that is the only place a card value ever appears. A small **`Seal<D>`** trait is the optional adapter through which a reveal can be *verified* against a backend's ciphertext and token — but no cardpack type is generic over the scheme. This is the substrate for distributed-game security in several strengths: commit–reveal fairness (04a), holder-only readability (04b), and full mental poker (04c), each as a pluggable backend rather than one blessed answer.
 
-**Tech Stack:** Rust 2024 edition (MSRV 1.85), no_std + alloc discipline, `rand` 0.10 (`RngCore` for the seal seam, `Rng` for blind shuffles — `std_rng` is already unconditional, `Cargo.toml:41-46`), `proptest` for seeded properties, GitHub Actions CI with clippy-pedantic, kernel-purity, no_std, thumb and wasm32 jobs.
+**Architecture:** Three additive layers on the existing `basic` engine, none requiring a new dependency, and **nothing generic over a scheme.** (1) `Ordinal` / `Codebook<D>` and `Permutation` land in `src/basic/types/` as plain value types, always on, `no_std` + `alloc`. (2) A new top-level `src/seal/` module holds `SlotId`, the non-generic `SlotPile(Vec<SlotId>)`, `Revealed<D>` (a `BTreeMap<SlotId, Card<D>>` with the same bounds as `Pile<D>`), and the `Seal<D>` trait. Every one of them derives `Clone`/`Eq`/`Debug`/`Serialize` cleanly, because nothing is parameterised over `S`. (3) Real backends live in `src/seal/commit/` (04a) and `src/seal/aead/` (04b) behind opt-in features that are deliberately **not** in `full` — the same posture as `std-io` ([`.okf/decisions/std-io-outside-full.md`](../.okf/decisions/std-io-outside-full.md)). Custody of ciphertext, where a deployment needs it, is a plain `Vec<(SlotId, Bytes)>` owned by the dealer (04b), not a kernel type.
+
+**Tech Stack:** Rust 2024 edition (MSRV 1.85), no_std + alloc discipline, `rand` 0.10 (`Rng` for blind shuffles, `RngCore` for the seal seam — `std_rng` is already unconditional, `Cargo.toml:41-46`), `proptest` for seeded properties, GitHub Actions CI with clippy-pedantic, kernel-purity, no_std, thumb and wasm32 jobs.
 
 ---
 
 ## Context
 
-The crate today is structurally incapable of holding a card it does not know.
+The crate today is structurally incapable of dealing a card it does not know.
 
 - `BasicCard { suit: Pip, rank: Pip }` (`src/basic/types/basic_card.rs:44`) is transparent data. `Card<DeckType>` (`src/basic/types/card.rs:34`) wraps it with a `PhantomData` brand and derives `Copy`, `Debug`, `Display`, `Ord`, and (under `serde`) `Serialize`. Every one of those reads the value.
-- `Pile<DeckType>(Vec<Card<DeckType>>)` (`src/basic/types/pile.rs:72`) is an ordered multiset of readable cards. Its shuffle API is already the right *shape* — `shuffle_with_rng<R: Rng + ?Sized>` (`pile.rs:796`) and `shuffle_with_seed(u64)` (`pile.rs:776`) — but the thing being shuffled is plaintext. The permutation the shuffle applied is never materialised: you cannot store it, invert it, or hand it to a verifier.
+- `Pile<DeckType>(Vec<Card<DeckType>>)` (`src/basic/types/pile.rs:72`) is an ordered multiset of readable cards. Its shuffle API is already the right *shape* — `shuffle_with_rng<R: Rng + ?Sized>` (`pile.rs:796`) and `shuffle_with_seed(u64)` (`pile.rs:776`) — but the thing being shuffled is plaintext, and the permutation the shuffle applied is never materialised: you cannot store it, invert it, or hand it to a verifier.
 - The only integer encoding of a card is the Cactus-Kev bitfield behind `CKCRevised` (`src/basic/types/traits.rs:253`, `src/common/utils.rs:3`). It is a sparse 32-bit value for poker evaluators, not a dense `0..N` index, and it only makes sense for French-suited decks. There is no canonical, deck-relative "card number 17".
 - `DeckKind` (`src/basic/decks/registry.rs`) enumerates all 14 shipped decks; `all()` at `:88`. `DeckedBase::base_vec()` (`traits.rs:30`) is each deck's card list in a fixed order — an implicit bijection nobody has promised to keep stable.
 - There is **no** cryptography, commitment, or hashing of any kind in `src/`, `tests/`, `docs/`, or `.okf/`. `Hash` is the std derive for map keys; the only "crypto" string in the repo is `crypto.getRandomValues` as a wasm entropy source (`tests/wasm.rs:53`).
 
-Two sibling repositories have already felt this gap:
+Two sibling repositories have already worked this problem, and one of them changed its mind:
 
-- **`pkmental`** (`../pkmental`) implements Barnett–Smart threshold ElGamal mental poker. The *only* thing it needs from a card library is a total `Card ↔ 0..52` bijection — and it has to build one itself, at runtime, with two `OnceLock<HashMap>`s over `pkcore::deck::DECK_ARRAY` and a panicking `expect` (`pkmental/src/encode.rs:33-60`). It does not depend on cardpack directly; cardpack reaches it only transitively via `pkcore`.
-- **`pkcore`** (`../pkcore`) has a complete, unbuilt design for exactly this boundary — `pkcore/docs/epics/EPIC-79b_Sealed_Deck.md`: `trait CardSeal { type Sealed; type Token; type Error; seal; unseal }`, `SlotId`, `SealedCard<S>` with a redacting `Debug` and no `Display`, `SealedDeck<S>` as a `Vec` (never a set), an `audit` that can count slots but cannot prove distinctness, and a `PlaintextSeal` test double. As of `pkcore` `677e0d15` no `src/seal/` exists there; the doc is design only. `pkcore` pins `cardpack = "0.6.9"` and uses its own `u32 Card`, so nothing here can be adopted there without a version bump on their side.
+- **`pkmental`** (`../pkmental`, `main` @ `ac72bc1`) implements Barnett–Smart threshold ElGamal mental poker. The *only* thing it needs from a card library is a total `Card ↔ 0..52` bijection — and it builds one itself, at runtime, with two `OnceLock<HashMap>`s over `pkcore::deck::DECK_ARRAY` and a panicking `expect` (`pkmental/src/encode.rs:33-60`). The *players* hold and shuffle the masked deck, with proofs. It never wanted a card library to hold ciphertext.
+- **`pkcore`** built the generic path and then stepped back from it. On branch `EPIC-79b` (closed complete at `93673808`), `Table` became `TableOf<S: CardSeal>` with `deck: SealedDeck<S>` and `pub type Table = TableOf<NullSeal>`. That cost 19 `where S: CardSeal<Sealed = Card>` bounds in `casino/`, hand-written `Clone`/`Debug`/`PartialEq` on every generic type (79b correction C4), and a follow-on EPIC-79c that would have threaded `S` through `Seat`, `SeatHand`, and `dealt_hole_cards`. **EPIC-82** (`pkcore/docs/epics/EPIC-82_The_Betting_Kernel.md`, on the same branch) supersedes 79c and demotes the containers: the referee's state is `deck: Vec<SlotId>` and `HoleSlot { slot: SlotId, revealed: Option<Card> }` — a plain struct that "cannot leak a card it never contains." `CardSeal` survives only as the optional verified-unseal adapter (EPIC-82 Decision 7) and for the single-server dealer-custody shape (EPIC-82 §4). `pkcore` still pins `cardpack = "0.6.9"` and uses its own `u32 Card`.
 
-This EPIC does not fork that design. It **ports it to the generic deck kernel** — where "a deck" means any of 14 vocabularies, from Tiny (4 cards) to Dashavatara (120) to `French::decks(4)` (216) — and records where the port had to diverge (Design decision 3).
+This EPIC takes EPIC-82's rule as its own. It ports to the generic *deck* kernel — where "a deck" means any of 14 vocabularies, from Tiny (4 cards) to Dashavatara (120) to `French::decks(4)` (216) — the three things every design agreed on (a bijection, a slot label, a shuffle as data) and the one thing EPIC-82 got right that 79b did not: **nothing in the kernel is generic over a scheme.**
 
 **What this EPIC does NOT do:**
 
 - **No cryptography ships in this document.** Not one hash, not one cipher, not one new dependency. `cargo build --no-default-features`, `make no-std`, the thumb target, and `cargo deny check bans` are hard exit criteria. Real backends are 04a and 04b.
-- **No keys live in the kernel.** `SealedCard` and `SealedPile` are generic over a scheme *type* `S`, never over an *instance*. There is no field anywhere in the struct graph from which a plaintext could be derived.
+- **No ciphertext lives in the kernel.** There is no `SealedCard<D, S>`, no `SealedPile<D, S>`, no type with a scheme parameter. A deployment that must hold sealed payloads (a single trusted server — 04b) keeps them in a plain `Vec<(SlotId, Bytes)>` beside a `SlotPile`. The kernel gives it the labels and the shuffle; it does not give it a home for secrets.
+- **No keys live in the kernel.** `Seal<D>` is implemented by the caller; cardpack never constructs or stores one.
 - **No multi-party protocol, no threshold keys, no zero-knowledge proofs, no transport.** That is `pkmental`'s job; 04c is the contract, not an implementation.
 - **No change to `Card`, `BasicCard`, `Pile`, or `Decked`'s required methods.** `Pile` gains two methods (`permute`, `cut`); `Decked` gains one *default* method (`codebook()`). Nothing existing changes shape.
-- **No funky.** `BuffoonCard`/`BuffoonPile` are a separate type family; a sealed Balatro deck would be its own EPIC.
+- **No funky.** `BuffoonCard`/`BuffoonPile` are a separate type family; a slot-dealt Balatro deck would be its own EPIC.
 - **No plaintext zeroization.** `Card: Copy` (`card.rs:32`) means revealed cards are copied freely onto the stack. Key zeroization is 04b's concern; plaintext hygiene is explicitly out of scope and stated in the docs.
 
 ---
@@ -58,17 +68,18 @@ Status as of `main` @ `1c14440`, **2026-08-24**. Nothing has landed.
 | Canonical pile bytes (`CANON_V1`, `encode_pile` / `decode_pile`) | Planned |
 | `Permutation` — validated, invertible, composable, canonical bytes | Planned |
 | `Pile::permute` / `Pile::cut` | Planned |
-| `Seal<D>` trait + `SlotId` | Planned |
-| `SealedCard<D, S>` + redacting `Debug`, serde bounds | Planned |
-| `SealedPile<D, S>` — blind shuffle / permute / cut / draw / take / reveal | Planned |
-| `SealAudit` — cardinality + slot uniqueness only | Planned |
+| `SlotId` | Planned |
+| `SlotPile` — non-generic; blind shuffle / permute / cut / draw / take / audit | Planned |
+| `SlotAudit` — cardinality + slot uniqueness | Planned |
+| `Revealed<D>` — the only home for a revealed value; `reveal`, `reveal_with` | Planned |
+| `Seal<D>` trait (adapter only; no container is generic over it) | Planned |
 | `PlaintextSeal` test double behind `seal-test-double` | Planned |
 | `seal_roundtrip` conformance helper (exported under `seal-test-double`) | Planned |
-| `CardError` variants (8, ungated, `#[non_exhaustive]`) | Planned |
+| `CardError` variants (9, ungated, `#[non_exhaustive]`) | Planned |
 | `tests/seal_properties.rs` | Planned |
 | Docs / CHANGELOG / prelude / 0.11.0 / `.okf/` bundle | Planned |
 | Commit–reveal backend | → [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) |
-| Holder-key AEAD backend | → [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) |
+| Holder-key AEAD backend + dealer custody ledger | → [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) |
 | Mental-poker bridge contract | → [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) |
 
 ---
@@ -77,11 +88,10 @@ Status as of `main` @ `1c14440`, **2026-08-24**. Nothing has landed.
 
 - A **canonical ordinal** for every card in every deck — total, stable, dense `0..V` — so a card can be hashed, encoded to a curve point, or encrypted as two bytes without any backend building its own lookup table.
 - A **shuffle as data.** `Permutation` can be stored, sent, inverted, composed, and re-applied, so "the dealer shuffled fairly" becomes a checkable claim instead of a trust assumption.
-- A **sealed card** whose rank and suit are not recoverable from its bytes, its `Debug`, or its serialized form.
-- A **sealed pile** that can be shuffled, cut, and dealt by code with **no key and no knowledge** — because every one of those operations is a permutation of labels, and permuting labels needs no knowledge.
-- A **narrow reveal seam**: exactly one method turns a sealed card into a `Card<D>`, and it requires a scheme *and* a token supplied by the caller.
-- **Zero new dependencies** in this document. The domain kernel stays pure ([`.okf/architecture/domain-kernel.md`](../.okf/architecture/domain-kernel.md)).
-- A **backend slot** shaped so `pkmental`'s ElGamal masking, 04b's AEAD, or a future public-key scheme drops in without the kernel changing a line — and shaped close enough to `pkcore`'s `CardSeal` that one backend serves both crates.
+- A **deck of names.** `SlotPile` shuffles, cuts, and deals with **no key and no knowledge** — every one of those operations is a permutation of labels, and permuting labels needs no knowledge. It is a plain value: `Clone + Eq + Debug + Serialize` by derive, one `assert_eq!` to prove "a rejected operation changed nothing."
+- **One place a value can be.** `Revealed<D>` is the only type in the kernel that maps a slot to a card. If it is empty, no card value exists anywhere in the game state — trivially true by type, asserted anyway.
+- A **narrow verified-reveal seam.** `Seal<D>` lets a reveal arrive as `(slot, ciphertext, scheme, token)` and be checked before it enters `Revealed`. The trait has five items and no container depends on it.
+- **Zero new dependencies and zero scheme generics** in this document. The domain kernel stays pure ([`.okf/architecture/domain-kernel.md`](../.okf/architecture/domain-kernel.md)) and stays *simple*.
 
 ## Scope
 
@@ -90,10 +100,10 @@ The rules the new types must obey:
 1. `Codebook<D>::ordinal` and `::card` are mutually inverse over the deck's **vocabulary** (its distinct cards). Order is `base_vec()` first-occurrence order. From 0.11.0 on, reordering a shipped deck's `base_vec()` is a **semver-major** change; a golden test pins Standard52.
 2. `Card::default()` (the blank card) and any card not in `D::base_vec()` have **no** ordinal — `None`, never a sentinel.
 3. `Permutation` is validated on construction: every constructor either yields a bijection over `0..n` or returns `Err`. `apply`, `inverse`, and `then` obey the group laws and are property-tested.
-4. `SealedPile` never exposes a `Card<D>`. Not by accessor, iterator, `Deref`, `Index`, `Display`, `Debug`, or `Serialize`. The only door is `reveal`, which takes `(&scheme, &token)`.
-5. A wrong token is an `Err`, never a silent wrong card.
-6. `SealedPile` is an ordered `Vec`, **not** a set. Set semantics require reading values.
-7. `SealedPile::audit` can count and can detect duplicate `SlotId`s. It **cannot** check that the sealed payloads are distinct cards — that is a shuffle-argument property and belongs to a backend (04c). The limit is documented in the doc comment, not hidden.
+4. `SlotPile` contains **only `SlotId`s**. It has no payload field, no type parameter, and no method that takes or returns a `Card`.
+5. `SlotPile` is an ordered `Vec`, not a set, and its one invariant — slot uniqueness — is enforced on construction.
+6. `Revealed<D>` is the **only** kernel type that holds a `Card<D>` keyed by slot. Revealing a slot twice is an error, not a silent overwrite.
+7. `Revealed::reveal_with` is the only path from a backend's ciphertext to a `Card<D>`; it takes `(&scheme, &token)` and a wrong token is `Err`, never a wrong card.
 8. Nothing in `src/basic/types/ordinal.rs`, `permutation.rs`, or `src/seal/` (outside `commit/` and `aead/`) may pull in a dependency that fails `make no-std` or `cargo deny check bans`.
 9. `PlaintextSeal` must be impossible to reach in a default build (`#[cfg(any(test, feature = "seal-test-double"))]`).
 10. All additions are additive. `CardError` variants ride `#[non_exhaustive]` (`src/common/errors.rs:13`). Version bump: 0.11.0 minor.
@@ -112,44 +122,43 @@ The kata's three layers for this slice.
 | The deck's vocabulary, indexed | `Codebook<D>` | `base_vec()` deduplicated; the bijection, held |
 | A shuffle written down | `Permutation` | a bijection over `0..n`, as data |
 | "Which card is that?" without knowing *what* it is | `SlotId` | an arbitrary public label |
-| The lock-and-key scheme | `trait Seal<D>` | the caller's; the crate never constructs one |
-| Permission to turn one card over | `Seal::Token` | presented by the caller |
-| A face-down card nobody has read | `SealedCard<D, S>` | `(S::Sealed, SlotId)` |
-| The shoe of face-down cards | `SealedPile<D, S>` | ordered `Vec`, never a set |
+| The shoe, as names | `SlotPile` | `Vec<SlotId>`; shuffles, cuts, deals blind |
+| A card whose value is now known | `Revealed<D>` | `SlotId → Card<D>`, the only such map |
+| The lock-and-key scheme, when a reveal must be checked | `trait Seal<D>` | the caller's; cardpack never constructs one |
 | The plaintext card | `Card<D>` (`card.rs:34`) | ✅ exists |
 
-**Business Requirements.** (a) *Identifiable* — every card in every deck has exactly one number, and every number in range has exactly one card. (b) *Replayable* — a shuffle can be recorded and re-applied by anyone, and undone. (c) *Blind* — a sealed pile is a first-class deck (shuffle, cut, draw, deal) for code that holds no key. (d) *Honest* — the sealed types never *appear* to check more than they can; a wrong token fails loudly; the audit says what it cannot see.
+**Business Requirements.** (a) *Identifiable* — every card in every deck has exactly one number, and every number in range has exactly one card. (b) *Replayable* — a shuffle can be recorded and re-applied by anyone, and undone. (c) *Blind* — the shoe is a first-class deck (shuffle, cut, draw, deal) for code that holds no key and no value. (d) *Contained* — a card value exists in exactly one kernel type, and only after a reveal. (e) *Honest* — a wrong token fails loudly; an audit says what it cannot see.
 
-**Business Logic.** The bijection law (`card(ordinal(c)) == c`) satisfies (a); the permutation group laws and `from_rng ≡ shuffle_with_rng` satisfy (b); "every blind operation is a permutation of `SlotId`s" satisfies (c); the redacting `Debug`, `Err`-on-wrong-token, and `SealAudit`'s documented limit satisfy (d). Each is driven out by a test that fails without it.
+**Business Logic.** The bijection law (`card(ordinal(c)) == c`) satisfies (a); the permutation group laws and `from_rng ≡ shuffle_with_rng` satisfy (b); "`SlotPile` has no `Card` in its signature" satisfies (c) by construction; `Revealed<D>` being the sole `SlotId → Card<D>` map satisfies (d); `Err`-on-wrong-token in `reveal_with` and `SlotAudit`'s documented limit satisfy (e). Each is driven out by a test that fails without it.
 
 ---
 
 ## Design decisions (settled)
 
-1. **No `seal` feature.** The boundary traits and types are dependency-free, `alloc`-only, and always on. The house rule ([`.okf/architecture/feature-flags.md`](../.okf/architecture/feature-flags.md) "Principle") is that features gate *what a dependency or `std` costs*, not surface area. A dep-free gate would add a `cfg` dimension to `CardError`, `Pile::permute`, the prelude, and every doctest for nothing. The only new features are `seal-test-double = []` (a test double, no dep), `commit-reveal` (04a), `seal-aead` (04b), and the `crypto` umbrella over those two. **None of them is in `full`** — see the new [`.okf/decisions/crypto-features-outside-full.md`](../.okf/decisions/crypto-features-outside-full.md).
+1. **No `seal` feature.** The kernel types are dependency-free, `alloc`-only, and always on. The house rule ([`.okf/architecture/feature-flags.md`](../.okf/architecture/feature-flags.md) "Principle") is that features gate *what a dependency or `std` costs*, not surface area. The only new features are `seal-test-double = []` (a test double, no dep), `commit-reveal` (04a), `seal-aead` (04b), and the `crypto` umbrella over those two. **None of them is in `full`** — see [`.okf/decisions/crypto-features-outside-full.md`](../.okf/decisions/crypto-features-outside-full.md).
 
-2. **`Seal<D>` is generic over the deck type, not an associated type.** `impl<D: DeckedBase> Seal<D> for HolderKeySeal<D>` is one impl for all 14 decks; an associated `type Deck` would force one impl per deck and make a deck-agnostic backend impossible to write.
+2. **Slots, not custody.** The kernel holds a card's *name* (`SlotId`), its *order* (`SlotPile`, `Permutation`), and its *value once revealed* (`Revealed<D>`). It does not hold ciphertext. This is EPIC-82 Decision 5 applied to the card library: a type that never contains a secret cannot leak one, and — the practical win — nothing has to be generic over a scheme, so `Clone`/`Eq`/`Debug`/`Serialize` derive everywhere and "a rejected operation changed nothing" is one `assert_eq!`. `pkcore` paid for the other design (19 `where` bounds, correction C4, a cascade into seats) and then wrote EPIC-82 to stop; cardpack does not repeat the experiment.
 
-3. **Three deliberate divergences from `pkcore`'s `CardSeal`** (`pkcore/docs/epics/EPIC-79b_Sealed_Deck.md` §Design), each recorded in 04c's divergence register:
-   - (a) `seal` and `unseal` take the **`SlotId`**. An AEAD backend needs it as associated data — binding payload to slot is what defeats "swap two sealed cards" attacks — and an ElGamal backend can simply ignore it.
-   - (b) `seal` takes **`&mut dyn RngCore`**. Every real backend is randomized (AEAD nonces, ElGamal masking). `pkcore`'s `&self`-only `seal` forces interior-mutability RNGs on implementors; passing the RNG is the honest signature. `dyn` rather than a generic keeps the trait object-safe and the backend's monomorphization footprint flat.
-   - (c) **`SlotId(u16)`, not `u8`.** `French::decks(4)` is 216 cards; Dashavatara alone is 120.
+3. **`Seal<D>` is a five-item adapter, generic over the deck, and no container depends on it.** Its shape follows `pkcore`'s `CardSeal` (`pkcore` branch `EPIC-79b`, `src/seal/card_seal.rs`) with three recorded divergences, so one backend can serve both crates:
+   - (a) `seal` and `unseal` take the **`SlotId`** — an AEAD backend binds payload to slot as associated data (defeats "swap two sealed cards"); an ElGamal backend ignores it.
+   - (b) `seal` takes **`&mut dyn RngCore`** — every real backend is randomized. `pkcore`'s `&self`-only `seal` forced `pkmental` to plan a `RefCell<ChaCha20Rng>` inside the scheme (branch 79b §"Seal needs state pkcore does not pass"); passing the RNG is the honest signature.
+   - (c) **`SlotId(u16)`**, not `u8` — `French::decks(4)` is 216 cards.
 
-   Everything else mirrors 79b verbatim: the three associated types and their bounds, the redacting `Debug` and absent `Display`, `Vec`-not-set, audit-cannot-prove-distinctness, the test double's gating. A five-line shim bridges the two (04c).
+   The trait's only kernel caller is `Revealed::reveal_with`, which is generic *at the method*, exactly as EPIC-82 Decision 7 has reveals "optionally with a `(scheme, token)` pair for verified unseal."
 
 4. **Ordinal = index into the deck's *vocabulary***, i.e. `base_vec()` with duplicates removed in first-occurrence order — **not** the raw `base_vec()` slot. Pinochle lists `ACE_SPADES` twice (`src/basic/decks/pinochle.rs:31-32`); mental poker encodes plaintext *values*, so both copies must map to the same group element. `vocabulary()` is a free function over `&[BasicCard]` so `DeckKind::all()` sweeps can pin every shipped deck without generics.
 
 5. **Canonical bytes are deck-relative and versioned.** Layout `CANON_V1`: `[0x01][u16 BE name_len][deck_name utf-8][u16 BE count][u16 BE ordinal]*`. Encoding follows *iteration order* (index 0 first) — deliberately independent of the "top = front" convention flagged at `basic_card.rs:38` (`TODO RF`), so a future top-of-deck refactor cannot silently change hashes.
 
-6. **`Permutation` is `Vec<u16>` with the convention `out[i] = in[p[i]]`.** The field is private so every value is validated. `from_rng` is *defined* as `slice::shuffle` applied to the identity, which is exactly what `Pile::shuffle_with_rng` (`pile.rs:796`) does to the cards — so `perm.apply(deck) == deck.shuffled_with_rng(same rng state)` holds by construction and is pinned by a test. `u16` keeps the canonical byte form trivial; `Vec<usize>` was rejected as platform-sized.
+6. **`Permutation` is `Vec<u16>` with the convention `out[i] = in[p[i]]`.** The field is private so every value is validated. `from_rng` is *defined* as `slice::shuffle` applied to the identity, which is exactly what `Pile::shuffle_with_rng` (`pile.rs:796`) does to the cards — so `perm.apply(deck) == deck.shuffled_with_rng(same rng state)` holds by construction and is pinned by a test. `SlotPile::shuffle_with_rng` is the same call on labels, so a sealed and a clear deal of the same seed agree slot-for-slot.
 
-7. **Backends own their error enums; `CardError` stays crypto-free.** Same reasoning that keeps `serde_norway::Error` boxed (`src/common/errors.rs:38-44`): `CardError` is `Eq + PartialEq` and alloc-only, and a cipher error type in a public enum would violate kernel Invariant 2. `PlaintextSeal::Error = CardError`; `SealedPile::reveal` wraps the two sources in `SealError<E>`.
+7. **`SlotPile::new(n)` yields slots `0..n` in order — which is *also* the ordinal order if you then seal `Codebook` order into it.** Sealing an unshuffled `Pile` into unshuffled slots publishes the deck (slot == ordinal). The kernel cannot prevent a caller from doing that; 04b's dealer helper shuffles first, and the hazard has a named test so the doc warning cannot be "simplified" away.
 
-8. **`SealedPile::draw(n) -> Option<Self>`**, all-or-nothing, mirroring `Pile::draw` (`pile.rs:227`) rather than `pkcore`'s `Result`. Same crate, same contract.
+8. **Backends own their error enums; `CardError` stays crypto-free.** Same reasoning that keeps `serde_norway::Error` boxed (`src/common/errors.rs:38-44`): `CardError` is `Eq + PartialEq` and alloc-only. `PlaintextSeal::Error = CardError`; `Revealed::reveal_with` wraps the two sources in `SealError<E>`.
 
-9. **`seal_shuffled` is the primary constructor; `seal_pile` carries a warning.** Sealing `Standard52::deck()` in order with slots `0..52` publishes the deck (slot == ordinal). The hazard is pinned by a test so nobody "simplifies" it away.
+9. **`SlotPile::draw(n) -> Option<Self>`**, all-or-nothing, mirroring `Pile::draw` (`pile.rs:227`). Same crate, same contract.
 
-10. **`Sealed: Eq` is for containers and parity, not for meaning.** Under any randomized scheme two seals of A♠ are unequal ciphertexts. The trait doc says so, and it is exactly why `audit` cannot check distinctness (decision 7 of Scope).
+10. **`Revealed<D>` carries `Pile<D>`'s bounds** (`D: DeckedBase + Default + Ord + Copy + Hash`, `pile.rs:72-74`) so `#[derive(Clone, Debug, Default, Eq, PartialEq)]` works without hand-written impls — the C4 problem is structurally absent when nothing is generic over `S`.
 
 ---
 
@@ -210,7 +219,7 @@ pub const CANON_V1: u8 = 1;
 
 `src/basic/types/traits.rs:58` — `Decked` gains one **default** method, `fn codebook() -> Codebook<Self>`. Additive; no implementor changes.
 
-**Why a held struct and not a method on `Card`.** `pkmental`'s two `OnceLock<HashMap>`s (`pkmental/src/encode.rs:38-60`) are the `std` answer; there is no `Sync` static cache in `core`. A `Codebook` you build once and pass around is the pure equivalent, and a linear scan over ≤ 120 entries is not worth a map. `Card::<D>::ordinal()` as a convenience was rejected: it would allocate `base_vec()` per call and hide an O(V) cost behind an innocent name. Putting `ordinal` on the `Decked` trait as a *required* method was rejected because 14 decks implement it; a default method costs nothing.
+**Why a held struct and not a method on `Card`.** `pkmental`'s two `OnceLock<HashMap>`s (`pkmental/src/encode.rs:38-60`) are the `std` answer; there is no `Sync` static cache in `core`. A `Codebook` you build once and pass around is the pure equivalent, and a linear scan over ≤ 120 entries is not worth a map. `Card::<D>::ordinal()` as a convenience was rejected: it would allocate `base_vec()` per call and hide an O(V) cost behind an innocent name.
 
 ### `Permutation` — a shuffle as data
 
@@ -254,23 +263,140 @@ impl Permutation {
 
 ```rust
 pub fn permute(&self, p: &Permutation) -> Result<Self, CardError>;
-/// Blind cut. `Err(InvalidCut(at))` if `at > len()`.
+/// Cut. `Err(InvalidCut(at))` if `at > len()`.
 pub fn cut(&mut self, at: usize) -> Result<(), CardError>;
 ```
 
-`Pile` has `get`, `position`, `remove`, `same`, and `unique_cards` today but **no `cut`** — the cut is new for plaintext and sealed piles alike, and both are defined as `rotation`.
+`Pile` has `get`, `position`, `remove`, `same`, and `unique_cards` today but **no `cut`** — the cut is new for plaintext and slot piles alike, and both are defined as `rotation`.
 
-### `Seal<D>` — the scheme, owned by the caller
+### `SlotId` — identity without knowledge
+
+`src/seal/slot.rs` (new):
+
+```rust
+/// A stable, public handle for one card in a shoe.
+///
+/// Assigned at deal-setup time and carried thereafter, so shuffling
+/// permutes *order* while every card keeps its name. This is what lets a
+/// ledger say "seat 3 revealed slot 17" without saying what slot 17 is.
+///
+/// Deliberately NOT the ordinal — that would be the card.
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SlotId(u16);
+impl SlotId { pub const fn new(n: u16) -> Self; pub const fn get(self) -> u16; pub const fn index(self) -> usize; }
+impl Display for SlotId { /* the bare number */ }
+```
+
+### `SlotPile` — the shoe, as names
+
+`src/seal/slot_pile.rs` (new). **Not generic.** Everything derives.
+
+```rust
+/// An ordered shoe of card *names*. Holds no card, no payload, no scheme.
+/// Shuffle, cut, draw and deal are permutations of labels and need no
+/// knowledge — so this type can be handed to a referee, a spectator, or a
+/// log without leaking anything, because there is nothing to leak.
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SlotPile(Vec<SlotId>);
+
+impl SlotPile {
+    /// Slots `0..n`, in order. See decision 7 for the slot == ordinal hazard.
+    pub fn new(n: u16) -> Self;
+    /// Rejects duplicate slots (`DuplicateSlot`).
+    pub fn from_slots(slots: Vec<SlotId>) -> Result<Self, CardError>;
+
+    pub fn len(&self) -> usize;
+    pub fn is_empty(&self) -> bool;
+    pub fn slots(&self) -> &[SlotId];
+    pub fn contains(&self, slot: SlotId) -> bool;
+    pub fn position(&self, slot: SlotId) -> Option<usize>;
+
+    /// Remove by name. Needs no knowledge.
+    pub fn take(&mut self, slot: SlotId) -> Option<SlotId>;
+    pub fn draw_first(&mut self) -> Option<SlotId>;
+    /// All-or-nothing, mirroring `Pile::draw` (`pile.rs:227`).
+    pub fn draw(&mut self, n: usize) -> Option<Self>;
+
+    /// Blind Fisher–Yates. Mirrors `Pile::shuffle_with_rng` (`pile.rs:796`);
+    /// the same RNG state gives the same permutation on a `Pile` of equal length.
+    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R);
+    pub fn shuffle_with_seed(&mut self, seed: u64);
+    pub fn permute(&self, p: &Permutation) -> Result<Self, CardError>;
+    pub fn cut(&mut self, at: usize) -> Result<(), CardError>;
+
+    /// Counts and checks slot uniqueness. That is *all* a deck of names can
+    /// check; distinctness of what the names stand for is a backend property
+    /// (a verifiable shuffle argument — 04c).
+    pub fn audit(&self, expected: usize) -> SlotAudit;
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SlotAudit { pub expected: usize, pub actual: usize, pub duplicate_slots: Vec<SlotId> }
+impl SlotAudit { pub fn is_ok(&self) -> bool; }
+```
+
+**Why a `Vec` and not a set.** Order is the whole point of a shoe; a set would forget it. Uniqueness is enforced on construction and re-checked by `audit`, not by the container type.
+
+**Methods deliberately absent:** anything taking or returning a `Card<D>`. `SlotPile` has no `D`. If you find yourself wanting `SlotPile::card_at`, you want `Revealed<D>`.
+
+### `Revealed<D>` — the only place a value can be
+
+`src/seal/revealed.rs` (new). Bounds match `Pile<D>` (`pile.rs:72-74`) so derives work.
+
+```rust
+/// Slot → card, for slots whose value has been turned up. The *only* kernel
+/// type that maps a name to a value. If this is empty, no card value exists
+/// anywhere in the game state.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Revealed<D: DeckedBase + Default + Ord + Copy + Hash>(BTreeMap<SlotId, Card<D>>);
+
+impl<D: DeckedBase + Default + Ord + Copy + Hash> Revealed<D> {
+    pub fn new() -> Self;
+    pub fn len(&self) -> usize;
+    pub fn is_empty(&self) -> bool;
+    pub fn get(&self, slot: SlotId) -> Option<Card<D>>;
+    pub fn is_revealed(&self, slot: SlotId) -> bool;
+    pub fn iter(&self) -> impl Iterator<Item = (SlotId, Card<D>)> + '_;
+    /// The revealed cards for `slots`, in that order. `SlotNotFound` if any is unrevealed.
+    pub fn pile_for(&self, slots: &[SlotId]) -> Result<Pile<D>, CardError>;
+
+    /// An unverified reveal: the caller vouches for `(slot, card)`.
+    /// `SlotAlreadyRevealed` if the slot is present.
+    pub fn reveal(&mut self, slot: SlotId, card: Card<D>) -> Result<(), CardError>;
+
+    /// A verified reveal: the backend's ciphertext and token are checked by
+    /// `scheme` before the value is admitted. Generic at the method only —
+    /// `Revealed<D>` itself knows nothing about `S`.
+    pub fn reveal_with<S: Seal<D>>(
+        &mut self,
+        slot: SlotId,
+        sealed: &S::Sealed,
+        scheme: &S,
+        token: &S::Token,
+    ) -> Result<Card<D>, SealError<S::Error>>;
+}
+
+#[derive(Debug)]
+pub enum SealError<E> { Slot(CardError), Backend(E) }
+```
+
+**Why two reveal paths.** In mental poker the value arrives from the players' protocol already proven; the referee records it (`reveal`). In dealer custody (04b) the value arrives as a token and must be checked against the stored ciphertext (`reveal_with`). Both end in the same map, so downstream code — showdown, hand history, display — sees one type.
+
+### `Seal<D>` — the adapter, owned by the caller
 
 `src/seal/seal.rs` (new), always on:
 
 ```rust
 /// A card-sealing scheme. cardpack defines the shape; the *caller* provides
-/// the implementation, the keys, and the tokens. The crate never constructs
-/// an `S` on its own behalf and never stores one inside a pile.
+/// the implementation, the keys, and the tokens. cardpack never constructs
+/// an `S` and no cardpack type is generic over one — the only kernel caller
+/// is `Revealed::reveal_with`.
 ///
-/// Mirrors `pkcore`'s `CardSeal` (EPIC-79b) with three divergences: the slot
-/// is passed to `seal`/`unseal`, `seal` takes an RNG, and `SlotId` is `u16`.
+/// Follows pkcore's `CardSeal` with three divergences: the slot is passed to
+/// `seal`/`unseal`, `seal` takes an RNG, and `SlotId` is `u16`.
 pub trait Seal<D: DeckedBase> {
     /// The opaque payload. The backend picks the representation: 42 bytes of
     /// AEAD output, an ElGamal ciphertext, or (in tests) a `Card<D>`.
@@ -287,133 +413,14 @@ pub trait Seal<D: DeckedBase> {
     fn seal(&self, card: Card<D>, slot: SlotId, rng: &mut dyn RngCore)
         -> Result<Self::Sealed, Self::Error>;
 
-    /// Open one sealed payload with a token. The only door in the wall.
-    /// A wrong token, wrong slot, or wrong context is `Err` — never a wrong card.
+    /// Open one sealed payload with a token. A wrong token, wrong slot, or
+    /// wrong context is `Err` — never a wrong card.
     fn unseal(&self, sealed: &Self::Sealed, slot: SlotId, token: &Self::Token)
         -> Result<Card<D>, Self::Error>;
 }
 ```
 
-**Why `seal` is on the trait when the kernel's sealed types never call it in anger:** so that a single `impl` is the complete, reviewable statement of a scheme, and so the round-trip law `unseal(seal(c, s, rng), s, t) == c` is one generic test (`seal_roundtrip`) every backend runs through — 04b's AEAD, 04c's ElGamal, and the test double.
-
-### `SlotId` — identity without knowledge
-
-`src/seal/slot.rs` (new):
-
-```rust
-/// A stable, public handle for one card in a sealed pile.
-///
-/// Assigned at seal time and carried by the card thereafter, so shuffling
-/// permutes *order* while every card keeps its name. This is what lets a
-/// ledger say "seat 3 revealed slot 17" without saying what slot 17 is.
-///
-/// Deliberately NOT the ordinal — that would be the card.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SlotId(u16);
-impl SlotId { pub const fn new(n: u16) -> Self; pub const fn get(self) -> u16; }
-```
-
-### `SealedCard<D, S>` — one card nobody has read
-
-`src/seal/sealed_card.rs` (new):
-
-```rust
-pub struct SealedCard<D: DeckedBase, S: Seal<D>> {
-    sealed: S::Sealed,
-    slot: SlotId,
-    deck: PhantomData<D>,
-}
-
-impl<D: DeckedBase, S: Seal<D>> SealedCard<D, S> {
-    pub fn new(sealed: S::Sealed, slot: SlotId) -> Self;
-    /// Public identity. Safe to log, safe to send to a spectator.
-    pub fn slot(&self) -> SlotId;
-    /// The opaque payload, for transport. Reading it yields nothing.
-    pub fn payload(&self) -> &S::Sealed;
-    /// The one and only door. Passes `self.slot` to the scheme.
-    pub fn reveal(&self, scheme: &S, token: &S::Token) -> Result<Card<D>, S::Error>;
-}
-
-// Hand-written, not derived — a derive would add `D: Clone` etc. via PhantomData.
-impl<D, S> Clone for SealedCard<D, S> { … }
-impl<D, S> PartialEq / Eq for SealedCard<D, S> { … }   // slot + payload
-impl<D, S> core::fmt::Debug for SealedCard<D, S> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "SealedCard {{ slot: {}, sealed: <sealed> }}", self.slot.get())
-    }
-}
-// NO `Display`. There is no user-facing rendering of a card nobody has read.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound(
-    serialize   = "S::Sealed: Serialize",
-    deserialize = "S::Sealed: Deserialize<'de>")))]
-```
-
-Note what `SealedCard` does **not** hold: an `S`. The pile is generic over the *scheme*, never over an *instance* of it. That is the mechanical expression of "the library does not know" — there is no key anywhere in the struct graph, so there is no code path, safe or unsafe, that turns a `SealedCard` into a `Card` without the caller handing both pieces in.
-
-A derived `Debug` would print `S::Sealed`, and for the test double `S::Sealed` *is* a `Card<D>`. That is the single easiest way to leak a deck into a log line, so the redaction gets its own test.
-
-### `SealedPile<D, S>` — the blind shoe
-
-`src/seal/sealed_pile.rs` (new):
-
-```rust
-#[derive(Default)]
-pub struct SealedPile<D: DeckedBase, S: Seal<D>>(Vec<SealedCard<D, S>>);
-
-impl<D: DeckedBase, S: Seal<D>> SealedPile<D, S> {
-    /// Build from pre-sealed cards. Rejects duplicate `SlotId`s.
-    pub fn from_sealed(cards: Vec<SealedCard<D, S>>) -> Result<Self, CardError>;
-
-    /// Seals in pile order with slots `0..n`. **Hazard:** sealing an unshuffled
-    /// deck this way makes slot == ordinal — the deck is public. Prefer
-    /// `seal_shuffled`. (The hazard is pinned by a test.)
-    pub fn seal_pile(scheme: &S, pile: &Pile<D>, rng: &mut dyn RngCore)
-        -> Result<Self, S::Error> where D: Default + Ord + Copy + Hash;
-    /// Shuffles a clone with `rng` first, then seals. The recommended constructor.
-    pub fn seal_shuffled<R: Rng + ?Sized>(scheme: &S, pile: &Pile<D>, rng: &mut R)
-        -> Result<Self, S::Error> where D: Default + Ord + Copy + Hash;
-
-    pub fn len(&self) -> usize;
-    pub fn is_empty(&self) -> bool;
-    /// Every slot still in the shoe. Public, leaks nothing.
-    pub fn slots(&self) -> impl Iterator<Item = SlotId> + '_;
-    pub fn get(&self, slot: SlotId) -> Option<&SealedCard<D, S>>;
-    /// Remove by label. Needs no knowledge.
-    pub fn take(&mut self, slot: SlotId) -> Option<SealedCard<D, S>>;
-
-    pub fn draw_first(&mut self) -> Option<SealedCard<D, S>>;
-    /// All-or-nothing, mirroring `Pile::draw` (`pile.rs:227`).
-    pub fn draw(&mut self, n: usize) -> Option<Self>;
-
-    /// Blind Fisher–Yates. Mirrors `Pile::shuffle_with_rng` (`pile.rs:796`).
-    pub fn shuffle_with_rng<R: Rng + ?Sized>(&mut self, rng: &mut R);
-    pub fn shuffle_with_seed(&mut self, seed: u64);
-    pub fn permute(&self, p: &Permutation) -> Result<Self, CardError>;
-    pub fn cut(&mut self, at: usize) -> Result<(), CardError>;
-
-    /// Reveal one slot. `SealError::Slot` if the slot is absent,
-    /// `SealError::Backend` if the scheme refuses.
-    pub fn reveal(&self, slot: SlotId, scheme: &S, token: &S::Token)
-        -> Result<Card<D>, SealError<S::Error>>;
-
-    /// Counts cards and checks `SlotId` uniqueness. It does **not** and
-    /// cannot check that the payloads are distinct cards — see Scope 7.
-    pub fn audit(&self, expected: usize) -> SealAudit;
-}
-
-#[derive(Debug)]
-pub enum SealError<E> { Slot(CardError), Backend(E) }
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SealAudit { pub expected: usize, pub actual: usize, pub duplicate_slots: Vec<SlotId> }
-impl SealAudit { pub fn is_ok(&self) -> bool; }
-```
-
-**Methods deliberately absent**, each because it would require knowledge: `sort` (ordering by rank is knowledge); `contains(&Card)` / `position(&Card)` (matching by value is knowledge); `Deref`, `Index`, `Display`, and any `IntoIterator` yielding something evaluable.
-
-**Why a `Vec` and not a set.** A set dedups by *value*. Deduping requires reading. A sealed pile is an ordered list whose invariants are maintained over `SlotId`, not over cards.
+**Why `seal` is on the trait when the kernel never calls it:** so that a single `impl` is the complete, reviewable statement of a scheme, and so the round-trip law `unseal(seal(c, s, rng), s, t) == c` is one generic test (`seal_roundtrip`) every backend runs through — 04b's AEAD, 04c's ElGamal, and the test double.
 
 ### `PlaintextSeal` — the test double, hard to reach on purpose
 
@@ -422,17 +429,14 @@ impl SealAudit { pub fn is_ok(&self) -> bool; }
 ```rust
 /// **NO SECURITY WHATSOEVER.** `Sealed = Card<D>`; "sealing" is the identity
 /// function and `unseal` checks `token.0 == self.secret`. It exists to test
-/// the *plumbing* — draw, shuffle, cut, reveal accounting, redaction — not
-/// secrecy. Never reachable in a default build.
+/// `reveal_with` and the conformance helper — not secrecy. Never reachable
+/// in a default build.
 pub struct PlaintextSeal { secret: u64 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PlainToken(pub u64);
 
 impl<D: DeckedBase> Seal<D> for PlaintextSeal {
-    type Sealed = Card<D>;
-    type Token = PlainToken;
-    type Error = CardError;
-    …
+    type Sealed = Card<D>; type Token = PlainToken; type Error = CardError; …
 }
 
 /// Generic conformance helper, exported under `seal-test-double` so backends
@@ -441,7 +445,7 @@ pub fn seal_roundtrip<D, S: Seal<D>>(scheme: &S, token_for: impl Fn(SlotId) -> S
 where D: Decked<D> + Default + Ord + Copy + Hash;
 ```
 
-`Sealed = Card<D>` is chosen *because* its derived `Debug` prints the card — that is what makes `sealed_card__debug_never_prints_a_card` a real test rather than a tautology. `Token = ()` was rejected: "wrong token ⇒ `Err`" would be untestable on the double.
+`Token = ()` was rejected: "wrong token ⇒ `Err`" would be untestable on the double.
 
 ### `CardError` additions
 
@@ -455,8 +459,9 @@ where D: Decked<D> + Default + Ord + Copy + Hash;
                                                                       PermutationLength { expected: usize, actual: usize },
 #[error("Cannot cut at `{0}`: out of range")]                          InvalidCut(usize),
 #[error("Malformed canonical bytes: {0}")]                            CanonicalMalformed(String),
-#[error("Duplicate slot `{0}` in sealed pile")]                       DuplicateSlot(u16),
-#[error("Slot `{0}` not found in sealed pile")]                       SlotNotFound(u16),
+#[error("Duplicate slot `{0}`")]                                      DuplicateSlot(u16),
+#[error("Slot `{0}` not found")]                                      SlotNotFound(u16),
+#[error("Slot `{0}` is already revealed")]                            SlotAlreadyRevealed(u16),
 ```
 
 ### Module layout
@@ -466,23 +471,23 @@ src/basic/types/ordinal.rs        Ordinal, Codebook<D>, vocabulary(), CANON_V1, 
 src/basic/types/permutation.rs    Permutation
 src/basic/types/pile.rs           + permute, cut
 src/basic/types/traits.rs         + Decked::codebook() default method
-src/seal/mod.rs                   "no keys live here" header; re-exports
-src/seal/seal.rs                  trait Seal<D>
+src/seal/mod.rs                   "no values, no keys, no ciphertext live here" header; re-exports
 src/seal/slot.rs                  SlotId
-src/seal/sealed_card.rs           SealedCard<D, S>, redacting Debug
-src/seal/sealed_pile.rs           SealedPile<D, S>, SealAudit, SealError<E>
+src/seal/slot_pile.rs             SlotPile, SlotAudit          (non-generic)
+src/seal/revealed.rs              Revealed<D>, SealError<E>
+src/seal/seal.rs                  trait Seal<D>
 src/seal/plaintext.rs             PlaintextSeal, seal_roundtrip  (cfg test | seal-test-double)
 src/seal/commit/                  EPIC-04a  (cfg commit-reveal)
 src/seal/aead/                    EPIC-04b  (cfg seal-aead)
 src/lib.rs:358                    + pub mod seal;
-src/prelude.rs                    + Ordinal, Codebook, Permutation, SlotId, Seal, SealedCard, SealedPile, SealAudit, SealError
+src/prelude.rs                    + Ordinal, Codebook, Permutation, SlotId, SlotPile, SlotAudit, Revealed, Seal, SealError
 tests/seal_properties.rs          proptest suite (cfg not wasm32), pattern from tests/properties.rs
 ```
 
 ### Feature flags / `Cargo.toml`
 
 ```toml
-# Test double for the seal boundary. Off by default; adds no dependency.
+# Test double for the seal adapter. Off by default; adds no dependency.
 seal-test-double = []
 # Umbrella for the real crypto backends (EPIC-04a, EPIC-04b). Deliberately
 # NOT in `full` — see .okf/decisions/crypto-features-outside-full.md.
@@ -495,18 +500,18 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ## Story 0: Prerequisites & gating (`src/lib.rs`, `Cargo.toml`, `src/common/errors.rs`)
 
-**Acceptance:** an empty `seal` module and the new features exist; the eight `CardError` variants compile ungated; every purity gate is green before any type is written.
+**Acceptance:** an empty `seal` module and the new features exist; the nine `CardError` variants compile ungated; every purity gate is green before any type is written.
 
 **Files:**
 - Modify: `src/lib.rs:358` (add `pub mod seal;`)
 - Create: `src/seal/mod.rs` (header comment + empty)
 - Modify: `Cargo.toml:24-35` (`seal-test-double`, `crypto` features)
-- Modify: `src/common/errors.rs:13` (eight variants)
+- Modify: `src/common/errors.rs:13` (nine variants)
 
 ### Tasks
 
 - [ ] Add `pub mod seal;` and the two features; confirm `cargo build --no-default-features` is green with the empty module
-- [ ] Add the eight `CardError` variants; confirm `CardError` keeps `Eq + PartialEq` (test `card_error__seal_variants_display`)
+- [ ] Add the nine `CardError` variants; confirm `CardError` keeps `Eq + PartialEq` (test `card_error__seal_variants_display`)
 - [ ] `make no-std`, `make no-std-thumbv7`, `cargo deny check bans` green
 - [ ] `cargo test --all` green
 
@@ -538,9 +543,6 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 **Acceptance:** `decode_pile(encode_pile(p)) == p` for a full deck, a shuffled deck, a 5-card hand, and an empty pile; the header bytes for Standard52 are pinned; version, truncation, and deck-name mismatches each error with a named variant.
 
-**Files:**
-- Modify: `src/basic/types/ordinal.rs`
-
 ### Tasks
 
 - [ ] `CANON_V1` + `encode_pile` (iteration order; `CardNotInDeck` on a foreign card)
@@ -569,45 +571,47 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ---
 
-## Story 4: The seal boundary (`src/seal/{seal,slot,sealed_card,plaintext}.rs`)
+## Story 4: `SlotId` + `SlotPile` (`src/seal/slot.rs`, `src/seal/slot_pile.rs`)
 
-**Acceptance:** `Seal<D>` compiles object-safe; `SealedCard`'s `Debug` never prints a card; `reveal` round-trips under the double and a wrong token is `Err`; serde round-trips a `SealedCard<French, PlaintextSeal>` under `serde,seal-test-double`.
+**Acceptance:** `SlotPile` derives everything; construction rejects duplicate slots; blind shuffle/permute/cut are permutations of the slot set and agree slot-for-slot with a `Pile` shuffled from the same RNG state; `draw` is all-or-nothing; a rejected operation changes nothing (`assert_eq!` on the whole value).
 
 **Files:**
-- Create: `src/seal/seal.rs`, `src/seal/slot.rs`, `src/seal/sealed_card.rs`, `src/seal/plaintext.rs`
+- Create: `src/seal/slot.rs`, `src/seal/slot_pile.rs`
 - Modify: `src/seal/mod.rs`, `src/prelude.rs`
 
 ### Tasks
 
-- [ ] `Seal<D>` trait + `SlotId` (compile-time test that `&dyn Seal<French, Sealed = …>` is nameable — object safety)
-- [ ] `SealedCard` with hand-written `Clone`/`PartialEq`/`Eq`/`Debug` and the serde `bound` attribute
-- [ ] `PlaintextSeal` + `PlainToken` + `seal_roundtrip` helper
-- [ ] Tests: `sealed_card__debug_never_prints_a_card` (`format!("{:?}")` of a sealed A♠ contains `<sealed>` and none of `A♠`, `AS`, `Ace`, `Spades`), `sealed_card__reveal_roundtrip`, `sealed_card__wrong_token_errors` (asserts `Err`, and separately that it is never `Ok(other_card)`), `seal__roundtrip_law` (first caller of the generic helper), `sealed_card__serde_roundtrip`
-- [ ] Confirm `PlaintextSeal` is absent from `cargo doc --no-default-features` output
+- [ ] `SlotId` with `new`/`get`/`index`/`Display`
+- [ ] `SlotPile::new`/`from_slots` (`slot_pile__new_is_identity_order`, `slot_pile__from_slots_rejects_duplicates`)
+- [ ] `take`/`draw_first`/`draw`/`contains`/`position` (`slot_pile__draw_all_or_nothing`, `slot_pile__take_by_name`, `slot_pile__rejected_draw_changes_nothing` — `assert_eq!(before, after)`)
+- [ ] `shuffle_with_rng`/`shuffle_with_seed`/`permute`/`cut` (`slot_pile__shuffle_permutes_slot_set`, `slot_pile__shuffle_agrees_with_pile_shuffle_for_same_rng` — the slot at position *i* names the card at position *i* of the equally-shuffled `Pile`, `slot_pile__cut_matches_permutation_rotation`)
+- [ ] `audit` (`slot_pile__audit_counts_and_finds_duplicates`; doc comment states what it cannot check)
+- [ ] `slot_pile__serde_roundtrip` (under `serde`)
+- [ ] Compile-time assertion that `SlotPile` has no method mentioning `Card` — a `#[cfg(test)]` doc note plus a review item, not a test
 
 ---
 
-## Story 5: `SealedPile<D, S>` (`src/seal/sealed_pile.rs`)
+## Story 5: `Revealed<D>` + `Seal<D>` + `PlaintextSeal` (`src/seal/revealed.rs`, `seal.rs`, `plaintext.rs`)
 
-**Acceptance:** construction rejects duplicate slots; the slot == ordinal hazard is pinned; blind shuffle/permute/cut are permutations of the slot set and agree with their plaintext counterparts after reveal-all; `draw` is all-or-nothing; `audit` counts and cannot prove distinctness.
+**Acceptance:** `Revealed<D>` derives cleanly with `Pile`'s bounds; `reveal` refuses a second reveal; `reveal_with` round-trips under the double and a wrong token is `Err` with the map unchanged; `pile_for` errors on an unrevealed slot; `Seal<D>` is object-safe.
 
 **Files:**
-- Create: `src/seal/sealed_pile.rs`
+- Create: `src/seal/revealed.rs`, `src/seal/seal.rs`, `src/seal/plaintext.rs`
 - Modify: `src/seal/mod.rs`, `src/prelude.rs`
 
 ### Tasks
 
-- [ ] `from_sealed` / `seal_pile` / `seal_shuffled` (`sealed_pile__from_sealed_rejects_duplicate_slots`, `sealed_pile__seal_pile_of_sorted_deck_leaks_slot_eq_ordinal`, `sealed_pile__seal_shuffled_breaks_slot_ordinal_identity`)
-- [ ] `get` / `take` / `draw_first` / `draw` (`sealed_pile__draw_all_or_nothing`, `sealed_pile__take_by_slot`)
-- [ ] `shuffle_with_rng` / `shuffle_with_seed` / `permute` / `cut` (`sealed_pile__shuffle_permutes_slot_set`, `sealed_pile__shuffle_deterministic_for_seed`, `sealed_pile__permute_matches_plaintext_permute` — seal, permute both sides, reveal all, compare; `sealed_pile__cut_matches_plaintext_cut`)
-- [ ] `reveal` + `SealError` (`sealed_pile__reveal_unknown_slot_errors`, `sealed_pile__reveal_wrong_token_is_backend_error`)
-- [ ] `audit` + `SealAudit` (`sealed_pile__audit_counts_but_cannot_prove_distinctness` — the same card sealed into two slots passes `audit(52).is_ok()`; the doc comment says why)
+- [ ] `Seal<D>` trait (compile-time check that `&dyn Seal<French, Sealed = …, Token = …, Error = …>` is nameable)
+- [ ] `Revealed<D>` with `reveal`/`get`/`is_revealed`/`iter`/`pile_for` (`revealed__reveal_twice_errors`, `revealed__pile_for_unrevealed_errors`, `revealed__pile_for_preserves_order`, `revealed__serde_roundtrip`)
+- [ ] `Revealed::reveal_with` + `SealError` (`revealed__reveal_with_roundtrip`, `revealed__reveal_with_wrong_token_errors_and_map_unchanged`, `revealed__reveal_with_never_yields_other_card`)
+- [ ] `PlaintextSeal` + `PlainToken` + `seal_roundtrip` helper (`seal__roundtrip_law` — first caller)
+- [ ] Confirm `PlaintextSeal` is absent from `cargo doc --no-default-features` output
 
 ---
 
 ## Story 6: Property tests (`tests/seal_properties.rs`)
 
-**Acceptance:** the group laws, the blind-shuffle-is-a-permutation claim, and the plaintext/sealed agreement hold for arbitrary seeds, reproducible from a failing seed.
+**Acceptance:** the group laws, the slot-shuffle/pile-shuffle agreement, and "empty `Revealed` means no value anywhere" hold for arbitrary seeds, reproducible from a failing seed.
 
 **Files:**
 - Create: `tests/seal_properties.rs` (header conventions from `tests/properties.rs:1-20`; `#![cfg(not(target_arch = "wasm32"))]`)
@@ -615,7 +619,8 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 ### Tasks
 
 - [ ] `permutation__inverse_roundtrip` (seed), `permutation__compose_law` (two seeds), `permutation__from_rng_matches_pile_shuffle` (seed)
-- [ ] `sealed_pile__shuffle_permutes_slot_set` (seed), `sealed_pile__shuffle_deterministic_for_seed` (seed), `sealed_pile__permute_matches_plaintext_permute` (seed)
+- [ ] `slot_pile__shuffle_permutes_slot_set` (seed), `slot_pile__shuffle_agrees_with_pile_shuffle` (seed), `slot_pile__rejected_ops_change_nothing` (seed, random illegal `draw`/`cut`)
+- [ ] `deal__slots_then_reveal_all_equals_clear_deal` (seed): shuffle a `SlotPile` and a `Pile` from the same seed, deal *n* slots, reveal them via `Codebook` order, compare to the clear deal — the 04-level version of `pkcore` 79b's deferred test 4d, meaningful here because the slot path never held a value
 - [ ] `cargo test --features seal-test-double --test seal_properties` green
 
 ---
@@ -626,7 +631,8 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] Prelude re-exports; doctests use `Permutation` / `Codebook` (ungated), never `PlaintextSeal`
+- [ ] Prelude re-exports; doctests use `Permutation` / `Codebook` / `SlotPile` (all ungated), never `PlaintextSeal`
+- [ ] `src/seal/mod.rs` header: the EPIC-82 rule in one paragraph — slots, order, revealed values; never ciphertext, never keys
 - [ ] README feature rows (`seal-test-double`, `crypto`) with the "not in `full`" note
 - [ ] CHANGELOG `Added` + `Cargo.toml` `0.11.0`
 - [ ] `.okf/architecture/feature-flags.md` rows flipped from *planned* to live; `.okf/references/epic-04-sealed-decks.md` tags `planned` → `active`; `.okf/log.md` entry; `/okf:validate .okf --strict`
@@ -648,16 +654,15 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 | `permutation__inverse_roundtrip` (prop) | `p.inverse().apply(p.apply(x)) == x` |
 | `permutation__compose_law` (prop) | `a.then(b).apply(x) == b.apply(a.apply(x))` |
 | `permutation__rejects_*` | Every invalid construction is `Err(InvalidPermutation)` / `Err(PermutationLength)` |
-| `sealed_card__debug_never_prints_a_card` | The redaction — the single easiest leak, pinned |
-| `sealed_card__wrong_token_errors` | `Err`, and never `Ok(other_card)` |
+| `slot_pile__shuffle_agrees_with_pile_shuffle_for_same_rng` | A blind shuffle and a clear shuffle from one seed agree slot-for-slot |
+| `slot_pile__rejected_draw_changes_nothing` | Plain-value payoff: one `assert_eq!` on the whole shoe |
+| `slot_pile__audit_counts_and_finds_duplicates` | The audit's honest scope |
+| `revealed__reveal_twice_errors` | A value cannot be silently replaced |
+| `revealed__reveal_with_wrong_token_errors_and_map_unchanged` | `Err`, never `Ok(other_card)`, and nothing admitted |
 | `seal__roundtrip_law` | The generic law every backend (04b, 04c) reuses |
-| `sealed_pile__seal_pile_of_sorted_deck_leaks_slot_eq_ordinal` | The documented hazard is real — so the warning cannot be "simplified" away |
-| `sealed_pile__shuffle_permutes_slot_set` (prop) | `BTreeSet<SlotId>` before == after |
-| `sealed_pile__permute_matches_plaintext_permute` (prop) | Reveal-all of a permuted sealed pile equals the permuted plaintext pile |
-| `sealed_pile__audit_counts_but_cannot_prove_distinctness` | The audit's honesty: a duplicated card still passes |
-| `sealed_card__serde_roundtrip` | The serde `bound` attribute is right |
+| `deal__slots_then_reveal_all_equals_clear_deal` (prop) | The slot path is a faithful deal — 79b's 4d, made meaningful by absence of values |
 
-**Gold Standard check:** before closing, delete each guard in turn — the `try_from_vec` bitset check, the `from_sealed` duplicate-slot check, the hand-written `Debug`, the token comparison in `PlaintextSeal::unseal` — and confirm a named test goes red.
+**Gold Standard check:** before closing, delete each guard in turn — the `try_from_vec` bitset check, the `from_slots` duplicate check, the `reveal` already-revealed check, the token comparison in `PlaintextSeal::unseal` — and confirm a named test goes red.
 
 ## Key Files
 
@@ -667,35 +672,35 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 | `src/basic/types/permutation.rs` | **New.** `Permutation` |
 | `src/basic/types/pile.rs:72` | `Pile::permute`, `Pile::cut` |
 | `src/basic/types/traits.rs:58` | `Decked::codebook()` default method |
-| `src/seal/mod.rs` | **New.** Module header, re-exports |
-| `src/seal/seal.rs` | **New.** `trait Seal<D>` |
+| `src/seal/mod.rs` | **New.** Module header (the EPIC-82 rule), re-exports |
 | `src/seal/slot.rs` | **New.** `SlotId` |
-| `src/seal/sealed_card.rs` | **New.** `SealedCard<D, S>` |
-| `src/seal/sealed_pile.rs` | **New.** `SealedPile<D, S>`, `SealAudit`, `SealError<E>` |
+| `src/seal/slot_pile.rs` | **New.** `SlotPile`, `SlotAudit` — non-generic |
+| `src/seal/revealed.rs` | **New.** `Revealed<D>`, `SealError<E>` |
+| `src/seal/seal.rs` | **New.** `trait Seal<D>` |
 | `src/seal/plaintext.rs` | **New.** `PlaintextSeal`, `seal_roundtrip` (gated) |
-| `src/common/errors.rs:13` | Eight new variants |
+| `src/common/errors.rs:13` | Nine new variants |
 | `src/lib.rs:358`, `src/prelude.rs` | Module declaration, re-exports |
 | `Cargo.toml:24-35` | `seal-test-double`, `crypto` features |
 | `tests/seal_properties.rs` | **New.** Property suite |
-| `.okf/decisions/crypto-features-outside-full.md` | **New.** Why backends stay out of `full` |
+| `.okf/decisions/crypto-features-outside-full.md` | **New.** Why backends stay out of `full`; why the kernel holds slots |
 | `.okf/references/epic-04-sealed-decks.md` | **New.** Mirror pointer |
 
 ## Reuse (do NOT recreate)
 
-- `src/basic/types/pile.rs:796` `shuffle_with_rng` / `:776` `shuffle_with_seed` — the blind shuffle mirrors these exactly; `Permutation::from_rng` is *defined* to agree with them.
-- `src/basic/types/pile.rs:227` `draw` — the all-or-nothing contract `SealedPile::draw` copies.
+- `src/basic/types/pile.rs:796` `shuffle_with_rng` / `:776` `shuffle_with_seed` — `SlotPile` and `Permutation::from_rng` are *defined* to agree with them.
+- `src/basic/types/pile.rs:227` `draw` — the all-or-nothing contract `SlotPile::draw` copies.
 - `src/basic/types/pile.rs:733` `same` and `:443` `unique_cards` — multiset assertions in tests.
 - `src/basic/types/traits.rs:30` `DeckedBase::base_vec` / `deck_name` — the **sole** source of the vocabulary and the domain tag. Do not add a parallel card list.
 - `src/basic/decks/registry.rs:88` `DeckKind::all()` — every-deck sweeps.
 - `src/common/errors.rs:13` `CardError` (`#[non_exhaustive]`) — extend; never introduce a second kernel error enum.
 - `tests/properties.rs` — the proptest header, seeding idiom, and `name__property` naming.
 - `itertools::unique` — already a dependency with `use_alloc`.
-- `pkcore/docs/epics/EPIC-79b_Sealed_Deck.md` — the design being ported; read it before changing any signature in `src/seal/`.
+- `pkcore` branch `EPIC-79b`: `src/seal/card_seal.rs` (the trait shape being followed), `src/seal/slot.rs` (`SlotId` with `Display` + `index()`, correction C3), and `docs/epics/EPIC-82_The_Betting_Kernel.md` §3 Decisions 3, 5, 7 (the rule this kernel follows). Read them before changing any signature in `src/seal/`.
 
 ## Compatibility
 
 - **Preserves:** every existing public signature. `Card`, `BasicCard`, `Pile`, `Decked`'s required methods, and all 14 decks are untouched. A `default = []` build gains the new value types and no dependencies.
-- **Adds:** `Ordinal`, `Codebook<D>`, `vocabulary`, `CANON_V1`, `Permutation`, `Pile::permute`/`cut`, `Decked::codebook()` (default), the `seal` module, eight `CardError` variants, two features.
+- **Adds:** `Ordinal`, `Codebook<D>`, `vocabulary`, `CANON_V1`, `Permutation`, `Pile::permute`/`cut`, `Decked::codebook()` (default), the `seal` module (`SlotId`, `SlotPile`, `SlotAudit`, `Revealed<D>`, `Seal<D>`, `SealError`), nine `CardError` variants, two features.
 - **Breaks:** nothing intended. `CardError` is already `#[non_exhaustive]`. **New contract:** the order of every shipped deck's `base_vec()` is now stable; reordering is semver-major from 0.11.0.
 - **Package size:** unchanged in kind — only `src/**` ships (`Cargo.toml:13`).
 
@@ -703,7 +708,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 - **Blocks:** [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) (needs Stories 2–3), [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) (needs Stories 1, 4–5), [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) (needs everything).
 - **Built on:** the seeded-shuffle work (`docs/2026-04-29-seeded-shuffle-design.md`); the `DeckKind` registry (EPIC-02); the `#[non_exhaustive]` precedent on `CardError` (EPIC-03); the domain-kernel invariants (`docs/audit-2026-07-18-domain-kernel.md`).
-- **Related:** `pkcore` EPIC-79b (the design ported here), `pkmental` EPIC-79 (the consumer whose `encode.rs` `Codebook` replaces).
+- **Related:** `pkcore` EPIC-82 (the rule), `pkcore` EPIC-79b (the trait shape and the lesson), `pkmental` EPIC-79 (the consumer whose `encode.rs` `Codebook` replaces).
 
 ## Verification
 
@@ -715,7 +720,7 @@ make no-std-thumbv7
 cargo deny check bans
 cargo test --no-default-features --lib
 
-# The seal boundary with its test double
+# The seal adapter with its test double
 cargo test --features seal-test-double
 cargo test --features seal-test-double,serde
 cargo test --features full,seal-test-double --test seal_properties
@@ -728,6 +733,9 @@ cargo fmt --all -- --check
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
 cargo doc --no-default-features --no-deps && ! grep -rq PlaintextSeal target/doc/cardpack/
 
+# The kernel is not generic over a scheme
+! grep -rnE 'struct \w+<[^>]*S: Seal' src/seal/
+
 # Portability
 cargo build --target wasm32-unknown-unknown --all-features
 make ayce
@@ -736,33 +744,34 @@ make ayce
 Exit criteria:
 
 1. `Codebook<D>` round-trips every card of every `DeckKind` and every marker type; the Standard52 golden table passes.
-2. `Permutation::from_rng(n, rng).apply(&pile) == pile.shuffled_with_rng(rng)` for the same RNG state.
-3. `SealedPile` exposes no path to a `Card<D>` other than `reveal` — verified by reading the public API in `cargo doc` output, and by the redaction test.
-4. Every negative test matches a named `CardError` variant, not bare `is_err()`.
-5. `cargo build --no-default-features`, both bare-metal targets, and `cargo deny check bans` are green: nothing here leaks into the pure kernel.
-6. `PlaintextSeal` does not appear in default-build docs.
-7. `.okf/` updated and `/okf:validate .okf --strict` is clean.
+2. `Permutation::from_rng(n, rng).apply(&pile) == pile.shuffled_with_rng(rng)` and `SlotPile` agrees slot-for-slot, for the same RNG state.
+3. No struct in `src/seal/` carries a scheme type parameter (the `grep` above), and `SlotPile` has no method mentioning `Card`.
+4. `Revealed<D>` is the only `SlotId → Card<D>` map in the crate; `deal__slots_then_reveal_all_equals_clear_deal` passes.
+5. Every negative test matches a named `CardError` variant, not bare `is_err()`.
+6. `cargo build --no-default-features`, both bare-metal targets, and `cargo deny check bans` are green: nothing here leaks into the pure kernel.
+7. `PlaintextSeal` does not appear in default-build docs.
+8. `.okf/` updated and `/okf:validate .okf --strict` is clean.
 
 ---
 
 ## Gotchas
 
-1. **The slot == ordinal leak is the whole game.** `seal_pile(Standard52::deck())` with slots `0..52` is a public deck wearing a costume. `seal_shuffled` exists for this reason, the hazard has a named test, and the `seal_pile` doc comment must say so in its first line. Do not remove the warning to tidy the docs.
+1. **The slot == ordinal leak is the whole game.** `SlotPile::new(52)` beside `Standard52::deck()` in `Codebook` order is a public deck wearing a costume. Shuffle the slots (or the pile) first. 04b's dealer helper does; the hazard has a named test there, and decision 7 says so here so nobody removes the warning to tidy the docs.
 
-2. **`Sealed: Eq` compares ciphertexts, not cards.** Under any scheme worth using, sealing is randomized, so `Eq` proves nothing about distinctness. It is on the trait for containers and parity with `pkcore`. This is also why `audit` cannot do more than count — anyone "improving" `audit` to compare payloads is checking nothing.
+2. **`Sealed: Eq` compares ciphertexts, not cards.** Under any scheme worth using, sealing is randomized, so `Eq` proves nothing about distinctness. It is on the trait for containers and parity with `pkcore`. `SlotAudit` cannot do more than count for the same reason.
 
-3. **`Card: Copy` means plaintext is never zeroized.** A revealed card is copied onto the stack, into a `Vec`, into a log line. Key hygiene is 04b's job; plaintext hygiene is out of scope and must be stated in the `seal` module docs so nobody assumes otherwise.
+3. **`Card: Copy` means plaintext is never zeroized.** A revealed card is copied onto the stack, into a `Vec`, into a log line. Key hygiene is 04b's job; plaintext hygiene is out of scope and must be stated in the `seal` module docs.
 
-4. **Derives on generic sealed types pull in phantom bounds.** `#[derive(Clone)]` on `SealedCard<D, S>` demands `D: Clone` and `S: Clone` through `PhantomData`. Hand-write `Clone`/`PartialEq`/`Eq`/`Debug`, and use `#[serde(bound(...))]` — the same trap `docs/generic-decks.md` records for `Pile`.
+4. **Do not add a payload to `SlotPile` "for convenience."** The day it gains a `Vec<Bytes>` beside the slots, it is `SealedDeck<S>` again with the type parameter erased into `Vec<u8>` — and the derive-free, one-`assert_eq!` property is gone. Custody is a `Vec<(SlotId, Bytes)>` *beside* a `SlotPile` (04b), never inside it.
 
-5. **One `Permutation` convention, stated once.** `out[i] = in[p[i]]` must be used identically in `apply`, `inverse`, `rotation`, `SealedPile::permute`, and 04a's derivation. The compose-law and `from_rng` tests are the only guard; if either goes red after a "simplification", the convention drifted.
+5. **One `Permutation` convention, stated once.** `out[i] = in[p[i]]` must be used identically in `apply`, `inverse`, `rotation`, `Pile::permute`, `SlotPile::permute`, and 04a's derivation. The compose-law and agreement tests are the only guard.
 
 6. **`u16` is a real limit.** `Permutation::identity(70_000)` errs, and so does a `Codebook` for a hypothetical deck with more than 65 535 distinct cards. Document it; do not widen to `u32` "just in case" — the canonical byte formats are frozen at `u16`.
 
-7. **The `seal` module is unconditional, so it must build on thumb.** Anything it `use`s has to be `core`/`alloc`/`rand` without `std`. `rand::RngCore` is fine — `std_rng` is already unconditional ([`.okf/decisions/rand-std-rng-unconditional.md`](../.okf/decisions/rand-std-rng-unconditional.md)). `std::collections::HashMap` is not.
+7. **The `seal` module is unconditional, so it must build on thumb.** Anything it `use`s has to be `core`/`alloc`/`rand` without `std`. `rand::RngCore` is fine — `std_rng` is already unconditional ([`.okf/decisions/rand-std-rng-unconditional.md`](../.okf/decisions/rand-std-rng-unconditional.md)). `BTreeMap` is `alloc`; `HashMap` is not.
 
-8. **Doctests must stay flag-free.** `PlaintextSeal` is gated, so seal doctests should demonstrate `Permutation` and `Codebook` (ungated) or be written against 04b's `HolderKeySeal` under `ignore` with a comment — the standing rule in [`.okf/architecture/feature-flags.md`](../.okf/architecture/feature-flags.md) is *prefer the ungated API first*.
+8. **Doctests must stay flag-free.** `PlaintextSeal` is gated, so doctests demonstrate `Permutation`, `Codebook`, `SlotPile`, and `Revealed::reveal` (all ungated) — the standing rule in [`.okf/architecture/feature-flags.md`](../.okf/architecture/feature-flags.md) is *prefer the ungated API first*.
 
 9. **`DeckKind::all()` is 13 without `yaml`** (`Razz` is gated). Registry sweeps read `DeckKind::all().len()`, never a literal 14.
 
-10. **Iteration order vs top-of-deck.** `basic_card.rs:38` carries a `TODO RF` to flip the deck so the *end* of the vector is the top. Canonical bytes and `Permutation` are defined over *iteration order* precisely so that refactor changes nothing here. If it ever lands, re-run the golden tests and expect them to pass.
+10. **Iteration order vs top-of-deck.** `basic_card.rs:38` carries a `TODO RF` to flip the deck so the *end* of the vector is the top. Canonical bytes, `Permutation`, and `SlotPile` are defined over *iteration order* precisely so that refactor changes nothing here.
