@@ -33,8 +33,8 @@ component boundary was assessed and explicitly *not* recommended.
    (`thumbv7em-none-eabihf`) builds ([build and test](/workflows/build-and-test.md)).
 5. **Crypto backends are adapters too, and the kernel holds no secret**
    (planned, EPIC-04). The kernel knows a card's slot, its order, and its value
-   once revealed — never ciphertext, never a scheme type parameter (pkcore
-   EPIC-82's rule); every real cipher or hash sits behind an opt-in feature
+   once revealed — never ciphertext, never a scheme type parameter; every real
+   cipher or hash sits behind an opt-in feature
    outside `full` and is banned from the pure tree
    ([crypto decision](/decisions/crypto-features-outside-full.md)).
 

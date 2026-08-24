@@ -15,7 +15,7 @@
 - EPIC-04 ships the kernel — `SlotPile` (names only), `Revealed<D>` (the only value map), and the `Seal<D>` adapter with one implementation, `PlaintextSeal`, which is deliberately no security at all. Without a real backend, `reveal_with` is only proven for the plumbing.
 - The plaintext to protect is tiny: an `Ordinal` (EPIC-04 Story 1) is `u16`, so a card is two bytes. That is what makes a fixed-width, allocation-free sealed form possible.
 - The crate has no cipher, no KDF, no key type, and no zeroization anywhere. `rand 0.10` is present with `std_rng` unconditional (`Cargo.toml:41-46`); `RngCore::fill_bytes` is the nonce source.
-- `pkcore` EPIC-82 §4 keeps its `CardSeal`/`SealedDeck<S>` alive for exactly one shape — "**dealer-custody** designs … where a single server legitimately holds a sealed deck." This EPIC is that shape for cardpack, done without the generic container: the server holds `(SlotId, SealedBytes)` pairs, which are public bytes, and a `DealKey`, which is not.
+- There is exactly one deployment shape in which anything legitimately holds ciphertext: a **single trusted dealer** — a server that seals the deck and hands out tokens. This EPIC is that shape, done without a generic container: the dealer holds `(SlotId, SealedBytes)` pairs, which are public bytes, beside a `SlotPile`, and a `DealKey`, which is not public. Everything else in the game holds slots and revealed values (EPIC-04 decision 2).
 
 **What this EPIC does NOT do:**
 
@@ -405,7 +405,7 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 - **Built on:** [EPIC-04](./EPIC-04_Sealed_Decks.md) Stories 1, 4, 5.
 - **Independent of:** [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) (shares only the `sha2` dep). A dealer may combine them: commit to the deal's `Permutation` (04a) and seal the result (04b).
-- **Related:** [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) cites HKS as the reference `Seal<D>` implementation; `pkcore` EPIC-82 §4 for the dealer-custody framing.
+- **Related:** [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) cites HKS as the reference `Seal<D>` implementation.
 
 ## Verification
 

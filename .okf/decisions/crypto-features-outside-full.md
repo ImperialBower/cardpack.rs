@@ -13,7 +13,7 @@ non-generic `SlotPile`, `Revealed<D>`, and the five-item `Seal<D>` adapter —
 is dependency-free, `alloc`-only, and **always on**. There is no `seal`
 feature. **No kernel type is generic over a scheme, and none holds
 ciphertext**: the kernel knows a card's *slot*, its *order*, and its *value
-once revealed* (the rule stated by pkcore EPIC-82, *The Betting Kernel*).
+once revealed* — cardpack's own rule (EPIC-04 decision 2), argued on its own terms.
 Where a deployment must hold sealed payloads — a single trusted dealer — it
 keeps a plain `Vec<(SlotId, Bytes)>` beside a `SlotPile` (EPIC-04b
 `Custody`), never a `SealedPile<D, S>`.
@@ -46,9 +46,10 @@ no scheme parameter derives `Clone`/`Eq`/`Debug`/`Serialize` without
 hand-written impls — so the [domain-kernel](/architecture/domain-kernel.md)
 invariants hold (no I/O, no format or cipher type in a public signature, pure
 by default) *and* the "a rejected operation changed nothing" property is one
-`assert_eq!`. pkcore paid for the generic-container design first (19 `where`
-bounds, hand-written derives, a cascade into seats) and wrote EPIC-82 to stop;
-cardpack does not repeat the experiment. Gating a dependency-free kernel would
+`assert_eq!`. Prior art agrees: a sibling repo's spike that put a scheme
+parameter on its table paid 19 `where` bounds and hand-written derives for it
+and is being redone. cardpack is designed to be built *on*, not to link to
+anything; it does not repeat the experiment. Gating a dependency-free kernel would
 add a `cfg` dimension to `CardError`, `Pile::permute`, the prelude and every
 doctest for no benefit ([feature flags](/architecture/feature-flags.md)
 "Principle").

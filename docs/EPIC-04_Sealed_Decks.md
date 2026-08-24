@@ -8,21 +8,20 @@
 > [04b Holder-Key Seal](./EPIC-04b_Holder_Key_Seal.md) (per-card encryption a holder
 > opens with one token, `seal-aead` feature), and
 > [04c Mental Poker Bridge](./EPIC-04c_Mental_Poker_Bridge_spec.md) (the cross-repo
-> contract for `pkmental` / `pkcore`). This document ships the **dependency-free
+> surface cardpack promises to protocol crates). This document ships the **dependency-free
 > kernel** all three build on. Sequencing: 04 → (04a ‖ 04b) → 04c review.
 
-> **Reshaped 2026-08-24, same day as drafting.** The first draft mirrored `pkcore`
-> EPIC-79b's generic `SealedCard<S>` / `SealedDeck<S>` containers. `pkcore`'s
-> branch `EPIC-79b` has since moved past that: EPIC-82 *The Betting Kernel*
-> (`pkcore/docs/epics/EPIC-82_The_Betting_Kernel.md`, drafted 2026-08-23) demotes
-> the generic seal containers and states the rule this document now follows —
-> **the thing that plays the game must not hold hidden cards.** It holds a card's
-> *slot*, its *order*, and its *value once revealed*. Never ciphertext. Secrecy
-> by absence, not by type discipline.
+> **Reshaped 2026-08-24, same day as drafting.** The first draft carried generic
+> `SealedCard<D, S>` / `SealedPile<D, S>` containers. They are gone. The kernel
+> now holds a card's *slot*, its *order*, and its *value once revealed* — never
+> ciphertext, never a scheme type parameter. The reasons are cardpack's own
+> (decision 2); the sibling repositories are cited below only as prior art and
+> as possible consumers. **This crate is its own boss.** It is designed to be
+> built *on*, not to link to anything.
 
 **Goal:** Give cardpack a deck it **cannot read** — because it never holds one. Add a canonical **`Ordinal`** bijection per deck, a **`Permutation`** type so a shuffle is data that can be stored, inverted and verified, a **`SlotPile`** of card *names* that can be shuffled, cut and dealt with no knowledge at all, and a **`Revealed<D>`** map that is the only place a card value ever appears. A small **`Seal<D>`** trait is the optional adapter through which a reveal can be *verified* against a backend's ciphertext and token — but no cardpack type is generic over the scheme. This is the substrate for distributed-game security in several strengths: commit–reveal fairness (04a), holder-only readability (04b), and full mental poker (04c), each as a pluggable backend rather than one blessed answer.
 
-**Architecture:** Three additive layers on the existing `basic` engine, none requiring a new dependency, and **nothing generic over a scheme.** (1) `Ordinal` / `Codebook<D>` and `Permutation` land in `src/basic/types/` as plain value types, always on, `no_std` + `alloc`. (2) A new top-level `src/seal/` module holds `SlotId`, the non-generic `SlotPile(Vec<SlotId>)`, `Revealed<D>` (a `BTreeMap<SlotId, Card<D>>` with the same bounds as `Pile<D>`), and the `Seal<D>` trait. Every one of them derives `Clone`/`Eq`/`Debug`/`Serialize` cleanly, because nothing is parameterised over `S`. (3) Real backends live in `src/seal/commit/` (04a) and `src/seal/aead/` (04b) behind opt-in features that are deliberately **not** in `full` — the same posture as `std-io` ([`.okf/decisions/std-io-outside-full.md`](../.okf/decisions/std-io-outside-full.md)). Custody of ciphertext, where a deployment needs it, is a plain `Vec<(SlotId, Bytes)>` owned by the dealer (04b), not a kernel type.
+**Architecture:** Three additive layers on the existing `basic` engine, none requiring a new dependency, and **nothing generic over a scheme.** (1) `Ordinal` / `Codebook<D>` and `Permutation` land in `src/basic/types/` as plain value types, always on, `no_std` + `alloc`. (2) A new top-level `src/seal/` module holds `SlotId`, the non-generic `SlotPile(Vec<SlotId>)`, `Revealed<D>` (a `BTreeMap<SlotId, Card<D>>` with the same bounds as `Pile<D>`), and the `Seal<D>` trait. Every one of them derives `Clone`/`Eq`/`Debug`/`Serialize` cleanly, because nothing is parameterised over `S`. (3) Real backends live in `src/seal/commit/` (04a) and `src/seal/aead/` (04b) behind opt-in features that are deliberately **not** in `full` — the same posture as `std-io` ([`.okf/decisions/std-io-outside-full.md`](../.okf/decisions/std-io-outside-full.md)). Custody of ciphertext, where a deployment needs it, is a plain `Vec<(SlotId, Bytes)>` owned by the dealer (04b), not a kernel type. No cardpack type, trait, or test depends on any other repository.
 
 **Tech Stack:** Rust 2024 edition (MSRV 1.85), no_std + alloc discipline, `rand` 0.10 (`Rng` for blind shuffles, `RngCore` for the seal seam — `std_rng` is already unconditional, `Cargo.toml:41-46`), `proptest` for seeded properties, GitHub Actions CI with clippy-pedantic, kernel-purity, no_std, thumb and wasm32 jobs.
 
@@ -38,12 +37,12 @@ The crate today is structurally incapable of dealing a card it does not know.
 - `DeckKind` (`src/basic/decks/registry.rs`) enumerates all 14 shipped decks; `all()` at `:88`. `DeckedBase::base_vec()` (`traits.rs:30`) is each deck's card list in a fixed order — an implicit bijection nobody has promised to keep stable.
 - There is **no** cryptography, commitment, or hashing of any kind in `src/`, `tests/`, `docs/`, or `.okf/`. `Hash` is the std derive for map keys; the only "crypto" string in the repo is `crypto.getRandomValues` as a wasm entropy source (`tests/wasm.rs:53`).
 
-Two sibling repositories have already worked this problem, and one of them changed its mind:
+Two sibling repositories are worth knowing about — as **possible consumers and prior art**, not as inputs:
 
-- **`pkmental`** (`../pkmental`, `main` @ `ac72bc1`) implements Barnett–Smart threshold ElGamal mental poker. The *only* thing it needs from a card library is a total `Card ↔ 0..52` bijection — and it builds one itself, at runtime, with two `OnceLock<HashMap>`s over `pkcore::deck::DECK_ARRAY` and a panicking `expect` (`pkmental/src/encode.rs:33-60`). The *players* hold and shuffle the masked deck, with proofs. It never wanted a card library to hold ciphertext.
-- **`pkcore`** built the generic path and then stepped back from it. On branch `EPIC-79b` (closed complete at `93673808`), `Table` became `TableOf<S: CardSeal>` with `deck: SealedDeck<S>` and `pub type Table = TableOf<NullSeal>`. That cost 19 `where S: CardSeal<Sealed = Card>` bounds in `casino/`, hand-written `Clone`/`Debug`/`PartialEq` on every generic type (79b correction C4), and a follow-on EPIC-79c that would have threaded `S` through `Seat`, `SeatHand`, and `dealt_hole_cards`. **EPIC-82** (`pkcore/docs/epics/EPIC-82_The_Betting_Kernel.md`, on the same branch) supersedes 79c and demotes the containers: the referee's state is `deck: Vec<SlotId>` and `HoleSlot { slot: SlotId, revealed: Option<Card> }` — a plain struct that "cannot leak a card it never contains." `CardSeal` survives only as the optional verified-unseal adapter (EPIC-82 Decision 7) and for the single-server dealer-custody shape (EPIC-82 §4). `pkcore` still pins `cardpack = "0.6.9"` and uses its own `u32 Card`.
+- **`pkmental`** (`../pkmental`, `main` @ `ac72bc1`) implements Barnett–Smart threshold ElGamal mental poker. The *only* thing it needs from a card library is a total `Card ↔ 0..52` bijection — and it builds one itself, at runtime, with two `OnceLock<HashMap>`s over a 52-entry array and a panicking `expect` (`pkmental/src/encode.rs:33-60`). The *players* hold and shuffle the masked deck, with proofs. It never wanted a card library to hold ciphertext. It does not depend on cardpack.
+- **`pkcore`** (`../pkcore`, branch `table_decelled` @ `f4bb1f9a` — the state to rely on) has no sealed-card code: no `src/seal/`, no slot type, no seal trait; its `docs/epics/EPIC-79b_Sealed_Deck.md` is a design sketch of a five-item `CardSeal` trait. A separate branch built that sketch out as a spike — generic `SealedDeck<S>`, a table parameterised over the scheme, and the `where` bounds and hand-written derives that came with it — and its author is redoing that work because of the complexity. That experience is evidence for decision 2; it is not a design this crate follows. `pkcore` pins `cardpack = "0.6.9"` and uses its own `u32 Card`. If it ever builds a hidden-card table, it would build on this EPIC — the dependency runs only that way.
 
-This EPIC takes EPIC-82's rule as its own. It ports to the generic *deck* kernel — where "a deck" means any of 14 vocabularies, from Tiny (4 cards) to Dashavatara (120) to `French::decks(4)` (216) — the three things every design agreed on (a bijection, a slot label, a shuffle as data) and the one thing EPIC-82 got right that 79b did not: **nothing in the kernel is generic over a scheme.**
+This EPIC ports to the generic *deck* kernel — where "a deck" means any of 14 vocabularies, from Tiny (4 cards) to Dashavatara (120) to `French::decks(4)` (216) — the three things every hidden-card design needs (a bijection, a slot label, a shuffle as data) and one rule: **nothing in the kernel is generic over a scheme, and nothing in it holds ciphertext.**
 
 **What this EPIC does NOT do:**
 
@@ -137,14 +136,14 @@ The kata's three layers for this slice.
 
 1. **No `seal` feature.** The kernel types are dependency-free, `alloc`-only, and always on. The house rule ([`.okf/architecture/feature-flags.md`](../.okf/architecture/feature-flags.md) "Principle") is that features gate *what a dependency or `std` costs*, not surface area. The only new features are `seal-test-double = []` (a test double, no dep), `commit-reveal` (04a), `seal-aead` (04b), and the `crypto` umbrella over those two. **None of them is in `full`** — see [`.okf/decisions/crypto-features-outside-full.md`](../.okf/decisions/crypto-features-outside-full.md).
 
-2. **Slots, not custody.** The kernel holds a card's *name* (`SlotId`), its *order* (`SlotPile`, `Permutation`), and its *value once revealed* (`Revealed<D>`). It does not hold ciphertext. This is EPIC-82 Decision 5 applied to the card library: a type that never contains a secret cannot leak one, and — the practical win — nothing has to be generic over a scheme, so `Clone`/`Eq`/`Debug`/`Serialize` derive everywhere and "a rejected operation changed nothing" is one `assert_eq!`. `pkcore` paid for the other design (19 `where` bounds, correction C4, a cascade into seats) and then wrote EPIC-82 to stop; cardpack does not repeat the experiment.
+2. **Slots, not custody.** The kernel holds a card's *name* (`SlotId`), its *order* (`SlotPile`, `Permutation`), and its *value once revealed* (`Revealed<D>`). It does not hold ciphertext. Five reasons, all cardpack's own: (i) a type that never contains a secret cannot leak one — secrecy by absence, the same move as "no I/O imports means no I/O" in the [domain kernel](../.okf/architecture/domain-kernel.md); (ii) shuffle, cut, and draw only ever move *positions*, so a payload inside the container was dead weight; (iii) a type with no scheme parameter derives `Clone`/`Eq`/`Debug`/`Serialize`, and "a rejected operation changed nothing" is one `assert_eq!`; (iv) a real mental-poker protocol keeps the masked deck with the *players*, so a referee-side library that holds ciphertext is holding the wrong thing; (v) the one deployment that legitimately holds ciphertext — a single trusted dealer — is served by a plain `Vec<(SlotId, Bytes)>` beside a `SlotPile` (04b), which loses nothing. Prior art agrees: the `pkcore` spike that put a scheme parameter on its table paid 19 `where` bounds and a cascade of hand-written impls for it, and is being redone.
 
-3. **`Seal<D>` is a five-item adapter, generic over the deck, and no container depends on it.** Its shape follows `pkcore`'s `CardSeal` (`pkcore` branch `EPIC-79b`, `src/seal/card_seal.rs`) with three recorded divergences, so one backend can serve both crates:
-   - (a) `seal` and `unseal` take the **`SlotId`** — an AEAD backend binds payload to slot as associated data (defeats "swap two sealed cards"); an ElGamal backend ignores it.
-   - (b) `seal` takes **`&mut dyn RngCore`** — every real backend is randomized. `pkcore`'s `&self`-only `seal` forced `pkmental` to plan a `RefCell<ChaCha20Rng>` inside the scheme (branch 79b §"Seal needs state pkcore does not pass"); passing the RNG is the honest signature.
-   - (c) **`SlotId(u16)`**, not `u8` — `French::decks(4)` is 216 cards.
+3. **`Seal<D>` is a five-item adapter, generic over the deck, and no container depends on it.** Three associated types (`Sealed`, `Token`, `Error`) and two methods. Each signature choice is on cardpack's terms:
+   - `seal` and `unseal` take the **`SlotId`** — an AEAD backend binds payload to slot as associated data (defeats "swap two sealed cards"); an ElGamal backend ignores it.
+   - `seal` takes **`&mut dyn RngCore`** — every real backend is randomized (nonces, masking). A `&self`-only `seal` forces interior-mutability RNGs on implementors; passing the RNG is the honest signature, and `dyn` keeps the trait object-safe.
+   - **`SlotId(u16)`** — `French::decks(4)` is 216 cards; Dashavatara alone is 120.
 
-   The trait's only kernel caller is `Revealed::reveal_with`, which is generic *at the method*, exactly as EPIC-82 Decision 7 has reveals "optionally with a `(scheme, token)` pair for verified unseal."
+   The trait's only kernel caller is `Revealed::reveal_with`, generic *at the method*. Prior art: `pkcore`'s EPIC-79b design sketch describes a trait of the same five-item shape (without the slot and RNG parameters). The resemblance is convergent, not a compatibility goal.
 
 4. **Ordinal = index into the deck's *vocabulary***, i.e. `base_vec()` with duplicates removed in first-occurrence order — **not** the raw `base_vec()` slot. Pinochle lists `ACE_SPADES` twice (`src/basic/decks/pinochle.rs:31-32`); mental poker encodes plaintext *values*, so both copies must map to the same group element. `vocabulary()` is a free function over `&[BasicCard]` so `DeckKind::all()` sweeps can pin every shipped deck without generics.
 
@@ -395,12 +394,12 @@ pub enum SealError<E> { Slot(CardError), Backend(E) }
 /// an `S` and no cardpack type is generic over one — the only kernel caller
 /// is `Revealed::reveal_with`.
 ///
-/// Follows pkcore's `CardSeal` with three divergences: the slot is passed to
-/// `seal`/`unseal`, `seal` takes an RNG, and `SlotId` is `u16`.
+/// The slot is passed to `seal`/`unseal` (backends may bind it), `seal` takes
+/// an RNG (real backends are randomized), and `SlotId` is `u16`.
 pub trait Seal<D: DeckedBase> {
     /// The opaque payload. The backend picks the representation: 42 bytes of
     /// AEAD output, an ElGamal ciphertext, or (in tests) a `Card<D>`.
-    /// `Eq` is for containers and parity only — under any randomized scheme,
+    /// `Eq` is for containers only — under any randomized scheme,
     /// two seals of the same card are unequal.
     type Sealed: Clone + Eq + core::fmt::Debug;
     /// What a caller presents to open exactly one sealed card.
@@ -620,7 +619,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 - [ ] `permutation__inverse_roundtrip` (seed), `permutation__compose_law` (two seeds), `permutation__from_rng_matches_pile_shuffle` (seed)
 - [ ] `slot_pile__shuffle_permutes_slot_set` (seed), `slot_pile__shuffle_agrees_with_pile_shuffle` (seed), `slot_pile__rejected_ops_change_nothing` (seed, random illegal `draw`/`cut`)
-- [ ] `deal__slots_then_reveal_all_equals_clear_deal` (seed): shuffle a `SlotPile` and a `Pile` from the same seed, deal *n* slots, reveal them via `Codebook` order, compare to the clear deal — the 04-level version of `pkcore` 79b's deferred test 4d, meaningful here because the slot path never held a value
+- [ ] `deal__slots_then_reveal_all_equals_clear_deal` (seed): shuffle a `SlotPile` and a `Pile` from the same seed, deal *n* slots, reveal them via `Codebook` order, compare to the clear deal — meaningful because the slot path never held a value, so passing is a property of the design, not of a test double
 - [ ] `cargo test --features seal-test-double --test seal_properties` green
 
 ---
@@ -632,7 +631,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 ### Tasks
 
 - [ ] Prelude re-exports; doctests use `Permutation` / `Codebook` / `SlotPile` (all ungated), never `PlaintextSeal`
-- [ ] `src/seal/mod.rs` header: the EPIC-82 rule in one paragraph — slots, order, revealed values; never ciphertext, never keys
+- [ ] `src/seal/mod.rs` header: the rule in one paragraph — slots, order, revealed values; never ciphertext, never keys, never a scheme parameter — plus the consumer notes from [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) §3
 - [ ] README feature rows (`seal-test-double`, `crypto`) with the "not in `full`" note
 - [ ] CHANGELOG `Added` + `Cargo.toml` `0.11.0`
 - [ ] `.okf/architecture/feature-flags.md` rows flipped from *planned* to live; `.okf/references/epic-04-sealed-decks.md` tags `planned` → `active`; `.okf/log.md` entry; `/okf:validate .okf --strict`
@@ -660,7 +659,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 | `revealed__reveal_twice_errors` | A value cannot be silently replaced |
 | `revealed__reveal_with_wrong_token_errors_and_map_unchanged` | `Err`, never `Ok(other_card)`, and nothing admitted |
 | `seal__roundtrip_law` | The generic law every backend (04b, 04c) reuses |
-| `deal__slots_then_reveal_all_equals_clear_deal` (prop) | The slot path is a faithful deal — 79b's 4d, made meaningful by absence of values |
+| `deal__slots_then_reveal_all_equals_clear_deal` (prop) | The slot path is a faithful deal — meaningful by absence of values |
 
 **Gold Standard check:** before closing, delete each guard in turn — the `try_from_vec` bitset check, the `from_slots` duplicate check, the `reveal` already-revealed check, the token comparison in `PlaintextSeal::unseal` — and confirm a named test goes red.
 
@@ -672,7 +671,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 | `src/basic/types/permutation.rs` | **New.** `Permutation` |
 | `src/basic/types/pile.rs:72` | `Pile::permute`, `Pile::cut` |
 | `src/basic/types/traits.rs:58` | `Decked::codebook()` default method |
-| `src/seal/mod.rs` | **New.** Module header (the EPIC-82 rule), re-exports |
+| `src/seal/mod.rs` | **New.** Module header (the rule), consumer notes, re-exports |
 | `src/seal/slot.rs` | **New.** `SlotId` |
 | `src/seal/slot_pile.rs` | **New.** `SlotPile`, `SlotAudit` — non-generic |
 | `src/seal/revealed.rs` | **New.** `Revealed<D>`, `SealError<E>` |
@@ -695,7 +694,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 - `src/common/errors.rs:13` `CardError` (`#[non_exhaustive]`) — extend; never introduce a second kernel error enum.
 - `tests/properties.rs` — the proptest header, seeding idiom, and `name__property` naming.
 - `itertools::unique` — already a dependency with `use_alloc`.
-- `pkcore` branch `EPIC-79b`: `src/seal/card_seal.rs` (the trait shape being followed), `src/seal/slot.rs` (`SlotId` with `Display` + `index()`, correction C3), and `docs/epics/EPIC-82_The_Betting_Kernel.md` §3 Decisions 3, 5, 7 (the rule this kernel follows). Read them before changing any signature in `src/seal/`.
+- Prior art only, no dependency: `pkcore`'s `docs/epics/EPIC-79b_Sealed_Deck.md` (a design sketch of a five-item seal trait) and `pkmental/src/encode.rs:33-60` (the runtime bijection `Codebook<D>` makes unnecessary).
 
 ## Compatibility
 
@@ -708,7 +707,7 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 - **Blocks:** [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) (needs Stories 2–3), [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) (needs Stories 1, 4–5), [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) (needs everything).
 - **Built on:** the seeded-shuffle work (`docs/2026-04-29-seeded-shuffle-design.md`); the `DeckKind` registry (EPIC-02); the `#[non_exhaustive]` precedent on `CardError` (EPIC-03); the domain-kernel invariants (`docs/audit-2026-07-18-domain-kernel.md`).
-- **Related:** `pkcore` EPIC-82 (the rule), `pkcore` EPIC-79b (the trait shape and the lesson), `pkmental` EPIC-79 (the consumer whose `encode.rs` `Codebook` replaces).
+- **Related (prior art / possible consumers, no dependency either way):** `pkmental` (the protocol whose `encode.rs` bijection `Codebook<D>` makes unnecessary); `pkcore` EPIC-79b (a design sketch of a similar seal trait, and a spike whose complexity is evidence for decision 2).
 
 ## Verification
 
@@ -758,7 +757,7 @@ Exit criteria:
 
 1. **The slot == ordinal leak is the whole game.** `SlotPile::new(52)` beside `Standard52::deck()` in `Codebook` order is a public deck wearing a costume. Shuffle the slots (or the pile) first. 04b's dealer helper does; the hazard has a named test there, and decision 7 says so here so nobody removes the warning to tidy the docs.
 
-2. **`Sealed: Eq` compares ciphertexts, not cards.** Under any scheme worth using, sealing is randomized, so `Eq` proves nothing about distinctness. It is on the trait for containers and parity with `pkcore`. `SlotAudit` cannot do more than count for the same reason.
+2. **`Sealed: Eq` compares ciphertexts, not cards.** Under any scheme worth using, sealing is randomized, so `Eq` proves nothing about distinctness. It is on the trait so sealed payloads can live in ordinary containers. `SlotAudit` cannot do more than count for the same reason.
 
 3. **`Card: Copy` means plaintext is never zeroized.** A revealed card is copied onto the stack, into a `Vec`, into a log line. Key hygiene is 04b's job; plaintext hygiene is out of scope and must be stated in the `seal` module docs.
 

@@ -16,13 +16,13 @@ always on, **nothing generic over a scheme**): `Ordinal`/`Codebook<D>` bijection
 `CANON_V1` canonical bytes, `Permutation`, `Pile::permute`/`cut`, `SlotId`, a
 non-generic `SlotPile` of card names, `Revealed<D>` as the only slot → card map,
 the five-item `Seal<D>` adapter, `PlaintextSeal` behind `seal-test-double`.
-Follows pkcore EPIC-82's rule (branch `EPIC-79b`) and keeps `CardSeal`'s trait
-shape with three recorded divergences. Reshaped 2026-08-24 after the first draft
-mirrored 79b's generic containers. Children:
+Own rule, own reasons (EPIC-04 decision 2); sibling repos are prior art and
+possible consumers only — cardpack links to nothing. Reshaped 2026-08-24 after
+the first draft carried generic containers. Children:
 
 - [ ] 04a Commit–Reveal Shuffle (`commit-reveal` → `sha2`) — [doc](docs/EPIC-04a_Commit_Reveal_Shuffle.md)
 - [ ] 04b Holder-Key Seal (`seal-aead` → `chacha20poly1305`/`hkdf`/`sha2`/`zeroize`; plain `Custody` ledger; `RecipientSeal` design-only) — [doc](docs/EPIC-04b_Holder_Key_Seal.md)
-- [ ] 04c Mental Poker Bridge `_spec` (pkmental/pkcore contract; adoption blocked on pkcore's `cardpack = "0.6.9"` pin) — [doc](docs/EPIC-04c_Mental_Poker_Bridge_spec.md)
+- [ ] 04c Mental Poker Bridge `_spec` (the surface cardpack promises to protocol crates; worked ElGamal example; consumer notes) — [doc](docs/EPIC-04c_Mental_Poker_Bridge_spec.md)
 
 Sequencing: 04 → (04a ‖ 04b) → 04c review. Semver: 0.11.0 minor. Crypto
 features stay out of `full` ([decision](.okf/decisions/crypto-features-outside-full.md)).

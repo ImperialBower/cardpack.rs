@@ -13,14 +13,15 @@ The umbrella ships a **dependency-free kernel**: `Ordinal` and `Codebook<D>`
 (a total `Card ↔ 0..V` bijection per deck, over the deduplicated vocabulary),
 versioned canonical pile bytes (`CANON_V1`), `Permutation` (a shuffle as data,
 defined to agree with `Pile::shuffle_with_rng`), `Pile::permute`/`cut`, and a
-new `src/seal/` module that follows pkcore EPIC-82's rule — *the thing that
-plays the game must not hold hidden cards*: `SlotId`, a **non-generic**
+new `src/seal/` module built on one rule of cardpack's own — *the kernel holds
+a card's slot, its order, and its value once revealed; never ciphertext, never
+a scheme parameter*: `SlotId`, a **non-generic**
 `SlotPile(Vec<SlotId>)` that shuffles, cuts and deals blind and derives
 everything, `Revealed<D>` as the **only** slot → card map (with `reveal` and a
 verified `reveal_with`), a five-item `Seal<D>` adapter that no container is
 generic over, a `SlotAudit` that counts but cannot prove distinctness, and a
 `PlaintextSeal` test double behind `seal-test-double`. Reshaped the same day it
-was drafted, after reading pkcore's `EPIC-79b` branch.
+was drafted; the first draft carried generic containers.
 
 Children:
 
@@ -33,20 +34,25 @@ Children:
   `Custody(Vec<(SlotId, SealedBytes)>)` ledger beside a `SlotPile`, dealer vs
   verifier mode, one token reveals one card through `Revealed::reveal_with`;
   a public-key `RecipientSeal` is designed, not built.
-* **EPIC-04c Mental Poker Bridge (`_spec`)** — the cross-repo contract: what
-  cardpack promises, how `pkmental`'s Barnett–Smart `CardCrypto` maps onto
-  `Seal<D>` (verification *inside* `unseal`), how pkcore EPIC-82's
-  `TableCrypt` fields map onto `SlotPile` + `Revealed<D>`, the five-line shim
-  to `pkcore`'s `CardSeal`, and the divergence register across cardpack,
-  pkcore 79b (landed on its branch), pkcore EPIC-82 (proposed), and pkmental.
+* **EPIC-04c Mental Poker Bridge (`_spec`)** — the surface cardpack promises
+  to any protocol crate that builds on it (bijection, byte layouts,
+  `SlotPile` + `Revealed<D>`, the `Seal<D>` shape, `seal_roundtrip`), a worked
+  example of a threshold-ElGamal backend on that surface (using `pkmental`'s
+  real types as illustration, not dependency), and the short list of things a
+  consumer must decide for itself (name your bijection, token plurality,
+  verify inside `unseal`). Written from cardpack outward; no work items for
+  other repositories.
 
 # Authoritative for
 
 * **Slots, not custody** (EPIC-04 decision 2): no kernel type is generic over
   a scheme and none holds ciphertext — `SlotPile` + `Revealed<D>` are the
-  referee state, matching pkcore EPIC-82 Decision 5.
-* **The three divergences from pkcore EPIC-79b's `CardSeal`**: `seal`/`unseal`
-  take the `SlotId`; `seal` takes `&mut dyn RngCore`; `SlotId` is `u16`.
+  referee state. Five reasons, all cardpack's own.
+* **The `Seal<D>` signature** (decision 3): `seal`/`unseal` take the `SlotId`;
+  `seal` takes `&mut dyn RngCore`; `SlotId` is `u16`. Convergent with a sibling
+  repo's design sketch, not a compatibility goal.
+* **cardpack is its own boss**: designed to be built *on*; it links to nothing
+  and tracks no other repository's work.
 * **The `CANON_V1` byte layout** and the rule that a shipped deck's
   `base_vec()` order is a semver contract from 0.11.0.
 * **The `Permutation` convention** `out[i] = in[p[i]]`.
@@ -57,7 +63,7 @@ Children:
 
 Designed 2026-08-24 at `1c14440`. **Nothing has landed.** Every Status row in
 all four documents reads Planned. Sequencing: 04 → (04a ‖ 04b) → 04c review.
-Adoption by `pkcore`/`pkmental` is blocked on pkcore's `cardpack = "0.6.9"` pin.
+Whether `pkcore` or `pkmental` ever build on it is their call and is not tracked here.
 
 # In-repo paths
 
