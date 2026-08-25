@@ -25,7 +25,7 @@ else is opt-in.
 | `serde` | yes | `serde` (implies `alloc`) | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io` | **no** | (implies `std`, `yaml`) | `BasicCard::cards_from_yaml_file` — the crate's one filesystem seam; deliberately excluded from `full` ([decision](/decisions/std-io-outside-full.md)) |
 | `funky` | **no** | (implies `std`, `serde`) | Balatro-style engine ([funky engine](/architecture/funky-engine.md)) |
-| `seal-test-double` *(planned, EPIC-04)* | **no** | — | `PlaintextSeal` / `PlainToken` (**no security**) and the exported `seal_roundtrip` conformance helper |
+| `seal-test-double` | **no** | — | `PlaintextSeal` / `PlainToken` / `PlainSealError` (**no security**) and the exported `seal_roundtrip` conformance helper (EPIC-04, landed 2026-08-24) |
 | `commit-reveal` *(planned, EPIC-04a)* | **no** | `sha2` (no_std) | `Commitment`, `Contribution`, `ShuffleRound`, `CombinedSeed`, `commit_pile`, `Pile::shuffled_by_round` ([crypto decision](/decisions/crypto-features-outside-full.md)) |
 | `seal-aead` *(planned, EPIC-04b)* | **no** | `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` (all no_std) | `HolderKeySeal<D>`, `DealKey`, `CardKey`, `SealedBytes`, `Custody` (a plain `Vec<(SlotId, SealedBytes)>` — the dealer-custody ledger beside a `SlotPile`) |
 | `crypto` *(planned, EPIC-04)* | **no** | = `commit-reveal` + `seal-aead` | umbrella over both backends; not in `full` |
@@ -57,7 +57,7 @@ else is opt-in.
 * The `CardError::Yaml*` variants only exist under `yaml`, which is one reason
   `CardError` is `#[non_exhaustive]` — exhaustive downstream matching could
   never have been feature-portable.
-* **The seal kernel is *not* feature-gated** (planned, EPIC-04). `SlotId`,
+* **The seal kernel is *not* feature-gated** (EPIC-04, landed 2026-08-24). `SlotId`,
   the non-generic `SlotPile`, `Revealed<D>`, the `Seal<D>` adapter,
   `Ordinal`/`Codebook`, `Permutation` are dependency-free and always on; only
   the crypto *backends* are features, and none of them is in `full`. No kernel

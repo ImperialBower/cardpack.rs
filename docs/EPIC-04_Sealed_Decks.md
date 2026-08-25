@@ -1,6 +1,6 @@
 # EPIC-04: Sealed Decks (SEAL)
 
-> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. Nothing in this family has landed: every Status row is honest aspiration as of `main` @ `1c14440`, 2026-08-24.
+> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. The umbrella's kernel (Stories 0–7) landed on branch `crypt` on 2026-08-24; the children 04a/04b/04c have not started.
 
 > **Family.** This is the umbrella. The children are:
 > [04a Commit–Reveal Shuffle](./EPIC-04a_Commit_Reveal_Shuffle.md) (provably-fair
@@ -58,25 +58,25 @@ This EPIC ports to the generic *deck* kernel — where "a deck" means any of 14 
 
 ## Status
 
-Status as of `main` @ `1c14440`, **2026-08-24**. Nothing has landed.
+Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was designed; commits pending on the user's side, so rows cite the branch and date rather than a hash). Backends 04a/04b/04c have not started.
 
 | Component | Status |
 |---|---|
-| `Ordinal` newtype + `vocabulary()` | Planned |
-| `Codebook<D>` — `ordinal` / `card` bijection, `Decked::codebook()` | Planned |
-| Canonical pile bytes (`CANON_V1`, `encode_pile` / `decode_pile`) | Planned |
-| `Permutation` — validated, invertible, composable, canonical bytes | Planned |
-| `Pile::permute` / `Pile::cut` | Planned |
-| `SlotId` | Planned |
-| `SlotPile` — non-generic; blind shuffle / permute / cut / draw / take / audit | Planned |
-| `SlotAudit` — cardinality + slot uniqueness | Planned |
-| `Revealed<D>` — the only home for a revealed value; `reveal`, `reveal_with` | Planned |
-| `Seal<D>` trait (adapter only; no container is generic over it) | Planned |
-| `PlaintextSeal` test double behind `seal-test-double` | Planned |
-| `seal_roundtrip` conformance helper (exported under `seal-test-double`) | Planned |
-| `CardError` variants (9, ungated, `#[non_exhaustive]`) | Planned |
-| `tests/seal_properties.rs` | Planned |
-| Docs / CHANGELOG / prelude / 0.11.0 / `.okf/` bundle | Planned |
+| `Ordinal` newtype + `vocabulary()` | **Complete** |
+| `Codebook<D>` — `ordinal` / `card` bijection, `Decked::codebook()` | **Complete** |
+| Canonical pile bytes (`CANON_V1`, `encode_pile` / `decode_pile`) | **Complete** |
+| `Permutation` — validated, invertible, composable, canonical bytes | **Complete** |
+| `Pile::permute` / `Pile::cut` | **Complete** |
+| `SlotId` | **Complete** |
+| `SlotPile` — non-generic; blind shuffle / permute / cut / draw / take / audit | **Complete** |
+| `SlotAudit` — cardinality + slot uniqueness | **Complete** |
+| `Revealed<D>` — the only home for a revealed value; `reveal`, `reveal_with` | **Complete** |
+| `Seal<D>` trait (adapter only; no container is generic over it) | **Complete** |
+| `PlaintextSeal` test double behind `seal-test-double` | **Complete** |
+| `seal_roundtrip` conformance helper (exported under `seal-test-double`) | **Complete** |
+| `CardError` variants (9, ungated, `#[non_exhaustive]`) | **Complete** |
+| `tests/seal_properties.rs` | **Complete** |
+| Docs / CHANGELOG / prelude / 0.11.0 / `.okf/` bundle | **Complete** |
 | Commit–reveal backend | → [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) |
 | Holder-key AEAD backend + dealer custody ledger | → [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) |
 | Mental-poker bridge contract | → [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) |
@@ -509,10 +509,10 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] Add `pub mod seal;` and the two features; confirm `cargo build --no-default-features` is green with the empty module
-- [ ] Add the nine `CardError` variants; confirm `CardError` keeps `Eq + PartialEq` (test `card_error__seal_variants_display`)
-- [ ] `make no-std`, `make no-std-thumbv7`, `cargo deny check bans` green
-- [ ] `cargo test --all` green
+- [x] Add `pub mod seal;` and the two features; confirm `cargo build --no-default-features` is green with the empty module
+- [x] Add the nine `CardError` variants; confirm `CardError` keeps `Eq + PartialEq` (test `card_error__seal_variants_display`)
+- [x] `make no-std`, `make no-std-thumbv7`, `cargo deny check bans` green
+- [x] `cargo test --all` green
 
 ---
 
@@ -528,13 +528,13 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] `Ordinal` newtype with `new`/`get`/`index`/`Display` and the serde-gated derive
-- [ ] `vocabulary(&[BasicCard])` via `itertools::unique` (test `vocabulary__dedups_first_occurrence` on Pinochle: 48 in, 24 out, order preserved)
-- [ ] `Codebook<D>::new/len/ordinal/card/iter` (test `codebook__roundtrip_every_shipped_deck` — a macro over the 14 marker types **and** a `DeckKind::all()` sweep via `vocabulary(&kind.base_vec())`, so deck 15 cannot dodge it)
-- [ ] `codebook__blank_has_no_ordinal` (`Card::<French>::default()` → `None`; `Ordinal(V)` → `None`)
-- [ ] `codebook__standard52_golden` — read `Standard52::DECK` (`src/basic/decks/standard52.rs:90`), pin the full table; from here on a reorder is a breaking change
-- [ ] `Decked::codebook()` default method (doctest on `French`)
-- [ ] `cargo test --no-default-features --lib` green
+- [x] `Ordinal` newtype with `new`/`get`/`index`/`Display` and the serde-gated derive
+- [x] `vocabulary(&[BasicCard])` via `itertools::unique` (test `vocabulary__dedups_first_occurrence` on Pinochle: 48 in, 24 out, order preserved)
+- [x] `Codebook<D>::new/len/ordinal/card/iter` (test `codebook__roundtrip_every_shipped_deck` — a macro over the 14 marker types **and** a `DeckKind::all()` sweep via `vocabulary(&kind.base_vec())`, so deck 15 cannot dodge it)
+- [x] `codebook__blank_has_no_ordinal` (`Card::<French>::default()` → `None`; `Ordinal(V)` → `None`)
+- [x] `codebook__standard52_golden` — read `Standard52::DECK` (`src/basic/decks/standard52.rs:90`), pin the full table; from here on a reorder is a breaking change
+- [x] `Decked::codebook()` default method (doctest on `French`)
+- [x] `cargo test --no-default-features --lib` green
 
 ---
 
@@ -544,9 +544,9 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] `CANON_V1` + `encode_pile` (iteration order; `CardNotInDeck` on a foreign card)
-- [ ] `decode_pile` with strict length checks (`CanonicalMalformed` on trailing or missing bytes)
-- [ ] Tests: `canonical__roundtrip`, `canonical__golden_standard52_prefix` (`01 00 0B "Standard 52" 00 34 …`), `canonical__bad_version`, `canonical__truncated`, `canonical__wrong_deck_name` (Standard52 bytes decoded through `Codebook<Skat>` → `CanonicalMalformed`)
+- [x] `CANON_V1` + `encode_pile` (iteration order; `CardNotInDeck` on a foreign card)
+- [x] `decode_pile` with strict length checks (`CanonicalMalformed` on trailing or missing bytes)
+- [x] Tests: `canonical__roundtrip`, `canonical__golden_standard52_prefix` (`01 00 0B "Standard 52" 00 34 …`), `canonical__bad_version`, `canonical__truncated`, `canonical__wrong_deck_name` (Standard52 bytes decoded through `Codebook<Skat>` → `CanonicalMalformed`)
 
 ---
 
@@ -561,12 +561,12 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] Constructors + validation (`permutation__rejects_duplicate`, `permutation__rejects_out_of_range`, `permutation__identity_too_large_errors`)
-- [ ] `apply` / `inverse` / `then` (`permutation__inverse_roundtrip`, `permutation__compose_law`, `permutation__apply_length_mismatch_errors`)
-- [ ] `from_rng` ≡ `shuffle_with_rng` (`permutation__from_rng_matches_pile_shuffle`: `Permutation::from_rng(52, &mut StdRng::seed_from_u64(s)).apply(deck.cards()) == deck.shuffled_with_seed(s).cards()`)
-- [ ] `rotation` (`permutation__rotation_is_cut`)
-- [ ] `canonical_bytes` / `from_canonical_bytes` (`permutation__canonical_roundtrip`, `permutation__canonical_rejects_invalid`)
-- [ ] `Pile::permute` / `Pile::cut` (`pile__permute_preserves_multiset` via `same`, `pile__cut_preserves_multiset`, `pile__cut_past_end_errors`, `pile__cut_at_len_is_identity`)
+- [x] Constructors + validation (`permutation__rejects_duplicate`, `permutation__rejects_out_of_range`, `permutation__identity_too_large_errors`)
+- [x] `apply` / `inverse` / `then` (`permutation__inverse_roundtrip`, `permutation__compose_law`, `permutation__apply_length_mismatch_errors`)
+- [x] `from_rng` ≡ `shuffle_with_rng` (`permutation__from_rng_matches_pile_shuffle`: `Permutation::from_rng(52, &mut StdRng::seed_from_u64(s)).apply(deck.cards()) == deck.shuffled_with_seed(s).cards()`)
+- [x] `rotation` (`permutation__rotation_is_cut`)
+- [x] `canonical_bytes` / `from_canonical_bytes` (`permutation__canonical_roundtrip`, `permutation__canonical_rejects_invalid`)
+- [x] `Pile::permute` / `Pile::cut` (`pile__permute_preserves_multiset` via `same`, `pile__cut_preserves_multiset`, `pile__cut_past_end_errors`, `pile__cut_at_len_is_identity`)
 
 ---
 
@@ -580,13 +580,13 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] `SlotId` with `new`/`get`/`index`/`Display`
-- [ ] `SlotPile::new`/`from_slots` (`slot_pile__new_is_identity_order`, `slot_pile__from_slots_rejects_duplicates`)
-- [ ] `take`/`draw_first`/`draw`/`contains`/`position` (`slot_pile__draw_all_or_nothing`, `slot_pile__take_by_name`, `slot_pile__rejected_draw_changes_nothing` — `assert_eq!(before, after)`)
-- [ ] `shuffle_with_rng`/`shuffle_with_seed`/`permute`/`cut` (`slot_pile__shuffle_permutes_slot_set`, `slot_pile__shuffle_agrees_with_pile_shuffle_for_same_rng` — the slot at position *i* names the card at position *i* of the equally-shuffled `Pile`, `slot_pile__cut_matches_permutation_rotation`)
-- [ ] `audit` (`slot_pile__audit_counts_and_finds_duplicates`; doc comment states what it cannot check)
-- [ ] `slot_pile__serde_roundtrip` (under `serde`)
-- [ ] Compile-time assertion that `SlotPile` has no method mentioning `Card` — a `#[cfg(test)]` doc note plus a review item, not a test
+- [x] `SlotId` with `new`/`get`/`index`/`Display`
+- [x] `SlotPile::new`/`from_slots` (`slot_pile__new_is_identity_order`, `slot_pile__from_slots_rejects_duplicates`)
+- [x] `take`/`draw_first`/`draw`/`contains`/`position` (`slot_pile__draw_all_or_nothing`, `slot_pile__take_by_name`, `slot_pile__rejected_draw_changes_nothing` — `assert_eq!(before, after)`)
+- [x] `shuffle_with_rng`/`shuffle_with_seed`/`permute`/`cut` (`slot_pile__shuffle_permutes_slot_set`, `slot_pile__shuffle_agrees_with_pile_shuffle_for_same_rng` — the slot at position *i* names the card at position *i* of the equally-shuffled `Pile`, `slot_pile__cut_matches_permutation_rotation`)
+- [x] `audit` (`slot_pile__audit_counts_and_finds_duplicates`; doc comment states what it cannot check)
+- [x] `slot_pile__serde_roundtrip` (under `serde`)
+- [x] Compile-time assertion that `SlotPile` has no method mentioning `Card` — a `#[cfg(test)]` doc note plus a review item, not a test
 
 ---
 
@@ -600,11 +600,11 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] `Seal<D>` trait (compile-time check that `&dyn Seal<French, Sealed = …, Token = …, Error = …>` is nameable)
-- [ ] `Revealed<D>` with `reveal`/`get`/`is_revealed`/`iter`/`pile_for` (`revealed__reveal_twice_errors`, `revealed__pile_for_unrevealed_errors`, `revealed__pile_for_preserves_order`, `revealed__serde_roundtrip`)
-- [ ] `Revealed::reveal_with` + `SealError` (`revealed__reveal_with_roundtrip`, `revealed__reveal_with_wrong_token_errors_and_map_unchanged`, `revealed__reveal_with_never_yields_other_card`)
-- [ ] `PlaintextSeal` + `PlainToken` + `seal_roundtrip` helper (`seal__roundtrip_law` — first caller)
-- [ ] Confirm `PlaintextSeal` is absent from `cargo doc --no-default-features` output
+- [x] `Seal<D>` trait (compile-time check that `&dyn Seal<French, Sealed = …, Token = …, Error = …>` is nameable)
+- [x] `Revealed<D>` with `reveal`/`get`/`is_revealed`/`iter`/`pile_for` (`revealed__reveal_twice_errors`, `revealed__pile_for_unrevealed_errors`, `revealed__pile_for_preserves_order`, `revealed__serde_roundtrip`)
+- [x] `Revealed::reveal_with` + `SealError` (`revealed__reveal_with_roundtrip`, `revealed__reveal_with_wrong_token_errors_and_map_unchanged`, `revealed__reveal_with_never_yields_other_card`)
+- [x] `PlaintextSeal` + `PlainToken` + `seal_roundtrip` helper (`seal__roundtrip_law` — first caller)
+- [x] Confirm `PlaintextSeal` is absent from `cargo doc --no-default-features` output
 
 ---
 
@@ -617,10 +617,10 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] `permutation__inverse_roundtrip` (seed), `permutation__compose_law` (two seeds), `permutation__from_rng_matches_pile_shuffle` (seed)
-- [ ] `slot_pile__shuffle_permutes_slot_set` (seed), `slot_pile__shuffle_agrees_with_pile_shuffle` (seed), `slot_pile__rejected_ops_change_nothing` (seed, random illegal `draw`/`cut`)
-- [ ] `deal__slots_then_reveal_all_equals_clear_deal` (seed): shuffle a `SlotPile` and a `Pile` from the same seed, deal *n* slots, reveal them via `Codebook` order, compare to the clear deal — meaningful because the slot path never held a value, so passing is a property of the design, not of a test double
-- [ ] `cargo test --features seal-test-double --test seal_properties` green
+- [x] `permutation__inverse_roundtrip` (seed), `permutation__compose_law` (two seeds), `permutation__from_rng_matches_pile_shuffle` (seed)
+- [x] `slot_pile__shuffle_permutes_slot_set` (seed), `slot_pile__shuffle_agrees_with_pile_shuffle` (seed), `slot_pile__rejected_ops_change_nothing` (seed, random illegal `draw`/`cut`)
+- [x] `deal__slots_then_reveal_all_equals_clear_deal` (seed): shuffle a `SlotPile` and a `Pile` from the same seed, deal *n* slots, reveal them via `Codebook` order, compare to the clear deal — meaningful because the slot path never held a value, so passing is a property of the design, not of a test double
+- [x] `cargo test --features seal-test-double --test seal_properties` green
 
 ---
 
@@ -630,12 +630,12 @@ No new dependencies in this document. Nothing here implies `std`; `alloc` is alr
 
 ### Tasks
 
-- [ ] Prelude re-exports; doctests use `Permutation` / `Codebook` / `SlotPile` (all ungated), never `PlaintextSeal`
-- [ ] `src/seal/mod.rs` header: the rule in one paragraph — slots, order, revealed values; never ciphertext, never keys, never a scheme parameter — plus the consumer notes from [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) §3
-- [ ] README feature rows (`seal-test-double`, `crypto`) with the "not in `full`" note
-- [ ] CHANGELOG `Added` + `Cargo.toml` `0.11.0`
-- [ ] `.okf/architecture/feature-flags.md` rows flipped from *planned* to live; `.okf/references/epic-04-sealed-decks.md` tags `planned` → `active`; `.okf/log.md` entry; `/okf:validate .okf --strict`
-- [ ] Flip this document's Status rows; cross-link 04a/04b/04c from BACKLOG
+- [x] Prelude re-exports; doctests use `Permutation` / `Codebook` / `SlotPile` (all ungated), never `PlaintextSeal`
+- [x] `src/seal/mod.rs` header: the rule in one paragraph — slots, order, revealed values; never ciphertext, never keys, never a scheme parameter — plus the consumer notes from [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) §3
+- [x] README feature rows (`seal-test-double`, `crypto`) with the "not in `full`" note
+- [x] CHANGELOG `Added` + `Cargo.toml` `0.11.0`
+- [x] `.okf/architecture/feature-flags.md` rows flipped from *planned* to live; `.okf/references/epic-04-sealed-decks.md` tags `planned` → `active`; `.okf/log.md` entry; `/okf:validate .okf --strict`
+- [x] Flip this document's Status rows; cross-link 04a/04b/04c from BACKLOG
 
 ---
 
@@ -774,3 +774,84 @@ Exit criteria:
 9. **`DeckKind::all()` is 13 without `yaml`** (`Razz` is gated). Registry sweeps read `DeckKind::all().len()`, never a literal 14.
 
 10. **Iteration order vs top-of-deck.** `basic_card.rs:38` carries a `TODO RF` to flip the deck so the *end* of the vector is the top. Canonical bytes, `Permutation`, and `SlotPile` are defined over *iteration order* precisely so that refactor changes nothing here.
+
+---
+
+## Implementation corrigendum
+
+Written 2026-08-24 on branch `crypt`, after Stories 0–7 landed test-first (RED
+compile failures → GREEN → every gate). Deltas between the design above and
+what shipped:
+
+### 1. `vocabulary()` uses a `BTreeSet`, not `itertools::unique`
+
+`Itertools::unique` is gated on `use_std` (`itertools-0.15.0/src/lib.rs:1687`);
+the crate depends on `itertools` with `use_alloc` only. A `BTreeSet<BasicCard>`
+seen-set is the `alloc` equivalent. Test: `vocabulary__dedups_first_occurrence`.
+
+### 2. The seal seam is `&mut dyn Rng`, not `&mut dyn RngCore`
+
+`rand 0.10` renamed the core trait: `rand::Rng` *is* the object-safe core
+(`rand-0.10.2/src/lib.rs:59`) and `RngCore` no longer exists at the root.
+`Seal::seal`, `PlaintextSeal`, and `seal_roundtrip` take `&mut dyn Rng`. The
+extension methods live on `RngExt`. Test: `seal__trait_is_object_safe`.
+
+### 3. `src/seal/seal.rs` is `src/seal/adapter.rs`
+
+`pub mod seal;` inside `seal/mod.rs` trips clippy-pedantic `module_inception`.
+The trait is still `crate::seal::Seal` via re-export; only the file moved.
+
+### 4. `PlaintextSeal::Error` is its own `PlainSealError`, not `CardError`
+
+No `CardError` variant honestly means "wrong token", and decision 8 says
+backends own their error enums — that applies to the double too. One variant,
+`WrongToken`. Test: `plaintext_seal__wrong_token_errors`.
+
+### 5. The `crypto` umbrella feature waits for 04a/04b
+
+Cargo rejects a feature list naming features that do not exist, so
+`crypto = ["commit-reveal", "seal-aead"]` lands with whichever child ships
+first. Only `seal-test-double` was added here.
+
+### 6. `SealError<E>` is not `Clone`
+
+`CardError` is not `Clone` (it never was), so the derive was dropped.
+`Debug + Eq + PartialEq + Display + Error` remain.
+
+### 7. `Revealed<D>` needs `#[serde(bound = "")]`
+
+`serde`'s derive would demand `D: Serialize` for `BTreeMap<SlotId, Card<D>>`.
+Only `Card<D>` must serialize (its own derive skips the `PhantomData` brand), so
+the bound is emptied explicitly. Test: `revealed__serde_roundtrip`.
+
+### 8. `Codebook::new` truncates the vocabulary at `u16::MAX`
+
+So every index fits an `Ordinal` without a fallible cast in `iter`. No shipped
+deck comes near it (Dashavatara is 120); documented on the constructor.
+
+### 9. `SlotPile::audit` can only find duplicates the constructors forbid
+
+Every public constructor — `new`, `from_slots`, and the `serde` deserializer via
+`TryFrom` — rejects duplicates, so `duplicate_slots` is reachable only by a
+module-private construction. The unit test builds one that way to prove the
+check works; the field stays because a future constructor must not silently
+lose it.
+
+### Phase status summary
+
+| Story | Status | Notes |
+|---|---|---|
+| 0 (prereqs, features, `CardError`) | Shipped | `crypto` umbrella deferred (item 5) |
+| 1 (`Ordinal`, `Codebook`) | Shipped | 7 unit tests + 3 doctests |
+| 2 (canonical bytes) | Shipped | 9 unit tests; golden prefix pinned |
+| 3 (`Permutation`, `Pile::permute`/`cut`) | Shipped | 17 unit tests; `from_rng ≡ shuffle_with_rng` pinned for 5 seeds |
+| 4 (`SlotId`, `SlotPile`) | Shipped | 12 unit tests; serde `TryFrom` guard |
+| 5 (`Revealed`, `Seal`, `PlaintextSeal`) | Shipped | 12 unit tests; object-safety compile check |
+| 6 (property suite) | Shipped | 8 properties; mutations `then()` order and shuffle no-op both caught |
+| 7 (docs, prelude, 0.11.0, `.okf`) | Shipped | this section |
+
+### Pre-existing debt
+
+None touched. The `TODO RF` at `basic_card.rs:38` (top-of-deck orientation) is
+unaffected by design — canonical bytes and permutations are defined over
+iteration order.

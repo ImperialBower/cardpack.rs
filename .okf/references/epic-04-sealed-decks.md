@@ -2,7 +2,7 @@
 type: Reference
 title: EPIC-04 — Sealed Decks (family)
 description: A deck cardpack cannot read because it never holds one — the Ordinal/Codebook bijection, Permutation-as-data, a non-generic SlotPile of card names, Revealed<D> as the only value map, and a five-item Seal<D> adapter — plus three children for commit-reveal shuffles, holder-key AEAD seals with a plain Custody ledger, and the mental-poker bridge to pkmental/pkcore.
-tags: [epic, seal, crypto, ordinal, permutation, planned]
+tags: [epic, seal, crypto, ordinal, permutation, active]
 resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-04_Sealed_Decks.md
 timestamp: 2026-08-24T12:00:00Z
 ---
@@ -61,8 +61,10 @@ Children:
 
 # Status
 
-Designed 2026-08-24 at `1c14440`. **Nothing has landed.** Every Status row in
-all four documents reads Planned. Sequencing: 04 → (04a ‖ 04b) → 04c review.
+Designed 2026-08-24 at `1c14440`. **The umbrella's kernel (Stories 0–7) landed
+the same day on branch `crypt`** — 320 lib tests, 8 mutation-checked property
+tests, every purity gate green, version 0.11.0. 04a, 04b, 04c remain Planned.
+Sequencing: 04 → (04a ‖ 04b) → 04c review.
 Whether `pkcore` or `pkmental` ever build on it is their call and is not tracked here.
 
 # In-repo paths

@@ -32,7 +32,7 @@ component boundary was assessed and explicitly *not* recommended.
 4. **Delivery-agnostic.** CI gates no_std/alloc, wasm32, and bare-metal
    (`thumbv7em-none-eabihf`) builds ([build and test](/workflows/build-and-test.md)).
 5. **Crypto backends are adapters too, and the kernel holds no secret**
-   (planned, EPIC-04). The kernel knows a card's slot, its order, and its value
+   (EPIC-04, kernel landed 2026-08-24; backends 04a/04b still planned). The kernel knows a card's slot, its order, and its value
    once revealed — never ciphertext, never a scheme type parameter; every real
    cipher or hash sits behind an opt-in feature
    outside `full` and is banned from the pure tree

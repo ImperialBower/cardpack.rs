@@ -105,6 +105,7 @@ what they need:
 | `serde`           | no      | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
 | `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
+| `seal-test-double`| no      | —                  | `PlaintextSeal` (**no security**) and the `seal_roundtrip` conformance helper for testing a `Seal` backend; **not** in `full` |
 
 To get the previous "batteries-included" behavior, opt into `full`:
 
@@ -123,6 +124,14 @@ cardpack = "0.8"
 `std-io` implies `yaml` and adds the filesystem reader on top of it; it is the
 only feature that lets the crate touch `std::fs`, and it is intentionally left
 out of `full` so the pure kernel and the convenience stack both stay I/O-free.
+
+The **sealed-deck kernel** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) is always
+on and dependency-free: `Ordinal`/`Codebook` (a canonical card ↔ number
+bijection per deck), `Permutation` (a shuffle as data), `SlotPile` (a shoe of
+card *names* that shuffles, cuts and deals with no knowledge), `Revealed` (the
+only slot → card map), and the five-item `Seal` adapter. No kernel type holds
+ciphertext or is generic over a scheme. Real crypto backends are planned as
+opt-in features outside `full`.
 
 ## Decks as YAML
 

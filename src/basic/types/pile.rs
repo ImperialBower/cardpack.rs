@@ -2,6 +2,7 @@ use crate::basic::types::basic_card::BasicCard;
 use crate::basic::types::card::Card;
 #[cfg(feature = "yaml")]
 use crate::basic::types::deck_yaml::DeckYaml;
+use crate::basic::types::permutation::Permutation;
 use crate::basic::types::pips::Pip;
 use crate::basic::types::traits::{DeckedBase, Ranged};
 use crate::common::errors::CardError;
@@ -805,6 +806,47 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> Pile<DeckType> {
         pile
     }
 
+    /// Returns a new `Pile` reordered by `p`: `out[i] = self[p[i]]`.
+    ///
+    /// # Errors
+    ///
+    /// [`CardError::PermutationLength`] if `p.len() != self.len()`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Standard52::deck();
+    /// let p = Permutation::from_seed(52, 3).unwrap();
+    ///
+    /// assert_eq!(deck.permute(&p).unwrap(), deck.shuffled_with_seed(3));
+    /// assert!(deck.permute(&Permutation::identity(5).unwrap()).is_err());
+    /// ```
+    pub fn permute(&self, p: &Permutation) -> Result<Self, CardError> {
+        Ok(Self(p.apply(&self.0)?))
+    }
+
+    /// Cuts the `Pile` at `at`: the cards from `at` onward come to the top.
+    /// Defined as [`Permutation::rotation`]. A rejected cut changes nothing.
+    ///
+    /// # Errors
+    ///
+    /// [`CardError::InvalidCut`] if `at > self.len()`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut deck = Standard52::deck();
+    /// deck.cut(13).unwrap();
+    ///
+    /// assert_eq!(deck.cards()[0].to_string(), "A♥");
+    /// assert_eq!(deck.cut(99), Err(CardError::InvalidCut(99)));
+    /// ```
+    pub fn cut(&mut self, at: usize) -> Result<(), CardError> {
+        let p = Permutation::rotation(self.len(), at)?;
+        self.0 = p.apply(&self.0)?;
+        Ok(())
+    }
+
     /// Returns a sorted clone of the `Pile`.
     ///
     /// ```
@@ -1149,6 +1191,60 @@ impl<DeckType: DeckedBase + Default + Ord + Copy + Hash> IntoIterator for Pile<D
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod basic__types__pile_permute_tests {
+    use crate::prelude::*;
+
+    #[test]
+    fn pile__permute_preserves_multiset() {
+        let deck = Standard52::deck();
+        let p = Permutation::from_seed(52, 3).unwrap();
+        let permuted = deck.permute(&p).unwrap();
+        assert!(deck.same(&permuted));
+        assert_eq!(permuted, deck.shuffled_with_seed(3));
+    }
+
+    #[test]
+    fn pile__permute_length_mismatch_errors() {
+        let deck = Standard52::deck();
+        assert_eq!(
+            deck.permute(&Permutation::identity(51).unwrap()),
+            Err(CardError::PermutationLength {
+                expected: 51,
+                actual: 52
+            })
+        );
+    }
+
+    #[test]
+    fn pile__cut_preserves_multiset() {
+        let deck = Standard52::deck();
+        let mut cut = deck.clone();
+        cut.cut(10).unwrap();
+        assert!(deck.same(&cut));
+        assert_eq!(cut.cards()[0], deck.cards()[10]);
+        assert_eq!(cut.cards()[42], deck.cards()[0]);
+    }
+
+    #[test]
+    fn pile__cut_past_end_errors() {
+        let mut deck = Standard52::deck();
+        assert_eq!(deck.cut(53), Err(CardError::InvalidCut(53)));
+        assert_eq!(deck, Standard52::deck(), "a rejected cut changes nothing");
+    }
+
+    #[test]
+    fn pile__cut_at_len_or_zero_is_identity() {
+        let mut a = Standard52::deck();
+        a.cut(52).unwrap();
+        let mut b = Standard52::deck();
+        b.cut(0).unwrap();
+        assert_eq!(a, Standard52::deck());
+        assert_eq!(b, Standard52::deck());
     }
 }
 

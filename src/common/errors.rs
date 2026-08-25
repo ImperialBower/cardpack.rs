@@ -35,6 +35,37 @@ pub enum CardError {
     #[error("Too many cards: `{0}` extra")]
     TooManyCards(usize),
 
+    // Seal-kernel variants (docs/EPIC-04_Sealed_Decks.md). Ungated: the
+    // ordinal/permutation/slot types they serve are dependency-free and always
+    // on. Payloads are `String`/`usize`/`u16` only, so `CardError` keeps `Eq`
+    // and no backend error type ever lands here (EPIC-04 decision 8).
+    #[error("Invalid ordinal: `{0}` is out of range for this deck")]
+    InvalidOrdinal(u16),
+
+    #[error("Card `{0}` is not in this deck")]
+    CardNotInDeck(String),
+
+    #[error("Invalid permutation: {0}")]
+    InvalidPermutation(String),
+
+    #[error("Permutation length `{expected}` does not match `{actual}` items")]
+    PermutationLength { expected: usize, actual: usize },
+
+    #[error("Cannot cut at `{0}`: out of range")]
+    InvalidCut(usize),
+
+    #[error("Malformed canonical bytes: {0}")]
+    CanonicalMalformed(String),
+
+    #[error("Duplicate slot `{0}`")]
+    DuplicateSlot(u16),
+
+    #[error("Slot `{0}` not found")]
+    SlotNotFound(u16),
+
+    #[error("Slot `{0}` is already revealed")]
+    SlotAlreadyRevealed(u16),
+
     // The YAML variants below carry only `String`/`usize` payloads. A
     // `#[from] serde_norway::Error` would break both `Eq` and `PartialEq` on
     // this enum *and* leak a format crate into the public API (domain-kernel
@@ -64,6 +95,63 @@ pub enum CardError {
     #[cfg(feature = "yaml")]
     #[error("YAML document is neither a deck envelope nor a card sequence")]
     YamlMalformed,
+}
+
+// Seal-kernel variants (EPIC-04) are ungated, so their tests are too.
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod common__errors_seal_tests {
+    use super::*;
+    use alloc::string::ToString;
+
+    #[test]
+    fn seal_variants__display() {
+        assert_eq!(
+            CardError::InvalidOrdinal(52).to_string(),
+            "Invalid ordinal: `52` is out of range for this deck"
+        );
+        assert_eq!(
+            CardError::CardNotInDeck("A♠".to_string()).to_string(),
+            "Card `A♠` is not in this deck"
+        );
+        assert_eq!(
+            CardError::InvalidPermutation("duplicate index 3".to_string()).to_string(),
+            "Invalid permutation: duplicate index 3"
+        );
+        assert_eq!(
+            CardError::PermutationLength {
+                expected: 52,
+                actual: 51
+            }
+            .to_string(),
+            "Permutation length `52` does not match `51` items"
+        );
+        assert_eq!(
+            CardError::InvalidCut(99).to_string(),
+            "Cannot cut at `99`: out of range"
+        );
+        assert_eq!(
+            CardError::CanonicalMalformed("bad version".to_string()).to_string(),
+            "Malformed canonical bytes: bad version"
+        );
+        assert_eq!(
+            CardError::DuplicateSlot(7).to_string(),
+            "Duplicate slot `7`"
+        );
+        assert_eq!(CardError::SlotNotFound(7).to_string(), "Slot `7` not found");
+        assert_eq!(
+            CardError::SlotAlreadyRevealed(7).to_string(),
+            "Slot `7` is already revealed"
+        );
+    }
+
+    /// The variants carry only `String`/`usize`/`u16`, so `CardError` keeps
+    /// `Eq` — the property a backend error type must never break.
+    #[test]
+    fn seal_variants__stay_eq() {
+        assert_eq!(CardError::SlotNotFound(1), CardError::SlotNotFound(1));
+        assert_ne!(CardError::SlotNotFound(1), CardError::DuplicateSlot(1));
+    }
 }
 
 // The whole module is yaml-gated because every test in it is: gating the

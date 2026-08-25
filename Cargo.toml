@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.10.2"
+version = "0.11.0"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -34,6 +34,9 @@ colored-display = ["std", "dep:colored"]
 yaml = ["std", "dep:serde_norway", "serde"]
 serde = ["dep:serde", "alloc"]
 funky = ["std", "serde"]
+# Test double for the seal adapter (`PlaintextSeal`, NO SECURITY). Off by
+# default; adds no dependency. See docs/EPIC-04_Sealed_Decks.md.
+seal-test-double = []
 
 [dependencies]
 colored = { version = "3.1", optional = true }

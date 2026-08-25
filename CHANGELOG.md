@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — 0.11.0, the sealed-deck kernel ([EPIC-04](docs/EPIC-04_Sealed_Decks.md))
+
+- **`Ordinal` / `Codebook<D>` / `vocabulary`** — a total, stable card ↔ `0..V`
+  bijection per deck over the deduplicated vocabulary (Pinochle is 24, not 48),
+  plus `Decked::codebook()`. **From this release the order of every shipped
+  deck's `base_vec()` is a contract**; reordering is semver-major
+  (`codebook__standard52_golden`).
+- **`CANON_V1`** canonical pile bytes — `Codebook::encode_pile` /
+  `decode_pile`, strict and versioned.
+- **`Permutation`** — a shuffle as data: validated constructors, `apply`,
+  `inverse`, `then`, `rotation`, canonical bytes; `from_rng` is the same
+  Fisher–Yates as `Pile::shuffle_with_rng`. **`Pile::permute`** and
+  **`Pile::cut`**.
+- **`seal` module** — `SlotId`, the non-generic `SlotPile` (blind shuffle /
+  cut / draw / take / `audit`), `Revealed<D>` (the only slot → card map, with
+  `reveal` and a verified `reveal_with`), `SealError`, and the five-item
+  `Seal<D>` adapter trait. No kernel type holds ciphertext or is generic over
+  a scheme.
+- **`seal-test-double` feature** — `PlaintextSeal` (no security) and the
+  exported `seal_roundtrip` conformance helper. Not in `full`.
+- Nine ungated `CardError` variants (`InvalidOrdinal`, `CardNotInDeck`,
+  `InvalidPermutation`, `PermutationLength`, `InvalidCut`,
+  `CanonicalMalformed`, `DuplicateSlot`, `SlotNotFound`,
+  `SlotAlreadyRevealed`).
+- `tests/seal_properties.rs` — seeded property suite, mutation-checked.
+
+---
+
 Released as 0.10.0 — `Cargo.toml` is already bumped; this section is renamed
 to `## [0.10.0] — <date>` at tag time.
 

@@ -364,3 +364,4 @@ pub mod localization;
 pub mod prelude;
 #[cfg(feature = "funky")]
 pub mod preludes;
+pub mod seal;
