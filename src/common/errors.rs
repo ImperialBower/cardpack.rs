@@ -66,6 +66,41 @@ pub enum CardError {
     #[error("Slot `{0}` is already revealed")]
     SlotAlreadyRevealed(u16),
 
+    // Commit–reveal variants (docs/EPIC-04a_Commit_Reveal_Shuffle.md). Gated:
+    // they serve `ShuffleRound` / `Commitment`, which exist only under the
+    // feature. Payloads stay `u16`/`String` so `CardError` keeps `Eq`.
+    #[cfg(feature = "commit-reveal")]
+    #[error("Unknown participant `{0}`")]
+    UnknownParticipant(u16),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Participant `{0}` has already committed")]
+    AlreadyCommitted(u16),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Cannot reveal before every participant has committed")]
+    RevealBeforeAllCommitted,
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Reveal from participant `{0}` does not match their commitment")]
+    CommitmentMismatch(u16),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Shuffle round is not complete")]
+    RoundIncomplete,
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Invalid hex: {0}")]
+    InvalidHex(String),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("Duplicate participant `{0}`")]
+    DuplicateParticipant(u16),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("A shuffle round needs at least one participant")]
+    NoParticipants,
+
     // The YAML variants below carry only `String`/`usize` payloads. A
     // `#[from] serde_norway::Error` would break both `Eq` and `PartialEq` on
     // this enum *and* leak a format crate into the public API (domain-kernel
@@ -210,5 +245,49 @@ mod common__errors_tests {
     fn yaml_variants__stay_eq() {
         assert_eq!(CardError::YamlEmptyDeck, CardError::YamlEmptyDeck);
         assert_ne!(CardError::YamlEmptyDeck, CardError::YamlMalformed);
+    }
+}
+
+// Commit–reveal variants (EPIC-04a) exist only under the feature.
+#[cfg(all(test, feature = "commit-reveal"))]
+#[allow(non_snake_case)]
+mod common__errors_commit_reveal_tests {
+    use super::*;
+    use alloc::string::ToString;
+
+    #[test]
+    fn display__commit_reveal_variants() {
+        assert_eq!(
+            CardError::UnknownParticipant(3).to_string(),
+            "Unknown participant `3`"
+        );
+        assert_eq!(
+            CardError::AlreadyCommitted(3).to_string(),
+            "Participant `3` has already committed"
+        );
+        assert_eq!(
+            CardError::RevealBeforeAllCommitted.to_string(),
+            "Cannot reveal before every participant has committed"
+        );
+        assert_eq!(
+            CardError::CommitmentMismatch(3).to_string(),
+            "Reveal from participant `3` does not match their commitment"
+        );
+        assert_eq!(
+            CardError::RoundIncomplete.to_string(),
+            "Shuffle round is not complete"
+        );
+        assert_eq!(
+            CardError::InvalidHex("zz".to_string()).to_string(),
+            "Invalid hex: zz"
+        );
+        assert_eq!(
+            CardError::DuplicateParticipant(3).to_string(),
+            "Duplicate participant `3`"
+        );
+        assert_eq!(
+            CardError::NoParticipants.to_string(),
+            "A shuffle round needs at least one participant"
+        );
     }
 }

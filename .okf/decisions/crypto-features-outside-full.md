@@ -3,7 +3,7 @@ type: Decision
 title: Crypto backends are opt-in features outside full
 description: The seal kernel holds slots, order, and revealed values — never ciphertext and never a scheme type parameter — and is dependency-free and always on; real crypto backends (commit-reveal → sha2; seal-aead → chacha20poly1305/hkdf/sha2/zeroize) sit behind their own features, excluded from `full` like std-io.
 tags: [decision, purity, features, crypto, seal]
-timestamp: 2026-08-24T12:00:00Z
+timestamp: 2026-08-25T12:00:00Z
 ---
 
 # Decision
@@ -21,7 +21,7 @@ keeps a plain `Vec<(SlotId, Bytes)>` beside a `SlotPile` (EPIC-04b
 The **real cryptographic backends** are opt-in features that are deliberately
 **not** part of the `full` umbrella:
 
-* `commit-reveal` → `sha2` (provably-fair shuffle,
+* `commit-reveal` → `sha2` **(landed 2026-08-25, `sha2 0.11`)** (provably-fair shuffle,
   [EPIC-04a](/references/epic-04-sealed-decks.md))
 * `seal-aead` → `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` (holder-key
   per-card encryption, [EPIC-04b](/references/epic-04-sealed-decks.md))

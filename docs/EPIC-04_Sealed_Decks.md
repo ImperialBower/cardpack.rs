@@ -1,6 +1,6 @@
 # EPIC-04: Sealed Decks (SEAL)
 
-> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. The umbrella's kernel (Stories 0–7) landed on branch `crypt` on 2026-08-24; the children 04a/04b/04c have not started.
+> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. The umbrella's kernel (Stories 0–7) landed on branch `crypt` on 2026-08-24; 04a landed 2026-08-25; 04b and the 04c review have not started.
 
 > **Family.** This is the umbrella. The children are:
 > [04a Commit–Reveal Shuffle](./EPIC-04a_Commit_Reveal_Shuffle.md) (provably-fair
@@ -58,7 +58,7 @@ This EPIC ports to the generic *deck* kernel — where "a deck" means any of 14 
 
 ## Status
 
-Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was designed; commits pending on the user's side, so rows cite the branch and date rather than a hash). Backends 04a/04b/04c have not started.
+Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was designed; commits pending on the user's side, so rows cite the branch and date rather than a hash). 04a (commit–reveal) landed 2026-08-25; 04b and the 04c review have not started.
 
 | Component | Status |
 |---|---|
@@ -77,7 +77,7 @@ Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was d
 | `CardError` variants (9, ungated, `#[non_exhaustive]`) | **Complete** |
 | `tests/seal_properties.rs` | **Complete** |
 | Docs / CHANGELOG / prelude / 0.11.0 / `.okf/` bundle | **Complete** |
-| Commit–reveal backend | → [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md) |
+| Commit–reveal backend | Complete — [EPIC-04a](./EPIC-04a_Commit_Reveal_Shuffle.md), 2026-08-25 |
 | Holder-key AEAD backend + dealer custody ledger | → [EPIC-04b](./EPIC-04b_Holder_Key_Seal.md) |
 | Mental-poker bridge contract | → [EPIC-04c](./EPIC-04c_Mental_Poker_Bridge_spec.md) |
 

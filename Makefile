@@ -102,9 +102,15 @@ test-std-io:
 test-funky:
 	cargo test --features full,funky
 
+# `commit-reveal` is an opt-in crypto backend that `full` deliberately excludes
+# (.okf/decisions/crypto-features-outside-full.md). Its unit tests, doctests,
+# and tests/commit_reveal.rs exist only under the feature — cover them here.
+test-crypto:
+	cargo test --features full,commit-reveal
+
 # Run all tests: unit tests via nextest, doc tests via cargo test, the
-# std-io filesystem seam, plus the funky feature on stable.
-test: test-unit test-doc test-std-io test-funky
+# std-io filesystem seam, the funky feature, and the crypto backends on stable.
+test: test-unit test-doc test-std-io test-funky test-crypto
 
 # Regenerate the golden YAML deck fixtures that tests/yaml_golden.rs compares
 # byte for byte. Run this whenever a deck's card data legitimately changes,

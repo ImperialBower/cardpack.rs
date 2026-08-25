@@ -106,6 +106,7 @@ what they need:
 | `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
 | `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
 | `seal-test-double`| no      | —                  | `PlaintextSeal` (**no security**) and the `seal_roundtrip` conformance helper for testing a `Seal` backend; **not** in `full` |
+| `commit-reveal`   | no      | `sha2`             | Provably-fair shuffles: `ShuffleRound`, `Commitment`/`Contribution`, `CombinedSeed`, `commit_pile`, `Pile::shuffled_by_round` — see [Provably-fair shuffles](#provably-fair-shuffles); **not** in `full` |
 
 To get the previous "batteries-included" behavior, opt into `full`:
 
@@ -132,6 +133,38 @@ card *names* that shuffles, cuts and deals with no knowledge), `Revealed` (the
 only slot → card map), and the five-item `Seal` adapter. No kernel type holds
 ciphertext or is generic over a scheme. Real crypto backends are planned as
 opt-in features outside `full`.
+
+### Provably-fair shuffles
+
+The `commit-reveal` feature ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
+adds one dependency, `sha2`, and lets every participant in a game prove the
+shuffle was fair. Each participant commits to secret entropy, then everyone
+reveals; the combined seed fixes the shuffle through a frozen SHA-256
+derivation that any verifier — in any language — can reproduce from the
+public transcript alone:
+
+```rust,ignore
+// needs `--features commit-reveal`; the same example is a compiled doctest in `src/seal/commit/mod.rs`
+use cardpack::prelude::*;
+
+let (dealer, player) = (ParticipantId(1), ParticipantId(2));
+let a = Contribution::from_bytes([0x11; 32]); // Contribution::random(&mut rng) in real code
+let b = Contribution::from_bytes([0x22; 32]);
+
+let mut round = ShuffleRound::new([dealer, player])?;
+round.commit(dealer, a.commit())?;
+round.commit(player, b.commit())?;         // nobody may reveal before this point
+round.reveal(dealer, a)?;
+round.reveal(player, b)?;
+
+let shuffled = Standard52::deck().shuffled_by_round(&round)?;
+# Ok::<(), CardError>(())
+```
+
+`commit_pile` / `verify_pile` let a dealer publish a blind commitment to a
+concrete deck order before dealing and open it after. Run
+`cargo ex provably_fair` for a two-party round end to end. This hides the
+*shuffle*, not the *cards*; hiding cards is a sealing backend (EPIC-04b).
 
 ## Decks as YAML
 

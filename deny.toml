@@ -74,6 +74,9 @@ deny = [
     # Storage engines:
     { name = "rusqlite" },
     { name = "sqlx" },
+    # Crypto backends (EPIC-04a/04b): opt-in features outside `full`, never in
+    # the pure kernel. See .okf/decisions/crypto-features-outside-full.md.
+    { name = "sha2" },
 ]
 skip = []
 skip-tree = []

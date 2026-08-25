@@ -4,7 +4,7 @@ title: EPIC-04 — Sealed Decks (family)
 description: A deck cardpack cannot read because it never holds one — the Ordinal/Codebook bijection, Permutation-as-data, a non-generic SlotPile of card names, Revealed<D> as the only value map, and a five-item Seal<D> adapter — plus three children for commit-reveal shuffles, holder-key AEAD seals with a plain Custody ledger, and the mental-poker bridge to pkmental/pkcore.
 tags: [epic, seal, crypto, ordinal, permutation, active]
 resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-04_Sealed_Decks.md
-timestamp: 2026-08-24T12:00:00Z
+timestamp: 2026-08-25T12:00:00Z
 ---
 
 # What it covers
@@ -25,9 +25,11 @@ was drafted; the first draft carried generic containers.
 
 Children:
 
-* **EPIC-04a Commit–Reveal Shuffle** (`commit-reveal` → `sha2`) — provably-fair
-  shuffling: commit-all-then-reveal, SHA-256 counter-mode permutation
-  derivation frozen by golden vectors, blind commitments to a pile order.
+* **EPIC-04a Commit–Reveal Shuffle** (`commit-reveal` → `sha2`; **landed
+  2026-08-25**) — provably-fair shuffling: commit-all-then-reveal, SHA-256
+  counter-mode permutation derivation frozen by golden vectors from an
+  independent Python reference, blind commitments to a pile order,
+  `Pile::shuffled_by_round`.
 * **EPIC-04b Holder-Key Seal** (`seal-aead` → `chacha20poly1305`/`hkdf`/
   `sha2`/`zeroize`) — the first real `Seal<D>` backend and the one
   dealer-custody shape: per-card HKDF keys, a 42-byte `SealedBytes`, a plain

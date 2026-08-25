@@ -1,6 +1,6 @@
 # EPIC-04a: Commit–Reveal Shuffle (CRS)
 
-> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Child of [EPIC-04 Sealed Decks](./EPIC-04_Sealed_Decks.md); needs its Stories 2–3 (`Codebook` canonical bytes, `Permutation`) landed first. "Default features green" **and** `cargo deny check bans` are preconditions for every story. Nothing has landed as of `main` @ `1c14440`, 2026-08-24.
+> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Child of [EPIC-04 Sealed Decks](./EPIC-04_Sealed_Decks.md); needs its Stories 2–3 (`Codebook` canonical bytes, `Permutation`) landed first. "Default features green" **and** `cargo deny check bans` are preconditions for every story. **All stories landed on branch `crypt`, 2026-08-25** — see the implementation corrigendum at the end for where the code differs from the design below.
 
 **Goal:** **Provably-fair shuffling** without full mental poker. Every participant commits to secret entropy, everyone reveals, the combined seed deterministically derives a **`Permutation`**, and anyone holding the public transcript can re-derive the shuffle and check it. Also: blind **commitments to a concrete order** — a `Permutation` or a `Pile` — so a dealer can prove after the fact that the deck they dealt is the deck they committed to. This is the "general security in distributed games" tier: a trusted-but-auditable dealer, a browser client that can verify, a replay log that proves the shuffle.
 
@@ -28,21 +28,21 @@
 
 ## Status
 
-Status as of `main` @ `1c14440`, **2026-08-24**. Nothing has landed.
+Status as of branch `crypt`, **2026-08-25**. Everything landed, test-first, in one day.
 
 | Component | Status |
 |---|---|
-| `commit-reveal` feature + `sha2` dep + deny/CI ban rows | Planned |
-| `Contribution` (secret, redacted `Debug`) + `Commitment` (32 bytes, hex) | Planned |
-| `ParticipantId` + `ShuffleRound` state machine | Planned |
-| `CombinedSeed::combine` + `::permutation` (SHA-256 counter mode, rejection sampling) | Planned |
-| `commit_permutation` / `verify_permutation` | Planned |
-| `commit_pile` / `verify_pile` (over `CANON_V1` bytes) | Planned |
-| `Pile::shuffled_by_round` | Planned |
-| `CardError` variants (6, gated) | Planned |
-| `examples/provably_fair.rs` | Planned |
-| `tests/commit_reveal.rs` (golden vectors + properties) | Planned |
-| Docs / README / CHANGELOG / `.okf/` | Planned |
+| `commit-reveal` feature + `sha2` dep + deny/CI ban rows | Complete |
+| `Contribution` (secret, redacted `Debug`) + `Commitment` (32 bytes, hex) | Complete |
+| `ParticipantId` + `ShuffleRound` state machine | Complete |
+| `CombinedSeed::combine` + `::permutation` (SHA-256 counter mode, rejection sampling) | Complete |
+| `commit_permutation` / `verify_permutation` | Complete |
+| `commit_pile` / `verify_pile` (over `CANON_V1` bytes) | Complete |
+| `Pile::shuffled_by_round` | Complete |
+| `CardError` variants (8, gated) | Complete |
+| `examples/provably_fair.rs` | Complete |
+| `tests/commit_reveal.rs` (golden vectors + properties) | Complete |
+| Docs / README / CHANGELOG / `.okf/` | Complete |
 
 ---
 
@@ -240,9 +240,9 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] Add the feature and the optional dep; add `sha2` to `deny.toml` bans and `CI.yaml:210` `BANNED`
-- [ ] `cargo tree --no-default-features --edges normal | grep -c sha2` is `0`
-- [ ] `cargo build --no-default-features --features commit-reveal --target thumbv7em-none-eabihf` green
+- [x] Add the feature and the optional dep; add `sha2` to `deny.toml` bans and `CI.yaml:210` `BANNED`
+- [x] `cargo tree --no-default-features --edges normal | grep -c sha2` is `0`
+- [x] `cargo build --no-default-features --features commit-reveal --target thumbv7em-none-eabihf` green
 
 ---
 
@@ -252,8 +252,8 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] Types, tags, `random`/`from_bytes`/`commit`/`verify`/`to_hex`/`from_hex`
-- [ ] Tests: `commitment__golden_vector` (`from_bytes([0x11; 32]).commit().to_hex()` pinned at implementation time), `commitment__verify_roundtrip` (prop), `commitment__verify_rejects_other` (prop), `contribution__debug_redacted`, `commitment__hex_roundtrip`, `commitment__from_hex_rejects_garbage`
+- [x] Types, tags, `random`/`from_bytes`/`commit`/`verify`/`to_hex`/`from_hex`
+- [x] Tests: `commitment__golden_vector` (`from_bytes([0x11; 32]).commit().to_hex()` pinned at implementation time), `commitment__verify_roundtrip` (prop), `commitment__verify_rejects_other` (prop), `contribution__debug_redacted`, `commitment__hex_roundtrip`, `commitment__from_hex_rejects_garbage`
 
 ---
 
@@ -263,9 +263,9 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] `combine` with the sorted-pairs preimage
-- [ ] `derive.rs`: counter-mode byte stream, exact rejection sampling, Fisher–Yates over `Permutation::identity`
-- [ ] Tests: `combine__golden_vector`, `combine__order_of_input_is_irrelevant` (sorted internally), `derive__is_valid_permutation` (prop over `n`, seed — via `Permutation::try_from_vec`), `derive__golden_permutation_52`, `derive__differs_per_seed`, `derive__unbiased_smoke` (`#[ignore]`, 10k seeds, loose chi-square on the first element)
+- [x] `combine` with the sorted-pairs preimage
+- [x] `derive.rs`: counter-mode byte stream, exact rejection sampling, Fisher–Yates over `Permutation::identity`
+- [x] Tests: `combine__golden_vector`, `combine__order_of_input_is_irrelevant` (sorted internally), `derive__is_valid_permutation` (prop over `n`, seed — via `Permutation::try_from_vec`), `derive__golden_permutation_52`, `derive__differs_per_seed`, `derive__unbiased_smoke` (`#[ignore]`, 10k seeds, loose chi-square on the first element)
 
 ---
 
@@ -275,8 +275,8 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] `new`/`commit`/`all_committed`/`reveal`/`is_complete`/`seed`
-- [ ] Tests: `round__new_rejects_empty_and_duplicates`, `round__commit_unknown_participant_errors`, `round__double_commit_errors`, `round__reveal_before_all_committed_errors`, `round__mismatched_reveal_errors_and_leaves_round_unchanged`, `round__two_party_provably_fair` (dealer + player), `round__any_verifier_reproduces_seed`, `round__reorder_of_participants_changes_seed`
+- [x] `new`/`commit`/`all_committed`/`reveal`/`is_complete`/`seed`
+- [x] Tests: `round__new_rejects_empty_and_duplicates`, `round__commit_unknown_participant_errors`, `round__double_commit_errors`, `round__reveal_before_all_committed_errors`, `round__mismatched_reveal_errors_and_leaves_round_unchanged`, `round__two_party_provably_fair` (dealer + player), `round__any_verifier_reproduces_seed`, `round__reorder_of_participants_changes_seed`
 
 ---
 
@@ -286,8 +286,8 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] `commit_permutation` / `verify_permutation` / `commit_pile` / `verify_pile` / `Pile::shuffled_by_round`
-- [ ] Tests: `commit_pile__verifies_exact_order`, `commit_pile__detects_swapped_cards`, `commit_pile__wrong_blind_fails`, `commit_permutation__roundtrip`, `commit_permutation__wrong_blind_fails`, `shuffled_by_round__preserves_multiset` (prop), `shuffled_by_round__incomplete_round_errors`
+- [x] `commit_permutation` / `verify_permutation` / `commit_pile` / `verify_pile` / `Pile::shuffled_by_round`
+- [x] Tests: `commit_pile__verifies_exact_order`, `commit_pile__detects_swapped_cards`, `commit_pile__wrong_blind_fails`, `commit_permutation__roundtrip`, `commit_permutation__wrong_blind_fails`, `shuffled_by_round__preserves_multiset` (prop), `shuffled_by_round__incomplete_round_errors`
 
 ---
 
@@ -297,10 +297,10 @@ tests/commit_reveal.rs          golden vectors + proptests
 
 ### Tasks
 
-- [ ] `examples/provably_fair.rs` with `[[example]] required-features = ["commit-reveal", "std"]`
-- [ ] Module doc in `src/seal/commit/mod.rs`: the preimage format table, the "a non-revealer aborts, never biases" note, and a worked verifier pseudo-code block
-- [ ] README feature row; CHANGELOG `Added`; `.okf/architecture/feature-flags.md` row live; `.okf/log.md`
-- [ ] Flip Status rows
+- [x] `examples/provably_fair.rs` with `[[example]] required-features = ["commit-reveal", "std"]`
+- [x] Module doc in `src/seal/commit/mod.rs`: the preimage format table, the "a non-revealer aborts, never biases" note, and a worked verifier pseudo-code block
+- [x] README feature row; CHANGELOG `Added`; `.okf/architecture/feature-flags.md` row live; `.okf/log.md`
+- [x] Flip Status rows
 
 ---
 
@@ -389,3 +389,54 @@ Exit criteria:
 5. **Keep `sha2` `default-features = false`.** Another feature enabling `sha2/std` by accident would silently make `commit-reveal` `std`-only; the thumb build in Story 0 is the guard.
 6. **Multi-deck piles are fine.** `encode_pile` includes duplicates; the codebook must simply be the pile's own deck type.
 7. **`cpufeatures` on wasm32** is a no-op; the wasm build in Verification proves it links.
+
+---
+
+## Implementation corrigendum (2026-08-25)
+
+Where the shipped code differs from the design above. The design text is left
+as written; this list is the truth.
+
+1. **`sha2 0.11`, not `0.10`.** RustCrypto's 0.11 line shipped with
+   `rust-version = 1.85`, exactly the crate's MSRV, so the doc's own
+   "prefer it if it holds MSRV ≤ 1.85" rule applied. Tree under the feature:
+   `sha2 0.11.0`, `digest 0.11.3`, `block-buffer 0.12.1`, `cpufeatures 0.3.0`.
+   04b should move `hkdf` to its 0.13 line together with this.
+2. **Eight `CardError` variants, not six.** `ShuffleRound::new` needed
+   `NoParticipants` and `DuplicateParticipant(u16)`; misusing
+   `InvalidCardCount` or `DuplicateSlot` would have lied in the message.
+3. **`&mut dyn Rng`, not `RngCore`.** rand 0.10 folded `RngCore` into `Rng`
+   (same delta as EPIC-04's corrigendum).
+4. **Extra surface, all small.** `Commitment::from_bytes` (used by the pile
+   commitments), `Display` on `Commitment` and `CombinedSeed` (hex),
+   `CombinedSeed::to_hex`, `ShuffleRound::participants` / `commitment(id)` /
+   `contribution(id)` so a caller can *publish* the transcript, and
+   `ShuffleRound` derives `Eq`/`PartialEq` (the "leaves the round unchanged"
+   test compares whole rounds). `TAG_*` constants are `pub` so a verifier can
+   read them instead of retyping them.
+5. **Hex is a private 40-line module.** No `hex` crate, no ban-list row.
+6. **Golden vectors come from Python.** `crs_reference.py` — reproduced in
+   full at the top of `tests/commit_reveal.rs` — is an independent
+   implementation of every `v1` row. Rust agrees with it on the contribution
+   commitment, the combined seed, `permutation(52)`, `permutation(5)`,
+   `commit_permutation(identity 3)`, and `commit_pile(Standard 52)`. That is
+   what "frozen" means here: not "same code run twice" but "two
+   implementations agree".
+7. **`derive__unbiased_smoke`** is a chi-square on the first output position
+   over 20 000 seeds (`n = 5`, 4 d.f., 0.1 % critical value), `#[ignore]`d.
+   It passes; `chi2 ≈ 3`.
+8. **Tests cannot hide behind `full`.** New `make test-crypto`
+   (`cargo test --features full,commit-reveal`), wired into `make test`, and
+   the same line in CI's test matrix. `cargo ex` now enables `commit-reveal`
+   so `cargo ex provably_fair` works.
+9. **`crypto` umbrella still deferred** to 04b — a one-member umbrella would
+   be noise.
+
+Gold-standard mutation check, all four red as required: dropping the
+`all_committed` guard in `reveal` → `round__reveal_before_all_committed_errors`;
+dropping the sort in `combine` → `combine__order_of_input_is_irrelevant`;
+replacing the rejection loop with `x % range` → `below__skips_words_in_the_biased_zone`
+(**not** the 52-card golden vector — rejection has probability `m / 2^32` per
+draw, negligible for `range ≤ 216`, so that mutation left `permutation(52)`
+unchanged; the new test forces a rejection with `range = 2^31 + 1`);
+dropping `blind` from `commit_pile` → `commit_pile__wrong_blind_fails`.

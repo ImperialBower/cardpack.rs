@@ -20,4 +20,4 @@ runner = "wasm-bindgen-test-runner"
 # host `--no-default-features` purity gates honest.
 # See .okf/decisions/examples-flag-free-alias.md.
 [alias]
-ex = "run --features full,funky --example"
+ex = "run --features full,funky,commit-reveal --example"

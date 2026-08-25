@@ -28,6 +28,8 @@
 //! accepts it from an untrusted peer has skipped its own protocol.
 
 pub mod adapter;
+#[cfg(feature = "commit-reveal")]
+pub mod commit;
 #[cfg(any(test, feature = "seal-test-double"))]
 pub mod plaintext;
 pub mod revealed;

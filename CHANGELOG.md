@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `commit-reveal` feature, provably-fair shuffles ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
+
+- **`commit-reveal` feature** (one dependency, `sha2 0.11`, `no_std`; **not**
+  in `full`; banned from the pure tree by `deny.toml` and CI).
+- **`Contribution`** (secret entropy, redacted `Debug`) and **`Commitment`**
+  (32-byte SHA-256, hex `Display`, `serde`-gated derives).
+- **`ParticipantId`**, **`ShuffleRound`** — commit-all-then-reveal state
+  machine; a reveal before every commitment is in, or one that does not open
+  its commitment, is rejected and leaves the round unchanged.
+- **`CombinedSeed`** — `combine` over the sorted transcript; `permutation(n)`
+  is a frozen SHA-256 counter-mode Fisher–Yates with exact rejection sampling
+  (the verifier's contract; never `StdRng`). Golden vectors produced by an
+  independent Python reference, recorded in `tests/commit_reveal.rs`.
+- **`commit_permutation` / `verify_permutation`**, **`commit_pile` /
+  `verify_pile`** — blind commitments to a concrete order, over
+  `Permutation::canonical_bytes` and `CANON_V1` bytes.
+- **`Pile::shuffled_by_round`**.
+- Eight gated `CardError` variants (`UnknownParticipant`, `AlreadyCommitted`,
+  `RevealBeforeAllCommitted`, `CommitmentMismatch`, `RoundIncomplete`,
+  `InvalidHex`, `DuplicateParticipant`, `NoParticipants`).
+- `examples/provably_fair.rs`; `make test-crypto`; `cargo ex` now enables
+  `commit-reveal`.
+
 ### Added — 0.11.0, the sealed-deck kernel ([EPIC-04](docs/EPIC-04_Sealed_Decks.md))
 
 - **`Ordinal` / `Codebook<D>` / `vocabulary`** — a total, stable card ↔ `0..V`

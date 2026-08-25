@@ -9,7 +9,7 @@
 
 ## EPICs / Features
 
-### EPIC-04 — Sealed Decks ([docs/EPIC-04_Sealed_Decks.md](docs/EPIC-04_Sealed_Decks.md)) — **designed, not started** (2026-08-24, `1c14440`)
+### EPIC-04 — Sealed Decks ([docs/EPIC-04_Sealed_Decks.md](docs/EPIC-04_Sealed_Decks.md)) — **kernel + 04a landed** (kernel 2026-08-24, 04a 2026-08-25, branch `crypt`)
 
 A deck cardpack cannot read because it never holds one. Kernel (dependency-free,
 always on, **nothing generic over a scheme**): `Ordinal`/`Codebook<D>` bijection,
@@ -20,7 +20,7 @@ Own rule, own reasons (EPIC-04 decision 2); sibling repos are prior art and
 possible consumers only — cardpack links to nothing. Reshaped 2026-08-24 after
 the first draft carried generic containers. Children:
 
-- [ ] 04a Commit–Reveal Shuffle (`commit-reveal` → `sha2`) — [doc](docs/EPIC-04a_Commit_Reveal_Shuffle.md)
+- [x] 04a Commit–Reveal Shuffle (`commit-reveal` → `sha2 0.11`) — landed 2026-08-25 — [doc](docs/EPIC-04a_Commit_Reveal_Shuffle.md)
 - [ ] 04b Holder-Key Seal (`seal-aead` → `chacha20poly1305`/`hkdf`/`sha2`/`zeroize`; plain `Custody` ledger; `RecipientSeal` design-only) — [doc](docs/EPIC-04b_Holder_Key_Seal.md)
 - [ ] 04c Mental Poker Bridge `_spec` (the surface cardpack promises to protocol crates; worked ElGamal example; consumer notes) — [doc](docs/EPIC-04c_Mental_Poker_Bridge_spec.md)
 
