@@ -150,7 +150,7 @@
 //! An important thing to remember about the decks is that the cards have their weight inside them
 //! to facilitate sorting. If you wanted a deck for a game of poker where the lowest hand wins, you
 //! would need to create a separate deck file with the card's `Rank` weights inverted. The
-//! [`Razz Deck`](basic::decks::razz::Razz) is an example of this. It is also an example of
+//! `Razz` deck (`basic::decks::razz::Razz`, behind `yaml`) is an example of this. It is also an example of
 //! how you can create a [`Deck`](basic::types::pile::Pile)  where the
 //! [`BasicCard`](basic::types::basic_card::BasicCard) for the deck are generated programmatically
 //! in YAML instead using the power of [Serde](https://serde.rs/)
@@ -162,7 +162,7 @@
 //! assert_eq!(Pile::<Standard52>::deck().draw(5).unwrap().to_string(), "A♠ K♠ Q♠ J♠ T♠");
 //! ```
 //!
-//! The raw YAML that was used to create the [`Razz Deck`](basic::decks::razz::Razz) is available
+//! The raw YAML that was used to create the `Razz` deck (`basic::decks::razz::Razz`, behind `yaml`) is available
 //! in the source code.
 //!
 //!
@@ -306,7 +306,7 @@
 //!
 //! There are three entry points, one per layer:
 //!
-//! - [`YamlDecked`](basic::types::traits::YamlDecked) — blanket-implemented for
+//! - `YamlDecked` (behind `yaml`) — blanket-implemented for
 //!   every [`DeckedBase`](basic::types::traits::DeckedBase) type, so the `Tiny`
 //!   deck defined above gets `to_yaml`, `deck_from_yaml`, and `validate_yaml`
 //!   for free, exactly like the decks shipped in this crate.

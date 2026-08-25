@@ -22,7 +22,7 @@ use rand::Rng;
 ///
 /// The round-trip law every implementation must satisfy —
 /// `unseal(seal(card, slot, rng), slot, token) == card` — is one generic
-/// test, [`seal_roundtrip`](crate::seal::plaintext::seal_roundtrip), exported
+/// test, `seal_roundtrip` (behind `seal-test-double`), exported
 /// under the `seal-test-double` feature so backends in other crates can run it.
 pub trait Seal<D: DeckedBase> {
     /// The opaque payload. The backend picks the representation: 42 bytes of

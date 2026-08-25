@@ -69,7 +69,7 @@ doctest for no benefit ([feature flags](/architecture/feature-flags.md)
   the proof that the backend is no_std and (for AEAD) allocation-free on the
   hot path.
 * Never enable `chacha20poly1305/rand_core` — it is `rand_core 0.6`; cardpack
-  is on `rand 0.10`. Nonces come from the caller's `rand::RngCore`.
+  is on `rand 0.10`. Nonces come from the caller's `rand::Rng`.
 
 # Citations
 

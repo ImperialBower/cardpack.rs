@@ -36,7 +36,8 @@ Children:
   `Custody(Vec<(SlotId, SealedBytes)>)` ledger beside a `SlotPile`, dealer vs
   verifier mode, one token reveals one card through `Revealed::reveal_with`;
   a public-key `RecipientSeal` is designed, not built.
-* **EPIC-04c Mental Poker Bridge (`_spec`)** — the surface cardpack promises
+* **EPIC-04c Mental Poker Bridge (`_spec`; reviewed against the shipped
+  code 2026-08-25, three rows corrected)** — the surface cardpack promises
   to any protocol crate that builds on it (bijection, byte layouts,
   `SlotPile` + `Revealed<D>`, the `Seal<D>` shape, `seal_roundtrip`), a worked
   example of a threshold-ElGamal backend on that surface (using `pkmental`'s
@@ -51,7 +52,7 @@ Children:
   a scheme and none holds ciphertext — `SlotPile` + `Revealed<D>` are the
   referee state. Five reasons, all cardpack's own.
 * **The `Seal<D>` signature** (decision 3): `seal`/`unseal` take the `SlotId`;
-  `seal` takes `&mut dyn RngCore`; `SlotId` is `u16`. Convergent with a sibling
+  `seal` takes `&mut dyn rand::Rng` (rand 0.10); `SlotId` is `u16`. Convergent with a sibling
   repo's design sketch, not a compatibility goal.
 * **cardpack is its own boss**: designed to be built *on*; it links to nothing
   and tracks no other repository's work.

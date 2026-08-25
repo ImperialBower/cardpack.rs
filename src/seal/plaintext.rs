@@ -79,6 +79,51 @@ impl<D: DeckedBase + Default + Ord + Copy + Hash + Debug> Seal<D> for PlaintextS
 ///
 /// On the first card that does not round-trip, naming the slot and the
 /// backend's error.
+///
+/// # Example — a foreign backend, checked from outside the crate
+///
+/// A hand-rolled scheme (a per-slot XOR pad — **no security**, it exists to
+/// show the bounds are satisfiable by another crate) run through the helper:
+///
+/// ```
+/// use cardpack::prelude::*;
+/// use cardpack::seal::seal_roundtrip;
+/// use rand::SeedableRng;
+///
+/// struct XorSeal { pad: u16 }
+///
+/// #[derive(Debug)]
+/// struct BadToken;
+/// impl core::fmt::Display for BadToken {
+///     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { f.write_str("bad token") }
+/// }
+/// impl core::error::Error for BadToken {}
+///
+/// impl Seal<Standard52> for XorSeal {
+///     type Sealed = u16;
+///     type Token = u16;
+///     type Error = BadToken;
+///
+///     fn seal(&self, card: Card<Standard52>, slot: SlotId, _rng: &mut dyn rand::Rng)
+///         -> Result<u16, BadToken>
+///     {
+///         let ord = Standard52::codebook().ordinal(&card).ok_or(BadToken)?;
+///         Ok(ord.get() ^ self.pad ^ slot.get())
+///     }
+///
+///     fn unseal(&self, sealed: &u16, slot: SlotId, token: &u16)
+///         -> Result<Card<Standard52>, BadToken>
+///     {
+///         if *token != self.pad { return Err(BadToken); }
+///         Standard52::codebook()
+///             .card(Ordinal::new(sealed ^ self.pad ^ slot.get()))
+///             .ok_or(BadToken)
+///     }
+/// }
+///
+/// let scheme = XorSeal { pad: 0x5a5a };
+/// seal_roundtrip::<Standard52, _>(&scheme, |_| 0x5a5a, &mut rand::rngs::StdRng::seed_from_u64(0));
+/// ```
 pub fn seal_roundtrip<D, S>(scheme: &S, token_for: impl Fn(SlotId) -> S::Token, rng: &mut dyn Rng)
 where
     D: Decked<D> + Default + Ord + Copy + Hash + Debug,
