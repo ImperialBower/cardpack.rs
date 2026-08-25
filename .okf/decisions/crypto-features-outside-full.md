@@ -23,7 +23,7 @@ The **real cryptographic backends** are opt-in features that are deliberately
 
 * `commit-reveal` → `sha2` **(landed 2026-08-25, `sha2 0.11`)** (provably-fair shuffle,
   [EPIC-04a](/references/epic-04-sealed-decks.md))
-* `seal-aead` → `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` (holder-key
+* `seal-aead` → `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` **(landed 2026-08-25, RustCrypto 0.11 line)** (holder-key
   per-card encryption, [EPIC-04b](/references/epic-04-sealed-decks.md))
 * `crypto` = both of the above; also outside `full`
 * `seal-test-double` → no dependency; exposes `PlaintextSeal` (**no

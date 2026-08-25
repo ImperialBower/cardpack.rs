@@ -51,10 +51,10 @@ jobs:
       - run: cargo test --locked --features std-io --doc
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
-      # commit-reveal is an opt-in crypto backend excluded from `full`
+      # crypto (= commit-reveal + seal-aead) is opt-in and excluded from `full`
       # (.okf/decisions/crypto-features-outside-full.md). Its tests exist only
-      # under the feature — cover them explicitly.
-      - run: cargo test --locked --features full,commit-reveal
+      # under the features — cover them explicitly.
+      - run: cargo test --locked --features full,crypto
         env:
           RUSTFLAGS: ${{matrix.rustflags}} ${{env.RUSTFLAGS}}
 
@@ -213,7 +213,7 @@ jobs:
     env:
       # Crate names (pipe-separated) that must be ABSENT from the pure tree.
       # Keep in sync with the `[bans].deny` list in deny.toml.
-      BANNED: "serde_norway|serde_yaml|serde_yaml_bw|colored|fluent-templates|fluent-bundle|tokio|reqwest|hyper|tonic|axum|rusqlite|sqlx|sha2"
+      BANNED: "serde_norway|serde_yaml|serde_yaml_bw|colored|fluent-templates|fluent-bundle|tokio|reqwest|hyper|tonic|axum|rusqlite|sqlx|sha2|chacha20poly1305|hkdf|zeroize"
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master

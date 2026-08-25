@@ -39,6 +39,8 @@ pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase, Ranged};
 pub use crate::common::errors::CardError;
 #[cfg(feature = "i18n")]
 pub use crate::localization::{FluentName, Named};
+#[cfg(feature = "seal-aead")]
+pub use crate::seal::aead::{AeadSealError, CardKey, Custody, DealKey, HolderKeySeal, SealedBytes};
 #[cfg(feature = "commit-reveal")]
 pub use crate::seal::commit::{
     CombinedSeed, Commitment, Contribution, ParticipantId, ShuffleRound, commit_permutation,

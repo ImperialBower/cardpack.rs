@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `seal-aead` feature, the holder-key seal ([EPIC-04b](docs/EPIC-04b_Holder_Key_Seal.md))
+
+- **`seal-aead` feature** (`chacha20poly1305 0.11`, `hkdf 0.13`, `sha2 0.11`,
+  `zeroize 1.9`; all `no_std`; **not** in `full`; banned from the pure tree)
+  and the **`crypto`** umbrella over `commit-reveal` + `seal-aead`.
+- **`HolderKeySeal<D>`** — the first real `Seal<D>` backend. Dealer mode
+  (holds a `DealKey`; seals, mints tokens) or verifier mode (no secret; only
+  `unseal`). Per-slot keys by HKDF-SHA256; XChaCha20-Poly1305 with a fresh
+  random nonce; deck name, slot, and a caller context bound as AD.
+- **`DealKey`** / **`CardKey`** (zeroized, redacted `Debug`, never `Copy` or
+  `serde`), **`SealedBytes`** (42 public bytes, `Copy`), **`Custody`** (a plain
+  `Vec<(SlotId, SealedBytes)>` ledger beside a `SlotPile`), **`AeadSealError`**
+  (one blunt `Unseal` variant — no oracle).
+- **`HolderKeySeal::deal`** — shuffle, then seal into slots `0..n`, returning
+  `(SlotPile, Custody)`; slot ≠ ordinal by construction (the unshuffled hazard
+  is pinned by a test).
+- Golden vectors (HKDF slot key, 42-byte sealed card) from an independent
+  Python implementation, recorded in `tests/seal_aead.rs`.
+- `examples/holder_seal.rs`; `make test-crypto` and CI now run `full,crypto`;
+  `cargo ex` enables `crypto`.
+
 ### Added — `commit-reveal` feature, provably-fair shuffles ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
 
 - **`commit-reveal` feature** (one dependency, `sha2 0.11`, `no_std`; **not**

@@ -77,6 +77,9 @@ deny = [
     # Crypto backends (EPIC-04a/04b): opt-in features outside `full`, never in
     # the pure kernel. See .okf/decisions/crypto-features-outside-full.md.
     { name = "sha2" },
+    { name = "chacha20poly1305" },
+    { name = "hkdf" },
+    { name = "zeroize" },
 ]
 skip = []
 skip-tree = []

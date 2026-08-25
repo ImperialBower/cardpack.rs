@@ -429,8 +429,8 @@ as written; this list is the truth.
    (`cargo test --features full,commit-reveal`), wired into `make test`, and
    the same line in CI's test matrix. `cargo ex` now enables `commit-reveal`
    so `cargo ex provably_fair` works.
-9. **`crypto` umbrella still deferred** to 04b — a one-member umbrella would
-   be noise.
+9. **`crypto` umbrella** was deferred at 04a time (a one-member umbrella would
+   be noise) and landed with 04b the same day.
 
 Gold-standard mutation check, all four red as required: dropping the
 `all_committed` guard in `reveal` → `round__reveal_before_all_committed_errors`;

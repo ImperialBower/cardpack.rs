@@ -21,8 +21,10 @@ pub const TAG_CONTRIBUTION: &[u8] = b"cardpack/commit-reveal/v1/contribution";
 pub struct Contribution([u8; 32]);
 
 impl Contribution {
-    /// The only documented constructor. `rng` **must** be a CSPRNG (for
-    /// example `rand::rng()` under `std`); a contribution is only *hiding*
+    /// The only documented constructor. `rng` **must** be a cryptographically
+    /// secure pseudorandom number generator
+    /// [CSPRNG](https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator)
+    /// (for example `rand::rng()` under `std`); a contribution is only *hiding*
     /// if an adversary cannot guess it.
     pub fn random(rng: &mut dyn Rng) -> Self {
         let mut bytes = [0u8; 32];

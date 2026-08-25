@@ -102,11 +102,12 @@ test-std-io:
 test-funky:
 	cargo test --features full,funky
 
-# `commit-reveal` is an opt-in crypto backend that `full` deliberately excludes
-# (.okf/decisions/crypto-features-outside-full.md). Its unit tests, doctests,
-# and tests/commit_reveal.rs exist only under the feature — cover them here.
+# `crypto` (= commit-reveal + seal-aead) is opt-in and deliberately excluded
+# from `full` (.okf/decisions/crypto-features-outside-full.md). Its unit tests,
+# doctests, tests/commit_reveal.rs and tests/seal_aead.rs exist only under the
+# features — cover them here.
 test-crypto:
-	cargo test --features full,commit-reveal
+	cargo test --features full,crypto
 
 # Run all tests: unit tests via nextest, doc tests via cargo test, the
 # std-io filesystem seam, the funky feature, and the crypto backends on stable.

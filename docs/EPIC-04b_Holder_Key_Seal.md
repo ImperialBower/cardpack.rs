@@ -1,6 +1,6 @@
 # EPIC-04b: Holder-Key Seal (HKS)
 
-> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Child of [EPIC-04 Sealed Decks](./EPIC-04_Sealed_Decks.md); needs its Stories 1 and 4–5 (`Codebook`, `SlotId`, `SlotPile`, `Revealed<D>`, `Seal<D>`, the `seal_roundtrip` helper) landed first. "Default features green" **and** `cargo deny check bans` are preconditions for every story. Nothing has landed as of `main` @ `1c14440`, 2026-08-24.
+> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Child of [EPIC-04 Sealed Decks](./EPIC-04_Sealed_Decks.md); needs its Stories 1 and 4–5 (`Codebook`, `SlotId`, `SlotPile`, `Revealed<D>`, `Seal<D>`, the `seal_roundtrip` helper) landed first. "Default features green" **and** `cargo deny check bans` are preconditions for every story. **All stories landed on branch `crypt`, 2026-08-25** — see the implementation corrigendum at the end for where the code differs from the design below.
 
 **Goal:** The first **real `Seal<D>` backend**, and the one deployment shape that legitimately holds ciphertext: a **single trusted dealer**. Every card is encrypted under its own key, derived from a per-deal master key, so a **holder turns up one card by publishing one 32-byte token** — and anyone holding the public sealed bytes can verify it through `Revealed::reveal_with`. This is the "only the holder can read it until it is turned up" tier the NFT framing describes, without a chain: the sealed bytes are the public artefact, the token is the proof, and revealing one card exposes nothing about any other.
 
@@ -30,23 +30,23 @@
 
 ## Status
 
-Status as of `main` @ `1c14440`, **2026-08-24**. Nothing has landed.
+Status as of branch `crypt`, **2026-08-25**. Everything below landed, test-first; `RecipientSeal` remains design-only by intent.
 
 | Component | Status |
 |---|---|
-| `seal-aead` feature + four deps + deny/CI ban rows | Planned |
-| `DealKey` / `CardKey` (`Zeroizing`, redacted `Debug`) | Planned |
-| `SealedBytes` (42 bytes, `Copy`, serde-gated) | Planned |
-| `HolderKeySeal<D>` dealer / verifier modes, `token_for` | Planned |
-| `impl Seal<D> for HolderKeySeal<D>` | Planned |
-| `AeadSealError` (`#[non_exhaustive]`, single `Unseal` variant — no oracle) | Planned |
-| `Custody` — `Vec<(SlotId, SealedBytes)>`, plain value | Planned |
-| `HolderKeySeal::deal` — shuffle-then-seal helper producing `(SlotPile, Custody)` | Planned |
-| Golden vector with a constant-byte test RNG | Planned |
-| `examples/holder_seal.rs` | Planned |
-| `tests/seal_aead.rs` | Planned |
-| `RecipientSeal` design section (`seal-pk`, future) | Planned (design only) |
-| Docs / README / CHANGELOG / `.okf/` | Planned |
+| `seal-aead` feature + four deps + deny/CI ban rows | Complete |
+| `DealKey` / `CardKey` (`Zeroizing`, redacted `Debug`) | Complete |
+| `SealedBytes` (42 bytes, `Copy`, serde-gated) | Complete |
+| `HolderKeySeal<D>` dealer / verifier modes, `token_for` | Complete |
+| `impl Seal<D> for HolderKeySeal<D>` | Complete |
+| `AeadSealError` (`#[non_exhaustive]`, single `Unseal` variant — no oracle) | Complete |
+| `Custody` — `Vec<(SlotId, SealedBytes)>`, plain value | Complete |
+| `HolderKeySeal::deal` — shuffle-then-seal helper producing `(SlotPile, Custody)` | Complete |
+| Golden vector with a constant-byte test RNG | Complete |
+| `examples/holder_seal.rs` | Complete |
+| `tests/seal_aead.rs` | Complete |
+| `RecipientSeal` design section (`seal-pk`, future) | Documented in `src/seal/aead/mod.rs` — not built, by design |
+| Docs / README / CHANGELOG / `.okf/` | Complete |
 
 ---
 
@@ -288,9 +288,9 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] Feature + four optional deps; ban rows in `deny.toml` and `CI.yaml:210`
-- [ ] `cargo build --no-default-features --features seal-aead --target thumbv7em-none-eabihf` green (proves no_std **and** no alloc on the hot path)
-- [ ] `cargo tree --no-default-features --edges normal | grep -Ec 'chacha20poly1305|hkdf|sha2|zeroize'` is `0`
+- [x] Feature + four optional deps; ban rows in `deny.toml` and `CI.yaml:210`
+- [x] `cargo build --no-default-features --features seal-aead --target thumbv7em-none-eabihf` green (proves no_std **and** no alloc on the hot path)
+- [x] `cargo tree --no-default-features --edges normal | grep -Ec 'chacha20poly1305|hkdf|sha2|zeroize'` is `0`
 
 ---
 
@@ -300,8 +300,8 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] `DealKey`, `CardKey`, HKDF key schedule
-- [ ] Tests: `deal_key__debug_redacted`, `card_key__debug_redacted`, `token_for__deterministic`, `token_for__differs_per_slot`, `token_for__differs_per_deck` (same master, `French` vs `Skat`), `verifier__cannot_mint_tokens`
+- [x] `DealKey`, `CardKey`, HKDF key schedule
+- [x] Tests: `deal_key__debug_redacted`, `card_key__debug_redacted`, `token_for__deterministic`, `token_for__differs_per_slot`, `token_for__differs_per_deck` (same master, `French` vs `Skat`), `verifier__cannot_mint_tokens`
 
 ---
 
@@ -311,9 +311,9 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] `SealedBytes` + `to_bytes`/`from_bytes`/`Debug`
-- [ ] `Custody` + `insert`/`get`/`iter`
-- [ ] Tests: `sealed_bytes__to_from_bytes_roundtrip`, `sealed_bytes__len_is_42`, `sealed_bytes__serde_roundtrip`, `custody__rejects_duplicate_slot`, `custody__serde_roundtrip`
+- [x] `SealedBytes` + `to_bytes`/`from_bytes`/`Debug`
+- [x] `Custody` + `insert`/`get`/`iter`
+- [x] Tests: `sealed_bytes__to_from_bytes_roundtrip`, `sealed_bytes__len_is_42`, `sealed_bytes__serde_roundtrip`, `custody__rejects_duplicate_slot`, `custody__serde_roundtrip`
 
 ---
 
@@ -323,8 +323,8 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] `dealer`/`verifier`/`seal`/`unseal`
-- [ ] Tests: `hks__roundtrip_law` (the EPIC-04 `seal_roundtrip` helper over all 14 decks via a macro), `hks__wrong_token_errors`, `hks__token_for_other_slot_errors`, `hks__wrong_context_errors`, `hks__wrong_deck_errors` (bytes from `HolderKeySeal<French>` through `HolderKeySeal<Skat>`), `hks__tampered_ciphertext_errors` (prop: any single flipped bit of 42 → `Err(Unseal)`), `hks__nonce_is_fresh` (two seals of the same card/slot differ in `nonce` and `tag`), `hks__verifier_can_unseal`, `hks__verifier_cannot_seal`, `hks__blank_card_errors` (`CardNotInDeck`), `hks__golden_vector` (master `[0x01; 32]`, context `"test"`, Standard52, slot 7, A♠, a test-only `RngCore` yielding `[0x02; 24]` → pinned 42 bytes)
+- [x] `dealer`/`verifier`/`seal`/`unseal`
+- [x] Tests: `hks__roundtrip_law` (the EPIC-04 `seal_roundtrip` helper over all 14 decks via a macro), `hks__wrong_token_errors`, `hks__token_for_other_slot_errors`, `hks__wrong_context_errors`, `hks__wrong_deck_errors` (bytes from `HolderKeySeal<French>` through `HolderKeySeal<Skat>`), `hks__tampered_ciphertext_errors` (prop: any single flipped bit of 42 → `Err(Unseal)`), `hks__nonce_is_fresh` (two seals of the same card/slot differ in `nonce` and `tag`), `hks__verifier_can_unseal`, `hks__verifier_cannot_seal`, `hks__blank_card_errors` (`CardNotInDeck`), `hks__golden_vector` (master `[0x01; 32]`, context `"test"`, Standard52, slot 7, A♠, a test-only `RngCore` yielding `[0x02; 24]` → pinned 42 bytes)
 
 ---
 
@@ -334,8 +334,8 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] `HolderKeySeal::deal`
-- [ ] Tests: `hks__deal_then_reveal_all_is_permutation_of_deck` (`Pile::same`), `hks__deal_slot_is_not_ordinal` (over many seeds, slot *i* rarely names ordinal *i*; and the explicit unshuffled construction `SlotPile::new(52)` + `Codebook` order **does** leak — pinned as `hks__unshuffled_seal_leaks_slot_eq_ordinal`), `hks__wire_has_no_plaintext` (`serde_json` of `Custody` + `SlotPile` contains no `"index"`, no rank/suit glyphs, no ordinal-looking small integers beyond `slot`), `hks__holder_flow` (draw two slots, publish one token, verifier reveals exactly that card, the other slot stays unrevealed)
+- [x] `HolderKeySeal::deal`
+- [x] Tests: `hks__deal_then_reveal_all_is_permutation_of_deck` (`Pile::same`), `hks__deal_slot_is_not_ordinal` (over many seeds, slot *i* rarely names ordinal *i*; and the explicit unshuffled construction `SlotPile::new(52)` + `Codebook` order **does** leak — pinned as `hks__unshuffled_seal_leaks_slot_eq_ordinal`), `hks__wire_has_no_plaintext` (`serde_json` of `Custody` + `SlotPile` contains no `"index"`, no rank/suit glyphs, no ordinal-looking small integers beyond `slot`), `hks__holder_flow` (draw two slots, publish one token, verifier reveals exactly that card, the other slot stays unrevealed)
 
 ---
 
@@ -345,10 +345,10 @@ tests/seal_aead.rs                generic law across all decks, negatives, golde
 
 ### Tasks
 
-- [ ] `examples/holder_seal.rs` with `[[example]] required-features = ["seal-aead", "std"]`
-- [ ] `src/seal/aead/mod.rs` doc: key schedule, `AD` layout, wire format, the CSPRNG requirement, the holder flow, the `RecipientSeal` design
-- [ ] README row; CHANGELOG `Added`; `.okf/architecture/feature-flags.md` row live; `.okf/log.md`
-- [ ] Flip Status rows
+- [x] `examples/holder_seal.rs` with `[[example]] required-features = ["seal-aead", "std"]`
+- [x] `src/seal/aead/mod.rs` doc: key schedule, `AD` layout, wire format, the CSPRNG requirement, the holder flow, the `RecipientSeal` design
+- [x] README row; CHANGELOG `Added`; `.okf/architecture/feature-flags.md` row live; `.okf/log.md`
+- [x] Flip Status rows
 
 ---
 
@@ -444,3 +444,53 @@ Exit criteria:
 7. **Version lockstep.** `hkdf`, `sha2`, `chacha20poly1305` share `digest`/`crypto-common`; a partial bump splits the tree and `cargo deny` warns on duplicates. Bump together.
 8. **Construction allocates; the hot path does not.** `HolderKeySeal::dealer` builds a `Codebook` and a `String`; `deal` builds a `SlotPile` and a `Custody`. Per deal, not per card. Keep `seal`/`unseal` on fixed buffers.
 9. **`Custody` is not the shoe.** It is unordered in meaning even though it is a `Vec`. Order lives in `SlotPile`; if you catch yourself drawing from `Custody`, stop (EPIC-04 gotcha 4).
+
+---
+
+## Implementation corrigendum (2026-08-25)
+
+Where the shipped code differs from the design above. The design text is left
+as written; this list is the truth.
+
+1. **RustCrypto 0.11 line, not 0.10/0.12.** `chacha20poly1305 0.11`,
+   `hkdf 0.13`, `sha2 0.11`, `zeroize 1.9` — all `rust-version = 1.85`, so
+   the doc's own "if 0.11 has shipped, move together" rule applied and the
+   `digest`/`crypto-common` tree is single-version. The feature also enables
+   `chacha20poly1305/zeroize` (cipher state zeroized on drop); never
+   `/rand_core` or `/getrandom`.
+2. **`AeadInOut::encrypt_inout_detached` / `decrypt_inout_detached`** (the
+   0.11 names) over a 2-byte stack buffer; `AeadInPlace` is deprecated there.
+3. **The AD is built per call, with one small allocation.** The context is
+   caller-supplied and unbounded, so a fixed stack buffer would have needed a
+   cap — a hidden footgun. The plaintext, nonce, tag, and key stay on the
+   stack; "no `alloc` on the hot path" is therefore *almost* true and this
+   line says exactly where it is not. The thumb build proves `no_std`, not
+   no-alloc (the crate is alloc-based throughout).
+4. **`&mut dyn Rng`, not `RngCore`** (rand 0.10; same as 04/04a). `deal`
+   takes `&mut dyn Rng` too, because it forwards to `seal`.
+5. **One more error variant: `PileTooLong(usize)`** for `deal` above
+   `u16::MAX` cards. `DuplicateSlot` lives on `CardError` (the kernel's,
+   ungated) because `Custody::insert` is a plain-value operation; it is not
+   duplicated on `AeadSealError`.
+6. **`CardNotInDeck` names the card through `BasicCard`'s `Display`**
+   (`card.base()`), because `Card<D>: Display` needs `Default + Copy + Ord`
+   bounds the `Seal` impl does not carry.
+7. **Extra surface, all small.** `HolderKeySeal::context()`, `Custody::
+   from_pairs` (also the serde `try_from` path, so a duplicated slot is
+   rejected on the wire), `SealedBytes::nonce()/ct()/tag()` accessors, a
+   `Debug` for the scheme that prints mode/deck/context length and never the
+   master. `TAG_KEY`/`TAG_AD` are `pub`.
+8. **Golden vectors come from Python** (pycryptodome XChaCha20-Poly1305 plus
+   a hand-written HKDF-SHA256), reproduced at the top of
+   `tests/seal_aead.rs`. Rust agrees on the slot key and on the full 42-byte
+   sealed card. The round-trip law runs over all 13 default decks (14 with
+   `yaml`); the tamper test flips every one of the 336 bits.
+9. **Tests cannot hide behind `full`.** `make test-crypto` and the CI line
+   are now `--features full,crypto`; `cargo ex` enables `crypto`.
+
+Gold-standard mutation check, all four red as required: removing `slot` from
+the AD → `hks__token_for_other_slot_errors` (the right token at the wrong slot
+opened); removing `deck_name` from the HKDF salt →
+`token_for__differs_per_deck`; a zero nonce → `hks__nonce_is_fresh`; removing
+the shuffle from `deal` → `hks__deal_then_reveal_all_is_permutation_of_deck`
+and `hks__deal_slot_is_not_ordinal`.

@@ -12,11 +12,11 @@ Examples are made flag-free by an **alias in `.cargo/config.toml`**:
 
 ```toml
 [alias]
-ex = "run --features full,funky,commit-reveal --example"
+ex = "run --features full,funky,crypto --example"
 ```
 
-So `cargo ex demo` replaces `cargo run --features full,funky,commit-reveal --example demo`.
-(`commit-reveal` joined the list on 2026-08-25 for `examples/provably_fair.rs`;
+So `cargo ex demo` replaces `cargo run --features full,funky,crypto --example demo`.
+(`crypto` joined the list on 2026-08-25 for `examples/provably_fair.rs` and `examples/holder_seal.rs`;
 add each new opt-in feature an example needs here, never to `Cargo.toml`.)
 
 `Cargo.toml` must **not** carry a self dev-dependency

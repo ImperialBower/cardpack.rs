@@ -41,6 +41,13 @@ seal-test-double = []
 # exactly one dependency, `sha2` (no_std). Off by default and NOT in `full`.
 # See docs/EPIC-04a_Commit_Reveal_Shuffle.md.
 commit-reveal = ["dep:sha2"]
+# Holder-key AEAD seal: the first real `Seal<D>` backend (XChaCha20-Poly1305
+# under per-slot HKDF-SHA256 keys). no_std, no alloc on the hot path. Off by
+# default and NOT in `full`. See docs/EPIC-04b_Holder_Key_Seal.md.
+seal-aead = ["dep:chacha20poly1305", "chacha20poly1305/zeroize", "dep:hkdf", "dep:sha2", "dep:zeroize"]
+# Umbrella over both crypto backends. Deliberately NOT in `full` — see
+# .okf/decisions/crypto-features-outside-full.md.
+crypto = ["commit-reveal", "seal-aead"]
 
 [dependencies]
 colored = { version = "3.1", optional = true }
@@ -58,6 +65,13 @@ serde_norway = { version = "0.9.42", optional = true }
 # SHA-256 for the `commit-reveal` feature only. `default-features = false` keeps
 # it no_std; never let another feature enable `sha2/std` (EPIC-04a gotcha 5).
 sha2 = { version = "0.11", default-features = false, optional = true }
+# `seal-aead` only. All `default-features = false`; never enable
+# `chacha20poly1305/rand_core` or `/getrandom` — nonces come from the caller's
+# `rand::Rng` (EPIC-04b scope 9). Bump hkdf/sha2/chacha20poly1305 together:
+# they share `digest`/`crypto-common` (EPIC-04b gotcha 7).
+chacha20poly1305 = { version = "0.11", default-features = false, optional = true }
+hkdf = { version = "0.13", default-features = false, optional = true }
+zeroize = { version = "1.9", default-features = false, optional = true }
 thiserror = { version = "2.0.18", default-features = false }
 
 # getrandom 0.3 and 0.4 both force wasm32 consumers to pick a backend; without
@@ -155,6 +169,10 @@ required-features = ["funky"]
 [[example]]
 name = "provably_fair"
 required-features = ["commit-reveal", "std"]
+
+[[example]]
+name = "holder_seal"
+required-features = ["seal-aead", "std"]
 
 [[bench]]
 name = "draw"

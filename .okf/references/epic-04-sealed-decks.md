@@ -31,7 +31,7 @@ Children:
   independent Python reference, blind commitments to a pile order,
   `Pile::shuffled_by_round`.
 * **EPIC-04b Holder-Key Seal** (`seal-aead` → `chacha20poly1305`/`hkdf`/
-  `sha2`/`zeroize`) — the first real `Seal<D>` backend and the one
+  `sha2`/`zeroize`; **landed 2026-08-25**) — the first real `Seal<D>` backend and the one
   dealer-custody shape: per-card HKDF keys, a 42-byte `SealedBytes`, a plain
   `Custody(Vec<(SlotId, SealedBytes)>)` ledger beside a `SlotPile`, dealer vs
   verifier mode, one token reveals one card through `Revealed::reveal_with`;

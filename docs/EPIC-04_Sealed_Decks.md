@@ -1,6 +1,6 @@
 # EPIC-04: Sealed Decks (SEAL)
 
-> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. The umbrella's kernel (Stories 0–7) landed on branch `crypt` on 2026-08-24; 04a landed 2026-08-25; 04b and the 04c review have not started.
+> **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Work story-by-story; "default features green" (`cargo test --all`) **and** the purity gates (`cargo build --no-default-features`, `make no-std`, `cargo deny check bans`) are preconditions for every story — if any goes red mid-story, stop and diagnose before moving on. The umbrella's kernel (Stories 0–7) landed on branch `crypt` on 2026-08-24; 04a and 04b landed 2026-08-25; only the 04c review remains.
 
 > **Family.** This is the umbrella. The children are:
 > [04a Commit–Reveal Shuffle](./EPIC-04a_Commit_Reveal_Shuffle.md) (provably-fair
@@ -58,7 +58,7 @@ This EPIC ports to the generic *deck* kernel — where "a deck" means any of 14 
 
 ## Status
 
-Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was designed; commits pending on the user's side, so rows cite the branch and date rather than a hash). 04a (commit–reveal) landed 2026-08-25; 04b and the 04c review have not started.
+Status as of branch `crypt`, **2026-08-24** (kernel landed the same day it was designed; commits pending on the user's side, so rows cite the branch and date rather than a hash). 04a (commit–reveal) and 04b (holder-key seal) landed 2026-08-25, with the `crypto` umbrella; only the 04c review remains.
 
 | Component | Status |
 |---|---|
