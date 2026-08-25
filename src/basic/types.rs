@@ -5,6 +5,8 @@ pub mod card;
 pub mod combos;
 #[cfg(feature = "yaml")]
 pub mod deck_yaml;
+pub mod ordinal;
+pub mod permutation;
 pub mod pile;
 pub mod pips;
 pub mod traits;

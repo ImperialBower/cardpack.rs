@@ -102,9 +102,20 @@ test-std-io:
 test-funky:
 	cargo test --features full,funky
 
+# `crypto` (= commit-reveal + seal-aead) is opt-in and deliberately excluded
+# from `full` (.okf/decisions/crypto-features-outside-full.md). Its unit tests,
+# doctests, tests/commit_reveal.rs and tests/seal_aead.rs exist only under the
+# features — cover them here. `seal-test-double` rides along because its
+# DOCTESTS are invisible otherwise: a doctest compiles as an outside consumer,
+# where `cfg(test)` is false, so the `seal_roundtrip` example only exists when
+# the feature is on. (Its unit tests do run bare — the module is
+# `cfg(any(test, feature = ...))`.) Same lesson as `funky`, 2026-08-06.
+test-crypto:
+	cargo test --features full,crypto,seal-test-double
+
 # Run all tests: unit tests via nextest, doc tests via cargo test, the
-# std-io filesystem seam, plus the funky feature on stable.
-test: test-unit test-doc test-std-io test-funky
+# std-io filesystem seam, the funky feature, and the crypto backends on stable.
+test: test-unit test-doc test-std-io test-funky test-crypto
 
 # Regenerate the golden YAML deck fixtures that tests/yaml_golden.rs compares
 # byte for byte. Run this whenever a deck's card data legitimately changes,

@@ -9,6 +9,24 @@
 
 ## EPICs / Features
 
+### EPIC-04 — Sealed Decks ([docs/EPIC-04_Sealed_Decks.md](docs/EPIC-04_Sealed_Decks.md)) — **complete** (kernel 2026-08-24; 04a, 04b, 04c review 2026-08-25; branch `crypt`)
+
+A deck cardpack cannot read because it never holds one. Kernel (dependency-free,
+always on, **nothing generic over a scheme**): `Ordinal`/`Codebook<D>` bijection,
+`CANON_V1` canonical bytes, `Permutation`, `Pile::permute`/`cut`, `SlotId`, a
+non-generic `SlotPile` of card names, `Revealed<D>` as the only slot → card map,
+the five-item `Seal<D>` adapter, `PlaintextSeal` behind `seal-test-double`.
+Own rule, own reasons (EPIC-04 decision 2); sibling repos are prior art and
+possible consumers only — cardpack links to nothing. Reshaped 2026-08-24 after
+the first draft carried generic containers. Children:
+
+- [x] 04a Commit–Reveal Shuffle (`commit-reveal` → `sha2 0.11`) — landed 2026-08-25 — [doc](docs/EPIC-04a_Commit_Reveal_Shuffle.md)
+- [x] 04b Holder-Key Seal (`seal-aead` → `chacha20poly1305 0.11`/`hkdf 0.13`/`sha2 0.11`/`zeroize 1.9`; plain `Custody` ledger; `RecipientSeal` design-only; `crypto` umbrella) — landed 2026-08-25 — [doc](docs/EPIC-04b_Holder_Key_Seal.md)
+- [x] 04c Mental Poker Bridge `_spec` (promises table reviewed against the code, 3 rows corrected; `seal_roundtrip` external-harness doc-test) — 2026-08-25 — [doc](docs/EPIC-04c_Mental_Poker_Bridge_spec.md)
+
+Sequencing: 04 → (04a ‖ 04b) → 04c review. Semver: 0.11.0 minor. Crypto
+features stay out of `full` ([decision](.okf/decisions/crypto-features-outside-full.md)).
+
 ### EPIC-01a — Joker wiring ([docs/EPIC-01a_Joker_Wiring_Backlog.md](docs/EPIC-01a_Joker_Wiring_Backlog.md)) — **complete** (closed out 2026-07-16, `e9ceeca`)
 
 All eight phases landed, plus the round loop and the Stone card as follow-ons;

@@ -29,6 +29,8 @@ pub use crate::basic::types::basic_pile::BasicPile;
 pub use crate::basic::types::card::Card;
 #[cfg(feature = "yaml")]
 pub use crate::basic::types::deck_yaml::DeckYaml;
+pub use crate::basic::types::ordinal::{CANON_V1, Codebook, Ordinal, vocabulary};
+pub use crate::basic::types::permutation::Permutation;
 pub use crate::basic::types::pile::Pile;
 pub use crate::basic::types::pips::{Pip, PipType};
 #[cfg(feature = "yaml")]
@@ -37,6 +39,14 @@ pub use crate::basic::types::traits::{CKCRevised, Decked, DeckedBase, Ranged};
 pub use crate::common::errors::CardError;
 #[cfg(feature = "i18n")]
 pub use crate::localization::{FluentName, Named};
+#[cfg(feature = "seal-aead")]
+pub use crate::seal::aead::{AeadSealError, CardKey, Custody, DealKey, HolderKeySeal, SealedBytes};
+#[cfg(feature = "commit-reveal")]
+pub use crate::seal::commit::{
+    CombinedSeed, Commitment, Contribution, ParticipantId, ShuffleRound, commit_permutation,
+    commit_pile, verify_permutation, verify_pile,
+};
+pub use crate::seal::{Revealed, Seal, SealError, SlotAudit, SlotId, SlotPile};
 
 // Macros
 pub use crate::basic;

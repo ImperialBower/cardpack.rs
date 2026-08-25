@@ -5,7 +5,8 @@ pub use crate::basic::types::card::Card;
 use crate::basic::types::combos::Combos;
 #[cfg(feature = "yaml")]
 use crate::basic::types::deck_yaml::DeckYaml;
-pub use crate::basic::types::pile::Pile;
+pub use crate::basic::types::ordinal::{Codebook, Ordinal};
+use crate::basic::types::pile::Pile;
 use crate::basic::types::pips::Pip;
 #[cfg(feature = "yaml")]
 use crate::common::errors::CardError;
@@ -77,6 +78,20 @@ where
     #[must_use]
     fn deck() -> Pile<DeckType> {
         Pile::<DeckType>::from(Self::deckvec())
+    }
+
+    /// The deck's [`Codebook`] — its canonical card ↔ [`Ordinal`] bijection.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let cb = Standard52::codebook();
+    /// assert_eq!(cb.len(), 52);
+    /// assert_eq!(cb.card(Ordinal::new(0)).unwrap().to_string(), "A♠");
+    /// ```
+    #[must_use]
+    fn codebook() -> Codebook<DeckType> {
+        Codebook::new()
     }
 
     /// Creates x numbers of a specific `Deck` in a single [`Pile`].

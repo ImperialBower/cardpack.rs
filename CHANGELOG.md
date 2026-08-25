@@ -7,8 +7,174 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Released as 0.10.0 — `Cargo.toml` is already bumped; this section is renamed
-to `## [0.10.0] — <date>` at tag time.
+## [0.11.0] — 2026-08-25
+
+### Fixed
+
+- **`ShuffleRound::reveal` now rejects a repeat** with
+  `CardError::AlreadyRevealed`, matching `commit` and `Revealed::reveal`.
+  The seed was never at risk — a second, *different* contribution opening one
+  commitment is a SHA-256 collision, so a repeat was either rejected as a
+  mismatch or a no-op — but accepting one at all disagreed with the rest of
+  the API ([DEFECT-2026-08-25-crypt](docs/DEFECT-2026-08-25-crypt.md) #1).
+- **Length fields are validated, not truncated.** Three sites wrote a `usize`
+  into a `u16` with `unwrap_or(u16::MAX)`, which would have left the prefix
+  disagreeing with the bytes after it:
+  - `HolderKeySeal`'s associated data → `AeadSealError::DeckNameTooLong`
+    (report #2). Unreachable through any shipped deck — names are 4–19 bytes
+    — and only reachable through a consumer's own `DeckedBase`.
+  - `CombinedSeed::combine` and `ShuffleRound::new` →
+    `CardError::TooManyParticipants` (a third site the report did not flag).
+  `Codebook::encode_pile` already rejected the same input; all four agree now.
+
+### Changed
+
+- **`CombinedSeed::combine` returns `Result<Self, CardError>`.** The
+  participant count is part of the frozen `v1` preimage, so a truncated count
+  would yield a seed no verifier could reproduce. No wire format changed.
+
+- `make test-crypto` and the CI test job now run
+  `--features full,crypto,seal-test-double`. Doctests behind
+  `seal-test-double` were never executed: a doctest compiles as an outside
+  consumer of the crate, where `cfg(test)` is false, so a
+  `cfg(any(test, feature = ...))` module's examples exist only under the
+  feature.
+- Fourteen doctests added across the sealed-deck family, at the points where
+  the API is easiest to misread — `Permutation::apply`/`inverse`/`then`,
+  `Codebook::ordinal`/`card`, `Revealed::reveal` vs `reveal_with`,
+  `SlotPile::draw`/`audit`, the `Seal` trait, `ShuffleRound::reveal`,
+  `CombinedSeed::to_u64`, `commit_pile`/`verify_pile`, and
+  `HolderKeySeal::deal`.
+
+### Added — `seal-aead` feature, the holder-key seal ([EPIC-04b](docs/EPIC-04b_Holder_Key_Seal.md))
+
+- **`seal-aead` feature** (`chacha20poly1305 0.11`, `hkdf 0.13`, `sha2 0.11`,
+  `zeroize 1.9`; all `no_std`; **not** in `full`; banned from the pure tree)
+  and the **`crypto`** umbrella over `commit-reveal` + `seal-aead`.
+- **`HolderKeySeal<D>`** — the first real `Seal<D>` backend. Dealer mode
+  (holds a `DealKey`; seals, mints tokens) or verifier mode (no secret; only
+  `unseal`). Per-slot keys by HKDF-SHA256; XChaCha20-Poly1305 with a fresh
+  random nonce; deck name, slot, and a caller context bound as AD.
+- **`DealKey`** / **`CardKey`** (zeroized, redacted `Debug`, never `Copy` or
+  `serde`), **`SealedBytes`** (42 public bytes, `Copy`), **`Custody`** (a plain
+  `Vec<(SlotId, SealedBytes)>` ledger beside a `SlotPile`), **`AeadSealError`**
+  (one blunt `Unseal` variant — no oracle).
+- **`HolderKeySeal::deal`** — shuffle, then seal into slots `0..n`, returning
+  `(SlotPile, Custody)`; slot ≠ ordinal by construction (the unshuffled hazard
+  is pinned by a test).
+- Golden vectors (HKDF slot key, 42-byte sealed card) from an independent
+  Python implementation, recorded in `tests/seal_aead.rs`.
+- `examples/holder_seal.rs`; `make test-crypto` and CI now run `full,crypto`;
+  `cargo ex` enables `crypto`.
+
+### Added — `commit-reveal` feature, provably-fair shuffles ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
+
+- **`commit-reveal` feature** (one dependency, `sha2 0.11`, `no_std`; **not**
+  in `full`; banned from the pure tree by `deny.toml` and CI).
+- **`Contribution`** (secret entropy, redacted `Debug`) and **`Commitment`**
+  (32-byte SHA-256, hex `Display`, `serde`-gated derives).
+- **`ParticipantId`**, **`ShuffleRound`** — commit-all-then-reveal state
+  machine; a reveal before every commitment is in, or one that does not open
+  its commitment, is rejected and leaves the round unchanged.
+- **`CombinedSeed`** — `combine` over the sorted transcript; `permutation(n)`
+  is a frozen SHA-256 counter-mode Fisher–Yates with exact rejection sampling
+  (the verifier's contract; never `StdRng`). Golden vectors produced by an
+  independent Python reference, recorded in `tests/commit_reveal.rs`.
+- **`commit_permutation` / `verify_permutation`**, **`commit_pile` /
+  `verify_pile`** — blind commitments to a concrete order, over
+  `Permutation::canonical_bytes` and `CANON_V1` bytes.
+- **`Pile::shuffled_by_round`**.
+- Eight gated `CardError` variants (`UnknownParticipant`, `AlreadyCommitted`,
+  `RevealBeforeAllCommitted`, `CommitmentMismatch`, `RoundIncomplete`,
+  `InvalidHex`, `DuplicateParticipant`, `NoParticipants`).
+- `examples/provably_fair.rs`; `make test-crypto`; `cargo ex` now enables
+  `commit-reveal`.
+
+### Added — the sealed-deck kernel ([EPIC-04](docs/EPIC-04_Sealed_Decks.md))
+
+- **`Ordinal` / `Codebook<D>` / `vocabulary`** — a total, stable card ↔ `0..V`
+  bijection per deck over the deduplicated vocabulary (Pinochle is 24, not 48),
+  plus `Decked::codebook()`. **From this release the order of every shipped
+  deck's `base_vec()` is a contract**; reordering is semver-major
+  (`codebook__standard52_golden`).
+- **`CANON_V1`** canonical pile bytes — `Codebook::encode_pile` /
+  `decode_pile`, strict and versioned.
+- **`Permutation`** — a shuffle as data: validated constructors, `apply`,
+  `inverse`, `then`, `rotation`, canonical bytes; `from_rng` is the same
+  Fisher–Yates as `Pile::shuffle_with_rng`. **`Pile::permute`** and
+  **`Pile::cut`**.
+- **`seal` module** — `SlotId`, the non-generic `SlotPile` (blind shuffle /
+  cut / draw / take / `audit`), `Revealed<D>` (the only slot → card map, with
+  `reveal` and a verified `reveal_with`), `SealError`, and the five-item
+  `Seal<D>` adapter trait. No kernel type holds ciphertext or is generic over
+  a scheme.
+- **`seal-test-double` feature** — `PlaintextSeal` (no security) and the
+  exported `seal_roundtrip` conformance helper. Not in `full`.
+- Nine ungated `CardError` variants (`InvalidOrdinal`, `CardNotInDeck`,
+  `InvalidPermutation`, `PermutationLength`, `InvalidCut`,
+  `CanonicalMalformed`, `DuplicateSlot`, `SlotNotFound`,
+  `SlotAlreadyRevealed`).
+- `tests/seal_properties.rs` — seeded property suite, mutation-checked.
+
+## [0.10.2] — 2026-08-23
+
+### Fixed
+
+- **wasm32 builds broke on `getrandom 0.4`.** `rand 0.10` depends directly on
+  `getrandom 0.4` for its wasm32 entropy source, but `Cargo.toml` pinned the
+  `wasm_js` feature only on the `getrandom 0.3` that still reaches the graph
+  transitively (through dev-deps' `rand_core 0.9`). CI's `wasm-build` and
+  `wasm-test` jobs failed with getrandom's "no backend selected" error. Fixed
+  with a second, renamed pin — `getrandom_v4 = { package = "getrandom",
+  version = "0.4", features = ["wasm_js"] }` — because a target-dependency
+  table cannot repeat a bare `getrandom` key. Cargo unifies the features onto
+  the one resolved 0.4.x package regardless of the manifest key.
+- Scoped the `rand::RngExt` import in `src/basic/types/pile.rs` behind
+  `#[cfg(feature = "std")]`; it serves only the `std`-gated `draw_random` path.
+
+### Internal
+
+- **`make test-funky`** (`cargo test --features full,funky`), wired into
+  `test` and `ayce`. `funky` is `std`-only and excluded from `full`, so it was
+  previously compiled only by the `msrv` target's pinned 1.85.0 toolchain — on
+  a stable-only machine the feature was skipped entirely. This is how the
+  `rand 0.10` break in 0.10.1 reached `main`.
+- Removed the `if: github.event_name != 'pull_request'` guard from the CI
+  `clippy` job, so the one job that runs `--all-features --all-targets`
+  actually runs on pull requests.
+- Dependency bumps: `clap` 4.6.6, `fluent-templates` 0.15.1,
+  `thiserror` 2.0.20.
+- Two blooper reports added under `docs/bloopers/`.
+
+## [0.10.1] — 2026-08-06
+
+### Fixed
+
+- **The `rand` 0.9.4 → 0.10.2 bump broke the build.** `rand 0.10` moved
+  `random_range` out of the `Rng` trait into a new `RngExt` trait;
+  `src/basic/types/pile.rs` and `src/funky/types/board.rs` imported only
+  `Rng`, so their call sites stopped compiling. Both now import `RngExt`.
+
+### Changed
+
+- `rand` 0.9 → 0.10. The `R: Rng` bounds on the public shuffle and draw APIs
+  now refer to `rand 0.10`'s trait, so a consumer pinning `rand 0.9` must move
+  with it.
+- `fluent-templates` 0.13 → 0.15; `rstest` 0.25 → 0.26 (dev). `log`, `clap`,
+  `serde`, `serde_json`, and `thiserror` bumped in `Cargo.lock`.
+
+### Added
+
+- **`docs/generic-decks.md`** — an explainer for the phantom-type deck
+  pattern: `PhantomData` branding, the type-driven/data-driven split, the
+  `DeckedBase`/`Decked` trait stack, blanket impls, the `BasicPile` escape
+  hatch, the `DeckKind` façade, a nine-step recipe for reusing the pattern in
+  another card library, and a catalog of its sharp edges.
+- `.okf/` external documents mirrored as reference concepts, and every bundle
+  cross-link made bundle-relative (36 links across 13 concepts; the strict
+  validator goes from 36 warnings to zero).
+
+## [0.10.0] — 2026-07-25
 
 ### Breaking
 
@@ -421,7 +587,11 @@ Single-focus release: serde support for piles.
 `serde` was a hard dependency in this release. In v0.6.12 it was moved
 behind an opt-out `serde` feature flag (still on by default).
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.2...v0.11.0
+[0.10.2]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.1...v0.10.2
+[0.10.1]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.8.1...v0.9.0
 [0.8.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.1...v0.8.0
 [0.7.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...v0.7.0

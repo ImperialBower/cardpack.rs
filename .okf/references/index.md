@@ -26,6 +26,7 @@ elsewhere in the bundle stay bundle-relative. Each carries a description and a
 * [EPIC-01 — Funky (Balatro-style cards)](epic-01-funky.md) - The Balatro-style joker/effect engine: scope, the five child EPICs, and the deferrals recorded at close-out.
 * [EPIC-02 — Ganjifa decks (Mughal + Dashavatara)](epic-02-ganjifa.md) - Adding the two Ganjifa decks with per-suit inverted pip ranking, full localization, and registry integration.
 * [EPIC-03 — YAML deck serialization](epic-03-yaml-serialization.md) - The DeckYaml envelope, the YamlDecked blanket trait, and the three-layer test suite that makes every deck round-trip through YAML.
+* [EPIC-04 — Sealed Decks (family)](epic-04-sealed-decks.md) - A deck cardpack cannot read: the Ordinal/Codebook bijection, Permutation-as-data, the Seal<D> boundary, and children 04a (commit-reveal shuffle), 04b (holder-key AEAD seal), 04c (mental-poker bridge spec). Designed 2026-08-24; nothing landed.
 
 ## Audits and design docs
 
@@ -43,4 +44,5 @@ elsewhere in the bundle stay bundle-relative. Each carries a description and a
 * [Using cardpack on WebAssembly](wasm-guide.md) - Consumer-side setup for wasm32-unknown-unknown: the getrandom wasm_js backend, the verified feature matrix, and runtime gotchas.
 * [Generic Decks — the phantom-type deck pattern](generic-decks-doc.md) - The full explainer of the generics architecture: PhantomData branding, the DeckedBase/Decked trait stack, blanket impls, and a recipe for porting the pattern.
 * [BACKLOG](backlog.md) - Index of outstanding work aggregated from EPIC docs, GitHub issues, and code comments by the /backlog skill.
+* [DEFECT report — branch `crypt` (2026-08-25)](defect-2026-08-25-crypt.md) - Two review findings on the sealed-deck branch: both real code, both overstated impact, both fixed as consistency defects plus a third site the report missed.
 * [Technical debt register](technical-debt.md) - Tracked debt sourced from TODO / TODO RF / TODO: HACK comments and EPIC docs, maintained by the /backlog skill.

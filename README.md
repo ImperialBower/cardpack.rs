@@ -105,6 +105,10 @@ what they need:
 | `serde`           | no      | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
 | `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
+| `seal-test-double`| no      | —                  | `PlaintextSeal` (**no security**) and the `seal_roundtrip` conformance helper for testing a `Seal` backend; **not** in `full` |
+| `commit-reveal`   | no      | `sha2`             | Provably-fair shuffles: `ShuffleRound`, `Commitment`/`Contribution`, `CombinedSeed`, `commit_pile`, `Pile::shuffled_by_round` — see [Provably-fair shuffles](#provably-fair-shuffles); **not** in `full` |
+| `seal-aead`       | no      | `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` | Holder-key seal: `HolderKeySeal`, `DealKey`/`CardKey`, `SealedBytes`, `Custody` — see [Sealed cards](#sealed-cards-holder-key-seal); **not** in `full` |
+| `crypto`          | no      | = both above       | Umbrella over `commit-reveal` + `seal-aead`; **not** in `full` |
 
 To get the previous "batteries-included" behavior, opt into `full`:
 
@@ -123,6 +127,74 @@ cardpack = "0.8"
 `std-io` implies `yaml` and adds the filesystem reader on top of it; it is the
 only feature that lets the crate touch `std::fs`, and it is intentionally left
 out of `full` so the pure kernel and the convenience stack both stay I/O-free.
+
+The **sealed-deck kernel** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) is always
+on and dependency-free: `Ordinal`/`Codebook` (a canonical card ↔ number
+bijection per deck), `Permutation` (a shuffle as data), `SlotPile` (a shoe of
+card *names* that shuffles, cuts and deals with no knowledge), `Revealed` (the
+only slot → card map), and the five-item `Seal` adapter. No kernel type holds
+ciphertext or is generic over a scheme. Real crypto backends are planned as
+opt-in features outside `full`.
+
+### Provably-fair shuffles
+
+The `commit-reveal` feature ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
+adds one dependency, `sha2`, and lets every participant in a game prove the
+shuffle was fair. Each participant commits to secret entropy, then everyone
+reveals; the combined seed fixes the shuffle through a frozen SHA-256
+derivation that any verifier — in any language — can reproduce from the
+public transcript alone:
+
+```rust,ignore
+// needs `--features commit-reveal`; the same example is a compiled doctest in `src/seal/commit/mod.rs`
+use cardpack::prelude::*;
+
+let (dealer, player) = (ParticipantId(1), ParticipantId(2));
+let a = Contribution::from_bytes([0x11; 32]); // Contribution::random(&mut rng) in real code
+let b = Contribution::from_bytes([0x22; 32]);
+
+let mut round = ShuffleRound::new([dealer, player])?;
+round.commit(dealer, a.commit())?;
+round.commit(player, b.commit())?;         // nobody may reveal before this point
+round.reveal(dealer, a)?;
+round.reveal(player, b)?;
+
+let shuffled = Standard52::deck().shuffled_by_round(&round)?;
+# Ok::<(), CardError>(())
+```
+
+`commit_pile` / `verify_pile` let a dealer publish a blind commitment to a
+concrete deck order before dealing and open it after. Run
+`cargo ex provably_fair` for a two-party round end to end. This hides the
+*shuffle*, not the *cards*; hiding cards is the next feature.
+
+### Sealed cards (holder-key seal)
+
+The `seal-aead` feature ([EPIC-04b](docs/EPIC-04b_Holder_Key_Seal.md)) is the
+first real `Seal` backend: a trusted dealer seals every card under its own
+HKDF-derived key (XChaCha20-Poly1305, 42 public bytes per card), and a holder
+turns one card up by publishing one 32-byte token. A spectator with no secret
+verifies it through `Revealed::reveal_with`; the token opens nothing else.
+
+```rust,ignore
+// needs `--features seal-aead`; the same flow is a compiled doctest in `src/seal/aead/mod.rs`
+use cardpack::prelude::*;
+
+let dealer = HolderKeySeal::<Standard52>::dealer(DealKey::random(&mut rng), b"table-7/hand-12");
+let (mut shoe, custody) = dealer.deal(&Standard52::deck(), &mut rng)?;   // SlotPile + Custody
+let hole = shoe.draw(2).unwrap();                                        // slot names, no values
+let tokens = dealer.tokens_for(hole.slots().iter().copied())?;
+
+// Holder publishes (slot, token); anyone verifies:
+let spectator = HolderKeySeal::<Standard52>::verifier(b"table-7/hand-12");
+let mut revealed = Revealed::<Standard52>::new();
+let card = revealed.reveal_with(slot, custody.get(slot).unwrap(), &spectator, &token)?;
+```
+
+Three plain values — `SlotPile` (order), `Custody` (bytes), `Revealed`
+(values) — and a scheme that lives inside none of them. The RNG you pass
+**must** be a CSPRNG. Run `cargo ex holder_seal` for the flow end to end. The
+`crypto` feature turns on both backends; none of them is in `full`.
 
 ## Decks as YAML
 

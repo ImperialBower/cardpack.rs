@@ -3,7 +3,7 @@ type: Architecture
 title: Domain-kernel posture
 description: cardpack is a value-type domain kernel — pure by default, no I/O in the core, format crates kept out of the public API.
 tags: [architecture, purity, domain-kernel, audit]
-timestamp: 2026-07-22T13:10:00Z
+timestamp: 2026-08-24T12:00:00Z
 ---
 
 # The pattern
@@ -31,6 +31,12 @@ component boundary was assessed and explicitly *not* recommended.
    fs-loading.
 4. **Delivery-agnostic.** CI gates no_std/alloc, wasm32, and bare-metal
    (`thumbv7em-none-eabihf`) builds ([build and test](/workflows/build-and-test.md)).
+5. **Crypto backends are adapters too, and the kernel holds no secret**
+   (EPIC-04, kernel landed 2026-08-24; backends 04a/04b still planned). The kernel knows a card's slot, its order, and its value
+   once revealed — never ciphertext, never a scheme type parameter; every real
+   cipher or hash sits behind an opt-in feature
+   outside `full` and is banned from the pure tree
+   ([crypto decision](/decisions/crypto-features-outside-full.md)).
 
 # Where it's documented
 

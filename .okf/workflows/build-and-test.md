@@ -3,14 +3,15 @@ type: Playbook
 title: Build, test, and quality gates
 description: make (ayce) is the everything gate — fmt, build, four test layers, clippy-pedantic, MSRV, no_std, docs; plus mutants, miri, coverage, and deny.
 tags: [workflow, make, ci, testing]
-timestamp: 2026-08-06T00:00:00Z
+timestamp: 2026-08-25T12:00:00Z
 ---
 
 # Day-to-day
 
 ```shell
 make            # default target `ayce` ("all you can eat"):
-                # fmt → build → test-unit/doc/std-io/funky → clippy → msrv → no-std → docs
+                # fmt → build → test-unit/doc/std-io/funky/crypto → clippy
+                # → msrv → no-std → docs
 make help       # list all targets
 ```
 
@@ -21,7 +22,17 @@ feature is `std`-only and off by default, so it's outside `full` too;
 previously only `msrv`'s pinned 1.85.0 toolchain compiled it, which meant a
 missing MSRV toolchain silently skipped the entire feature on a stable-only
 machine — this is how the rand 0.10 `RngExt` split shipped broken to `main`
-via a dependabot merge. `test-funky` runs it on stable so it can't hide).
+via a dependabot merge. `test-funky` runs it on stable so it can't hide), and `test-crypto`
+(`--features full,crypto,seal-test-double` — the sealed-deck backends and the
+seal test double are all outside `full`, [decision](/decisions/crypto-features-outside-full.md)).
+
+**Why `seal-test-double` rides along with `test-crypto`.** Its module is
+`cfg(any(test, feature = "seal-test-double"))`, so its *unit* tests compile
+under a bare `cargo test`. Its **doctests do not**: a doctest is built as an
+outside consumer of the crate, where `cfg(test)` is false, so the example on
+`seal_roundtrip` only exists when the feature is on. Without the feature in
+`test-crypto` that doctest was dark — the `funky` lesson again, in a form the
+`funky` fix would not have caught.
 
 # Portability gates
 

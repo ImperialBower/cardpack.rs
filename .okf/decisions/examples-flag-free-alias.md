@@ -3,7 +3,7 @@ type: Decision
 title: Examples are flag-free via a cargo alias, never a self dev-dependency
 description: "`cargo ex <name>` aliases `run --features full,funky --example`, keeping example ergonomics in developer tooling; a self dev-dependency was tried and reverted because it silently breaks `cargo deny check bans` and every host purity gate."
 tags: [decision, purity, features, examples, ci, cargo-deny]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-08-25T12:00:00Z
 ---
 
 # Decision
@@ -12,10 +12,12 @@ Examples are made flag-free by an **alias in `.cargo/config.toml`**:
 
 ```toml
 [alias]
-ex = "run --features full,funky --example"
+ex = "run --features full,funky,crypto --example"
 ```
 
-So `cargo ex demo` replaces `cargo run --features full,funky --example demo`.
+So `cargo ex demo` replaces `cargo run --features full,funky,crypto --example demo`.
+(`crypto` joined the list on 2026-08-25 for `examples/provably_fair.rs` and `examples/holder_seal.rs`;
+add each new opt-in feature an example needs here, never to `Cargo.toml`.)
 
 `Cargo.toml` must **not** carry a self dev-dependency
 (`cardpack = { path = ".", features = ["full", "funky"] }`) for this purpose.

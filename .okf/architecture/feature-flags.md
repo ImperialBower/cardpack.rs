@@ -3,7 +3,7 @@ type: Architecture
 title: Cargo feature flags
 description: The pure-by-default feature matrix — default is an alloc-only no_std kernel; std, i18n, color, yaml, serde, std-io, and funky are opt-in.
 tags: [features, cargo, no_std, purity]
-timestamp: 2026-07-25T00:00:00Z
+timestamp: 2026-08-25T12:00:00Z
 ---
 
 # Principle
@@ -25,6 +25,10 @@ else is opt-in.
 | `serde` | yes | `serde` (implies `alloc`) | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io` | **no** | (implies `std`, `yaml`) | `BasicCard::cards_from_yaml_file` — the crate's one filesystem seam; deliberately excluded from `full` ([decision](/decisions/std-io-outside-full.md)) |
 | `funky` | **no** | (implies `std`, `serde`) | Balatro-style engine ([funky engine](/architecture/funky-engine.md)) |
+| `seal-test-double` | **no** | — | `PlaintextSeal` / `PlainToken` / `PlainSealError` (**no security**) and the exported `seal_roundtrip` conformance helper (EPIC-04, landed 2026-08-24) |
+| `commit-reveal` | **no** | `sha2 0.11` (no_std; banned from the pure tree) | `Commitment`, `Contribution`, `ParticipantId`, `ShuffleRound`, `CombinedSeed`, `commit_permutation`/`verify_permutation`, `commit_pile`/`verify_pile`, `Pile::shuffled_by_round`, eight gated `CardError` variants (EPIC-04a, landed 2026-08-25; [crypto decision](/decisions/crypto-features-outside-full.md)) |
+| `seal-aead` | **no** | `chacha20poly1305 0.11`, `hkdf 0.13`, `sha2 0.11`, `zeroize 1.9` (all no_std; banned from the pure tree) | `HolderKeySeal<D>` (dealer / verifier modes, `token_for`, `deal`), `DealKey`, `CardKey`, `SealedBytes` (42 bytes), `Custody` (a plain `Vec<(SlotId, SealedBytes)>` beside a `SlotPile`), `AeadSealError` (EPIC-04b, landed 2026-08-25) |
+| `crypto` | **no** | = `commit-reveal` + `seal-aead` | umbrella over both backends; not in `full` (landed 2026-08-25) |
 
 # Gotchas
 
@@ -53,6 +57,25 @@ else is opt-in.
 * The `CardError::Yaml*` variants only exist under `yaml`, which is one reason
   `CardError` is `#[non_exhaustive]` — exhaustive downstream matching could
   never have been feature-portable.
+* **The seal kernel is *not* feature-gated** (EPIC-04, landed 2026-08-24). `SlotId`,
+  the non-generic `SlotPile`, `Revealed<D>`, the `Seal<D>` adapter,
+  `Ordinal`/`Codebook`, `Permutation` are dependency-free and always on; only
+  the crypto *backends* are features, and none of them is in `full`. No kernel
+  type is generic over a scheme and none holds ciphertext — see
+  [the crypto decision](/decisions/crypto-features-outside-full.md).
+* **`commit-reveal` tests are invisible to `full`.** Its unit tests, doctests
+  and `tests/commit_reveal.rs` compile only under the feature, so `make test`
+  has a `test-crypto` target (`cargo test --features full,commit-reveal`) and
+  CI runs the same line — the `funky` lesson of 2026-08-06 applied in advance.
+  Keep `sha2` at `default-features = false`; a feature that enabled `sha2/std`
+  would silently make `commit-reveal` std-only (the thumb build is the guard).
+* Never enable `chacha20poly1305/rand_core` or `/getrandom` — nonces come from
+  the caller's `rand::Rng` (`seal-aead` enables only `chacha20poly1305/zeroize`).
+  Bump `hkdf`/`sha2`/`chacha20poly1305` **together**: they share
+  `digest`/`crypto-common`, and a partial bump splits the tree.
+* The `seal-aead` RNG must be a CSPRNG: it draws every nonce and the `deal`
+  shuffle. This is documented at the top of `src/seal/aead/mod.rs`; a
+  constant RNG is caught in tests (`hks__nonce_is_fresh`), not in production.
 * `rand`'s `std_rng` feature is enabled unconditionally, *not* gated on
   `std` — see [the rand decision](/decisions/rand-std-rng-unconditional.md)
   before "cleaning that up."
