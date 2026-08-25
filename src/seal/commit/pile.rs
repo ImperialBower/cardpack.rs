@@ -50,6 +50,31 @@ pub fn verify_permutation(c: &Commitment, p: &Permutation, blind: &Contribution)
 /// Whatever [`Codebook::encode_pile`] returns: [`CardError::CardNotInDeck`]
 /// for a card outside the vocabulary, [`CardError::CanonicalMalformed`] for
 /// an oversized pile.
+///
+/// ```
+/// use cardpack::prelude::*;
+///
+/// let cb = Standard52::codebook();
+/// let deal = Standard52::deck().shuffled_with_seed(9);
+/// let blind = Contribution::from_bytes([0x33; 32]); // Contribution::random in real code
+///
+/// // Before dealing, the dealer publishes this. It reveals nothing about
+/// // the order — that is what the blind is for.
+/// let promise = commit_pile(&cb, &deal, &blind)?;
+///
+/// // Afterwards they open it by publishing the order and the blind.
+/// assert!(verify_pile(&promise, &cb, &deal, &blind)?);
+///
+/// // One swapped pair is enough to fail.
+/// let mut cards = deal.cards().clone();
+/// cards.swap(0, 1);
+/// assert!(!verify_pile(&promise, &cb, &Pile::<Standard52>::from(cards), &blind)?);
+///
+/// // So is the wrong blind.
+/// let other = Contribution::from_bytes([0x34; 32]);
+/// assert!(!verify_pile(&promise, &cb, &deal, &other)?);
+/// # Ok::<(), CardError>(())
+/// ```
 pub fn commit_pile<D>(
     codebook: &Codebook<D>,
     pile: &Pile<D>,

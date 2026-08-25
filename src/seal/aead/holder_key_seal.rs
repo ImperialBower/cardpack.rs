@@ -108,6 +108,32 @@ impl<D: DeckedBase> HolderKeySeal<D> {
     /// [`AeadSealError::NoMasterKey`] in verifier mode;
     /// [`AeadSealError::PileTooLong`] above `u16::MAX` cards;
     /// [`AeadSealError::CardNotInDeck`] for a card outside the vocabulary.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    /// use rand::SeedableRng;
+    ///
+    /// let mut rng = rand::rngs::StdRng::seed_from_u64(1); // must be a CSPRNG
+    /// let dealer = HolderKeySeal::<Standard52>::dealer(DealKey::random(&mut rng), b"table-7");
+    ///
+    /// let (shoe, custody) = dealer.deal(&Standard52::deck(), &mut rng)?;
+    ///
+    /// // Two plain values, used for different things:
+    /// assert_eq!(shoe.len(), 52);     // ORDER — which slot comes next
+    /// assert_eq!(custody.len(), 52);  // BYTES — what each slot holds
+    ///
+    /// // One token opens one slot, and only through the backend.
+    /// let slot = shoe.slots()[0];
+    /// let card = dealer.unseal(custody.get(slot).unwrap(), slot, &dealer.token_for(slot)?)?;
+    /// assert!(Standard52::deck().cards().contains(&card));
+    ///
+    /// // A verifier holds no secret at all, and cannot mint tokens.
+    /// // (`unwrap_err`, not `assert_eq!` on the `Result`: `CardKey` has no
+    /// // `PartialEq` on purpose — `==` on key bytes is not constant-time.)
+    /// let spectator = HolderKeySeal::<Standard52>::verifier(b"table-7");
+    /// assert_eq!(spectator.token_for(slot).unwrap_err(), AeadSealError::NoMasterKey);
+    /// # Ok::<(), AeadSealError>(())
+    /// ```
     pub fn deal(
         &self,
         pile: &Pile<D>,

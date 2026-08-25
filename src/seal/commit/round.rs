@@ -79,6 +79,26 @@ impl CombinedSeed {
     /// output may change across `rand` major versions. Use
     /// [`permutation`](Self::permutation) when anyone must reproduce the
     /// shuffle.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let seed = CombinedSeed::combine(&[
+    ///     (ParticipantId(1), Contribution::from_bytes([0x11; 32])),
+    /// ]);
+    /// let deck = Standard52::deck();
+    ///
+    /// // Convenient — but only reproducible within one `rand` major version.
+    /// let quick = deck.shuffled_with_seed(seed.to_u64());
+    ///
+    /// // Reproducible by anyone, in any language, forever. This is the
+    /// // verifier'"'"'s path, and the one to reach for.
+    /// let checked = deck.permute(&seed.permutation(52)?)?;
+    ///
+    /// assert!(deck.same(&quick));
+    /// assert!(deck.same(&checked));
+    /// # Ok::<(), CardError>(())
+    /// ```
     #[must_use]
     pub fn to_u64(&self) -> u64 {
         let mut b = [0u8; 8];
@@ -189,6 +209,33 @@ impl ShuffleRound {
     /// [`CardError::UnknownParticipant`],
     /// [`CardError::RevealBeforeAllCommitted`],
     /// [`CardError::CommitmentMismatch`].
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let (a, b) = (ParticipantId(1), ParticipantId(2));
+    /// let sa = Contribution::from_bytes([0x11; 32]); // Contribution::random in real code
+    /// let sb = Contribution::from_bytes([0x22; 32]);
+    ///
+    /// let mut round = ShuffleRound::new([a, b])?;
+    /// round.commit(a, sa.commit())?;
+    ///
+    /// // Nobody may reveal while a commitment is still outstanding. That
+    /// // rule is the whole reason the last revealer cannot bias the seed.
+    /// assert_eq!(round.reveal(a, sa), Err(CardError::RevealBeforeAllCommitted));
+    ///
+    /// round.commit(b, sb.commit())?;
+    /// round.reveal(a, sa)?;
+    ///
+    /// // A contribution that does not open its own commitment is rejected,
+    /// // and the round is left exactly as it was.
+    /// assert_eq!(round.reveal(b, sa), Err(CardError::CommitmentMismatch(2)));
+    /// assert!(!round.is_complete());
+    ///
+    /// round.reveal(b, sb)?;
+    /// assert!(round.is_complete());
+    /// # Ok::<(), CardError>(())
+    /// ```
     pub fn reveal(&mut self, who: ParticipantId, c: Contribution) -> Result<(), CardError> {
         self.check_known(who)?;
         if !self.all_committed() {

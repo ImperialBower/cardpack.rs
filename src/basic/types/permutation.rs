@@ -150,11 +150,23 @@ impl Permutation {
         &self.0
     }
 
-    /// `out[i] = items[p[i]]`.
+    /// `out[i] = items[p[i]]` — read `p[i]` as "where item `i` comes **from**".
     ///
     /// # Errors
     ///
     /// [`CardError::PermutationLength`] if `items.len() != self.len()`.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// // "Take index 2 first, then index 0, then index 1."
+    /// let p = Permutation::try_from_vec(vec![2, 0, 1]).unwrap();
+    ///
+    /// assert_eq!(p.apply(&['a', 'b', 'c']).unwrap(), vec!['c', 'a', 'b']);
+    ///
+    /// // The length must match exactly.
+    /// assert!(p.apply(&['a', 'b']).is_err());
+    /// ```
     pub fn apply<T: Clone>(&self, items: &[T]) -> Result<Vec<T>, CardError> {
         if items.len() != self.len() {
             return Err(CardError::PermutationLength {
@@ -170,6 +182,19 @@ impl Permutation {
     }
 
     /// The permutation that undoes this one.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Standard52::deck();
+    /// let p = Permutation::from_seed(52, 7).unwrap();
+    ///
+    /// let shuffled = deck.permute(&p).unwrap();
+    /// assert_eq!(shuffled.permute(&p.inverse()).unwrap(), deck);
+    ///
+    /// // Composing the two really is the identity.
+    /// assert!(p.then(&p.inverse()).unwrap().is_identity());
+    /// ```
     #[must_use]
     pub fn inverse(&self) -> Self {
         let mut inv = alloc::vec![0_u16; self.len()];
@@ -179,11 +204,33 @@ impl Permutation {
         Self(inv)
     }
 
-    /// `(a.then(b)).apply(x) == b.apply(a.apply(x))`.
+    /// Compose: **`self` first, then `next`**.
+    ///
+    /// `(a.then(b)).apply(x) == b.apply(a.apply(x))`. The order is easy to
+    /// read backwards, so the example pins it.
     ///
     /// # Errors
     ///
     /// [`CardError::PermutationLength`] if the lengths differ.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let a = Permutation::try_from_vec(vec![1, 0, 2]).unwrap(); // swap 0 and 1
+    /// let b = Permutation::try_from_vec(vec![0, 2, 1]).unwrap(); // swap 1 and 2
+    /// let x = ['a', 'b', 'c'];
+    ///
+    /// // `a` runs first.
+    /// assert_eq!(a.apply(&x).unwrap(), vec!['b', 'a', 'c']);
+    /// assert_eq!(a.then(&b).unwrap().apply(&x).unwrap(), vec!['b', 'c', 'a']);
+    /// assert_eq!(
+    ///     a.then(&b).unwrap().apply(&x).unwrap(),
+    ///     b.apply(&a.apply(&x).unwrap()).unwrap()
+    /// );
+    ///
+    /// // Order matters: composition does not commute.
+    /// assert_ne!(a.then(&b).unwrap(), b.then(&a).unwrap());
+    /// ```
     pub fn then(&self, next: &Self) -> Result<Self, CardError> {
         if self.len() != next.len() {
             return Err(CardError::PermutationLength {

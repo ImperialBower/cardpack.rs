@@ -137,6 +137,29 @@ impl<D: DeckedBase> Codebook<D> {
     }
 
     /// `None` for the blank card and for any card not in the deck.
+    ///
+    /// Ordinals number the deck's **vocabulary** — `base_vec()` with
+    /// duplicates removed — not its cards. A deck that holds a card twice
+    /// gives both copies one ordinal.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let cb = Standard52::codebook();
+    /// assert_eq!(cb.ordinal(&Standard52::deck().cards()[0]).unwrap(), Ordinal::new(0));
+    ///
+    /// // A blank card is in no deck.
+    /// assert_eq!(cb.ordinal(&Card::<Standard52>::default()), None);
+    ///
+    /// // Pinochle holds 48 cards but only 24 distinct ones. Its two A♠
+    /// // share ordinal 0 — this is the case that makes `Codebook` exist.
+    /// let pinochle = Pinochle::deck();
+    /// let cb = Pinochle::codebook();
+    ///
+    /// assert_eq!(pinochle.len(), 48);
+    /// assert_eq!(cb.len(), 24);
+    /// assert_eq!(cb.ordinal(&pinochle.cards()[0]), cb.ordinal(&pinochle.cards()[1]));
+    /// ```
     #[must_use]
     pub fn ordinal(&self, card: &Card<D>) -> Option<Ordinal> {
         let base = card.base();
@@ -147,7 +170,21 @@ impl<D: DeckedBase> Codebook<D> {
             .map(Ordinal)
     }
 
-    /// `None` when `ord >= len()`.
+    /// `None` when `ord >= len()`. The inverse of
+    /// [`ordinal`](Self::ordinal) over the vocabulary.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let cb = Standard52::codebook();
+    /// let ace = cb.card(Ordinal::new(0)).unwrap();
+    ///
+    /// assert_eq!(ace.to_string(), "A♠");
+    /// assert_eq!(cb.ordinal(&ace).unwrap(), Ordinal::new(0));
+    ///
+    /// // Past the end of the vocabulary.
+    /// assert_eq!(cb.card(Ordinal::new(52)), None);
+    /// ```
     #[must_use]
     pub fn card(&self, ord: Ordinal) -> Option<Card<D>> {
         self.cards.get(ord.index()).map(|c| Card::from(*c))

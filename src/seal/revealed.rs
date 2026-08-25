@@ -114,9 +114,31 @@ impl<D: DeckedBase + Default + Ord + Copy + Hash> Revealed<D> {
 
     /// An unverified reveal: the caller vouches for `(slot, card)`.
     ///
+    /// This checks **nothing**. It exists because most protocols verify a
+    /// value long before cardpack sees it. A referee that accepts a `reveal`
+    /// from an untrusted peer has skipped its own protocol — the checked door
+    /// is [`reveal_with`](Self::reveal_with).
+    ///
     /// # Errors
     ///
     /// [`CardError::SlotAlreadyRevealed`] — a value is never silently replaced.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let deck = Standard52::deck();
+    /// let mut revealed = Revealed::<Standard52>::new();
+    ///
+    /// revealed.reveal(SlotId::new(7), deck.cards()[0])?;
+    /// assert_eq!(revealed.get(SlotId::new(7)), Some(deck.cards()[0]));
+    ///
+    /// // A slot is written once. Overwriting is an error, not a silent swap.
+    /// assert_eq!(
+    ///     revealed.reveal(SlotId::new(7), deck.cards()[1]),
+    ///     Err(CardError::SlotAlreadyRevealed(7))
+    /// );
+    /// # Ok::<(), CardError>(())
+    /// ```
     pub fn reveal(&mut self, slot: SlotId, card: Card<D>) -> Result<(), CardError> {
         if self.0.contains_key(&slot) {
             return Err(CardError::SlotAlreadyRevealed(slot.get()));
@@ -132,6 +154,42 @@ impl<D: DeckedBase + Default + Ord + Copy + Hash> Revealed<D> {
     ///
     /// [`SealError::Slot`] if the slot is already revealed;
     /// [`SealError::Backend`] if the scheme refuses.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// // A toy scheme: `Sealed` is the card itself, so the "secret" is a lie.
+    /// // Real backends do real crypto — see `HolderKeySeal` (`seal-aead`).
+    /// struct Toy;
+    ///
+    /// impl Seal<Standard52> for Toy {
+    ///     type Sealed = Card<Standard52>;
+    ///     type Token = u16;
+    ///     type Error = CardError;
+    ///
+    ///     fn seal(&self, card: Card<Standard52>, _slot: SlotId, _rng: &mut dyn rand::Rng)
+    ///         -> Result<Card<Standard52>, CardError> { Ok(card) }
+    ///
+    ///     fn unseal(&self, sealed: &Card<Standard52>, _slot: SlotId, token: &u16)
+    ///         -> Result<Card<Standard52>, CardError>
+    ///     {
+    ///         if *token == 42 { Ok(*sealed) } else { Err(CardError::Fubar) }
+    ///     }
+    /// }
+    ///
+    /// let ace = Standard52::deck().cards()[0];
+    /// let mut revealed = Revealed::<Standard52>::new();
+    ///
+    /// // A token the scheme refuses admits nothing at all.
+    /// assert!(revealed.reveal_with(SlotId::new(7), &ace, &Toy, &0).is_err());
+    /// assert!(revealed.is_empty());
+    ///
+    /// // The right token admits exactly one card, into exactly one slot.
+    /// let card = revealed.reveal_with(SlotId::new(7), &ace, &Toy, &42).unwrap();
+    /// assert_eq!(card, ace);
+    /// assert_eq!(revealed.len(), 1);
+    /// assert!(!revealed.is_revealed(SlotId::new(8)));
+    /// ```
     pub fn reveal_with<S: Seal<D>>(
         &mut self,
         slot: SlotId,

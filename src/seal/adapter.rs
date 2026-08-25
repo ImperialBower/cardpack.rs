@@ -24,6 +24,41 @@ use rand::Rng;
 /// `unseal(seal(card, slot, rng), slot, token) == card` — is one generic
 /// test, `seal_roundtrip` (behind `seal-test-double`), exported
 /// under the `seal-test-double` feature so backends in other crates can run it.
+///
+/// # Implementing one
+///
+/// ```
+/// use cardpack::prelude::*;
+///
+/// // A toy scheme: `Sealed` is the card itself, so the "secret" is a lie.
+/// // Real backends do real crypto — see `HolderKeySeal` (`seal-aead`).
+/// struct Toy;
+///
+/// impl Seal<Standard52> for Toy {
+///     type Sealed = Card<Standard52>;
+///     type Token = u16;
+///     type Error = CardError;
+///
+///     fn seal(&self, card: Card<Standard52>, _slot: SlotId, _rng: &mut dyn rand::Rng)
+///         -> Result<Card<Standard52>, CardError> { Ok(card) }
+///
+///     fn unseal(&self, sealed: &Card<Standard52>, _slot: SlotId, token: &u16)
+///         -> Result<Card<Standard52>, CardError>
+///     {
+///         if *token == 42 { Ok(*sealed) } else { Err(CardError::Fubar) }
+///     }
+/// }
+///
+/// let ace = Standard52::deck().cards()[0];
+/// use rand::SeedableRng;
+/// let mut rng = rand::rngs::StdRng::seed_from_u64(1);
+///
+/// let sealed = Toy.seal(ace, SlotId::new(3), &mut rng)?;
+///
+/// assert_eq!(Toy.unseal(&sealed, SlotId::new(3), &42)?, ace);
+/// assert!(Toy.unseal(&sealed, SlotId::new(3), &0).is_err());
+/// # Ok::<(), CardError>(())
+/// ```
 pub trait Seal<D: DeckedBase> {
     /// The opaque payload. The backend picks the representation: 42 bytes of
     /// AEAD output, an `ElGamal` ciphertext, or (in tests) a `Card<D>`.

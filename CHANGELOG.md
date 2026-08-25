@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `make test-crypto` and the CI test job now run
+  `--features full,crypto,seal-test-double`. Doctests behind
+  `seal-test-double` were never executed: a doctest compiles as an outside
+  consumer of the crate, where `cfg(test)` is false, so a
+  `cfg(any(test, feature = ...))` module's examples exist only under the
+  feature.
+- Fourteen doctests added across the sealed-deck family, at the points where
+  the API is easiest to misread — `Permutation::apply`/`inverse`/`then`,
+  `Codebook::ordinal`/`card`, `Revealed::reveal` vs `reveal_with`,
+  `SlotPile::draw`/`audit`, the `Seal` trait, `ShuffleRound::reveal`,
+  `CombinedSeed::to_u64`, `commit_pile`/`verify_pile`, and
+  `HolderKeySeal::deal`.
+
 ### Added — `seal-aead` feature, the holder-key seal ([EPIC-04b](docs/EPIC-04b_Holder_Key_Seal.md))
 
 - **`seal-aead` feature** (`chacha20poly1305 0.11`, `hkdf 0.13`, `sha2 0.11`,

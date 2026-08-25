@@ -777,6 +777,17 @@ Exit criteria:
 
 ---
 
+## Doctest follow-up (2026-08-25)
+
+Reviewed after 04c for doctest coverage. The family shipped at 9 examples
+across ~139 public items, against a house style of ~85% (`pile.rs` is 43/51).
+Fourteen were added at the points where the API is easiest to get wrong; the
+mechanical getters were left alone deliberately. One real defect surfaced: the
+`seal_roundtrip` doctest was never executed, because a doctest compiles as an
+outside consumer where `cfg(test)` is false, so a `cfg(any(test, feature))`
+module's examples exist only under its feature. `make test-crypto` and CI now
+pass `seal-test-double`.
+
 ## Implementation corrigendum
 
 Written 2026-08-24 on branch `crypt`, after Stories 0–7 landed test-first (RED

@@ -134,6 +134,21 @@ impl SlotPile {
 
     /// Draws `n` slots from the top. All-or-nothing, mirroring `Pile::draw`:
     /// `None` leaves the shoe untouched.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let mut shoe = SlotPile::new(52);
+    /// let hole = shoe.draw(2).unwrap();
+    ///
+    /// assert_eq!(hole.len(), 2);
+    /// assert_eq!(shoe.len(), 50);
+    ///
+    /// // Asking for more than is left takes *nothing* — it does not drain
+    /// // what it can.
+    /// assert!(shoe.draw(51).is_none());
+    /// assert_eq!(shoe.len(), 50);
+    /// ```
     pub fn draw(&mut self, n: usize) -> Option<Self> {
         if n > self.0.len() {
             return None;
@@ -176,6 +191,26 @@ impl SlotPile {
 
     /// Counts slots and lists duplicates (in first-seen order). It does
     /// **not** and cannot check that the slots stand for distinct cards.
+    ///
+    /// ```
+    /// use cardpack::prelude::*;
+    ///
+    /// let shoe = SlotPile::new(52);
+    /// let audit = shoe.audit(52);
+    ///
+    /// assert!(audit.is_ok());
+    /// assert_eq!(audit.actual, 52);
+    /// assert!(audit.duplicate_slots.is_empty());
+    ///
+    /// // A short shoe is caught by the count.
+    /// let mut shoe = SlotPile::new(52);
+    /// shoe.draw(2).unwrap();
+    /// assert!(!shoe.audit(52).is_ok());
+    ///
+    /// // What a passing audit does NOT prove: that these 52 names stand for
+    /// // 52 different cards. A `SlotPile` holds no card values, so it cannot
+    /// // know. Only the backend that sealed them can.
+    /// ```
     #[must_use]
     pub fn audit(&self, expected: usize) -> SlotAudit {
         let mut seen = BTreeSet::new();
