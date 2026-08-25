@@ -24,6 +24,12 @@ pub enum AeadSealError {
     /// plaintext); recorded because the decoder is total.
     #[error("authentic payload decoded to ordinal {0}, which is out of range")]
     InvalidOrdinal(u16),
+    /// `D::deck_name()` does not fit the `u16` length field in the associated
+    /// data. Unreachable for every shipped deck; only a consumer's own
+    /// `DeckedBase` can hit it. `Codebook::encode_pile` refuses the same
+    /// input, and this backend agrees with it rather than truncating.
+    #[error("deck name of {0} bytes exceeds the 65535 the associated data can describe")]
+    DeckNameTooLong(usize),
     /// `deal` on a pile longer than `u16::MAX` slots.
     #[error("pile of {0} cards exceeds the 65535 slots a SlotPile can name")]
     PileTooLong(usize),
@@ -56,6 +62,10 @@ mod seal__aead__error_tests {
         assert_eq!(
             AeadSealError::PileTooLong(70_000).to_string(),
             "pile of 70000 cards exceeds the 65535 slots a SlotPile can name"
+        );
+        assert_eq!(
+            AeadSealError::DeckNameTooLong(70_000).to_string(),
+            "deck name of 70000 bytes exceeds the 65535 the associated data can describe"
         );
     }
 

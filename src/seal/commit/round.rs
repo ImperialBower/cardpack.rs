@@ -40,14 +40,17 @@ impl CombinedSeed {
     /// pairs sorted by [`ParticipantId`] first. Input order is irrelevant;
     /// the ids are not.
     ///
-    /// `n` is truncated to `u16::MAX` participants — a round that large is
-    /// not a card game.
-    #[must_use]
-    pub fn combine(parts: &[(ParticipantId, Contribution)]) -> Self {
+    /// # Errors
+    ///
+    /// [`CardError::TooManyParticipants`] above 65535 pairs. `n` is part of
+    /// the frozen preimage, so truncating it would return a seed no verifier
+    /// could reproduce.
+    pub fn combine(parts: &[(ParticipantId, Contribution)]) -> Result<Self, CardError> {
+        let n =
+            u16::try_from(parts.len()).map_err(|_| CardError::TooManyParticipants(parts.len()))?;
         let mut sorted: Vec<&(ParticipantId, Contribution)> = parts.iter().collect();
         sorted.sort_by_key(|(id, _)| *id);
 
-        let n = u16::try_from(sorted.len()).unwrap_or(u16::MAX);
         let mut h = Sha256::new();
         h.update(TAG_SEED);
         h.update(n.to_be_bytes());
@@ -55,7 +58,7 @@ impl CombinedSeed {
             h.update(id.0.to_be_bytes());
             h.update(c.as_bytes());
         }
-        Self(h.finalize().into())
+        Ok(Self(h.finalize().into()))
     }
 
     /// The shuffle this seed determines, over `n` positions.
@@ -85,7 +88,7 @@ impl CombinedSeed {
     ///
     /// let seed = CombinedSeed::combine(&[
     ///     (ParticipantId(1), Contribution::from_bytes([0x11; 32])),
-    /// ]);
+    /// ])?;
     /// let deck = Standard52::deck();
     ///
     /// // Convenient — but only reproducible within one `rand` major version.
@@ -155,11 +158,16 @@ impl ShuffleRound {
     /// # Errors
     ///
     /// [`CardError::NoParticipants`] if empty;
-    /// [`CardError::DuplicateParticipant`] on a repeated id.
+    /// [`CardError::DuplicateParticipant`] on a repeated id;
+    /// [`CardError::TooManyParticipants`] above the 65535 that
+    /// [`CombinedSeed::combine`]'s count field can describe.
     pub fn new(participants: impl IntoIterator<Item = ParticipantId>) -> Result<Self, CardError> {
         let participants: Vec<ParticipantId> = participants.into_iter().collect();
         if participants.is_empty() {
             return Err(CardError::NoParticipants);
+        }
+        if u16::try_from(participants.len()).is_err() {
+            return Err(CardError::TooManyParticipants(participants.len()));
         }
         let mut seen = alloc::collections::BTreeSet::new();
         for id in &participants {
@@ -202,13 +210,15 @@ impl ShuffleRound {
 
     /// Phase B. Rejected until [`all_committed`](Self::all_committed); a
     /// contribution that does not open the participant's commitment is
-    /// rejected and the round is left unchanged.
+    /// rejected and the round is left unchanged. Each participant reveals
+    /// **once** — a repeat is [`CardError::AlreadyRevealed`].
     ///
     /// # Errors
     ///
     /// [`CardError::UnknownParticipant`],
     /// [`CardError::RevealBeforeAllCommitted`],
-    /// [`CardError::CommitmentMismatch`].
+    /// [`CardError::CommitmentMismatch`],
+    /// [`CardError::AlreadyRevealed`].
     ///
     /// ```
     /// use cardpack::prelude::*;
@@ -248,6 +258,14 @@ impl ShuffleRound {
         if !committed.verify(&c) {
             return Err(CardError::CommitmentMismatch(who.0));
         }
+        // Checked after the commitment, so a bad contribution reads as a
+        // mismatch rather than a duplicate. A repeat could never change the
+        // seed — a second, *different* contribution opening the same
+        // commitment is a SHA-256 collision — but accepting one disagreed
+        // with `commit` and with `Revealed::reveal`, both of which refuse.
+        if self.reveals.contains_key(&who) {
+            return Err(CardError::AlreadyRevealed(who.0));
+        }
         self.reveals.insert(who, c);
         Ok(())
     }
@@ -282,7 +300,7 @@ impl ShuffleRound {
         }
         let parts: Vec<(ParticipantId, Contribution)> =
             self.reveals.iter().map(|(id, c)| (*id, *c)).collect();
-        Ok(CombinedSeed::combine(&parts))
+        CombinedSeed::combine(&parts)
     }
 
     fn check_known(&self, who: ParticipantId) -> Result<(), CardError> {
@@ -307,7 +325,7 @@ mod seal__commit__seed_tests {
     const GOLDEN_SEED: &str = "600d8d3d6e4f300530a2ebd4301b32f1afc512237d98947703260d7577287f78";
 
     fn golden() -> CombinedSeed {
-        CombinedSeed::combine(&[(ParticipantId(1), A), (ParticipantId(2), B)])
+        CombinedSeed::combine(&[(ParticipantId(1), A), (ParticipantId(2), B)]).unwrap()
     }
 
     #[test]
@@ -315,21 +333,36 @@ mod seal__commit__seed_tests {
         assert_eq!(golden().to_hex(), GOLDEN_SEED);
     }
 
+    /// DEFECT-2026-08-25-crypt, third site. The count is part of the frozen
+    /// preimage; truncating it would return a seed no verifier could
+    /// reproduce. Reject instead.
+    #[test]
+    fn combine__rejects_more_pairs_than_the_count_field_holds() {
+        let too_many: Vec<(ParticipantId, Contribution)> =
+            (0..=u16::MAX).map(|i| (ParticipantId(i), A)).collect();
+        assert_eq!(
+            CombinedSeed::combine(&too_many).unwrap_err(),
+            CardError::TooManyParticipants(65_536)
+        );
+    }
+
     #[test]
     fn combine__order_of_input_is_irrelevant() {
-        let swapped = CombinedSeed::combine(&[(ParticipantId(2), B), (ParticipantId(1), A)]);
+        let swapped =
+            CombinedSeed::combine(&[(ParticipantId(2), B), (ParticipantId(1), A)]).unwrap();
         assert_eq!(swapped, golden());
     }
 
     #[test]
     fn combine__id_is_part_of_preimage() {
-        let relabelled = CombinedSeed::combine(&[(ParticipantId(1), B), (ParticipantId(2), A)]);
+        let relabelled =
+            CombinedSeed::combine(&[(ParticipantId(1), B), (ParticipantId(2), A)]).unwrap();
         assert_ne!(relabelled, golden());
     }
 
     #[test]
     fn combine__count_is_part_of_preimage() {
-        let one = CombinedSeed::combine(&[(ParticipantId(1), A)]);
+        let one = CombinedSeed::combine(&[(ParticipantId(1), A)]).unwrap();
         assert_ne!(one, golden());
     }
 
@@ -481,7 +514,7 @@ mod seal__commit__round_tests {
         assert!(r.is_complete());
         assert_eq!(
             r.seed().unwrap(),
-            CombinedSeed::combine(&[(P1, A), (P2, B)])
+            CombinedSeed::combine(&[(P1, A), (P2, B)]).unwrap()
         );
     }
 
@@ -535,6 +568,55 @@ mod seal__commit__round_tests {
         swapped.reveal(P2, A).unwrap();
 
         assert_ne!(r.seed().unwrap(), swapped.seed().unwrap());
+    }
+
+    /// DEFECT-2026-08-25-crypt #1. A repeat reveal cannot change the seed —
+    /// a second, different contribution would need a SHA-256 collision — but
+    /// `reveal` accepting one at all disagreed with `commit`, which rejects a
+    /// repeat, and with `Revealed::reveal`. Now all three agree.
+    #[test]
+    fn round__double_reveal_errors() {
+        let mut r = two_party();
+        r.commit(P1, A.commit()).unwrap();
+        r.commit(P2, B.commit()).unwrap();
+        r.reveal(P1, A).unwrap();
+
+        assert_eq!(r.reveal(P1, A).unwrap_err(), CardError::AlreadyRevealed(1));
+        // The first reveal still stands.
+        assert_eq!(r.contribution(P1).unwrap().as_bytes(), A.as_bytes());
+        assert!(!r.is_complete());
+    }
+
+    /// A contribution that does not open the commitment is still rejected as
+    /// a mismatch, not as a duplicate — the order of the two guards matters.
+    #[test]
+    fn round__double_reveal_of_a_bad_contribution_is_a_mismatch() {
+        let mut r = two_party();
+        r.commit(P1, A.commit()).unwrap();
+        r.commit(P2, B.commit()).unwrap();
+        r.reveal(P1, A).unwrap();
+
+        assert_eq!(
+            r.reveal(P1, B).unwrap_err(),
+            CardError::CommitmentMismatch(1)
+        );
+    }
+
+    /// DEFECT-2026-08-25-crypt, third site. `combine` writes the count into a
+    /// `u16`, so a round it cannot describe is refused at construction rather
+    /// than silently truncated.
+    #[test]
+    fn round__new_rejects_more_participants_than_the_count_field_holds() {
+        let too_many: Vec<ParticipantId> = (0..=u16::MAX).map(ParticipantId).collect();
+        assert_eq!(too_many.len(), 65_536);
+        assert_eq!(
+            ShuffleRound::new(too_many).unwrap_err(),
+            CardError::TooManyParticipants(65_536)
+        );
+
+        // One fewer is fine.
+        let ok: Vec<ParticipantId> = (0..u16::MAX).map(ParticipantId).collect();
+        assert!(ShuffleRound::new(ok).is_ok());
     }
 
     #[test]

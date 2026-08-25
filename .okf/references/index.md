@@ -44,4 +44,5 @@ elsewhere in the bundle stay bundle-relative. Each carries a description and a
 * [Using cardpack on WebAssembly](wasm-guide.md) - Consumer-side setup for wasm32-unknown-unknown: the getrandom wasm_js backend, the verified feature matrix, and runtime gotchas.
 * [Generic Decks — the phantom-type deck pattern](generic-decks-doc.md) - The full explainer of the generics architecture: PhantomData branding, the DeckedBase/Decked trait stack, blanket impls, and a recipe for porting the pattern.
 * [BACKLOG](backlog.md) - Index of outstanding work aggregated from EPIC docs, GitHub issues, and code comments by the /backlog skill.
+* [DEFECT report — branch `crypt` (2026-08-25)](defect-2026-08-25-crypt.md) - Two review findings on the sealed-deck branch: both real code, both overstated impact, both fixed as consistency defects plus a third site the report missed.
 * [Technical debt register](technical-debt.md) - Tracked debt sourced from TODO / TODO RF / TODO: HACK comments and EPIC docs, maintained by the /backlog skill.

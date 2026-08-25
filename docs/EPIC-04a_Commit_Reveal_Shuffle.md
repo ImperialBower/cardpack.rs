@@ -432,6 +432,21 @@ as written; this list is the truth.
 9. **`crypto` umbrella** was deferred at 04a time (a one-member umbrella would
    be noise) and landed with 04b the same day.
 
+**Post-review fixes (2026-08-25).** A defect report against the branch
+([DEFECT-2026-08-25-crypt](./DEFECT-2026-08-25-crypt.md)) found that
+`ShuffleRound::reveal` had no duplicate guard. The reported impact — that a
+participant could overwrite their contribution and move the seed — does not
+hold: a second, *different* contribution opening the same commitment is a
+SHA-256 collision, so a repeat was either rejected as `CommitmentMismatch` or
+an exact no-op. The missing guard was still real API inconsistency (`commit`
+rejects a repeat; so does `Revealed::reveal`), and `reveal` now returns
+`CardError::AlreadyRevealed`, checked *after* the commitment so a bad
+contribution still reads as a mismatch. The same pass removed the
+`unwrap_or(u16::MAX)` truncation from `CombinedSeed::combine` (now
+`Result`) and `ShuffleRound::new`, both of which return
+`CardError::TooManyParticipants` — the count is part of the frozen preimage,
+so truncating it would produce an unverifiable seed. No wire format changed.
+
 Gold-standard mutation check, all four red as required: dropping the
 `all_committed` guard in `reveal` → `round__reveal_before_all_committed_errors`;
 dropping the sort in `combine` → `combine__order_of_input_is_irrelevant`;

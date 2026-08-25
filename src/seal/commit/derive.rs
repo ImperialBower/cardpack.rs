@@ -108,6 +108,7 @@ mod seal__commit__derive_tests {
             (ParticipantId(1), Contribution::from_bytes([0x11; 32])),
             (ParticipantId(2), Contribution::from_bytes([0x22; 32])),
         ])
+        .unwrap()
     }
 
     /// Python reference: `permutation(seed, 52)` for the golden seed.
@@ -161,7 +162,8 @@ mod seal__commit__derive_tests {
         let other = CombinedSeed::combine(&[
             (ParticipantId(1), Contribution::from_bytes([0x11; 32])),
             (ParticipantId(2), Contribution::from_bytes([0x23; 32])),
-        ]);
+        ])
+        .unwrap();
         assert_ne!(
             golden_seed().permutation(52).unwrap(),
             other.permutation(52).unwrap()
@@ -215,7 +217,8 @@ mod seal__commit__derive_tests {
         for t in 0..TRIALS {
             let mut b = [0u8; 32];
             b[..4].copy_from_slice(&t.to_be_bytes());
-            let seed = CombinedSeed::combine(&[(ParticipantId(0), Contribution::from_bytes(b))]);
+            let seed =
+                CombinedSeed::combine(&[(ParticipantId(0), Contribution::from_bytes(b))]).unwrap();
             let p = seed.permutation(N).unwrap();
             counts[usize::from(p.as_slice()[0])] += 1;
         }

@@ -488,6 +488,19 @@ as written; this list is the truth.
 9. **Tests cannot hide behind `full`.** `make test-crypto` and the CI line
    are now `--features full,crypto`; `cargo ex` enables `crypto`.
 
+**Post-review fix (2026-08-25).** A defect report against the branch
+([DEFECT-2026-08-25-crypt](./DEFECT-2026-08-25-crypt.md)) found that
+`associated_data` truncated the deck-name length with
+`unwrap_or(u16::MAX)` while still appending every byte. The reported impact —
+decryption failure — does not hold: `seal` and `unseal` build the AD the same
+way, so it round-trips. The real cost is that the AD stops parsing
+unambiguously, and that `Codebook::encode_pile` *rejects* the same input while
+this backend truncated it. `associated_data` is now fallible and returns
+`AeadSealError::DeckNameTooLong`; `seal` and `unseal` propagate it, so no
+public signature changed. Unreachable for every shipped deck (names are 4–19
+bytes) — only a consumer's own `DeckedBase` can reach it, which is what the
+test's `HugeName` fake is.
+
 Gold-standard mutation check, all four red as required: removing `slot` from
 the AD → `hks__token_for_other_slot_errors` (the right token at the wrong slot
 opened); removing `deck_name` from the HKDF salt →

@@ -122,7 +122,7 @@ proptest! {
     /// shipped deck can reach (four French decks = 216 cards).
     #[test]
     fn derive__is_valid_permutation(c in contribution(), n in 0usize..=216) {
-        let seed = CombinedSeed::combine(&[(ParticipantId(0), c)]);
+        let seed = CombinedSeed::combine(&[(ParticipantId(0), c)]).unwrap();
         let p = seed.permutation(n).unwrap();
         prop_assert_eq!(p.len(), n);
         prop_assert!(Permutation::try_from_vec(p.as_slice().to_vec()).is_ok());

@@ -161,17 +161,23 @@ impl<D: DeckedBase> HolderKeySeal<D> {
     }
 
     /// `TAG_AD || u16 BE name_len || deck_name || u16 BE slot || context`.
-    fn associated_data(&self, slot: SlotId) -> Vec<u8> {
+    ///
+    /// # Errors
+    ///
+    /// [`AeadSealError::DeckNameTooLong`] if the name does not fit the length
+    /// field. Truncating it instead would leave the prefix disagreeing with
+    /// the bytes that follow, so the AD would no longer parse unambiguously.
+    fn associated_data(&self, slot: SlotId) -> Result<Vec<u8>, AeadSealError> {
         let name = self.deck_name.as_bytes();
-        // Deck names are a few characters; a >64 KiB name is not a deck.
-        let name_len = u16::try_from(name.len()).unwrap_or(u16::MAX);
+        let name_len =
+            u16::try_from(name.len()).map_err(|_| AeadSealError::DeckNameTooLong(name.len()))?;
         let mut ad = Vec::with_capacity(TAG_AD.len() + 2 + name.len() + 2 + self.context.len());
         ad.extend_from_slice(TAG_AD);
         ad.extend_from_slice(&name_len.to_be_bytes());
         ad.extend_from_slice(name);
         ad.extend_from_slice(&slot.get().to_be_bytes());
         ad.extend_from_slice(&self.context);
-        ad
+        Ok(ad)
     }
 
     pub(crate) fn deck_name(&self) -> &str {
@@ -198,7 +204,7 @@ impl<D: DeckedBase> Seal<D> for HolderKeySeal<D> {
             .ordinal(&card)
             .ok_or_else(|| AeadSealError::CardNotInDeck(card.base().to_string()))?;
         let key = master.slot_key(&self.deck_name, slot.get());
-        let ad = self.associated_data(slot);
+        let ad = self.associated_data(slot)?;
 
         let mut nonce = [0u8; 24];
         rng.fill_bytes(&mut nonce);
@@ -220,7 +226,7 @@ impl<D: DeckedBase> Seal<D> for HolderKeySeal<D> {
         slot: SlotId,
         token: &CardKey,
     ) -> Result<Card<D>, AeadSealError> {
-        let ad = self.associated_data(slot);
+        let ad = self.associated_data(slot)?;
         let cipher = XChaCha20Poly1305::new_from_slice(token.as_bytes())
             .map_err(|_| AeadSealError::Unseal)?;
         let mut buf = *sealed.ct();
@@ -761,6 +767,72 @@ mod seal__aead__holder_key_seal_tests {
             verifier.unseal(custody.get(other).unwrap(), other, &token),
             Err(AeadSealError::Unseal)
         );
+    }
+
+    // ── DEFECT-2026-08-25-crypt #2 ──────────────────────────────────────
+    //
+    // `associated_data` wrote the deck name's length into a `u16`. A name
+    // longer than that truncated the prefix while still appending every byte,
+    // so the length field and the payload disagreed and the AD stopped being
+    // unambiguously parseable. `Codebook::encode_pile` already rejected the
+    // same input; this backend now agrees with it.
+    //
+    // Not reachable through any shipped deck (names are 4–19 bytes) — only
+    // through a consumer's own `DeckedBase`, which is what this fake is.
+
+    #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    struct HugeName;
+
+    impl DeckedBase for HugeName {
+        fn base_vec() -> alloc::vec::Vec<crate::basic::types::basic_card::BasicCard> {
+            Standard52::base_vec()
+        }
+
+        #[cfg(feature = "colored-display")]
+        fn colors() -> std::collections::HashMap<crate::basic::types::pips::Pip, colored::Color> {
+            Standard52::colors()
+        }
+
+        fn deck_name() -> String {
+            "x".repeat(usize::from(u16::MAX) + 1)
+        }
+
+        fn fluent_deck_key() -> String {
+            Standard52::fluent_deck_key()
+        }
+    }
+
+    #[test]
+    fn hks__overlong_deck_name_is_rejected_not_truncated() {
+        let scheme = HolderKeySeal::<HugeName>::dealer(master(), b"test");
+        let card = Card::<HugeName>::from(Standard52::base_vec()[0]);
+        let slot = SlotId::new(0);
+
+        assert_eq!(
+            scheme.seal(card, slot, &mut StdRng::seed_from_u64(1)),
+            Err(AeadSealError::DeckNameTooLong(65_536))
+        );
+
+        // `unseal` refuses on the same footing, so no half-usable scheme.
+        let sealed = SealedBytes::from_bytes([0u8; 42]);
+        assert_eq!(
+            scheme.unseal(&sealed, slot, &CardKey::from_bytes([0; 32])),
+            Err(AeadSealError::DeckNameTooLong(65_536))
+        );
+    }
+
+    /// The kernel already rejected this input. The point of the fix is that
+    /// the two now agree instead of one truncating.
+    #[test]
+    fn hks__kernel_and_backend_agree_on_an_overlong_deck_name() {
+        let cb = Codebook::<HugeName>::new();
+        let pile = Pile::<HugeName>::from(alloc::vec![Card::<HugeName>::from(
+            Standard52::base_vec()[0]
+        )]);
+        assert!(matches!(
+            cb.encode_pile(&pile),
+            Err(crate::common::errors::CardError::CanonicalMalformed(_))
+        ));
     }
 
     #[test]

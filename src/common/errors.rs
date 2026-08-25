@@ -101,6 +101,14 @@ pub enum CardError {
     #[error("A shuffle round needs at least one participant")]
     NoParticipants,
 
+    #[cfg(feature = "commit-reveal")]
+    #[error("Participant `{0}` has already revealed")]
+    AlreadyRevealed(u16),
+
+    #[cfg(feature = "commit-reveal")]
+    #[error("`{0}` participants exceeds the 65535 a round can describe")]
+    TooManyParticipants(usize),
+
     // The YAML variants below carry only `String`/`usize` payloads. A
     // `#[from] serde_norway::Error` would break both `Eq` and `PartialEq` on
     // this enum *and* leak a format crate into the public API (domain-kernel
@@ -288,6 +296,14 @@ mod common__errors_commit_reveal_tests {
         assert_eq!(
             CardError::NoParticipants.to_string(),
             "A shuffle round needs at least one participant"
+        );
+        assert_eq!(
+            CardError::AlreadyRevealed(3).to_string(),
+            "Participant `3` has already revealed"
+        );
+        assert_eq!(
+            CardError::TooManyParticipants(65_536).to_string(),
+            "`65536` participants exceeds the 65535 a round can describe"
         );
     }
 }

@@ -9,7 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.11.0] — 2026-08-25
 
+### Fixed
+
+- **`ShuffleRound::reveal` now rejects a repeat** with
+  `CardError::AlreadyRevealed`, matching `commit` and `Revealed::reveal`.
+  The seed was never at risk — a second, *different* contribution opening one
+  commitment is a SHA-256 collision, so a repeat was either rejected as a
+  mismatch or a no-op — but accepting one at all disagreed with the rest of
+  the API ([DEFECT-2026-08-25-crypt](docs/DEFECT-2026-08-25-crypt.md) #1).
+- **Length fields are validated, not truncated.** Three sites wrote a `usize`
+  into a `u16` with `unwrap_or(u16::MAX)`, which would have left the prefix
+  disagreeing with the bytes after it:
+  - `HolderKeySeal`'s associated data → `AeadSealError::DeckNameTooLong`
+    (report #2). Unreachable through any shipped deck — names are 4–19 bytes
+    — and only reachable through a consumer's own `DeckedBase`.
+  - `CombinedSeed::combine` and `ShuffleRound::new` →
+    `CardError::TooManyParticipants` (a third site the report did not flag).
+  `Codebook::encode_pile` already rejected the same input; all four agree now.
+
 ### Changed
+
+- **`CombinedSeed::combine` returns `Result<Self, CardError>`.** The
+  participant count is part of the frozen `v1` preimage, so a truncated count
+  would yield a seed no verifier could reproduce. No wire format changed.
 
 - `make test-crypto` and the CI test job now run
   `--features full,crypto,seal-test-double`. Doctests behind
