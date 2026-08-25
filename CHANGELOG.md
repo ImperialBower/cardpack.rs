@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-08-25
+
 ### Changed
 
 - `make test-crypto` and the CI test job now run
@@ -66,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/provably_fair.rs`; `make test-crypto`; `cargo ex` now enables
   `commit-reveal`.
 
-### Added — 0.11.0, the sealed-deck kernel ([EPIC-04](docs/EPIC-04_Sealed_Decks.md))
+### Added — the sealed-deck kernel ([EPIC-04](docs/EPIC-04_Sealed_Decks.md))
 
 - **`Ordinal` / `Codebook<D>` / `vocabulary`** — a total, stable card ↔ `0..V`
   bijection per deck over the deduplicated vocabulary (Pinochle is 24, not 48),
@@ -92,10 +94,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `SlotAlreadyRevealed`).
 - `tests/seal_properties.rs` — seeded property suite, mutation-checked.
 
----
+## [0.10.2] — 2026-08-23
 
-Released as 0.10.0 — `Cargo.toml` is already bumped; this section is renamed
-to `## [0.10.0] — <date>` at tag time.
+### Fixed
+
+- **wasm32 builds broke on `getrandom 0.4`.** `rand 0.10` depends directly on
+  `getrandom 0.4` for its wasm32 entropy source, but `Cargo.toml` pinned the
+  `wasm_js` feature only on the `getrandom 0.3` that still reaches the graph
+  transitively (through dev-deps' `rand_core 0.9`). CI's `wasm-build` and
+  `wasm-test` jobs failed with getrandom's "no backend selected" error. Fixed
+  with a second, renamed pin — `getrandom_v4 = { package = "getrandom",
+  version = "0.4", features = ["wasm_js"] }` — because a target-dependency
+  table cannot repeat a bare `getrandom` key. Cargo unifies the features onto
+  the one resolved 0.4.x package regardless of the manifest key.
+- Scoped the `rand::RngExt` import in `src/basic/types/pile.rs` behind
+  `#[cfg(feature = "std")]`; it serves only the `std`-gated `draw_random` path.
+
+### Internal
+
+- **`make test-funky`** (`cargo test --features full,funky`), wired into
+  `test` and `ayce`. `funky` is `std`-only and excluded from `full`, so it was
+  previously compiled only by the `msrv` target's pinned 1.85.0 toolchain — on
+  a stable-only machine the feature was skipped entirely. This is how the
+  `rand 0.10` break in 0.10.1 reached `main`.
+- Removed the `if: github.event_name != 'pull_request'` guard from the CI
+  `clippy` job, so the one job that runs `--all-features --all-targets`
+  actually runs on pull requests.
+- Dependency bumps: `clap` 4.6.6, `fluent-templates` 0.15.1,
+  `thiserror` 2.0.20.
+- Two blooper reports added under `docs/bloopers/`.
+
+## [0.10.1] — 2026-08-06
+
+### Fixed
+
+- **The `rand` 0.9.4 → 0.10.2 bump broke the build.** `rand 0.10` moved
+  `random_range` out of the `Rng` trait into a new `RngExt` trait;
+  `src/basic/types/pile.rs` and `src/funky/types/board.rs` imported only
+  `Rng`, so their call sites stopped compiling. Both now import `RngExt`.
+
+### Changed
+
+- `rand` 0.9 → 0.10. The `R: Rng` bounds on the public shuffle and draw APIs
+  now refer to `rand 0.10`'s trait, so a consumer pinning `rand 0.9` must move
+  with it.
+- `fluent-templates` 0.13 → 0.15; `rstest` 0.25 → 0.26 (dev). `log`, `clap`,
+  `serde`, `serde_json`, and `thiserror` bumped in `Cargo.lock`.
+
+### Added
+
+- **`docs/generic-decks.md`** — an explainer for the phantom-type deck
+  pattern: `PhantomData` branding, the type-driven/data-driven split, the
+  `DeckedBase`/`Decked` trait stack, blanket impls, the `BasicPile` escape
+  hatch, the `DeckKind` façade, a nine-step recipe for reusing the pattern in
+  another card library, and a catalog of its sharp edges.
+- `.okf/` external documents mirrored as reference concepts, and every bundle
+  cross-link made bundle-relative (36 links across 13 concepts; the strict
+  validator goes from 36 warnings to zero).
+
+## [0.10.0] — 2026-07-25
 
 ### Breaking
 
@@ -508,7 +565,11 @@ Single-focus release: serde support for piles.
 `serde` was a hard dependency in this release. In v0.6.12 it was moved
 behind an opt-out `serde` feature flag (still on by default).
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.2...v0.11.0
+[0.10.2]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.1...v0.10.2
+[0.10.1]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.8.1...v0.9.0
 [0.8.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.7.1...v0.8.0
 [0.7.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.6.12...v0.7.0
