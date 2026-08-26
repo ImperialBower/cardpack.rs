@@ -119,7 +119,7 @@ cardpack = { version = "0.8", features = ["full"] }
 # Or trim to just what you need — e.g. the pure kernel plus serde:
 cardpack = { version = "0.8", features = ["serde"] }
 
-# Or the pure, no_std, alloc-only kernel with no extra deps at all:
+# Or the pure, no_std, alloc-only with no extra deps at all:
 cardpack = "0.8"
 ```
 
@@ -167,9 +167,9 @@ let shuffled = Standard52::deck().shuffled_by_round(&round)?;
 ```
 
 `commit_pile` / `verify_pile` let a dealer publish a blind commitment to a
-concrete deck order before dealing and open it after. Run
+concrete deck order before dealing and opening it later. Run
 `cargo ex provably_fair` for a two-party round end to end. This hides the
-*shuffle*, not the *cards*; hiding cards is the next feature.
+*shuffle*, not the *cards*. Hiding cards is the next feature.
 
 ### Sealed cards (holder-key seal)
 
