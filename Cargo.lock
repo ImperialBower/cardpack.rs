@@ -148,7 +148,7 @@ checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
 name = "cardpack"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "chacha20poly1305",
  "ckc-rs",
