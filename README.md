@@ -128,13 +128,16 @@ cardpack = "0.8"
 only feature that lets the crate touch `std::fs`, and it is intentionally left
 out of `full` so the pure kernel and the convenience stack both stay I/O-free.
 
-The **sealed-deck kernel** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) is always
-on and dependency-free: `Ordinal`/`Codebook` (a canonical card ↔ number
-bijection per deck), `Permutation` (a shuffle as data), `SlotPile` (a shoe of
-card *names* that shuffles, cuts and deals with no knowledge), `Revealed` (the
-only slot → card map), and the five-item `Seal` adapter. No kernel type holds
-ciphertext or is generic over a scheme. Real crypto backends are planned as
-opt-in features outside `full`.
+**Sealed Decks** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) are always
+on and dependency-free: 
+
+- `Ordinal`/`Codebook` (a canonical card ↔ number bijection per deck)
+- `Permutation` (a shuffle as data)
+- `SlotPile` (a shoe of card *names* that shuffles, cuts and deals with no knowledge)
+- `Revealed` (the only slot → card map), and the five-item `Seal` adapter. 
+
+No kernel type holds ciphertext or is generic over a scheme. Real crypto backends are
+planned as opt-in features outside `full`.
 
 ### Provably-fair shuffles
 
@@ -142,7 +145,7 @@ The `commit-reveal` feature ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
 adds one dependency, `sha2`, and lets every participant in a game prove the
 shuffle was fair. Each participant commits to secret entropy, then everyone
 reveals; the combined seed fixes the shuffle through a frozen SHA-256
-derivation that any verifier — in any language — can reproduce from the
+derivation that any verifier, in any language, can reproduce from the
 public transcript alone:
 
 ```rust,ignore
