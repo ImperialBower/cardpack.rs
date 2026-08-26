@@ -119,7 +119,7 @@ cardpack = { version = "0.8", features = ["full"] }
 # Or trim to just what you need — e.g. the pure kernel plus serde:
 cardpack = { version = "0.8", features = ["serde"] }
 
-# Or the pure, no_std, alloc-only kernel with no extra deps at all:
+# Or the pure, no_std, alloc-only with no extra deps at all:
 cardpack = "0.8"
 ```
 
@@ -128,13 +128,16 @@ cardpack = "0.8"
 only feature that lets the crate touch `std::fs`, and it is intentionally left
 out of `full` so the pure kernel and the convenience stack both stay I/O-free.
 
-The **sealed-deck kernel** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) is always
-on and dependency-free: `Ordinal`/`Codebook` (a canonical card ↔ number
-bijection per deck), `Permutation` (a shuffle as data), `SlotPile` (a shoe of
-card *names* that shuffles, cuts and deals with no knowledge), `Revealed` (the
-only slot → card map), and the five-item `Seal` adapter. No kernel type holds
-ciphertext or is generic over a scheme. Real crypto backends are planned as
-opt-in features outside `full`.
+**Sealed Decks** ([EPIC-04](docs/EPIC-04_Sealed_Decks.md)) are always
+on and dependency-free: 
+
+- `Ordinal`/`Codebook` (a canonical card ↔ number bijection per deck)
+- `Permutation` (a shuffle as data)
+- `SlotPile` (a shoe of card *names* that shuffles, cuts and deals with no knowledge)
+- `Revealed` (the only slot → card map), and the five-item `Seal` adapter. 
+
+No kernel type holds ciphertext or is generic over a scheme. Real crypto backends are
+planned as opt-in features outside `full`.
 
 ### Provably-fair shuffles
 
@@ -142,7 +145,7 @@ The `commit-reveal` feature ([EPIC-04a](docs/EPIC-04a_Commit_Reveal_Shuffle.md))
 adds one dependency, `sha2`, and lets every participant in a game prove the
 shuffle was fair. Each participant commits to secret entropy, then everyone
 reveals; the combined seed fixes the shuffle through a frozen SHA-256
-derivation that any verifier — in any language — can reproduce from the
+derivation that any verifier, in any language, can reproduce from the
 public transcript alone:
 
 ```rust,ignore
@@ -164,9 +167,9 @@ let shuffled = Standard52::deck().shuffled_by_round(&round)?;
 ```
 
 `commit_pile` / `verify_pile` let a dealer publish a blind commitment to a
-concrete deck order before dealing and open it after. Run
+concrete deck order before dealing and opening it later. Run
 `cargo ex provably_fair` for a two-party round end to end. This hides the
-*shuffle*, not the *cards*; hiding cards is the next feature.
+*shuffle*, not the *cards*. Hiding cards is the next feature.
 
 ### Sealed cards (holder-key seal)
 
