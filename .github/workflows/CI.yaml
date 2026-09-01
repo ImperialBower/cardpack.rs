@@ -138,7 +138,7 @@ jobs:
       - name: Read wasm-bindgen version from Cargo.lock
         id: wbg
         run: echo "version=$(cargo pkgid wasm-bindgen | cut -d'@' -f2)" >> "$GITHUB_OUTPUT"
-      - uses: taiki-e/install-action@v2.85.4
+      - uses: taiki-e/install-action@v2.87.1
         with:
           tool: wasm-bindgen-cli@${{ steps.wbg.outputs.version }}
       # `--features full` is required now that `default = []`: the wasm tests
@@ -156,7 +156,7 @@ jobs:
         with:
           toolchain: stable
           components: llvm-tools-preview
-      - uses: taiki-e/install-action@v2.85.4
+      - uses: taiki-e/install-action@v2.87.1
         with:
           tool: cargo-llvm-cov
       - run: cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info
