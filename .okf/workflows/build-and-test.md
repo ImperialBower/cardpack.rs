@@ -3,7 +3,7 @@ type: Playbook
 title: Build, test, and quality gates
 description: make (ayce) is the everything gate — fmt, build, four test layers, clippy-pedantic, MSRV, no_std, docs; plus mutants, miri, coverage, and deny.
 tags: [workflow, make, ci, testing]
-timestamp: 2026-08-25T12:00:00Z
+timestamp: 2026-10-12T12:00:00Z
 ---
 
 # Day-to-day
@@ -75,8 +75,17 @@ without a fixture.
   used to be push-only, which is how a dependabot PR merged with a
   `--all-features` build break unreviewed. `fmt`/`doc` are still push-only.
 * Test framework: `rstest` for fixture/case tables.
+* Supply-chain hygiene is scored by [OpenSSF Scorecard](https://securityscorecards.dev/),
+  run weekly and on push to `main` by `.github/workflows/scorecard.yml`
+  (badge on the README). Rules that keep the score up: every workflow sets
+  top-level `permissions: contents: read` (the Scorecard job alone adds
+  `security-events`/`id-token` write); every `uses:` is pinned to a full commit
+  hash with the tag in a trailing comment (dependabot's `github-actions`
+  ecosystem bumps hash and comment together). A new action must be added the
+  same way. `SECURITY.md` is the security policy.
 
 # Citations
 
 [1] [Makefile](../../Makefile)
 [2] [.github/workflows/CI.yaml](../../.github/workflows/CI.yaml)
+[3] [.github/workflows/scorecard.yml](../../.github/workflows/scorecard.yml)

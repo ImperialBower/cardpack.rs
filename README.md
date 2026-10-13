@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/gh/ImperialBower/cardpack.rs/branch/main/graph/badge.svg)](https://codecov.io/gh/ImperialBower/cardpack.rs)
 [![Crates.io Version](https://img.shields.io/crates/v/cardpack.svg)](https://crates.io/crates/cardpack)
 [![Rustdocs](https://docs.rs/cardpack/badge.svg)](https://docs.rs/cardpack/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ImperialBower/cardpack.rs/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ImperialBower/cardpack.rs)
 
 Generic pack of cards library written in Rust. The goals of the library include:
 

@@ -7,12 +7,15 @@ on:
       - '**/Cargo.toml'
       - '**/Cargo.lock'
 
+permissions:
+  contents: read
+
 jobs:
   security_audit:
     name: SecurityAudit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@cargo-deny
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: taiki-e/install-action@bf66f708eded47c5c0759227f6170ebb8431af24 # cargo-deny
       - name: Scan for vulnerabilities
         run: cargo deny check advisories
