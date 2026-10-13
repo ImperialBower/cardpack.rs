@@ -13,7 +13,7 @@ use clap::Parser;
 
 /// Run all of the decks with one of each:
 ///
-/// `cargo run --example demo -- --all -v`
+/// `cargo ex demo -- --all -v`
 ///
 /// Or pick specific ones:
 ///
