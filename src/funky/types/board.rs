@@ -6167,7 +6167,7 @@ mod funky__types__board__buffoon_board_tests {
         // Phase 0a, the guard every later phase keeps green: with no vouchers
         // (and no jokers), a blind's recompute leaves the draws at the baseline.
         let mut board = board_for_a_round();
-        assert!(board.vouchers.is_empty());
+        assert!(board.vouchers.is_empty(), "no vouchers expected");
         board.on_blind_selected();
         assert_eq!(
             board.draws, board.starting_draws,
@@ -6202,7 +6202,7 @@ mod funky__types__board__buffoon_board_tests {
 
         assert!(!board.redeem_shop_voucher());
         assert_eq!(board.money, 9, "no charge on a refused redeem");
-        assert!(board.vouchers.is_empty());
+        assert!(board.vouchers.is_empty(), "no vouchers expected");
         assert!(
             board.shop.as_ref().unwrap().voucher.is_some(),
             "still offered"

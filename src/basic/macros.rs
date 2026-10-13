@@ -233,7 +233,10 @@ mod basic__macros_tests {
     fn cards() {
         assert_eq!(cards!("AC KC QC JC TC").to_string(), "A♣ K♣ Q♣ J♣ T♣");
         // Since the Big Joker isn't in the Standard52 Deck, the cards macro will return an empty Pile.
-        assert!(cards!("A♠ B🃟 Q♠ J♠ T♠").to_string().is_empty());
+        assert!(
+            cards!("A♠ B🃟 Q♠ J♠ T♠").to_string().is_empty(),
+            "unknown card should yield an empty pile"
+        );
     }
 
     #[test]

@@ -365,7 +365,10 @@ mod seal__slot_pile_tests {
         assert!(ok.is_ok());
         assert_eq!(ok.expected, 5);
         assert_eq!(ok.actual, 5);
-        assert!(ok.duplicate_slots.is_empty());
+        assert!(
+            ok.duplicate_slots.is_empty(),
+            "a valid pile has no duplicate slots"
+        );
 
         let short = SlotPile::new(4).audit(5);
         assert!(!short.is_ok());

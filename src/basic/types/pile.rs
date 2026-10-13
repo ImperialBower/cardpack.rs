@@ -1814,7 +1814,7 @@ mod basic__types__deck_tests {
         let pile2 = cards!("AH KH");
         let parts = vec![pile1, pile2];
         let result = Pile::<Standard52>::piles_to_string(&parts);
-        assert!(!result.is_empty());
+        assert!(!result.is_empty(), "piles_to_string should not be empty");
         assert_ne!(result, "xyzzy");
     }
 
@@ -1845,7 +1845,7 @@ mod basic__types__deck_tests {
         // Catches fluent_deck_key() -> String::new() and -> "xyzzy" mutations on Pile<DeckType>
         // (fluent_deck_key is part of DeckedBase, no feature gating needed)
         let key = Pile::<Standard52>::fluent_deck_key();
-        assert!(!key.is_empty());
+        assert!(!key.is_empty(), "fluent_deck_key should not be empty");
         assert_ne!(key, "xyzzy");
     }
 

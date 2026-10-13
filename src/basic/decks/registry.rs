@@ -289,7 +289,7 @@ mod basic__decks__registry_tests {
 
     #[test]
     fn all__non_empty() {
-        assert!(!DeckKind::all().is_empty());
+        assert!(!DeckKind::all().is_empty(), "no decks registered");
     }
 
     /// `from_yaml` recovers a `DeckKind` by matching on `deck_name()`. If two

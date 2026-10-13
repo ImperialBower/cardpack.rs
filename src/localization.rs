@@ -467,7 +467,7 @@ mod fluent_tests {
     fn fluent_name__fmt__not_empty() {
         let name = FluentName::new("spades");
         let s = format!("{name}");
-        assert!(!s.is_empty());
+        assert!(!s.is_empty(), "FluentName should display as non-empty text");
         assert_eq!(s, "spades");
     }
 

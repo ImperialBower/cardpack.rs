@@ -430,7 +430,7 @@ mod basic__types__combos_tests {
         let pile: BasicPile = (&Pile::<Standard52>::deck()).into();
         let combos = pile.combos(2);
         let v = combos.v();
-        assert!(!v.is_empty());
+        assert!(!v.is_empty(), "combos should not be empty");
         assert_ne!(v, &vec![BasicPile::default()]);
     }
 

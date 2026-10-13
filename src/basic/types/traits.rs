@@ -727,7 +727,7 @@ mod basic__types__traits_tests {
         let base_cards = Standard52::DECK.as_slice();
         let cards = Standard52::into_cards(base_cards);
         assert_eq!(cards.len(), Standard52::DECK_SIZE);
-        assert!(!cards.is_empty());
+        assert!(!cards.is_empty(), "into_cards should not be empty");
     }
 
     #[test]

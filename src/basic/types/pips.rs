@@ -223,7 +223,7 @@ mod basic__types__pips_tests {
         use crate::basic::decks::cards::french::FrenchSuit;
         let pip = FrenchSuit::SPADES;
         let s = format!("{pip}");
-        assert!(!s.is_empty());
+        assert!(!s.is_empty(), "pip should display as non-empty text");
         assert_eq!(s, pip.symbol.to_string());
     }
 }

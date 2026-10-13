@@ -657,7 +657,7 @@ mod basic__types__card_tests {
             name.starts_with("Joker"),
             "Expected Joker prefix, got: {name}"
         );
-        assert!(!name.is_empty());
+        assert!(!name.is_empty(), "joker name should not be empty");
     }
 
     #[cfg(feature = "colored-display")]
@@ -671,7 +671,7 @@ mod basic__types__card_tests {
     fn decked_base__deck_name__passthrough() {
         // Catches deck_name() -> String::new() and -> "xyzzy" mutations
         let name = Card::<crate::prelude::Standard52>::deck_name();
-        assert!(!name.is_empty());
+        assert!(!name.is_empty(), "deck_name should not be empty");
         assert_ne!(name, "xyzzy");
         assert_eq!(name, "Standard 52");
     }
@@ -680,7 +680,7 @@ mod basic__types__card_tests {
     fn decked_base__fluent_deck_key__passthrough() {
         // Catches fluent_deck_key() mutations on Card<DeckType>
         let key = Card::<crate::prelude::Standard52>::fluent_deck_key();
-        assert!(!key.is_empty());
+        assert!(!key.is_empty(), "fluent_deck_key should not be empty");
         assert_ne!(key, "xyzzy");
     }
 }
