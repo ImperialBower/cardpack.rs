@@ -82,7 +82,9 @@ without a fixture.
   `security-events`/`id-token` write); every `uses:` is pinned to a full commit
   hash with the tag in a trailing comment (dependabot's `github-actions`
   ecosystem bumps hash and comment together). A new action must be added the
-  same way. `SECURITY.md` is the security policy.
+  same way. Install tools with `taiki-e/install-action` via `with: tool: <name>`,
+  never the `@<tool>` tag form (dependabot rewrites it and breaks the job).
+  `SECURITY.md` is the security policy.
 
 # Citations
 
