@@ -17,6 +17,7 @@ the authoritative document.
 | Kernel purity assessment | [domain-kernel audit](/references/audit-domain-kernel.md) — `docs/audit-2026-07-18-domain-kernel.md` (earlier: audit-2026-04-29, audit-2026-04-09) |
 | Balatro/funky scope & status | [EPIC-01 Funky](/references/epic-01-funky.md) + children 01a–01e (all closed 2026-07-18) |
 | Ganjifa decks | [EPIC-02 Ganjifa](/references/epic-02-ganjifa.md) |
+| Joker Calculator (funky score trace, wasm adapter) | [EPIC-05 Joker Calculator](/references/epic-05-joker-calculator.md) — `docs/EPIC-05_Joker_Calculator.md` + design bundle `docs/design/balatro-joker-calculator/` |
 | YAML deck serialization | [EPIC-03 YAML Deck Serialization](/references/epic-03-yaml-serialization.md) |
 | Effect/mod registry design | [effect registry design](/references/effect-registry-design.md) — `docs/2026-07-11-effect-registry-design.md` |
 | Seeded shuffle design | [seeded shuffle design](/references/seeded-shuffle-design.md) — `docs/2026-04-29-seeded-shuffle-design.md` |
