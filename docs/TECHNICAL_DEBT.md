@@ -127,12 +127,15 @@
   public API; current internal callers bounds-check first, so it's latent.
   Three copy-pasted `remove`s, one hardened and two not, is basic↔funky drift.
   Suggested: harden to match `Pile::remove` + test. (`src/funky/types/buffoon_pile.rs:454`)
-- [ ] 🤖 **`BuffoonPile::forgiving_from_str` swallows parse errors silently,
-  unlike its `basic` counterpart** — `Pile::forgiving_from_str` logs a
-  `log::warn!` on invalid input; the funky version returns an empty pile with
-  no diagnostic, and it backs the `bcards!` macro (`src/funky/macros.rs:545`)
-  used across the joker test suite — a typo'd card string silently truncates a
-  hand. Suggested: add the same `log::warn!` for parity. (`src/funky/types/buffoon_pile.rs:264`)
+- [x] ~~🤖 **`BuffoonPile::forgiving_from_str` swallows parse errors silently**~~ —
+  **Fixed 2026-10-18.** The diagnosis was half right. The real hole was one
+  layer down: `BuffoonCard::from_str` returned `Ok(BuffoonCard::default())` for
+  *any* unknown index, so a typo'd card never failed at all — it slipped a
+  blank card into the hand instead of truncating it. Unknown indexes are now
+  `CardError::InvalidIndex` (`"__"` stays the explicit blank token, as in
+  `basic`), and `forgiving_from_str` logs `log::warn!` like `Pile`'s. A probe
+  making `bcards!` strict found no typo in the existing 158 call sites.
+  (`src/funky/types/buffoon_card.rs`, `src/funky/types/buffoon_pile.rs`)
 
 Checked and ruled out by the review: no `unwrap`/`panic` in funky library code
 (all in `#[cfg(test)]`), sign-loss casts in counter scoring are `.max(0)`-guarded

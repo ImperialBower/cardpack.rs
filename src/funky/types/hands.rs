@@ -229,4 +229,36 @@ mod funky__types__hands_tests {
 
         assert_eq!(hands.get(&HandType::HighCard).unwrap(), &expected);
     }
+
+    #[test]
+    fn hand_type__serde_round_trip() {
+        for hand_type in [
+            HandType::HighCard,
+            HandType::Pair,
+            HandType::TwoPair,
+            HandType::ThreeOfAKind,
+            HandType::Straight,
+            HandType::Flush,
+            HandType::FullHouse,
+            HandType::FourOfAKind,
+            HandType::StraightFlush,
+            HandType::RoyalFlush,
+            HandType::FiveOfAKind,
+            HandType::FlushHouse,
+            HandType::FlushFive,
+        ] {
+            let json = serde_json::to_string(&hand_type).unwrap();
+
+            assert_eq!(serde_json::from_str::<HandType>(&json).unwrap(), hand_type);
+        }
+    }
+
+    /// Pins the wire format: a consumer parsing this JSON breaks if it changes.
+    #[test]
+    fn hand_type__serde_format() {
+        assert_eq!(
+            serde_json::to_string(&HandType::FlushFive).unwrap(),
+            r#""FlushFive""#
+        );
+    }
 }

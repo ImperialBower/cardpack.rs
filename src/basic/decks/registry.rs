@@ -278,9 +278,8 @@ impl DeckKind {
 #[allow(non_snake_case)]
 mod basic__decks__registry_tests {
     use super::*;
-    // Unconditional: the `not(yaml)` Razz-omission test below uses it, and so
-    // do the yaml round-trip tests. Gating it to one config leaves the other
-    // without `.to_string()`.
+    // Only the yaml round-trip tests need `.to_string()`.
+    #[cfg(feature = "yaml")]
     use alloc::string::ToString;
     // Test-only, so it lives here rather than at module scope — at module
     // scope the non-test lib build would see it unused.
@@ -435,9 +434,8 @@ mod basic__decks__registry_tests {
     #[cfg(not(feature = "yaml"))]
     #[test]
     fn all__omits_razz_without_yaml() {
-        let names: Vec<String> = DeckKind::all().iter().map(|k| k.deck_name()).collect();
         assert!(
-            !names.contains(&"Razz".to_string()),
+            !DeckKind::all().iter().any(|k| k.deck_name() == "Razz"),
             "Razz should not appear without the yaml feature"
         );
     }

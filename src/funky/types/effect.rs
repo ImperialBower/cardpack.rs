@@ -14,6 +14,7 @@
 use crate::funky::types::board::BuffoonBoard;
 use crate::funky::types::buffoon_card::BuffoonCard;
 use crate::funky::types::score::Score;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// A declarative description of an effect's contribution to a running [`Score`].
@@ -21,7 +22,7 @@ use std::collections::HashMap;
 /// Effects return a `ScoreOp` rather than mutating a `Score` directly, so the
 /// scoring pipeline stays in control of ordering (additive vs multiplicative)
 /// and the operation is easy to test in isolation.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ScoreOp {
     /// Contribute nothing.
     Nothing,
@@ -109,6 +110,33 @@ impl EffectRegistry {
 #[allow(non_snake_case)]
 mod funky__types__effect_tests {
     use super::*;
+
+    fn every_score_op() -> ScoreOp {
+        ScoreOp::Seq(vec![
+            ScoreOp::Nothing,
+            ScoreOp::AddChips(5),
+            ScoreOp::AddMult(3),
+            ScoreOp::Add(Score::new(5, 3)),
+            ScoreOp::TimesMult(1.5),
+        ])
+    }
+
+    #[test]
+    fn score_op__serde_round_trip() {
+        let op = every_score_op();
+        let json = serde_json::to_string(&op).unwrap();
+
+        assert_eq!(serde_json::from_str::<ScoreOp>(&json).unwrap(), op);
+    }
+
+    /// Pins the wire format: a consumer parsing this JSON breaks if it changes.
+    #[test]
+    fn score_op__serde_format() {
+        assert_eq!(
+            serde_json::to_string(&every_score_op()).unwrap(),
+            r#"{"Seq":["Nothing",{"AddChips":5},{"AddMult":3},{"Add":{"chips":5,"mult":3}},{"TimesMult":1.5}]}"#
+        );
+    }
 
     #[test]
     fn score_op__apply() {

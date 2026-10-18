@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Joker::ALL_JOKERS`, `Joker::pile_all()`, `Joker::BLANK_WITH_REASON`,
+  `Joker::blank_reason()`** (`funky`). The full 112-joker list and the reasons
+  the 8 `Blank` jokers stay blank were test-only; they are now public, so a
+  joker catalog can be built from the same list the tests guard.
+- **`ScoreOp` derives `Serialize`/`Deserialize`** (`funky`), with a pinned
+  JSON format test. Serde round-trip tests added for every joker,
+  `BuffoonPile`, `HandType` and `Edition`.
+
+### Fixed
+
+- **`BuffoonCard::from_str` rejects unknown indexes** with
+  `CardError::InvalidIndex` instead of returning a blank card, so a typo'd
+  card string no longer slips a blank card into a hand. `"__"` still parses
+  to the blank card. `BuffoonPile::forgiving_from_str` (and so `bcards!`)
+  now logs a warning on invalid input, matching `Pile::forgiving_from_str`.
+- Test-only clippy fix in `basic::decks::registry` for Rust 1.99's
+  `needless_collect`.
+
 ## [0.11.0] — 2026-08-25
 
 ### Fixed

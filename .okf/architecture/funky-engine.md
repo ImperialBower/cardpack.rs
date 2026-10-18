@@ -3,7 +3,7 @@ type: Architecture
 title: Funky — the Balatro-style engine
 description: std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals.
 tags: [funky, balatro, feature-gated, scoring]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-10-18T00:00:00Z
 ---
 
 # What it is
@@ -37,7 +37,12 @@ core [card model](/architecture/card-model.md) rather than forking it.
 All five child EPICs (01a–01e) are closed; both stated goals are structurally
 met. **Named deferrals** to future EPICs: Seals (blocks 4 seal spectrals),
 most Decks (~3 of 16), Antes/Bosses, Tags, Serde. 8 of 112 jokers stay `Blank`
-with a test-enforced reason list (`BLANK_WITH_REASON`).
+with a test-enforced reason list. Both lists are public since 2026-10-18:
+`Joker::ALL_JOKERS` / `Joker::pile_all()` is the one list of every joker, and
+`Joker::BLANK_WITH_REASON` / `Joker::blank_reason()` says why a joker is
+`Blank`. Build any joker catalog from these, never from a hand-kept copy.
+`ScoreOp` now derives serde too, and the JSON of `ScoreOp`, `HandType` and
+`Edition` is pinned by format tests (groundwork for EPIC-05's `ScoreTrace`).
 
 # Try it
 

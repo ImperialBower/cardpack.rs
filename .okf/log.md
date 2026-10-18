@@ -1,6 +1,7 @@
 # Update Log
 
 ## 2026-10-18
+* **EPIC-05 prerequisites (branch `epic-05`).** Five items cleared before the Joker Calculator's Story 1. (1) Clippy was red on Rust 1.99 (`needless_collect` in a `registry.rs` test). (2) `ALL_JOKERS` and `BLANK_WITH_REASON` moved out of `#[cfg(test)]` into `impl Joker`, plus `pile_all()` and `blank_reason()`. (3) `ScoreOp` derives serde, format pinned. (4) The `forgiving_from_str` debt item was misdiagnosed: the real hole was `BuffoonCard::from_str` returning a blank card for any unknown index, so typos inserted a blank card rather than truncating a hand; unknown indexes are now `CardError::InvalidIndex` (`"__"` stays the blank token). (5) Serde round-trip tests for every joker, `BuffoonPile`, `HandType`, `Edition`. [Funky engine](architecture/funky-engine.md) updated.
 * **EPIC-01 Funky re-evaluated.** `docs/EPIC-01_Funky_Progress.md` rewritten as a fresh evaluation at `origin/main` `a2bdc82`, replacing the superseded 2026-07-05 snapshot (kept in git at `84a20e2`). Measured: 893 lib tests (465 funky), 48 integration, 132 doctests, clippy pedantic `--all-features --all-targets` at 0, no_std build and fmt clean, `buffoon` example still scores 11254. Grade C+ → A−. One earlier finding retracted: the `HACK` joker is Balatro's real Hack, not debris. [EPIC-01 reference](references/epic-01-funky.md) updated.
 
 ## 2026-10-12
