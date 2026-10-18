@@ -27,7 +27,8 @@ elsewhere in the bundle stay bundle-relative. Each carries a description and a
 * [EPIC-02 — Ganjifa decks (Mughal + Dashavatara)](epic-02-ganjifa.md) - Adding the two Ganjifa decks with per-suit inverted pip ranking, full localization, and registry integration.
 * [EPIC-03 — YAML deck serialization](epic-03-yaml-serialization.md) - The DeckYaml envelope, the YamlDecked blanket trait, and the three-layer test suite that makes every deck round-trip through YAML.
 * [EPIC-04 — Sealed Decks (family)](epic-04-sealed-decks.md) - A deck cardpack cannot read: the Ordinal/Codebook bijection, Permutation-as-data, the Seal<D> boundary, and children 04a (commit-reveal shuffle), 04b (holder-key AEAD seal), 04c (mental-poker bridge spec).
-* [EPIC-05 — Joker Calculator integration](epic-05-joker-calculator.md) - Make the Balatro Joker Calculator a thin display over funky: ScoreTrace from the scoring folds, a serde BoardSpec, a catalog from Joker::ALL_JOKERS, and a separate funky-wasm adapter.
+* [EPIC-05 — Joker Calculator integration](epic-05-joker-calculator.md) - Make the Balatro Joker Calculator a thin display over funky: ScoreTrace from the scoring folds, a serde BoardSpec, a catalog from Joker::ALL_JOKERS, and a WIT component in the engine's new repo.
+* [EPIC-06 — Funky Extraction](epic-06-funky-extraction.md) - Move the Balatro-style engine out of cardpack into its own repo, buffoonery, with its history; deprecate the funky feature in 0.11.2, remove it in 0.12.0.
 
 ## Audits and design docs
 

@@ -3,7 +3,7 @@ type: Architecture
 title: Domain-kernel posture
 description: cardpack is a value-type domain kernel — pure by default, no I/O in the core, format crates kept out of the public API.
 tags: [architecture, purity, domain-kernel, audit]
-timestamp: 2026-08-24T12:00:00Z
+timestamp: 2026-10-18T00:00:00Z
 ---
 
 # The pattern
@@ -13,7 +13,7 @@ core behind a narrow boundary. It is a *value/collection* kernel (cards, pips,
 piles, decks) rather than a state-machine kernel — there is no game state, no
 acting parties, no hidden information. The kernel's value is **purity +
 portability** (no_std, wasm, bare-metal), not a transition contract; a WIT/
-component boundary was assessed and explicitly *not* recommended.
+component boundary was assessed and explicitly *not* recommended. That verdict is about cardpack; the funky engine's new solver repo, which does have game state, uses WIT ([decision](/decisions/funky-moves-to-own-repo.md)).
 
 # Invariants enforced
 

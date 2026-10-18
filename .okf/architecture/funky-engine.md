@@ -32,6 +32,15 @@ core [card model](/architecture/card-model.md) rather than forking it.
 * **Economy**: `Shop` (stock, rerolls, booster packs, voucher slot), 20 wired
   `Voucher`s, `sell_joker`, blind state with 3 boss blinds.
 
+# Planned move (2026-10-18)
+
+This engine is **moving out of cardpack** into its own repo, `buffoonery`, where it becomes
+the foundation of a Balatro solver
+([decision](/decisions/funky-moves-to-own-repo.md),
+[EPIC-06](/references/epic-06-funky-extraction.md)). Cardpack deprecates the
+`funky` feature in 0.11.2 and removes it in 0.12.0. Do not add engine features
+here.
+
 # Status (EPIC-01, closed 2026-07-18)
 
 All five child EPICs (01a–01e) are closed; both stated goals are structurally

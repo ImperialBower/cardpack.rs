@@ -1,12 +1,14 @@
-# EPIC-05: cardpack.rs ↔ Balatro Joker Calculator integration
+# EPIC-05: Balatro Joker Calculator integration
 
-Oct 18, 2026 · @Christoph · *Updated 2026-10-18: facts reconciled against the code on branch `epic-05`; Milestone 0 (prerequisites) added.*
+Oct 18, 2026 · @Christoph · *Updated 2026-10-18: facts reconciled against the code; Milestone 0 added. Updated again the same day: decisions 0f–0h made, and the engine moves to its own repo ([EPIC-06](EPIC-06_Funky_Extraction.md)).*
 
 ## Summary
 
-The Joker Calculator stops carrying its own scoring math and becomes a thin display over cardpack.rs's `funky` engine. Every number in the breakdown table comes from `BuffoonBoard`. Every joker card is a real `BuffoonCard` from `funky::decks::joker`. The "updatable" fields edit the card's `MPip` before the board re-scores.
+The Joker Calculator stops carrying its own scoring math and becomes a thin display over the funky engine. Every number in the breakdown table comes from `BuffoonBoard`. Every joker card is a real `BuffoonCard` from `funky::decks::joker`. The "updatable" fields edit the card's `MPip` before the board re-scores.
 
-This is the first consumer of the solver seam that EPIC-01 Story 8 built for exactly this purpose. The engine does not yet expose the one thing the calculator is for: a step-by-step trace of how chips and mult moved. So the keystone story adds a `ScoreTrace` to the fold pipeline. Everything else is packaging: a wasm boundary, a JSON shape the Design artifact can render, and a joker catalog with display names.
+This is the first consumer of the solver seam that EPIC-01 Story 8 built for exactly this purpose. The engine does not yet expose the one thing the calculator is for: a step-by-step trace of how chips and mult moved. So the keystone story adds a `ScoreTrace` to the fold pipeline. Everything else is packaging: a WIT component boundary, a board you can write as YAML, a shape the Design artifact can render, and a joker catalog with display names.
+
+**Where the work happens.** On 2026-10-18 the engine was split out of cardpack. It moves into its own repo, `buffoonery` ([EPIC-06](EPIC-06_Funky_Extraction.md)), which becomes the foundation of the solver: a WIT boundary, configuration from YAML or from Rust, and cardpack as a dependency. Milestone 0 ran in cardpack. Everything from Milestone A on runs in `buffoonery`. This document moves to that repo once it exists, and cardpack keeps a pointer.
 
 The design bundle (Design artifact pages, architecture diagram) lives in [`docs/design/balatro-joker-calculator/`](design/balatro-joker-calculator/README.md). The calculator front end is not in this repo.
 
@@ -16,13 +18,17 @@ As of 2026-10-18, branch `epic-05` at `d042bd8`. Milestone 0 code landed in `c76
 
 | Component | Status |
 | --- | --- |
-| Milestone 0 — prerequisites landed (clippy, public joker list, `ScoreOp` serde, strict card parsing, serde round-trip tests) | **Complete** (`c762538`) |
-| Milestone 0 — open decisions (`Score` type, `board.rs` split, adapter placement) | Planned |
+| Milestone 0 — prerequisites landed in cardpack (clippy, public joker list, `ScoreOp` serde, strict card parsing, serde round-trip tests) | **Complete** (`c762538`) |
+| Milestone 0 — decisions 0f–0h (`Score` type, fold split, engine placement) | **Complete** (decided 2026-10-18) |
+| Milestone 0 — 0i–0k | Re-homed (see Milestone 0) |
+| Engine standing in its own repo (EPIC-06 Phase 1) | Planned — blocks everything below |
+| Story S1 — fractional `Score` | Planned |
+| Story S2 — scoring folds out of `board.rs` | Planned |
 | Story 1 — `ScoreTrace` | Planned |
 | Story 2 — joker catalog | Planned (list + blank reasons done in Milestone 0; names not started) |
-| Story 3 — `BoardSpec` | Planned |
-| Stories 4–5 — `funky-wasm`, golden fixtures | Planned |
-| Stories 6–8 — calculator renders the kernel | Planned |
+| Story 3 — `BoardSpec` (Rust and YAML) | Planned |
+| Stories 4–5 — WIT component, golden fixtures | Planned |
+| Stories 6–8 — calculator renders the engine | Planned |
 | Milestone D — polish | Planned |
 
 ## Current state
@@ -42,6 +48,8 @@ The two sides already agree on the model: chips × mult, then base hand, played 
 | wasm | Compiles on `wasm32-unknown-unknown` for every feature combo ([docs/wasm.md](wasm.md); CI `.github/workflows/CI.yaml:121`). CI's wasm **test** job runs only `--features full --test wasm` (`CI.yaml:147`), so funky never runs on wasm. `wasm-bindgen-test` is already a dev-dependency. No bindings crate yet | Browser-only. No way to call Rust |
 | Display names | **No joker names anywhere.** Jokers are known by const name and `Pip` index/symbol. There is no `fn name()` on `BuffoonCard`, and no `.ftl` file under `src/localization/` names a joker | Hard-coded English names |
 
+Paths are cardpack paths at `c762538`. After EPIC-06 the same files live in `buffoonery` without the `funky/` level (`src/funky/types/board.rs` → `src/types/board.rs`); line numbers stay the same until the code changes.
+
 Sources: `src/funky/types/{board,score,effect,mpip,buffoon_card}.rs`, `src/funky/decks/joker.rs`, `docs/EPIC-01_Funky.md` (Story 8 "solver enablement"), `docs/EPIC-01a_Joker_Wiring_Backlog.md`, `.okf/architecture/funky-engine.md`.
 
 ## Goals and non-goals
@@ -52,7 +60,8 @@ Sources: `src/funky/types/{board,score,effect,mpip,buffoon_card}.rs`, `src/funky
 - **Every breakdown row is explainable**: it names the card, the part that fired (effect, special, or edition), the `ScoreOp` it produced, and the running `Score` after it.
 - **Editable effects stay inside the type system**: a user edit becomes a `BuffoonCard` with a changed `enhancement` (or `edition`), not an override applied after the fact.
 - **Conditions resolve from the board**, not a checkbox: the calculator shows *why* Jolly Joker did or did not fire because the kernel reports it.
-- **The kernel stays pure**: no DOM, no JS types, no calculator-specific code in `src/funky/`. The boundary is a separate crate (`funky-wasm` or similar), a delivery adapter in the domain-kernel sense.
+- **The engine core stays pure**: no DOM, no JS types, no file I/O in the scoring types. WIT bindings and YAML loading are delivery adapters in the domain-kernel sense: their own modules (or features) in `buffoonery`, never inside the scoring code.
+- **Configurable as data**: a board, hand levels and joker overrides can be written as YAML or built in Rust, through the same serde types.
 - **Parity test**: the kernel trace and the rendered table agree on every golden board.
 
 **Non-goals**
@@ -61,7 +70,8 @@ Sources: `src/funky/types/{board,score,effect,mpip,buffoon_card}.rs`, `src/funky
 - Pixel-accurate joker art. The simplified card stays simplified.
 - Modded jokers (`MPip::Custom` / `EffectRegistry`) in v1. The seam exists; wiring it into the UI is a follow-on.
 - Filling the 8 `Blank` jokers. They render as "not modelled" with their stated reason.
-- A WIT / component-model boundary. The domain-kernel assessment explicitly does not recommend it (`.okf/architecture/domain-kernel.md`).
+- WIT in cardpack. The WIT boundary belongs to the solver repo. Cardpack's verdict against WIT (`.okf/architecture/domain-kernel.md:15`) still holds for cardpack, which has no game state.
+- New effect *behavior* from YAML. YAML sets data: any `MPip` variant and its numbers. A new kind of effect needs Rust code in an `EffectRegistry`.
 
 ## Architecture
 
@@ -70,8 +80,9 @@ Three layers, one direction of truth: the UI describes a board, the kernel score
 ```mermaid
 flowchart LR
     UI["Joker Calculator (UI)<br/>joker cards + breakdown table<br/>edits become BoardSpec JSON<br/>no scoring arithmetic"]
-    AD["funky-wasm adapter<br/>wasm-bindgen + serde_json<br/>BoardSpec → BuffoonBoard<br/>ScoreTrace → JSON"]
-    K["cardpack::funky (kernel)<br/>BuffoonBoard::score_traced()<br/>folds emit one ScoreStep per op<br/>pure: no I/O, no JS types"]
+    AD["WIT component (solver repo)<br/>wasm32-wasip2, jco transpile for the browser<br/>BoardSpec → BuffoonBoard<br/>ScoreTrace out"]
+    K["funky engine (solver repo, on cardpack)<br/>BuffoonBoard::score_traced()<br/>folds emit one ScoreStep per op<br/>pure: no I/O, no JS types"]
+    Y["board.yaml<br/>BoardSpec as YAML"]
     CAT["joker-catalog.json<br/>built from Joker::ALL_JOKERS:<br/>name, rarity, cost, MPip, Blank reason"]
     UI -- BoardSpec --> AD
     AD -- "ScoreTrace (JSON)" --> UI
@@ -79,9 +90,10 @@ flowchart LR
     K -- ScoreTrace --> AD
     K -. build step .-> CAT
     CAT --> UI
+    Y -- "BoardSpec (Rust or YAML)" --> K
 ```
 
-*Figure: integration architecture: 3 layers, 1 generated file (also in [`design/balatro-joker-calculator/docs/architecture.svg`](design/balatro-joker-calculator/docs/architecture.svg)).*
+*Figure: integration architecture: 3 layers, 1 generated file. The older [`architecture.svg`](design/balatro-joker-calculator/docs/architecture.svg) predates the repo split and the WIT choice.*
 
 The UI never computes. It sends a `BoardSpec` and renders the `ScoreTrace` that comes back. The joker catalog is generated from `Joker::ALL_JOKERS`, the same list the joker tests guard, so the picker cannot drift from what the engine scores.
 
@@ -110,14 +122,31 @@ pub struct ScoreTrace {
 
 The folds already call `op.apply(score)` at every point that changes the score. The trace is a sink those calls push into, so `score()` becomes `score_traced().total` and no scoring logic moves. A failed condition is a step with `op: Nothing, fired: false`, which is the "skipped" row the calculator shows today.
 
-**The boundary** (`funky-wasm`, a new crate; placement is decision 0h, open question 2):
+**The boundary** (a WIT component in the solver repo; decision 0h):
 
-- `score(spec_json: &str) -> String`: `BoardSpec` in, `ScoreTrace` out, both serde.
-- `catalog() -> String`: the generated joker catalog.
+```wit
+package imperialbower:solver@0.1.0;
+
+interface calculator {
+    /// A BoardSpec as JSON or YAML in; a ScoreTrace as JSON out.
+    score: func(spec: string) -> result<string, string>;
+    /// The joker catalog as JSON.
+    catalog: func() -> string;
+    version: func() -> string;
+}
+
+world joker-calculator {
+    export calculator;
+}
+```
+
+- **Target `wasm32-wasip2`.** It supports `std`, which `funky` needs, and gets randomness from WASI, so no `getrandom_backend` setting.
+- **The browser runs it through `jco transpile`**, which turns the component into an ES module.
+- **Strings first, typed records later.** `MPip` has 142 variants, so a typed WIT `variant` for it is large and would break on every new effect. v1 passes `BoardSpec` and `ScoreTrace` as serialized strings. A typed `score-step` record is a later step (open question 10).
 - `BoardSpec` names jokers by their const identifier (`"JOLLY_JOKER"`) plus an optional `enhancement` override as an `MPip` and an optional `edition`. Played and held cards are card indexes (`"AS"`), parsed with the strict `BuffoonCard::from_str`. Hand levels are optional, default 1.
-- No `BuffoonBoard` field is exposed raw. The adapter is the only place `wasm_bindgen` or `serde_json` appear.
+- No `BuffoonBoard` field is exposed raw. The component and the YAML loader are the only places that know about a format.
 
-This follows the domain-kernel split already used in the repo (`audit-2026-07-18-domain-kernel.md`): the kernel is pure, the adapter owns the format.
+The domain-kernel split carries over (`audit-2026-07-18-domain-kernel.md`): the scoring core is pure, and the adapters own the formats.
 
 ## Stories
 
@@ -135,16 +164,34 @@ Found by checking this EPIC's first draft against the code on 2026-10-18.
 - [x] **0d. Strict card parsing.** `BuffoonCard::from_str` returned a blank card for *any* unknown index, so a typo in a test or fixture added a fake blank card to the hand. Unknown indexes are now `CardError::InvalidIndex` (`src/funky/types/buffoon_card.rs:373`); `"__"` is still the blank card. `BuffoonPile::forgiving_from_str` (`src/funky/types/buffoon_pile.rs:342`) now logs a warning, like `Pile::forgiving_from_str`. A probe that made `bcards!` strict found no typo in the existing 158 call sites. Test: `from_str__unknown_index_is_an_error`.
 - [x] **0e. Serde round-trip tests** for every joker, `BuffoonPile`, `HandType` and `Edition`, plus format tests that pin the JSON of `HandType` and `Edition`. These pin the shape `BoardSpec` and `ScoreTrace` will carry.
 
-**Open:**
+**Decided** (2026-10-18):
 
-- [ ] **0f. Decide the `Score` type** (open question 1). If it changes, it changes here, before Story 1, in its own commit.
-- [ ] **0g. Decide whether to move the scoring folds out of `board.rs`** (8,342 lines; tests start at `:3180`). Story 1 edits `:342`, `:478` and `:556`. A move after Story 1 would mix a refactor into the trace diff.
-- [ ] **0h. Decide `funky-wasm` placement** (open question 2).
-- [ ] **0i. Fix the half-stale comment at `board.rs:534-536`.** It says `MultTimesOnEmptyJokerSlots` (Joker Stencil) and `MultTimesEveryXHands` (Loyalty Card) are not applied. Stencil is applied now; Loyalty Card still is not.
-- [ ] **0j. Backfill `CHANGELOG.md` for 0.11.1.** The tag exists; the entry does not. Do it before this EPIC adds entries.
-- [ ] **0k. Run funky on wasm in CI.** Add a funky case to `tests/wasm.rs` and `funky` to the wasm-test job's features (`CI.yaml:147`). Story 4's browser test then has a known-good base.
+- [x] **0f. `Score` type: fractional mult.** Balatro keeps decimals, and the change also removes the 32-bit `usize` overflow on wasm32. Built as Story S1, in `buffoonery`.
+- [x] **0g. Move the scoring folds out of `board.rs` before the trace.** Built as Story S2, in `buffoonery`.
+- [x] **0h. Engine placement: its own repo.** The engine moves out of cardpack and becomes the solver foundation, with a WIT boundary and YAML or Rust configuration, on top of cardpack. Cardpack deprecates and then removes its `funky` feature. Plan: [EPIC-06](EPIC-06_Funky_Extraction.md).
 
-### Milestone A — the kernel can explain itself (cardpack.rs)
+**Re-homed:**
+
+- [ ] **0i. Fix the half-stale comment at `board.rs:534-536`.** It says `MultTimesOnEmptyJokerSlots` (Joker Stencil) and `MultTimesEveryXHands` (Loyalty Card) are not applied. Stencil is applied now; Loyalty Card still is not. Moves with the code; do it in `buffoonery`.
+- [ ] **0j. Backfill `CHANGELOG.md` for 0.11.1.** Stays in cardpack; now EPIC-06 item 0d.
+- ~~**0k. Run funky on wasm in CI (cardpack).**~~ Dropped: funky leaves cardpack. The new repo's CI builds and tests the `wasm32-wasip2` component instead (Story 4).
+
+### Milestone A — the engine can explain itself (solver repo)
+
+Starts when EPIC-06 Phase 1 is green: the engine builds and passes its tests in `buffoonery`.
+
+**Story S1: fractional `Score`** (decision 0f)
+
+- [ ] `Score { chips, mult }` with a fractional `mult` (`f64`) and chips wide enough not to overflow on wasm32. `multi_mult` stops ceiling (`score.rs:43-47`); `score()` stops being an unchecked `usize` multiply (`score.rs:53`)
+- [ ] `Score` derives `Eq`, `Hash` and `Ord` today (`score.rs:5-7`). Floats cannot derive them. Decide per trait: drop it, or implement it by hand with `total_cmp`
+- [ ] Update the pinned `ScoreOp` JSON format test (`effect.rs`, `score_op__serde_format`): `Add(Score)` changes shape on purpose
+- [ ] Re-baseline every test that asserted a ceiled value, and say in the commit which numbers moved and why. `buffoon` scores 11254 today; record its new value
+
+**Story S2: scoring folds out of `board.rs`** (decision 0g)
+
+- [ ] Move `fold_played_cards`, `fold_held_cards`, `fold_jokers` and their helpers (`board.rs:289-1001` area) into `src/types/board/scoring.rs` (or similar). No behavior change
+- [ ] Green check: the full suite passes with the same counts before and after
+
 
 **Story 1: `ScoreTrace` in the fold pipeline**
 
@@ -174,31 +221,31 @@ Found by checking this EPIC's first draft against the code on 2026-10-18.
 - [ ] `JokerSpec { ident, enhancement: Option<MPip>, edition: Option<Edition>, debuffed: bool }`: the override is the "updatable effect"
 - [ ] `TryFrom<BoardSpec> for BuffoonBoard` with a typed error naming the bad field (unknown ident, unknown card index, 6 jokers in 5 slots, more than 5 played cards)
 - [ ] Round-trip test: `BoardSpec` → board → trace → JSON → parse, for the golden boards
+- [ ] Load a `BoardSpec` from YAML, through the same serde types. Reuse cardpack's YAML stack (`serde_norway`, the `yaml` feature) rather than adding a second YAML crate
+- [ ] Pin the YAML shape of `MPip` with format tests, like the JSON ones from Milestone 0e: once boards are written as YAML, that shape is a public contract
 
-*Milestone A done when:* `cargo test --features funky` is green and `cargo run --example buffoon --features funky` prints a trace.
+*Milestone A done when:* `cargo test` is green in the solver repo and `cargo run --example buffoon` prints a trace.
 
-### Milestone B — the boundary (new crate `funky-wasm`)
+### Milestone B — the boundary (WIT component, solver repo)
 
-**Story 4: wasm adapter**
+**Story 4: WIT component**
 
-- [ ] New crate depending on `cardpack = { default-features = false, features = ["funky"] }` plus `wasm-bindgen`, `serde-wasm-bindgen` or `serde_json`
-- [ ] `.cargo/config.toml` with the `getrandom_backend="wasm_js"` cfg from `docs/wasm.md`
-- [ ] Exports: `score(spec: &str) -> Result<String, JsError>`, `catalog() -> String`, `version() -> String`
-- [ ] `wasm-bindgen-test` runs the golden boards in a headless browser in CI (`wasm-pack test --headless --chrome`)
-- [ ] Size budget recorded in the README after `wasm-opt -Oz`; `i18n` and `colored-display` off
-- [ ] If the crate is a workspace member: prove `cargo deny check bans` and the CI `kernel-purity` job still pass (see open question 2)
+- [ ] `wit/` holds the interface from the Design sketch; build with `cargo component` or `wit-bindgen`, target `wasm32-wasip2`
+- [ ] Exports: `score(spec) -> result<string, string>`, `catalog() -> string`, `version() -> string`
+- [ ] Run the golden boards against the built component in CI (for example with `wasmtime`), not only as native Rust tests
+- [ ] `jco transpile` produces an ES module, and a headless browser test loads it and scores one golden board
+- [ ] Size budget recorded in the README after `wasm-opt -Oz`; `i18n` and `colored-display` off in cardpack
 
 **Story 5: golden fixtures shared across the boundary**
 
-- [ ] `fixtures/golden/*.json`: 10–15 `BoardSpec` + expected `ScoreTrace` pairs, checked into cardpack.rs and consumed verbatim by both the Rust tests and the UI tests
+- [ ] `fixtures/golden/`: 10–15 `BoardSpec` (YAML) + expected `ScoreTrace` (JSON) pairs, checked into the solver repo and consumed verbatim by the Rust tests, the component tests and the UI tests
 - [ ] At least one fixture per `ScoreOp` variant, one with a failed condition, one with a retrigger, one with an edition, one with a `Blank` joker
-- [ ] Note: `cargo package` ships only `include = [...]` paths (`Cargo.toml`), so fixtures under `fixtures/` stay out of the published crate. That is fine for tests; say so in the fixture README
 
-### Milestone C — the calculator renders the kernel (Design artifact / web)
+### Milestone C — the calculator renders the engine (Design artifact / web)
 
 **Story 6: replace the JS math with the wasm call**
 
-- [ ] Load `funky_wasm.js` + `.wasm`. On any edit, build a `BoardSpec` from UI state and call `score`
+- [ ] Load the `jco`-transpiled component. On any edit, build a `BoardSpec` from UI state and call `score`
 - [ ] Delete `HANDS`, `JOKERS` and the step loop from the artboard. The breakdown table maps 1:1 onto `ScoreTrace.steps`
 - [ ] Joker picker populated from `catalog()`. The card's note shows the real `MPip` and, for `Blank`, the reason
 - [ ] The "active" checkbox becomes read-only `fired` state computed by the kernel. A manual override remains only as the `debuffed` flag
@@ -226,27 +273,45 @@ Found by checking this EPIC's first draft against the code on 2026-10-18.
 1. **`Score` precision and width.** Two problems in one type (`src/funky/types/score.rs`):
    - `mult` is `usize` and `multi_mult` ceils after each ×mult (`:43-47`). Hologram at ×1.25 on mult 4 gives 5, and two ×1.5 jokers round twice. Balatro keeps fractional mult. The calculator keeps decimals.
    - `chips * mult` is unchecked (`:53`), and `usize` is 32 bits on wasm32. Late-game Balatro scores pass 4.29 × 10⁹, so the calculator would overflow in the browser.
-   - Any fix is a breaking change to `Score` and to the pinned `ScoreOp` JSON (`Add(Score)`). It belongs in Milestone 0f, before Story 1.
-2. **Crate placement.** `funky-wasm` inside cardpack.rs as a workspace member (shared CI, lock-step versions) or a sibling repo (the kernel's dependency tree is untouched)? cardpack has no `[workspace]` today. Known trap: a self dev-dependency that enabled features poisoned cargo-deny's feature-unified resolve, and no cargo-deny setting could undo it (`.okf/decisions/examples-flag-free-alias.md`, comment in `Cargo.toml`). A workspace member that turns on `funky` plus `wasm-bindgen` may hit the same wall in the `kernel-purity` job. The domain-kernel audit argues for a sibling repo.
+   - Any fix is a breaking change to `Score` and to the pinned `ScoreOp` JSON (`Add(Score)`).
+   - **Decided 2026-10-18 (0f):** fractional mult, built as Story S1 in `buffoonery`. Because the engine leaves cardpack, cardpack never ships this break.
+2. **Engine placement.** ~~A `funky-wasm` adapter crate, in cardpack's workspace or a sibling repo.~~ **Decided 2026-10-18 (0h):** the engine itself moves to its own repo, which becomes the solver foundation ([EPIC-06](EPIC-06_Funky_Extraction.md)). This also avoids the cargo-deny trap a workspace member would have hit (`.okf/decisions/examples-flag-free-alias.md`).
 3. **Where the calculator lives.** The Design artifact cannot load a `.wasm` from the canvas page today, so Milestone C needs a real web host (a static page in the repo, `examples/wasm.rs` style). The artboard stays as the design reference.
-4. **`funky` requires `std`.** Fine on `wasm32-unknown-unknown`, but it rules out a `no_std` component later. Acceptable for this epic.
+4. ~~**`funky` requires `std`**, which rules out a `no_std` component.~~ **Resolved:** the WIT component targets `wasm32-wasip2`, which supports `std`.
 5. **Display names.** No joker names exist in the i18n resources (Story 2). The const name title-cased is wrong for several ("Dna", "Oops All 6s"), so a hand-checked table of all 112 is needed.
 6. **Trace size.** One played card makes up to 3 steps per pass. Retriggers on a 5-card hand with Hack + Sock and Buskin can produce 40+ steps. The table needs grouping by card (Story 7).
 7. **Every played card scores.** The engine has no scoring-card vs kicker split (`src/funky/types/mpip.rs:60-61`). In Balatro, a kicker in a Pair does not add chips. The calculator will show kicker rows that Balatro would not. Fix in the engine (its own story) or show it as a known gap.
 8. **No Ace-low straights** (`src/funky/types/buffoon_pile.rs:472-474`). `A-2-3-4-5` is not a straight here. The hand editor in Story 7 makes this easy to hit.
+9. ~~**Crate name.**~~ **Decided 2026-10-18:** `buffoonery`, for the repo and the crate (`funky` and `buffoon` are taken on crates.io).
+10. **Typed WIT records.** v1 passes `BoardSpec` and `ScoreTrace` as strings (Design). A typed `score-step` record would let non-JS hosts read the trace without a JSON parser. Worth it once the trace shape settles after Story 1; `MPip` likely stays a string.
+11. **YAML is a second contract.** Once boards are written as YAML, renaming an `MPip` variant breaks users' files. Story 3 pins the shape; renames then need a version bump or a serde alias.
 
 **Risks:** scope creep toward a playable game (the board already has a shop; the calculator must keep saying no); silent drift between catalog and engine if Story 2 is hand-maintained instead of generated from `Joker::ALL_JOKERS`.
 
 ## Definition of done
 
-- The breakdown table in the calculator is produced entirely from a `ScoreTrace` returned by `cardpack::funky` via `funky-wasm`. The artboard contains no scoring arithmetic.
+- The breakdown table in the calculator is produced entirely from a `ScoreTrace` returned by the funky engine through the WIT component. The artboard contains no scoring arithmetic.
 - Every one of the 112 jokers can be placed in a slot. 104 resolve to an effect; 8 show their `Blank` reason.
 - Editing a joker's effect or edition changes the trace through a `JokerSpec` override, visibly marked as an override.
 - Conditions are reported by the kernel (`fired`), not toggled by the user.
-- The golden fixtures pass in `cargo test --features funky`, in `wasm-bindgen-test`, and in the browser parity test.
-- This EPIC closes with a status table in the EPIC-01a style, and `CHANGELOG.md` lists `ScoreTrace`, `BoardSpec` and the catalog accessor under Added.
+- A board written as YAML and the same board built in Rust produce the same trace.
+- The golden fixtures pass in the solver repo's `cargo test`, against the built component, and in the browser parity test.
+- This EPIC closes with a status table in the EPIC-01a style, and the solver repo's `CHANGELOG.md` lists `ScoreTrace`, `BoardSpec` and the catalog accessor under Added.
 
 ## Verification
+
+Solver repo, from Milestone A on:
+
+```bash
+cargo fmt --check
+cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
+cargo test
+cargo run --example buffoon                      # prints a trace
+cargo component build --release                  # or the wit-bindgen equivalent
+npx jco transpile target/wasm32-wasip2/release/buffoonery.wasm -o web/pkg
+```
+
+Milestone 0 (cardpack, `c762538`) was checked on 2026-10-18 with:
 
 ```bash
 cargo fmt --check
@@ -255,8 +320,6 @@ cargo clippy --all-features --all-targets -- -Dclippy::all -Dclippy::pedantic
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
 cargo test --all-features
 cargo build --no-default-features
-cargo run --example buffoon --features funky
-cargo test --target wasm32-unknown-unknown --features full,funky --test wasm   # after 0k
 ```
 
-Milestone 0 (landed part) was checked on 2026-10-18 with the first six commands: all pass, 1011 lib tests with `--all-features`.
+All passed, with 1011 lib tests under `--all-features`.
