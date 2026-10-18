@@ -12,11 +12,11 @@ The design bundle (Design artifact pages, architecture diagram) lives in [`docs/
 
 ## Status
 
-As of 2026-10-18, branch `epic-05` (Milestone 0 work is in the working tree, uncommitted).
+As of 2026-10-18, branch `epic-05` at `d042bd8`. Milestone 0 code landed in `c762538`.
 
 | Component | Status |
 | --- | --- |
-| Milestone 0 — prerequisites landed (clippy, public joker list, `ScoreOp` serde, strict card parsing, serde round-trip tests) | **Complete** (uncommitted) |
+| Milestone 0 — prerequisites landed (clippy, public joker list, `ScoreOp` serde, strict card parsing, serde round-trip tests) | **Complete** (`c762538`) |
 | Milestone 0 — open decisions (`Score` type, `board.rs` split, adapter placement) | Planned |
 | Story 1 — `ScoreTrace` | Planned |
 | Story 2 — joker catalog | Planned (list + blank reasons done in Milestone 0; names not started) |
@@ -110,7 +110,7 @@ pub struct ScoreTrace {
 
 The folds already call `op.apply(score)` at every point that changes the score. The trace is a sink those calls push into, so `score()` becomes `score_traced().total` and no scoring logic moves. A failed condition is a step with `op: Nothing, fired: false`, which is the "skipped" row the calculator shows today.
 
-**The boundary** (`funky-wasm`, a new crate; placement is decision 0d):
+**The boundary** (`funky-wasm`, a new crate; placement is decision 0h, open question 2):
 
 - `score(spec_json: &str) -> String`: `BoardSpec` in, `ScoreTrace` out, both serde.
 - `catalog() -> String`: the generated joker catalog.
@@ -127,12 +127,12 @@ Ordered so each milestone ships something usable on its own. Milestone 0 clears 
 
 Found by checking this EPIC's first draft against the code on 2026-10-18.
 
-**Landed** (branch `epic-05`, working tree, 2026-10-18):
+**Landed** (branch `epic-05`, commit `c762538`, 2026-10-18):
 
 - [x] **0a. Clippy green on Rust 1.99.** A test in `src/basic/decks/registry.rs` tripped the new `needless_collect` lint, so `cargo clippy --all-targets -- -D warnings` failed.
 - [x] **0b. Public joker list.** `Joker::ALL_JOKERS` / `ALL_JOKERS_SIZE` (`src/funky/decks/joker.rs:166`), `Joker::pile_all()` (`:282`), `Joker::BLANK_WITH_REASON` (`:306`) and `Joker::blank_reason()` (`:355`) moved out of `#[cfg(test)]`. Tests: `pile_all__holds_every_joker_exactly_once`, `blank_reason__explains_a_blank_joker`, `blank_reason__is_none_for_a_wired_joker`.
 - [x] **0c. `ScoreOp` derives serde** (`src/funky/types/effect.rs:25`). Tests: `score_op__serde_round_trip`, `score_op__serde_format` (pins the JSON).
-- [x] **0d-pre. Strict card parsing.** `BuffoonCard::from_str` returned a blank card for *any* unknown index, so a typo in a test or fixture added a fake blank card to the hand. Unknown indexes are now `CardError::InvalidIndex` (`src/funky/types/buffoon_card.rs:373`); `"__"` is still the blank card. `BuffoonPile::forgiving_from_str` (`src/funky/types/buffoon_pile.rs:342`) now logs a warning, like `Pile::forgiving_from_str`. A probe that made `bcards!` strict found no typo in the existing 158 call sites. Test: `from_str__unknown_index_is_an_error`.
+- [x] **0d. Strict card parsing.** `BuffoonCard::from_str` returned a blank card for *any* unknown index, so a typo in a test or fixture added a fake blank card to the hand. Unknown indexes are now `CardError::InvalidIndex` (`src/funky/types/buffoon_card.rs:373`); `"__"` is still the blank card. `BuffoonPile::forgiving_from_str` (`src/funky/types/buffoon_pile.rs:342`) now logs a warning, like `Pile::forgiving_from_str`. A probe that made `bcards!` strict found no typo in the existing 158 call sites. Test: `from_str__unknown_index_is_an_error`.
 - [x] **0e. Serde round-trip tests** for every joker, `BuffoonPile`, `HandType` and `Edition`, plus format tests that pin the JSON of `HandType` and `Edition`. These pin the shape `BoardSpec` and `ScoreTrace` will carry.
 
 **Open:**
