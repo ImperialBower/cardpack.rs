@@ -19,7 +19,7 @@ core [card model](/architecture/card-model.md) rather than forking it.
 * **`BuffoonCard`** (`funky/types/buffoon_card.rs`) — embeds core `Pip`s for
   suit/rank, adds `card_type: BCardType`, `enhancement: MPip`, `resell_value`,
   `debuffed`, `Edition`.
-* **`MPip`** (`funky/types/mpip.rs`) — the big idea: a ~69-variant enum making
+* **`MPip`** (`funky/types/mpip.rs`) — the big idea: a 142-variant enum making
   card effects **data, not code**; interpreted at scoring time by
   `calculate_plus_*` match arms.
 * **`BuffoonPile`** — implements the core `Ranged` trait so combinatorics and

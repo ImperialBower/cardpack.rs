@@ -33,8 +33,8 @@ Decided on 2026-10-18 while scoping EPIC-05 (its open question 2 / item 0h). The
 
 | Component | Status |
 |---|---|
-| Phase 0 — name, scaffold, copy | Name **Complete** (`buffoonery`); rest Planned |
-| Phase 1 — engine builds and passes in `buffoonery` | Planned |
+| Phase 0 — name, scaffold, copy | **Complete** except 0d (2026-10-18; scaffold in `buffoonery` `538cee4`, copy in its working tree) |
+| Phase 1 — engine builds and passes in `buffoonery` | 1a–1d **Complete** locally (2026-10-18); 1e CI written, not yet run on GitHub; 1f Planned |
 | Phase 2 — cardpack 0.11.2 deprecation | Planned |
 | Phase 3 — cardpack 0.12.0 removal | Planned |
 | Phase 4 — docs and `.okf/` | Planned |
@@ -106,16 +106,16 @@ pub mod funky;
 ### Phase 0 — Name, scaffold, copy
 
 - [x] **0a. Name: `buffoonery`**, repo and crate (decided 2026-10-18). `cargo info buffoonery` found no crate; `ImperialBower/buffoon` and `buffoonery` are not GitHub repos yet.
-- [ ] **0b. Scaffold the repo.** Create `~/src/github.com/ImperialBower/buffoonery` with the `dev-playbook` skill (CI, `deny.toml`, lint config, `Cargo.toml`, README, `CHANGELOG.md`). The repo starts fresh: no cardpack git history comes along (decided 2026-10-18). The engine's history stays readable in cardpack, up to its last commit before Phase 3.
-- [ ] **0c. Copy the engine in.** `src/funky/` → `src/` (with `mod.rs` → `lib.rs`), `src/preludes/funky.rs` → `src/prelude.rs`, `examples/buffoon.rs` and `examples/funky_tour.rs` → `examples/`. Record the cardpack commit the copy came from in the first commit message and in `CHANGELOG.md`, so a reader can find the older history.
+- [x] **0b. Scaffold the repo.** Create `~/src/github.com/ImperialBower/buffoonery` with the `dev-playbook` skill (CI, `deny.toml`, lint config, `Cargo.toml`, README, `CHANGELOG.md`). The repo starts fresh: no cardpack git history comes along (decided 2026-10-18). The engine's history stays readable in cardpack, up to its last commit before Phase 3.
+- [x] **0c. Copy the engine in.** `src/funky/` → `src/` (with `mod.rs` → `lib.rs`), `src/preludes/funky.rs` → `src/prelude.rs`, `examples/buffoon.rs` and `examples/funky_tour.rs` → `examples/`. Record the cardpack commit the copy came from in the first commit message and in `CHANGELOG.md`, so a reader can find the older history.
 - [ ] **0d.** Backfill cardpack's `CHANGELOG.md` for 0.11.1 (tag exists, entry does not), so 0.11.2's entry has a clean base.
 
 ### Phase 1 — The engine builds and passes in `buffoonery`
 
-- [ ] **1a.** Apply the path rewrites from the Design table. Green check: `cargo build`.
-- [ ] **1b.** Move the funky test helpers that live in cardpack's dev-dependencies (`rstest`, `serde_json`) into `buffoonery`'s `[dev-dependencies]`.
-- [ ] **1c.** Green check: `cargo test` shows **477 lib tests + 3 doctests** passing (the counts in cardpack at `c762538`: `cargo test --features funky --lib funky::` and `--doc funky`).
-- [ ] **1d.** Both examples run: `cargo run --example buffoon` and `cargo run --example funky_tour`. `buffoon` must still score **11254**, the value recorded in the 2026-10-18 EPIC-01 evaluation.
+- [x] **1a.** Apply the path rewrites from the Design table. Green check: `cargo build`.
+- [x] **1b.** Move the funky test helpers that live in cardpack's dev-dependencies (`rstest`, `serde_json`) into `buffoonery`'s `[dev-dependencies]`. Done: the engine needed `cardpack` (`std`, `serde`), `serde`, `rand 0.10` and `log`; its tests and examples need `rstest`, `serde_json` and `env_logger`.
+- [x] **1c.** Green check: `cargo test` shows **477 lib tests + 3 doctests** passing (the counts in cardpack at `c762538`: `cargo test --features funky --lib funky::` and `--doc funky`). Done: 477 lib tests pass; 4 doctests (the 3 engine doctests plus a new crate-level example), on stable and on 1.85.0.
+- [x] **1d.** Both examples run: `cargo run --example buffoon` and `cargo run --example funky_tour`. `buffoon` must still score **11254**, the value recorded in the 2026-10-18 EPIC-01 evaluation. Done: `buffoon` prints 11254; `funky_tour` exits 0.
 - [ ] **1e.** CI: fmt, clippy pedantic, test, doc with `-D warnings`, MSRV 1.85, `cargo deny`.
 - [ ] **1f.** Publish 0.1.0, so cardpack's deprecation note can name a real crate.
 
