@@ -4,7 +4,7 @@ title: EPIC-01 — Funky (Balatro-style cards)
 description: "The Balatro-style joker/effect engine: scope, the five child EPICs, and the deferrals recorded at close-out."
 tags: [epic, funky, balatro, closed]
 resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-01_Funky.md
-timestamp: 2026-07-26T12:00:00Z
+timestamp: 2026-10-18T12:00:00Z
 ---
 
 # What it covers
@@ -18,6 +18,12 @@ panics, seeded shuffle) and the joker/effect surface around it.
 Closed 2026-07-18 at tip `e50fdd0`, with named deferrals. All five children
 are closed: 01a Joker Wiring, 01b Shop, 01c Vouchers, 01d Editions (2026-07-16
 – 07-17), and 01e Spectral Cards (2026-07-18, seal spectrals deferred).
+
+Re-evaluated 2026-10-18 at `main` tip `a2bdc82` in
+`docs/EPIC-01_Funky_Progress.md`: grade A− (was C+ on 2026-07-05), every gate
+green, no feature work since close-out. Open hygiene items: journal-voice
+`DIARY` rustdoc, an 8,342-line `board.rs`, a stale Joker Stencil comment, and a
+partly stale "Serde" deferral (derives exist; round-trip tests do not).
 
 # Authoritative for
 
