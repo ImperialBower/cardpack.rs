@@ -33,7 +33,7 @@ Decided on 2026-10-18 while scoping EPIC-05 (its open question 2 / item 0h). The
 
 | Component | Status |
 |---|---|
-| Phase 0 — name, history, scaffold | Name **Complete** (`buffoonery`); rest Planned |
+| Phase 0 — name, scaffold, copy | Name **Complete** (`buffoonery`); rest Planned |
 | Phase 1 — engine builds and passes in `buffoonery` | Planned |
 | Phase 2 — cardpack 0.11.2 deprecation | Planned |
 | Phase 3 — cardpack 0.12.0 removal | Planned |
@@ -45,7 +45,7 @@ Decided on 2026-10-18 while scoping EPIC-05 (its open question 2 / item 0h). The
 
 - **One home for the engine.** After 0.12.0, Balatro code exists only in `buffoonery`.
 - **No behavior change.** The move is mechanical: the same tests pass with the same results.
-- **Keep the history.** `git log` on an engine file in `buffoonery` reaches back into cardpack's history.
+- **A traceable start.** `buffoonery` starts fresh, with no cardpack history. Its first commit names the cardpack commit the engine was copied from.
 - **A clean warning period.** Users of `cardpack/funky` get one release (0.11.2) that still works and tells them where the engine went.
 - **A purer cardpack.** The domain-kernel description becomes simply true: no game state anywhere in the crate.
 
@@ -103,26 +103,11 @@ pub mod funky;
 
 ## Work Items
 
-### Phase 0 — Name, repo, history
+### Phase 0 — Name, scaffold, copy
 
 - [x] **0a. Name: `buffoonery`**, repo and crate (decided 2026-10-18). `cargo info buffoonery` found no crate; `ImperialBower/buffoon` and `buffoonery` are not GitHub repos yet.
-- [ ] **0b. Carry the history first.** The new repo *starts* as a filtered clone of cardpack, so its history is the engine's real history. The maintainer runs this (Claude does not run state-changing git):
-
-  ```bash
-  cd ~/src/github.com/ImperialBower
-  git clone --no-local cardpack.rs buffoonery
-  cd buffoonery
-  git filter-repo \
-    --path src/funky/ --path src/funky.rs --path src/preludes/funky.rs \
-    --path examples/buffoon.rs --path examples/funky_tour.rs --path examples/funky_demo.rs \
-    --path-rename src/funky/mod.rs:src/lib.rs \
-    --path-rename src/funky.rs:src/lib.rs \
-    --path-rename src/funky/:src/ \
-    --path-rename src/preludes/funky.rs:src/prelude.rs
-  ```
-
-  `src/funky.rs` and `examples/funky_demo.rs` are older homes of the same code (the first funky commit is `97ccc07`, 2025-03-09; `src/funky/board.rs` became `src/funky/types/board.rs` in `ca06f1b`). If filter-repo reports a path collision on `src/lib.rs`, drop the `src/funky.rs` rename and keep its history under its old name. Check: `git log --follow --oneline src/types/board.rs | tail -1` shows a commit from 2025.
-- [ ] **0c. Scaffold on top.** Add the repo scaffold (CI, `deny.toml`, lint config, `Cargo.toml`, README, `CHANGELOG.md`) into that clone with the `dev-playbook` skill, in a normal commit after the filtered history. Scaffolding *before* 0b would leave two unrelated histories to merge.
+- [ ] **0b. Scaffold the repo.** Create `~/src/github.com/ImperialBower/buffoonery` with the `dev-playbook` skill (CI, `deny.toml`, lint config, `Cargo.toml`, README, `CHANGELOG.md`). The repo starts fresh: no cardpack git history comes along (decided 2026-10-18). The engine's history stays readable in cardpack, up to its last commit before Phase 3.
+- [ ] **0c. Copy the engine in.** `src/funky/` → `src/` (with `mod.rs` → `lib.rs`), `src/preludes/funky.rs` → `src/prelude.rs`, `examples/buffoon.rs` and `examples/funky_tour.rs` → `examples/`. Record the cardpack commit the copy came from in the first commit message and in `CHANGELOG.md`, so a reader can find the older history.
 - [ ] **0d.** Backfill cardpack's `CHANGELOG.md` for 0.11.1 (tag exists, entry does not), so 0.11.2's entry has a clean base.
 
 ### Phase 1 — The engine builds and passes in `buffoonery`
@@ -166,7 +151,6 @@ pub mod funky;
 
 - **Engine parity** (Phase 1c): `buffoonery`'s full suite passes unchanged, 477 + 3. Any failure is a move bug, not a behavior change.
 - **Golden score** (Phase 1d): `buffoon` prints 11254.
-- **History** (Phase 0c): `git log --follow` reaches pre-move commits.
 - **Deprecation warns** (Phase 2b): a consumer build shows the warning.
 - **Clean removal** (Phase 3h): every cardpack gate passes; `git grep` finds no funky in code, build or CI files.
 
@@ -184,7 +168,7 @@ pub mod funky;
 
 ## Reuse (do NOT recreate)
 
-- The engine itself: move the files with their history (0c). Do not copy-paste them into a fresh repo.
+- The engine itself: copy the files as they are (0c). Do not rewrite them while moving; behavior changes start only after Phase 1 is green.
 - `dev-playbook` for `buffoonery`'s scaffold (CI, deny, lint config).
 - `.okf/decisions/examples-flag-free-alias.md`: the `cargo ex` alias pattern, if `buffoonery` needs feature-gated examples.
 
