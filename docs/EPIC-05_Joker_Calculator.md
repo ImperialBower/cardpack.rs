@@ -14,15 +14,15 @@ The design bundle (Design artifact pages, architecture diagram) lives in [`docs/
 
 ## Status
 
-As of 2026-10-18, branch `epic-05` at `d042bd8`. Milestone 0 code landed in `c762538`.
+As of 2026-10-19. Milestone 0 code landed in cardpack `c762538`. Milestone A runs in `buffoonery`.
 
 | Component | Status |
 | --- | --- |
 | Milestone 0 — prerequisites landed in cardpack (clippy, public joker list, `ScoreOp` serde, strict card parsing, serde round-trip tests) | **Complete** (`c762538`) |
 | Milestone 0 — decisions 0f–0h (`Score` type, fold split, engine placement) | **Complete** (decided 2026-10-18) |
 | Milestone 0 — 0i–0k | Re-homed (see Milestone 0) |
-| Engine standing in its own repo (EPIC-06 Phase 1) | Planned — blocks everything below |
-| Story S1 — fractional `Score` | Planned |
+| Engine standing in its own repo (EPIC-06 Phase 1) | **Complete** (`buffoonery` 0.0.1, 2026-10-18) |
+| Story S1 — fractional `Score` | Built in `buffoonery` (2026-10-19; 485 lib tests green), not yet committed |
 | Story S2 — scoring folds out of `board.rs` | Planned |
 | Story 1 — `ScoreTrace` | Planned |
 | Story 2 — joker catalog | Planned (list + blank reasons done in Milestone 0; names not started) |
@@ -182,10 +182,11 @@ Starts when EPIC-06 Phase 1 is green: the engine builds and passes its tests in 
 
 **Story S1: fractional `Score`** (decision 0f)
 
-- [ ] `Score { chips, mult }` with a fractional `mult` (`f64`) and chips wide enough not to overflow on wasm32. `multi_mult` stops ceiling (`score.rs:43-47`); `score()` stops being an unchecked `usize` multiply (`score.rs:53`)
-- [ ] `Score` derives `Eq`, `Hash` and `Ord` today (`score.rs:5-7`). Floats cannot derive them. Decide per trait: drop it, or implement it by hand with `total_cmp`
-- [ ] Update the pinned `ScoreOp` JSON format test (`effect.rs`, `score_op__serde_format`): `Add(Score)` changes shape on purpose
-- [ ] Re-baseline every test that asserted a ceiled value, and say in the commit which numbers moved and why. `buffoon` scores 11254 today; record its new value
+- [x] `Score { chips, mult }` with a fractional `mult` (`f64`) and chips wide enough not to overflow on wasm32. `multi_mult` stops ceiling (`score.rs:43-47`); `score()` stops being an unchecked `usize` multiply (`score.rs:53`). Done: `{ chips: u64, mult: f64 }`, saturating chip adds, `score() -> f64` floored once (Balatro floors the hand score). `Score::from_usize` converts the engine's `usize` counts in one place. The engine's x-mult math moved from `f32` to `f64`, and `round_score` is `f64`
+- [x] `Score` derives `Eq`, `Hash` and `Ord` today (`score.rs:5-7`). Floats cannot derive them. Decide per trait: drop it, or implement it by hand with `total_cmp`. Done: all three dropped (nothing needed them; the derived `Ord` sorted by chips first, which never meant "higher score"). `BuffoonBoard` dropped `Eq` too
+- [x] Update the pinned `ScoreOp` JSON format test (`effect.rs`, `score_op__serde_format`): `Add(Score)` changes shape on purpose. Done: `{"chips":5,"mult":3.0}`
+- [x] Re-baseline every test that asserted a ceiled value, and say in the commit which numbers moved and why. `buffoon` scores 11254 today; record its new value. Done: 11 tests moved (Hologram 2→1.25, Baseball 2→1.5, Ramen 2→1.01, Constellation 8→7.5, Vampire 2→1.2 twice and 8→7.5, Ancient Joker 17→16.875, Smeared + Ancient 26→25.3125, Steel Joker 15→14.4, held Steel 2→1.5, joker Polychrome 8→7.5). `buffoon` still scores **11254**; `funky_tour` output is unchanged. Decision record: `buffoonery/.okf/decisions/fractional-score.md`
+- [ ] Follow-up, not in S1: `blind_target` is still `usize`, so blind targets past 4.29 × 10⁹ would overflow on wasm32
 
 **Story S2: scoring folds out of `board.rs`** (decision 0g)
 
@@ -275,6 +276,7 @@ Starts when EPIC-06 Phase 1 is green: the engine builds and passes its tests in 
    - `chips * mult` is unchecked (`:53`), and `usize` is 32 bits on wasm32. Late-game Balatro scores pass 4.29 × 10⁹, so the calculator would overflow in the browser.
    - Any fix is a breaking change to `Score` and to the pinned `ScoreOp` JSON (`Add(Score)`).
    - **Decided 2026-10-18 (0f):** fractional mult, built as Story S1 in `buffoonery`. Because the engine leaves cardpack, cardpack never ships this break.
+   - **Built 2026-10-19:** `{ chips: u64, mult: f64 }`, floored once in `score()`. `blind_target` is still `usize` (follow-up under S1).
 2. **Engine placement.** ~~A `funky-wasm` adapter crate, in cardpack's workspace or a sibling repo.~~ **Decided 2026-10-18 (0h):** the engine itself moves to its own repo, which becomes the solver foundation ([EPIC-06](EPIC-06_Funky_Extraction.md)). This also avoids the cargo-deny trap a workspace member would have hit (`.okf/decisions/examples-flag-free-alias.md`).
 3. **Where the calculator lives.** The Design artifact cannot load a `.wasm` from the canvas page today, so Milestone C needs a real web host (a static page in the repo, `examples/wasm.rs` style). The artboard stays as the design reference.
 4. ~~**`funky` requires `std`**, which rules out a `no_std` component.~~ **Resolved:** the WIT component targets `wasm32-wasip2`, which supports `std`.
