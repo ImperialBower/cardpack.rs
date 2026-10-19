@@ -34,7 +34,7 @@ Decided on 2026-10-18 while scoping EPIC-05 (its open question 2 / item 0h). The
 | Component | Status |
 |---|---|
 | Phase 0 — name, scaffold, copy | **Complete** except 0d (2026-10-18; scaffold in `buffoonery` `538cee4`, copy in its working tree) |
-| Phase 1 — engine builds and passes in `buffoonery` | 1a–1d **Complete** locally (2026-10-18); 1e CI written, not yet run on GitHub; 1f Planned |
+| Phase 1 — engine builds and passes in `buffoonery` | **Complete** (2026-10-18; CI green at `buffoonery` `ce9fd8a`; 0.0.1 on crates.io, tag `v0.0.1` at `b7c16bf`) |
 | Phase 2 — cardpack 0.11.2 deprecation | Planned |
 | Phase 3 — cardpack 0.12.0 removal | Planned |
 | Phase 4 — docs and `.okf/` | Planned |
@@ -116,8 +116,8 @@ pub mod funky;
 - [x] **1b.** Move the funky test helpers that live in cardpack's dev-dependencies (`rstest`, `serde_json`) into `buffoonery`'s `[dev-dependencies]`. Done: the engine needed `cardpack` (`std`, `serde`), `serde`, `rand 0.10` and `log`; its tests and examples need `rstest`, `serde_json` and `env_logger`.
 - [x] **1c.** Green check: `cargo test` shows **477 lib tests + 3 doctests** passing (the counts in cardpack at `c762538`: `cargo test --features funky --lib funky::` and `--doc funky`). Done: 477 lib tests pass; 4 doctests (the 3 engine doctests plus a new crate-level example), on stable and on 1.85.0.
 - [x] **1d.** Both examples run: `cargo run --example buffoon` and `cargo run --example funky_tour`. `buffoon` must still score **11254**, the value recorded in the 2026-10-18 EPIC-01 evaluation. Done: `buffoon` prints 11254; `funky_tour` exits 0.
-- [ ] **1e.** CI: fmt, clippy pedantic, test, doc with `-D warnings`, MSRV 1.85, `cargo deny`.
-- [ ] **1f.** Publish 0.1.0, so cardpack's deprecation note can name a real crate.
+- [x] **1e.** CI: fmt, clippy pedantic, test, doc with `-D warnings`, MSRV 1.85, `cargo deny`. Done: CI and Security green on GitHub at `buffoonery` `ce9fd8a` (2026-10-18). Two first-run failures: `bin/security-scan` was never committed because the maintainer's global gitignore excludes `bin` (fixed with `!/bin/` in `buffoonery/.gitignore`), and cargo-deny flagged duplicate `getrandom` 0.3/0.4 (skipped in `buffoonery/deny.toml`; see 2f).
+- [x] **1f.** Publish 0.1.0, so cardpack's deprecation note can name a real crate. Done: published as **0.0.1**, not 0.1.0 (2026-10-18, tag `v0.0.1` at `buffoonery` `b7c16bf`). Before publishing, the maintainer raised `buffoonery`'s MSRV from 1.85.0 to **1.99.1**.
 
 ### Phase 2 — cardpack 0.11.2 deprecation
 
@@ -126,6 +126,7 @@ pub mod funky;
 - [ ] **2c.** `#![allow(deprecated)]` where cardpack's own funky tests and examples would otherwise fail `-D warnings`.
 - [ ] **2d.** README: the Funky section (`README.md:236-269`) and the feature-table row (`README.md:108`) point to the new crate.
 - [ ] **2e.** `CHANGELOG.md` 0.11.2: a `### Deprecated` entry with the migration line from Compatibility below.
+- [ ] **2f. Drop the stale `getrandom` 0.3 pin** (`Cargo.toml`, `[target.'cfg(target_arch = "wasm32")'.dependencies]`). Its comment says `rand_core` 0.9 pulls 0.3 in through dev-dependencies, but that comes from `proptest`, which is gated off wasm32, so on wasm nothing else uses 0.3 (`cargo tree -i getrandom@0.3.4 --target wasm32-unknown-unknown` shows only cardpack). Every consumer gets a duplicate `getrandom` from it; `buffoonery` has to skip it in `deny.toml`. Green check: the CI wasm-build and wasm-test commands still pass. Then remove the skips from `buffoonery/deny.toml`.
 
 ### Phase 3 — cardpack 0.12.0 removal
 
@@ -182,10 +183,10 @@ pub mod funky;
   # before
   cardpack = { version = "0.11", features = ["funky"] }
   # after
-  buffoonery = "0.1"
+  buffoonery = "0.0.1"
   ```
 
-  and `use cardpack::preludes::funky::*;` → `use buffoonery::prelude::*;`. Engine type names do not change.
+  and `use cardpack::preludes::funky::*;` → `use buffoonery::prelude::*;`. Engine type names do not change. Two catches: `buffoonery` needs Rust **1.99.1** (cardpack needs 1.85.0), and under Cargo's rules every `0.0.x` release is a breaking change, so `"0.0.1"` never picks up `0.0.2` by itself. Use the current version when 2c writes the deprecation note.
 
 ## Dependencies
 

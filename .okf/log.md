@@ -1,6 +1,8 @@
 # Update Log
 
 ## 2026-10-18
+* **`buffoonery` 0.0.1 is on crates.io** (tag `v0.0.1` at its `b7c16bf`); EPIC-06 Phase 1 complete. It shipped as 0.0.1, not the planned 0.1.0, with MSRV 1.99.1 (cardpack stays on 1.85.0). The migration note in EPIC-06 now names `buffoonery = "0.0.1"` and both catches.
+* **`buffoonery` CI green on GitHub** (`ce9fd8a`); EPIC-06 1e done. Two first-run lessons: a global gitignore that excludes `bin` silently drops `bin/security-scan` from `git add -A` (fixed in `buffoonery/.gitignore` with `!/bin/`), and cardpack's leftover wasm-only `getrandom` 0.3 pin gives every consumer a duplicate `getrandom` (new EPIC-06 item 2f).
 * **EPIC-06 Phases 0–1 mostly done.** `buffoonery` scaffolded with dev-playbook (its commit `538cee4`), then the engine copied in: 477 lib tests pass, `buffoon` still scores 11254, `make ayce` green on stable and 1.85.0. Still open: 0d (cardpack 0.11.1 CHANGELOG), 1e (first CI run on GitHub), 1f (publish 0.1.0). [Funky engine](architecture/funky-engine.md): `MPip` variant count corrected from ~69 to 142.
 * **`buffoonery` starts fresh, without cardpack's git history** (maintainer's call). EPIC-06 0b is now "scaffold with `dev-playbook`" and 0c "copy the engine in"; the `git filter-repo` plan is dropped. The first `buffoonery` commit names the cardpack commit the engine was copied from. [EPIC-06](references/epic-06-funky-extraction.md) updated.
 * **The engine's new home is named `buffoonery`** (repo and crate); `funky` and `buffoon` are taken on crates.io. EPIC-06 0a closed; 0b now carries the history first with an exact `git filter-repo` command (including the older paths `src/funky.rs` and `examples/funky_demo.rs`), and 0c scaffolds on top. [Decision](decisions/funky-moves-to-own-repo.md) updated.
