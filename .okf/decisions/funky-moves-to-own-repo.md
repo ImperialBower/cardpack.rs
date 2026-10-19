@@ -48,6 +48,6 @@ planned in [EPIC-06](/references/epic-06-funky-extraction.md).
 # Citations
 
 * `docs/EPIC-06_Funky_Extraction.md` — the move, phase by phase.
-* `docs/EPIC-05_Joker_Calculator.md` — decisions 0f–0h and open question 2.
+* EPIC-05 (moved to `buffoonery` on 2026-10-19; cardpack's copy at `d41d224`) — decisions 0f–0h and open question 2.
 * `src/lib.rs:360-366` — the two feature-gated modules that go away.
 * `src/basic/types/pips.rs:79-85` — `Pip`'s public fields.

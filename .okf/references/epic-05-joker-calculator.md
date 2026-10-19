@@ -3,8 +3,8 @@ type: Reference
 title: EPIC-05 — Joker Calculator integration
 description: Make the Balatro Joker Calculator a thin display over the funky engine — a ScoreTrace emitted by the scoring folds (one step per ScoreOp apply), a BoardSpec written in Rust or YAML, a joker catalog generated from Joker::ALL_JOKERS, and a WIT component — built in the engine's new repo after EPIC-06 moves it out of cardpack.
 tags: [epic, funky, balatro, scoring, trace, wit, yaml, active]
-resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-05_Joker_Calculator.md
-timestamp: 2026-10-18T00:00:00Z
+resource: https://github.com/ImperialBower/buffoonery/blob/main/docs/EPIC-05_Joker_Calculator.md
+timestamp: 2026-10-19T00:00:00Z
 ---
 
 # What it covers
@@ -19,7 +19,13 @@ catalog (names, rarity, cost, `MPip`, `Blank` reason) is generated from
 it runs in the engine's new repo
 ([funky-moves-to-own-repo](/decisions/funky-moves-to-own-repo.md),
 [EPIC-06](epic-06-funky-extraction.md)). The calculator front end lives
-outside this repo; its design bundle is in `docs/design/balatro-joker-calculator/`.
+outside this repo.
+
+**Moved 2026-10-19.** The EPIC and its design bundle now live in the
+`buffoonery` repo: [`docs/EPIC-05_Joker_Calculator.md`](https://github.com/ImperialBower/buffoonery/blob/main/docs/EPIC-05_Joker_Calculator.md) and
+`docs/design/balatro-joker-calculator/` there. Cardpack's
+`docs/EPIC-05_Joker_Calculator.md` is a pointer; the full text up to the move
+is in git at `d41d224`.
 
 # Key rules (see the EPIC)
 
@@ -35,11 +41,12 @@ outside this repo; its design bundle is in `docs/design/balatro-joker-calculator
 
 # Status
 
-Active since 2026-10-18. The live status is the `## Status` table in
-`docs/EPIC-05_Joker_Calculator.md`; this page does not track it.
+Active since 2026-10-18. The live status is the `## Status` table in the EPIC,
+now in `buffoonery`; this page does not track it.
 
-# In-repo paths
+# Paths
 
-`docs/EPIC-05_Joker_Calculator.md`, `docs/design/balatro-joker-calculator/`
+* Cardpack: `docs/EPIC-05_Joker_Calculator.md` (pointer only).
+* `buffoonery`: `docs/EPIC-05_Joker_Calculator.md`, `docs/design/balatro-joker-calculator/`.
 
 This concept is a pointer, not a copy — the linked documents are authoritative.

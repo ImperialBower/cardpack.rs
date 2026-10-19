@@ -190,7 +190,7 @@ pub mod funky;
 
 ## Dependencies
 
-- **Blocks:** EPIC-05 (its stories run in `buffoonery`).
+- **Blocks:** EPIC-05 (its stories run in `buffoonery`; the EPIC moved there on 2026-10-19: <https://github.com/ImperialBower/buffoonery/blob/main/docs/EPIC-05_Joker_Calculator.md>).
 - **Built on:** EPIC-01 (the engine) and its children 01a–01e.
 - **Related:** the domain-kernel audit (`docs/audit-2026-07-18-domain-kernel.md`).
 
