@@ -148,7 +148,7 @@ checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
 name = "cardpack"
-version = "0.11.1"
+version = "0.11.2"
 dependencies = [
  "chacha20poly1305",
  "ckc-rs",
@@ -157,7 +157,6 @@ dependencies = [
  "criterion",
  "env_logger",
  "fluent-templates",
- "getrandom 0.3.4",
  "getrandom 0.4.3",
  "hkdf",
  "itertools 0.15.0",
@@ -654,11 +653,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
 dependencies = [
  "cfg-if",
- "js-sys",
  "libc",
  "r-efi 5.3.0",
  "wasip2",
- "wasm-bindgen",
 ]
 
 [[package]]

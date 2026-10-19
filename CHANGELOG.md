@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2] — 2026-10-18
+
+### Deprecated
+
+- **The `funky` feature: `cardpack::funky` and `cardpack::preludes`.** The
+  engine moved to its own crate,
+  [`buffoonery`](https://crates.io/crates/buffoonery), and both modules are
+  removed in 0.12.0. Using them now gives a deprecation warning. To move:
+
+  ```toml
+  # before
+  cardpack = { version = "0.11", features = ["funky"] }
+  # after
+  buffoonery = "0.0.1"
+  ```
+
+  Then change `use cardpack::preludes::funky::*;` to
+  `use buffoonery::prelude::*;`. Type names do not change. `buffoonery` needs
+  Rust 1.99.1. The `bcard!` and `bcards!` macros are deprecated too.
+
 ### Added
 
 - **`Joker::ALL_JOKERS`, `Joker::pile_all()`, `Joker::BLANK_WITH_REASON`,
@@ -26,6 +46,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now logs a warning on invalid input, matching `Pile::forgiving_from_str`.
 - Test-only clippy fix in `basic::decks::registry` for Rust 1.99's
   `needless_collect`.
+- **wasm32 consumers no longer get a duplicate `getrandom`.** cardpack
+  pinned `getrandom` 0.3 for wasm32 as well as 0.4, but only `proptest` (a
+  dev-dependency that is off on wasm32) uses 0.3. The 0.3 pin is removed;
+  the 0.4 pin that `rand` 0.10 needs stays.
+
+## [0.11.1] — 2026-08-26
+
+### Changed
+
+- README only: the sealed-deck section is now a bullet list, and some
+  wording is clearer. No code changed.
 
 ## [0.11.0] — 2026-08-25
 
@@ -607,7 +638,9 @@ Single-focus release: serde support for piles.
 `serde` was a hard dependency in this release. In v0.6.12 it was moved
 behind an opt-out `serde` feature flag (still on by default).
 
-[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.2...HEAD
+[0.11.2]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.1...v0.11.2
+[0.11.1]: https://github.com/ImperialBower/cardpack.rs/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/ImperialBower/cardpack.rs/compare/v0.10.0...v0.10.1

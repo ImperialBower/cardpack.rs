@@ -1,9 +1,9 @@
 ---
 type: Architecture
 title: Funky — the Balatro-style engine
-description: std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals.
+description: "Deprecated in 0.11.2 (moved to the buffoonery crate): std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals."
 tags: [funky, balatro, feature-gated, scoring]
-timestamp: 2026-10-18T00:00:00Z
+timestamp: 2026-10-18T12:00:00Z
 ---
 
 # What it is
@@ -32,9 +32,13 @@ core [card model](/architecture/card-model.md) rather than forking it.
 * **Economy**: `Shop` (stock, rerolls, booster packs, voucher slot), 20 wired
   `Voucher`s, `sell_joker`, blind state with 3 boss blinds.
 
-# Planned move (2026-10-18)
+# Deprecated: moved to `buffoonery` (2026-10-18)
 
-This engine is **moving out of cardpack** into its own repo, `buffoonery`, where it becomes
+**Deprecated since 0.11.2.** `cardpack::funky`, `cardpack::preludes` and the
+`bcard!` / `bcards!` macros carry `#[deprecated]`. Cardpack's own funky code,
+examples and test harness silence it with `allow(deprecated)` until removal.
+The engine now lives in its own repo and crate,
+[`buffoonery`](https://crates.io/crates/buffoonery) (0.0.1, MSRV 1.99.1), where it becomes
 the foundation of a Balatro solver
 ([decision](/decisions/funky-moves-to-own-repo.md),
 [EPIC-06](/references/epic-06-funky-extraction.md)). Cardpack deprecates the

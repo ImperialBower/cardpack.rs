@@ -1,4 +1,8 @@
 #[macro_export]
+#[deprecated(
+    since = "0.11.2",
+    note = "the funky engine moved to the `buffoonery` crate; removed in 0.12.0"
+)]
 macro_rules! bcard {
     (AS) => {
         $crate::funky::decks::basic::card::ACE_SPADES
@@ -539,6 +543,10 @@ macro_rules! bcard {
 }
 
 #[macro_export]
+#[deprecated(
+    since = "0.11.2",
+    note = "the funky engine moved to the `buffoonery` crate; removed in 0.12.0"
+)]
 #[allow(clippy::pedantic)]
 macro_rules! bcards {
     ($card_str:expr) => {
