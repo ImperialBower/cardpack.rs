@@ -1,5 +1,8 @@
 //! # Features
 //!
+//! **Deprecated since 0.11.2:** the engine moved to the `buffoonery` crate,
+//! and this example moved with it. Both leave cardpack in 0.12.0.
+//!
 //! Uses `funky` (the Balatro-style engine, `cardpack::preludes::funky`).
 //! cardpack is pure by default (`default = []`), so to use these APIs in your
 //! own crate enable it explicitly:
@@ -8,6 +11,9 @@
 //!
 //! Run it from this repo with `cargo ex buffoon` — the alias in `.cargo/config.toml`
 //! supplies the features, so no `--features` flag is needed.
+
+// Deprecated in 0.11.2: this example now lives in the `buffoonery` crate.
+#![allow(deprecated)]
 
 use cardpack::preludes::funky::*;
 

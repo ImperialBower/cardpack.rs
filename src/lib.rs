@@ -21,6 +21,9 @@
 // the failure. Keep them denied in production paths (the `#![warn]` above) but
 // allow them under `cfg(test)` so the test suite stays clippy-clean.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
+// The test harness names every `funky` test from the crate root, outside the
+// module's own `#![allow(deprecated)]`. Remove with `funky` in 0.12.0.
+#![cfg_attr(all(test, feature = "funky"), allow(deprecated))]
 #![cfg_attr(not(feature = "std"), no_std)]
 // clippy::as_conversions
 // clippy::float_arithmetic
@@ -358,10 +361,18 @@ extern crate alloc;
 pub mod basic;
 pub mod common;
 #[cfg(feature = "funky")]
+#[deprecated(
+    since = "0.11.2",
+    note = "the funky engine moved to the `buffoonery` crate; removed in 0.12.0"
+)]
 pub mod funky;
 #[cfg(feature = "i18n")]
 pub mod localization;
 pub mod prelude;
 #[cfg(feature = "funky")]
+#[deprecated(
+    since = "0.11.2",
+    note = "the funky engine moved to the `buffoonery` crate (use `buffoonery::prelude::*`); removed in 0.12.0"
+)]
 pub mod preludes;
 pub mod seal;

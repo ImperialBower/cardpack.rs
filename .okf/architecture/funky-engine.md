@@ -1,9 +1,9 @@
 ---
 type: Architecture
 title: Funky — the Balatro-style engine
-description: std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals.
+description: "Deprecated in 0.11.2 (moved to the buffoonery crate): std-only feature-gated module modeling Balatro cards, jokers, scoring, shop, and vouchers on top of the core card model; EPIC-01 closed 2026-07-18 with named deferrals."
 tags: [funky, balatro, feature-gated, scoring]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-10-18T12:00:00Z
 ---
 
 # What it is
@@ -19,7 +19,7 @@ core [card model](/architecture/card-model.md) rather than forking it.
 * **`BuffoonCard`** (`funky/types/buffoon_card.rs`) — embeds core `Pip`s for
   suit/rank, adds `card_type: BCardType`, `enhancement: MPip`, `resell_value`,
   `debuffed`, `Edition`.
-* **`MPip`** (`funky/types/mpip.rs`) — the big idea: a ~69-variant enum making
+* **`MPip`** (`funky/types/mpip.rs`) — the big idea: a 142-variant enum making
   card effects **data, not code**; interpreted at scoring time by
   `calculate_plus_*` match arms.
 * **`BuffoonPile`** — implements the core `Ranged` trait so combinatorics and
@@ -32,12 +32,30 @@ core [card model](/architecture/card-model.md) rather than forking it.
 * **Economy**: `Shop` (stock, rerolls, booster packs, voucher slot), 20 wired
   `Voucher`s, `sell_joker`, blind state with 3 boss blinds.
 
+# Deprecated: moved to `buffoonery` (2026-10-18)
+
+**Deprecated since 0.11.2.** `cardpack::funky`, `cardpack::preludes` and the
+`bcard!` / `bcards!` macros carry `#[deprecated]`. Cardpack's own funky code,
+examples and test harness silence it with `allow(deprecated)` until removal.
+The engine now lives in its own repo and crate,
+[`buffoonery`](https://crates.io/crates/buffoonery) (0.0.1, MSRV 1.99.1), where it becomes
+the foundation of a Balatro solver
+([decision](/decisions/funky-moves-to-own-repo.md),
+[EPIC-06](/references/epic-06-funky-extraction.md)). Cardpack deprecates the
+`funky` feature in 0.11.2 and removes it in 0.12.0. Do not add engine features
+here.
+
 # Status (EPIC-01, closed 2026-07-18)
 
 All five child EPICs (01a–01e) are closed; both stated goals are structurally
 met. **Named deferrals** to future EPICs: Seals (blocks 4 seal spectrals),
 most Decks (~3 of 16), Antes/Bosses, Tags, Serde. 8 of 112 jokers stay `Blank`
-with a test-enforced reason list (`BLANK_WITH_REASON`).
+with a test-enforced reason list. Both lists are public since 2026-10-18:
+`Joker::ALL_JOKERS` / `Joker::pile_all()` is the one list of every joker, and
+`Joker::BLANK_WITH_REASON` / `Joker::blank_reason()` says why a joker is
+`Blank`. Build any joker catalog from these, never from a hand-kept copy.
+`ScoreOp` now derives serde too, and the JSON of `ScoreOp`, `HandType` and
+`Edition` is pinned by format tests (groundwork for EPIC-05's `ScoreTrace`).
 
 # Try it
 

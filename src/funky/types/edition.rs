@@ -124,4 +124,28 @@ mod funky__types__edition_tests {
             assert!(!edition.is_negative());
         }
     }
+
+    #[test]
+    fn edition__serde_round_trip() {
+        for edition in [
+            Edition::None,
+            Edition::Foil,
+            Edition::Holographic,
+            Edition::Polychrome,
+            Edition::Negative,
+        ] {
+            let json = serde_json::to_string(&edition).unwrap();
+
+            assert_eq!(serde_json::from_str::<Edition>(&json).unwrap(), edition);
+        }
+    }
+
+    /// Pins the wire format: a consumer parsing this JSON breaks if it changes.
+    #[test]
+    fn edition__serde_format() {
+        assert_eq!(
+            serde_json::to_string(&Edition::Polychrome).unwrap(),
+            r#""Polychrome""#
+        );
+    }
 }

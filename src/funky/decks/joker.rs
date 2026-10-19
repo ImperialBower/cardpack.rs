@@ -154,6 +154,210 @@ impl Joker {
     pub fn pile_legendary() -> BuffoonPile {
         BuffoonPile::from(&Self::LEGENDARY_JOKERS[..])
     }
+
+    pub const ALL_JOKERS_SIZE: usize = 112;
+
+    /// Every joker const defined in this file, in declaration order. The single
+    /// iteration point for crate-wide data invariants (weight uniqueness, the
+    /// scoring-reachability guard) and for consumers that list every joker. A
+    /// joker is only protected by those guards once it is listed here;
+    /// `all_jokers__is_superset_of_every_pile` keeps the four rarity piles from
+    /// drifting out of it.
+    pub const ALL_JOKERS: [BuffoonCard; Self::ALL_JOKERS_SIZE] = [
+        card::JOKER,
+        card::GREEDY_JOKER,
+        card::LUSTY_JOKER,
+        card::WRATHFUL_JOKER,
+        card::GLUTTONOUS_JOKER,
+        card::JOLLY_JOKER,
+        card::ZANY_JOKER,
+        card::MAD_JOKER,
+        card::CRAZY_JOKER,
+        card::DROLL_JOKER,
+        card::SLY_JOKER,
+        card::WILY_JOKER,
+        card::CLEVER_JOKER,
+        card::DEVIOUS_JOKER,
+        card::CRAFTY_JOKER,
+        card::HALF_JOKER,
+        card::JOKER_STENCIL,
+        card::FOUR_FINGERS,
+        card::MIME,
+        card::CREDIT_CARD,
+        card::CEREMONIAL_DAGGER,
+        card::BANNER,
+        card::MYSTIC_SUMMIT,
+        card::MARBLE_JOKER,
+        card::LOYALTY_CARD,
+        card::EIGHT_BALL,
+        card::MISPRINT,
+        card::DUSK,
+        card::RAISED_FIST,
+        card::CHAOS_THE_CLOWN,
+        card::FIBONACCI,
+        card::STEEL_JOKER,
+        card::SCARY_FACE,
+        card::ABSTRACT_JOKER,
+        card::DELAYED_GRATIFICATION,
+        card::HACK,
+        card::PAREIDOLIA,
+        card::GROS_MICHEL,
+        card::EVEN_STEVEN,
+        card::ODD_TODD,
+        card::SCHOLAR,
+        card::BUSINESS_CARD,
+        card::SUPERNOVA,
+        card::RIDE_THE_BUS,
+        card::SPACE_JOKER,
+        card::EGG,
+        card::BURGLAR,
+        card::BLACKBOARD,
+        card::RUNNER,
+        card::ICE_CREAM,
+        card::DNA,
+        card::SPLASH,
+        card::BLUE_JOKER,
+        card::SIXTH_SENSE,
+        card::CONSTELLATION,
+        card::HIKER,
+        card::FACELESS_JOKER,
+        card::GREEN_JOKER,
+        card::SUPERPOSITION,
+        card::TO_DO_LIST,
+        card::CAVENDISH,
+        card::CARD_SHARP,
+        card::RED_CARD,
+        card::MADNESS,
+        card::SQUARE_JOKER,
+        card::SEANCE,
+        card::RIFF_RAFF,
+        card::VAMPIRE,
+        card::SHORTCUT,
+        card::HOLOGRAM,
+        card::VAGABOND,
+        card::BARON,
+        card::CLOUD_9,
+        card::ROCKET,
+        card::EROSION,
+        card::RESERVED_PARKING,
+        card::MAIL_IN_REBATE,
+        card::TO_THE_MOON,
+        card::HALLUCINATION,
+        card::FORTUNE_TELLER,
+        card::JUGGLER,
+        card::DRUNKARD,
+        card::STONE_JOKER,
+        card::GOLDEN_JOKER,
+        card::LUCKY_CAT,
+        card::BASEBALL_CARD,
+        card::BULL,
+        card::DIET_COLA,
+        card::TRADING_CARD,
+        card::FLASH_CARD,
+        card::POPCORN,
+        card::SPARE_TROUSERS,
+        card::ANCIENT_JOKER,
+        card::RAMEN,
+        card::WALKIE_TALKIE,
+        card::SOCK_AND_BUSKIN,
+        card::HANGING_CHAD,
+        card::SMEARED_JOKER,
+        card::OOPS_ALL_6S,
+        card::LUCHADOR,
+        card::MATADOR,
+        card::SELTZER,
+        card::THE_DUO,
+        card::THE_TRIO,
+        card::THE_FAMILY,
+        card::THE_ORDER,
+        card::THE_TRIBE,
+        card::CANIO,
+        card::TRIBOULET,
+        card::YORICK,
+        card::CHICOT,
+        card::PERKEO,
+    ];
+
+    #[must_use]
+    pub fn pile_all() -> BuffoonPile {
+        BuffoonPile::from(&Self::ALL_JOKERS[..])
+    }
+
+    /// Every joker still carrying [`MPip::Blank`], each with the reason it does.
+    ///
+    /// A `Blank` joker legitimately scores nothing, so the scoring guards
+    /// (`KNOWN_UNWIRED` and `KNOWN_UNWIRED_CARD_ENHANCEMENTS`) cannot see it.
+    /// That left "`Blank` because we haven't got to it" and "`Blank` because it
+    /// needs a subsystem that does not exist" indistinguishable, and EPIC-01a's
+    /// whole premise is that the difference must be written down.
+    ///
+    /// The reason is **data, not a comment**, on purpose: a comment cannot be
+    /// asserted, and rots silently. This one is checked — see
+    /// `all_jokers__every_blank_joker_has_a_stated_reason`, which fails if a
+    /// `Blank` joker is missing from this list, if a listed joker gets wired, or
+    /// if a reason is too thin to be a reason.
+    ///
+    /// **Not a to-do list.** An entry here is a *decision*, and several of these
+    /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
+    /// shop) that are deliberately outside this crate's current scope. Delete an
+    /// entry only when the joker is wired.
+    ///
+    /// [`MPip::Blank`]: crate::funky::types::mpip::MPip::Blank
+    pub const BLANK_WITH_REASON: [(BuffoonCard, &'static str); 8] = [
+        // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
+        (
+            card::DNA,
+            "needs a draw step (it copies a card into hand); its other half, \
+             'first hand of round', is expressible now via `hands_played`",
+        ),
+        // --- Blocked on state this EPIC deliberately scoped out (item 1c) ---
+        (
+            card::TO_DO_LIST,
+            "needs a per-round random target hand type",
+        ),
+        (card::MAIL_IN_REBATE, "needs a per-round random target rank"),
+        (card::TRADING_CARD, "needs card destruction on discard"),
+        (
+            card::RESERVED_PARKING,
+            "a probabilistic held-card payout — deferred rather than blocked; it \
+             could ride the existing seeded-RNG path today",
+        ),
+        // --- Blocked on the pure-fold boundary ---
+        (
+            card::LUCKY_CAT,
+            "needs scoring to be mutating: it gains x0.25 per Lucky *proc*, which \
+             happens inside the pure `&self` fold, so no `&mut` hook can see it \
+             without re-rolling the RNG. The same gap `on_scored` already \
+             characterizes for Hiker",
+        ),
+        // --- Blocked on boss blind abilities (item 8) ---
+        (
+            card::MATADOR,
+            "pays when a played hand triggers the Boss Blind ability; every boss \
+             modelled here applies its ability once at blind select, so there is \
+             no per-hand trigger to read",
+        ),
+        // --- Blocked on Tags, which do not exist ---
+        (
+            card::DIET_COLA,
+            "sell it to create a free Double Tag: needs Tags, which do not exist \
+             — there is no object to create, and Double Tag's own effect ('copy \
+             the next selected Tag') needs the skip-blind tag-selection flow too. \
+             Its `selling_self` trigger also wants the shop. Tags first",
+        ),
+    ];
+
+    /// Why `card` is still [`MPip::Blank`], or `None` if it is not listed in
+    /// [`Self::BLANK_WITH_REASON`].
+    ///
+    /// [`MPip::Blank`]: crate::funky::types::mpip::MPip::Blank
+    #[must_use]
+    pub fn blank_reason(card: &BuffoonCard) -> Option<&'static str> {
+        Self::BLANK_WITH_REASON
+            .iter()
+            .find(|(joker, _)| joker == card)
+            .map(|(_, reason)| *reason)
+    }
 }
 
 pub mod card {
@@ -2049,131 +2253,11 @@ mod funky__decks__joker_tests {
     use crate::preludes::funky::{BCardType, Blind, BuffoonPile, Deck, Score};
     use std::collections::{HashMap, HashSet};
 
-    /// Every joker const defined in this file, in declaration order. The single
-    /// iteration point for crate-wide data invariants (weight uniqueness, the
-    /// scoring-reachability guard). A joker is only protected by those guards
-    /// once it is listed here; `all_jokers__is_superset_of_every_pile` keeps the
-    /// four rarity piles from drifting out of it.
-    const ALL_JOKERS: [BuffoonCard; 112] = [
-        card::JOKER,
-        card::GREEDY_JOKER,
-        card::LUSTY_JOKER,
-        card::WRATHFUL_JOKER,
-        card::GLUTTONOUS_JOKER,
-        card::JOLLY_JOKER,
-        card::ZANY_JOKER,
-        card::MAD_JOKER,
-        card::CRAZY_JOKER,
-        card::DROLL_JOKER,
-        card::SLY_JOKER,
-        card::WILY_JOKER,
-        card::CLEVER_JOKER,
-        card::DEVIOUS_JOKER,
-        card::CRAFTY_JOKER,
-        card::HALF_JOKER,
-        card::JOKER_STENCIL,
-        card::FOUR_FINGERS,
-        card::MIME,
-        card::CREDIT_CARD,
-        card::CEREMONIAL_DAGGER,
-        card::BANNER,
-        card::MYSTIC_SUMMIT,
-        card::MARBLE_JOKER,
-        card::LOYALTY_CARD,
-        card::EIGHT_BALL,
-        card::MISPRINT,
-        card::DUSK,
-        card::RAISED_FIST,
-        card::CHAOS_THE_CLOWN,
-        card::FIBONACCI,
-        card::STEEL_JOKER,
-        card::SCARY_FACE,
-        card::ABSTRACT_JOKER,
-        card::DELAYED_GRATIFICATION,
-        card::HACK,
-        card::PAREIDOLIA,
-        card::GROS_MICHEL,
-        card::EVEN_STEVEN,
-        card::ODD_TODD,
-        card::SCHOLAR,
-        card::BUSINESS_CARD,
-        card::SUPERNOVA,
-        card::RIDE_THE_BUS,
-        card::SPACE_JOKER,
-        card::EGG,
-        card::BURGLAR,
-        card::BLACKBOARD,
-        card::RUNNER,
-        card::ICE_CREAM,
-        card::DNA,
-        card::SPLASH,
-        card::BLUE_JOKER,
-        card::SIXTH_SENSE,
-        card::CONSTELLATION,
-        card::HIKER,
-        card::FACELESS_JOKER,
-        card::GREEN_JOKER,
-        card::SUPERPOSITION,
-        card::TO_DO_LIST,
-        card::CAVENDISH,
-        card::CARD_SHARP,
-        card::RED_CARD,
-        card::MADNESS,
-        card::SQUARE_JOKER,
-        card::SEANCE,
-        card::RIFF_RAFF,
-        card::VAMPIRE,
-        card::SHORTCUT,
-        card::HOLOGRAM,
-        card::VAGABOND,
-        card::BARON,
-        card::CLOUD_9,
-        card::ROCKET,
-        card::EROSION,
-        card::RESERVED_PARKING,
-        card::MAIL_IN_REBATE,
-        card::TO_THE_MOON,
-        card::HALLUCINATION,
-        card::FORTUNE_TELLER,
-        card::JUGGLER,
-        card::DRUNKARD,
-        card::STONE_JOKER,
-        card::GOLDEN_JOKER,
-        card::LUCKY_CAT,
-        card::BASEBALL_CARD,
-        card::BULL,
-        card::DIET_COLA,
-        card::TRADING_CARD,
-        card::FLASH_CARD,
-        card::POPCORN,
-        card::SPARE_TROUSERS,
-        card::ANCIENT_JOKER,
-        card::RAMEN,
-        card::WALKIE_TALKIE,
-        card::SOCK_AND_BUSKIN,
-        card::HANGING_CHAD,
-        card::SMEARED_JOKER,
-        card::OOPS_ALL_6S,
-        card::LUCHADOR,
-        card::MATADOR,
-        card::SELTZER,
-        card::THE_DUO,
-        card::THE_TRIO,
-        card::THE_FAMILY,
-        card::THE_ORDER,
-        card::THE_TRIBE,
-        card::CANIO,
-        card::TRIBOULET,
-        card::YORICK,
-        card::CHICOT,
-        card::PERKEO,
-    ];
-
-    /// Every joker in the four rarity piles must appear in [`ALL_JOKERS`], so the
+    /// Every joker in the four rarity piles must appear in [`Joker::ALL_JOKERS`], so the
     /// crate-wide guards can never silently skip an in-game joker.
     #[test]
     fn all_jokers__is_superset_of_every_pile() {
-        let registry: HashSet<_> = ALL_JOKERS.iter().collect();
+        let registry: HashSet<_> = Joker::ALL_JOKERS.iter().collect();
         for pile in [
             &Joker::COMMON_JOKERS[..],
             &Joker::UNCOMMON_JOKERS[..],
@@ -2183,13 +2267,13 @@ mod funky__decks__joker_tests {
             for card in pile {
                 assert!(
                     registry.contains(card),
-                    "{card} is in a rarity pile but missing from ALL_JOKERS"
+                    "{card} is in a rarity pile but missing from Joker::ALL_JOKERS"
                 );
             }
         }
     }
 
-    /// The inverse of the superset guard: every joker in [`ALL_JOKERS`] must
+    /// The inverse of the superset guard: every joker in [`Joker::ALL_JOKERS`] must
     /// sit in the rarity pile its own `card_type` names. An adrift joker is
     /// invisible to everything that draws from the piles (Riff-Raff already
     /// mints from `COMMON_JOKERS`; the shop will draw stock the same way) —
@@ -2198,7 +2282,7 @@ mod funky__decks__joker_tests {
     #[test]
     fn all_jokers__every_joker_is_piled_by_its_rarity() {
         let mut adrift: Vec<String> = Vec::new();
-        for card in ALL_JOKERS {
+        for card in Joker::ALL_JOKERS {
             let pile: &[BuffoonCard] = match card.card_type {
                 BCardType::CommonJoker => &Joker::COMMON_JOKERS,
                 BCardType::UncommonJoker => &Joker::UNCOMMON_JOKERS,
@@ -2229,7 +2313,7 @@ mod funky__decks__joker_tests {
     #[test]
     fn all_jokers__resell_value_is_half_cost_floored_at_one() {
         let mut wrong: Vec<String> = Vec::new();
-        for card in ALL_JOKERS {
+        for card in Joker::ALL_JOKERS {
             if card.card_type == BCardType::LegendaryJoker {
                 continue;
             }
@@ -2255,7 +2339,7 @@ mod funky__decks__joker_tests {
     fn all_jokers__weights_are_unique() {
         let mut seen = HashSet::new();
         let mut collisions: Vec<(usize, String)> = Vec::new();
-        for card in ALL_JOKERS {
+        for card in Joker::ALL_JOKERS {
             let weight = card.rank.weight;
             if !seen.insert(weight) {
                 collisions.push((weight, format!("{card}")));
@@ -2820,71 +2904,6 @@ mod funky__decks__joker_tests {
     /// classified in [`scores_hand`] instead, and never belong here.
     const KNOWN_UNWIRED: [BuffoonCard; 0] = [];
 
-    /// Every joker still carrying [`MPip::Blank`], each with the reason it does.
-    ///
-    /// The third guard, and the one that closes the last silent failure mode in
-    /// the crate. Its two siblings ([`KNOWN_UNWIRED`] and
-    /// `KNOWN_UNWIRED_CARD_ENHANCEMENTS`) catch a card that *intends* to score
-    /// and doesn't — but a `Blank` joker legitimately scores nothing, so neither
-    /// guard can see it. That left "`Blank` because we haven't got to it" and
-    /// "`Blank` because it needs a subsystem that does not exist"
-    /// indistinguishable, and EPIC-01a's whole premise is that the difference
-    /// must be written down.
-    ///
-    /// The reason is **data, not a comment**, on purpose: a comment cannot be
-    /// asserted, and rots silently. This one is checked — see
-    /// [`all_jokers__every_blank_joker_has_a_stated_reason`], which fails if a
-    /// `Blank` joker is missing from this list, if a listed joker gets wired, or
-    /// if a reason is too thin to be a reason.
-    ///
-    /// **Not a to-do list.** An entry here is a *decision*, and several of these
-    /// are permanent-ish: they wait on subsystems (spectral cards, packs, the
-    /// shop) that are deliberately outside this crate's current scope. Delete an
-    /// entry only when the joker is wired.
-    const BLANK_WITH_REASON: [(BuffoonCard, &str); 8] = [
-        // --- Blocked on subsystems that do not exist (EPIC-01a item 5e) ---
-        (
-            card::DNA,
-            "needs a draw step (it copies a card into hand); its other half, \
-             'first hand of round', is expressible now via `hands_played`",
-        ),
-        // --- Blocked on state this EPIC deliberately scoped out (item 1c) ---
-        (
-            card::TO_DO_LIST,
-            "needs a per-round random target hand type",
-        ),
-        (card::MAIL_IN_REBATE, "needs a per-round random target rank"),
-        (card::TRADING_CARD, "needs card destruction on discard"),
-        (
-            card::RESERVED_PARKING,
-            "a probabilistic held-card payout — deferred rather than blocked; it \
-             could ride the existing seeded-RNG path today",
-        ),
-        // --- Blocked on the pure-fold boundary ---
-        (
-            card::LUCKY_CAT,
-            "needs scoring to be mutating: it gains x0.25 per Lucky *proc*, which \
-             happens inside the pure `&self` fold, so no `&mut` hook can see it \
-             without re-rolling the RNG. The same gap `on_scored` already \
-             characterizes for Hiker",
-        ),
-        // --- Blocked on boss blind abilities (item 8) ---
-        (
-            card::MATADOR,
-            "pays when a played hand triggers the Boss Blind ability; every boss \
-             modelled here applies its ability once at blind select, so there is \
-             no per-hand trigger to read",
-        ),
-        // --- Blocked on Tags, which do not exist ---
-        (
-            card::DIET_COLA,
-            "sell it to create a free Double Tag: needs Tags, which do not exist \
-             — there is no object to create, and Double Tag's own effect ('copy \
-             the next selected Tag') needs the skip-blind tag-selection flow too. \
-             Its `selling_self` trigger also wants the shop. Tags first",
-        ),
-    ];
-
     /// Every `Blank` joker must say why it is `Blank`.
     ///
     /// This is the guard the other two structurally cannot be: a `Blank` joker
@@ -2893,11 +2912,11 @@ mod funky__decks__joker_tests {
     /// identical in the source.
     #[test]
     fn all_jokers__every_blank_joker_has_a_stated_reason() {
-        let listed: HashMap<_, _> = BLANK_WITH_REASON.iter().copied().collect();
+        let listed: HashMap<_, _> = Joker::BLANK_WITH_REASON.iter().copied().collect();
         let mut unexplained = Vec::new();
         let mut wired_but_listed = Vec::new();
 
-        for joker in ALL_JOKERS {
+        for joker in Joker::ALL_JOKERS {
             let is_blank = joker.enhancement == MPip::Blank;
             let has_reason = listed.contains_key(&joker);
             if is_blank && !has_reason {
@@ -2910,17 +2929,17 @@ mod funky__decks__joker_tests {
 
         assert!(
             wired_but_listed.is_empty(),
-            "these are wired now — remove them from BLANK_WITH_REASON: {wired_but_listed:?}"
+            "these are wired now — remove them from Joker::BLANK_WITH_REASON: {wired_but_listed:?}"
         );
         assert!(
             unexplained.is_empty(),
             "these jokers are Blank with no stated reason. Wire them, or add them \
-             to BLANK_WITH_REASON saying what they are waiting on — `Blank` by \
+             to Joker::BLANK_WITH_REASON saying what they are waiting on — `Blank` by \
              omission is indistinguishable from `Blank` by decision, and no other \
              guard can tell them apart: {unexplained:?}"
         );
 
-        for (joker, reason) in BLANK_WITH_REASON {
+        for (joker, reason) in Joker::BLANK_WITH_REASON {
             assert!(
                 reason.len() > 20,
                 "{joker} needs a real reason, not `{reason}`"
@@ -2952,7 +2971,7 @@ mod funky__decks__joker_tests {
             "blocked",
             "first hand",
         ];
-        for (joker, reason) in BLANK_WITH_REASON {
+        for (joker, reason) in Joker::BLANK_WITH_REASON {
             let lower = reason.to_lowercase();
             assert!(
                 BLOCKER_WORDS.iter().any(|word| lower.contains(word)),
@@ -2976,7 +2995,7 @@ mod funky__decks__joker_tests {
         let mut new_silent_zero = Vec::new();
         let mut now_wired = Vec::new();
         let mut misclassified = Vec::new();
-        for joker in ALL_JOKERS {
+        for joker in Joker::ALL_JOKERS {
             let intends = scores_hand(joker.enhancement);
             let reachable = is_reachable(joker);
             let listed = known.contains(&joker);
@@ -3074,7 +3093,7 @@ mod funky__decks__joker_tests {
 
     /// The card-level silent-zero guard — the twin of
     /// [`all_jokers__intended_hand_scorers_are_reachable`], which iterates
-    /// `ALL_JOKERS` and therefore cannot see a *card* enhancement at all. That
+    /// `Joker::ALL_JOKERS` and therefore cannot see a *card* enhancement at all. That
     /// blind spot is exactly how the Glass card kept its ×2 mult unwired through
     /// the whole of Phase 0b.
     ///
@@ -3181,5 +3200,49 @@ mod funky__decks__joker_tests {
             all.len(),
             "a joker appears in more than one rarity pile"
         );
+    }
+
+    #[test]
+    fn pile_all__holds_every_joker_exactly_once() {
+        let pile = Joker::pile_all();
+        let unique: HashSet<_> = pile.iter().collect();
+
+        assert_eq!(pile.len(), Joker::ALL_JOKERS_SIZE);
+        assert_eq!(unique.len(), Joker::ALL_JOKERS_SIZE);
+    }
+
+    #[test]
+    fn blank_reason__explains_a_blank_joker() {
+        let reason = Joker::blank_reason(&card::DIET_COLA);
+
+        assert!(reason.is_some_and(|r| r.contains("Tags")), "{reason:?}");
+    }
+
+    #[test]
+    fn blank_reason__is_none_for_a_wired_joker() {
+        assert_eq!(Joker::blank_reason(&card::JOKER), None);
+    }
+
+    /// Every joker survives a JSON round trip, so a consumer can send any of
+    /// them across a serde boundary (EPIC-05) and get the same card back.
+    #[test]
+    fn all_jokers__serde_round_trip() {
+        for joker in Joker::ALL_JOKERS {
+            let json = serde_json::to_string(&joker).unwrap();
+
+            assert_eq!(
+                serde_json::from_str::<BuffoonCard>(&json).unwrap(),
+                joker,
+                "{json}"
+            );
+        }
+    }
+
+    #[test]
+    fn pile_all__serde_round_trip() {
+        let pile = Joker::pile_all();
+        let json = serde_json::to_string(&pile).unwrap();
+
+        assert_eq!(serde_json::from_str::<BuffoonPile>(&json).unwrap(), pile);
     }
 }

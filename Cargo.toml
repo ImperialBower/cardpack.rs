@@ -1,7 +1,7 @@
 [package]
 name = "cardpack"
 description = "Generic Deck of Cards"
-version = "0.11.1"
+version = "0.11.2"
 authors = ["electronicpanopticon <gaoler@electronicpanopticon.com>"]
 repository = "https://github.com/ImperialBower/cardpack.rs.git"
 homepage = "https://github.com/ImperialBower/cardpack.rs"
@@ -74,19 +74,19 @@ hkdf = { version = "0.13", default-features = false, optional = true }
 zeroize = { version = "1.9", default-features = false, optional = true }
 thiserror = { version = "2.0.18", default-features = false }
 
-# getrandom 0.3 and 0.4 both force wasm32 consumers to pick a backend; without
-# it, `cargo build --target wasm32-unknown-unknown` errors with "no backend
+# getrandom forces wasm32 consumers to pick a backend; without it,
+# `cargo build --target wasm32-unknown-unknown` errors with "no backend
 # selected." We turn on the `wasm_js` feature here (browser-targeting backend)
 # so consumers don't have to add it themselves. Consumers still need to set
 # `--cfg getrandom_backend="wasm_js"` via .cargo/config.toml (see docs/wasm.md).
 #
-# Two pins are needed: getrandom 0.3 still reaches this graph transitively
-# (rand_core 0.9, pulled in by dev-deps), while rand 0.10 itself depends
-# directly on getrandom 0.4 for its wasm32 entropy source. `getrandom_v4` is
-# just the manifest key — Cargo unifies features onto the one resolved 0.4.x
+# rand 0.10 depends directly on getrandom 0.4 for its wasm32 entropy source.
+# Do not add a getrandom 0.3 pin back: the only 0.3 user is proptest (via
+# rand_core 0.9), which is gated off wasm32, so a 0.3 pin here only handed
+# every consumer a duplicate getrandom (EPIC-06 2f). `getrandom_v4` is just
+# the manifest key — Cargo unifies features onto the one resolved 0.4.x
 # package regardless of the name it's declared under.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3", features = ["wasm_js"] }
 getrandom_v4 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
 
 # All ordinary dev-deps require std and cannot build for bare-metal targets

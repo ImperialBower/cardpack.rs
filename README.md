@@ -105,7 +105,7 @@ what they need:
 | `yaml`            | no      | `serde_norway`     | Full deck ↔ YAML round-tripping (pure, in-memory) — see [Decks as YAML](#decks-as-yaml); plus the `Razz` deck |
 | `serde`           | no      | `serde`            | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io`          | no      | —                  | `BasicCard::cards_from_yaml_file` — reads decks from YAML *files* (`std::fs`). The crate's one filesystem seam; **not** in `full` |
-| `funky`           | no      | `std`              | The Balatro-style engine — see [Funky](#funky--balatro-style-cards) below |
+| `funky`           | no      | `std`              | **Deprecated** (0.11.2): moved to [`buffoonery`](https://crates.io/crates/buffoonery); removed in 0.12.0. See [Funky](#funky--balatro-style-cards) below |
 | `seal-test-double`| no      | —                  | `PlaintextSeal` (**no security**) and the `seal_roundtrip` conformance helper for testing a `Seal` backend; **not** in `full` |
 | `commit-reveal`   | no      | `sha2`             | Provably-fair shuffles: `ShuffleRound`, `Commitment`/`Contribution`, `CombinedSeed`, `commit_pile`, `Pile::shuffled_by_round` — see [Provably-fair shuffles](#provably-fair-shuffles); **not** in `full` |
 | `seal-aead`       | no      | `chacha20poly1305`, `hkdf`, `sha2`, `zeroize` | Holder-key seal: `HolderKeySeal`, `DealKey`/`CardKey`, `SealedBytes`, `Custody` — see [Sealed cards](#sealed-cards-holder-key-seal); **not** in `full` |
@@ -234,6 +234,23 @@ decks known only at runtime. Golden fixtures for all shipped decks live in
 `tests/fixtures/yaml/` and are regenerated with `make yaml-fixtures`.
 
 ## Funky — Balatro-style cards
+
+> **Deprecated since 0.11.2.** The funky engine moved to its own crate,
+> [`buffoonery`](https://crates.io/crates/buffoonery)
+> ([repo](https://github.com/ImperialBower/buffoonery)), where it becomes the
+> foundation of a Balatro score solver. cardpack removes the `funky` feature in
+> 0.12.0. To move:
+>
+> ```toml
+> # before
+> cardpack = { version = "0.11", features = ["funky"] }
+> # after
+> buffoonery = "0.0.1"
+> ```
+>
+> Then change `use cardpack::preludes::funky::*;` to
+> `use buffoonery::prelude::*;`. The type names stay the same. Note that
+> `buffoonery` needs Rust 1.99.1.
 
 The `funky` feature is a result of having my mind blown🤯 playing the 
 amazing solitare game [Balatro](https://www.playbalatro.com/). It honestly

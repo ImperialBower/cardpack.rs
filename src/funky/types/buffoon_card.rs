@@ -369,7 +369,8 @@ impl FromStr for BuffoonCard {
             "KM" | "JUDGEMENT" => Ok(tarot::card::JUDGEMENT),
             "LM" | "WORLD" => Ok(tarot::card::WORLD),
 
-            _ => Ok(Self::default()),
+            "__" => Ok(Self::default()),
+            _ => Err(CardError::InvalidIndex(s)),
         }
     }
 }
@@ -691,6 +692,12 @@ mod funky__types__buffoon_card_tests {
     #[test]
     fn enhance__tarot__judgement() {
         assert_eq!(SIX_CLUBS.enhance(JUDGEMENT).enhancement, MPip::Blank);
+    }
+
+    #[test]
+    fn from_str__unknown_index_is_an_error() {
+        assert!(BuffoonCard::from_str("XX").is_err());
+        assert!(BuffoonCard::from_str("AZ").is_err());
     }
 
     #[test]

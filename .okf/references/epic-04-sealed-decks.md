@@ -2,9 +2,9 @@
 type: Reference
 title: EPIC-04 — Sealed Decks (family)
 description: A deck cardpack cannot read because it never holds one — the Ordinal/Codebook bijection, Permutation-as-data, a non-generic SlotPile of card names, Revealed<D> as the only value map, and a five-item Seal<D> adapter — plus three children for commit-reveal shuffles, holder-key AEAD seals with a plain Custody ledger, and the mental-poker bridge to pkmental/pkcore.
-tags: [epic, seal, crypto, ordinal, permutation, active]
+tags: [epic, seal, crypto, ordinal, permutation, complete]
 resource: https://github.com/ImperialBower/cardpack.rs/blob/main/docs/EPIC-04_Sealed_Decks.md
-timestamp: 2026-08-25T12:00:00Z
+timestamp: 2026-10-18T00:00:00Z
 ---
 
 # What it covers
@@ -46,7 +46,7 @@ Children:
   verify inside `unseal`). Written from cardpack outward; no work items for
   other repositories.
 
-# Authoritative for
+# Key rules (see the EPIC)
 
 * **Slots, not custody** (EPIC-04 decision 2): no kernel type is generic over
   a scheme and none holds ciphertext — `SlotPile` + `Revealed<D>` are the
@@ -64,11 +64,9 @@ Children:
 
 # Status
 
-Designed 2026-08-24 at `1c14440`. **The umbrella's kernel (Stories 0–7) landed
-the same day on branch `crypt`** — 320 lib tests, 8 mutation-checked property
-tests, every purity gate green, version 0.11.0. 04a, 04b, 04c remain Planned.
-Sequencing: 04 → (04a ‖ 04b) → 04c review.
-Whether `pkcore` or `pkmental` ever build on it is their call and is not tracked here.
+Complete as of 2026-08-25 (0.11.0). The live status is the `## Status` table
+in each EPIC-04 doc; this page does not track it. Whether `pkcore` or
+`pkmental` ever build on it is their call and is not tracked here.
 
 # In-repo paths
 

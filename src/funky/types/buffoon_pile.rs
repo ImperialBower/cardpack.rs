@@ -327,9 +327,25 @@ impl BuffoonPile {
         self.0.extend(other.0.clone());
     }
 
+    /// Parses `index`, returning an empty pile on invalid input — the funky
+    /// counterpart of `Pile::forgiving_from_str`, backing the `bcards!` macro.
+    /// Invalid input is logged at `warn` so a typo'd card string does not
+    /// silently shorten a hand.
+    ///
+    /// ```
+    /// use cardpack::preludes::funky::*;
+    ///
+    /// assert_eq!(BuffoonPile::forgiving_from_str("AS KS").len(), 2);
+    /// assert!(BuffoonPile::forgiving_from_str("AS XX").is_empty());
+    /// ```
     #[must_use]
     pub fn forgiving_from_str(index: &str) -> Self {
-        Self::from_str(index).unwrap_or_else(|_| Self::default())
+        Self::from_str(index).unwrap_or_else(|_| {
+            log::warn!(
+                "BuffoonPile::forgiving_from_str(): {index} is invalid. Returning empty BuffoonPile."
+            );
+            Self::default()
+        })
     }
 
     #[must_use]

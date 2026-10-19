@@ -28,8 +28,8 @@ so you don't need to add `getrandom` to your own `[dependencies]`.
 
 ## Why the cfg flag is needed
 
-cardpack uses `rand 0.9`, which uses `rand_core 0.9`, which depends on
-`getrandom 0.3`. On `wasm32-unknown-unknown`, `getrandom` requires the
+cardpack uses `rand 0.10`, which depends directly on `getrandom 0.4` for
+its wasm32 entropy source. On `wasm32-unknown-unknown`, `getrandom` requires the
 consumer to **pick a backend** — there's no default because the right
 choice depends on the runtime (browser vs WASI vs custom embedder).
 
@@ -47,8 +47,8 @@ the browser. Other valid choices include:
   instead — `getrandom` provides a backend automatically. No cfg flag
   needed.
 - **Cloudflare Workers / Edge**: same as browser, use `wasm_js`.
-- **Custom embedder with no entropy source**: implement
-  [`getrandom::register_custom_getrandom!`](https://docs.rs/getrandom/0.3/getrandom/macro.register_custom_getrandom.html).
+- **Custom embedder with no entropy source**: use `getrandom`'s custom
+  backend (see the [`getrandom` 0.4 docs](https://docs.rs/getrandom/0.4/getrandom/)).
 
 ## Recommended feature combos
 

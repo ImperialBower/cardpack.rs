@@ -3,7 +3,7 @@ type: Architecture
 title: Cargo feature flags
 description: The pure-by-default feature matrix — default is an alloc-only no_std kernel; std, i18n, color, yaml, serde, std-io, and funky are opt-in.
 tags: [features, cargo, no_std, purity]
-timestamp: 2026-08-25T12:00:00Z
+timestamp: 2026-10-18T12:00:00Z
 ---
 
 # Principle
@@ -24,7 +24,7 @@ else is opt-in.
 | `yaml` | yes | `serde_norway` (implies `std`, `serde`) | Full deck ↔ YAML round-tripping, pure and in-memory: `DeckYaml`, the `YamlDecked` blanket trait, `DeckKind::to_yaml`/`from_yaml`, `Pile::to_yaml`/`from_yaml`, `BasicCard::cards_from_yaml_str`, six `CardError::Yaml*` variants, and the `Razz` deck ([envelope decision](/decisions/yaml-envelope-format.md)) |
 | `serde` | yes | `serde` (implies `alloc`) | `Serialize`/`Deserialize` derives on `Pip`/`Card`/`Pile` etc. |
 | `std-io` | **no** | (implies `std`, `yaml`) | `BasicCard::cards_from_yaml_file` — the crate's one filesystem seam; deliberately excluded from `full` ([decision](/decisions/std-io-outside-full.md)) |
-| `funky` | **no** | (implies `std`, `serde`) | Balatro-style engine ([funky engine](/architecture/funky-engine.md)) |
+| `funky` | **no** | (implies `std`, `serde`) | Balatro-style engine ([funky engine](/architecture/funky-engine.md)). **Deprecated** in 0.11.2 (moved to `buffoonery`); removed in 0.12.0 |
 | `seal-test-double` | **no** | — | `PlaintextSeal` / `PlainToken` / `PlainSealError` (**no security**) and the exported `seal_roundtrip` conformance helper (EPIC-04, landed 2026-08-24) |
 | `commit-reveal` | **no** | `sha2 0.11` (no_std; banned from the pure tree) | `Commitment`, `Contribution`, `ParticipantId`, `ShuffleRound`, `CombinedSeed`, `commit_permutation`/`verify_permutation`, `commit_pile`/`verify_pile`, `Pile::shuffled_by_round`, eight gated `CardError` variants (EPIC-04a, landed 2026-08-25; [crypto decision](/decisions/crypto-features-outside-full.md)) |
 | `seal-aead` | **no** | `chacha20poly1305 0.11`, `hkdf 0.13`, `sha2 0.11`, `zeroize 1.9` (all no_std; banned from the pure tree) | `HolderKeySeal<D>` (dealer / verifier modes, `token_for`, `deal`), `DealKey`, `CardKey`, `SealedBytes` (42 bytes), `Custody` (a plain `Vec<(SlotId, SealedBytes)>` beside a `SlotPile`), `AeadSealError` (EPIC-04b, landed 2026-08-25) |
