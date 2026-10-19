@@ -1,6 +1,7 @@
 # Update Log
 
 ## 2026-10-19
+* **EPIC-05 Story S2 built in `buffoonery`** (scoring folds moved to `src/types/board/scoring.rs`, no behavior change); S1 marked Complete at `buffoonery` `bf779a4`.
 * **EPIC-05 Story S1 built in `buffoonery`** (fractional `Score`: `{ chips: u64, mult: f64 }`, floored once; 11 tests re-baselined; `buffoon` still 11254). EPIC-05 Status and S1 boxes updated; EPIC-06 Phase 1 row marked Complete there too. The decision record lives in `buffoonery/.okf/decisions/fractional-score.md`.
 * **cardpack 0.11.2 is on crates.io** (tag `v0.11.2`, merge `25ff170`): EPIC-06 Phase 2 complete. `buffoonery` now requires cardpack 0.11.2 and has dropped its `getrandom` / `r-efi` deny skips; `cargo deny check` passes there with `skip = []`. Next is Phase 3, removing `funky` in 0.12.0.
 

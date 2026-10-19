@@ -22,8 +22,8 @@ As of 2026-10-19. Milestone 0 code landed in cardpack `c762538`. Milestone A run
 | Milestone 0 — decisions 0f–0h (`Score` type, fold split, engine placement) | **Complete** (decided 2026-10-18) |
 | Milestone 0 — 0i–0k | Re-homed (see Milestone 0) |
 | Engine standing in its own repo (EPIC-06 Phase 1) | **Complete** (`buffoonery` 0.0.1, 2026-10-18) |
-| Story S1 — fractional `Score` | Built in `buffoonery` (2026-10-19; 485 lib tests green), not yet committed |
-| Story S2 — scoring folds out of `board.rs` | Planned |
+| Story S1 — fractional `Score` | **Complete** (`buffoonery` `bf779a4`, 2026-10-19) |
+| Story S2 — scoring folds out of `board.rs` | Built in `buffoonery` (2026-10-19; same 485 tests green), not yet committed |
 | Story 1 — `ScoreTrace` | Planned |
 | Story 2 — joker catalog | Planned (list + blank reasons done in Milestone 0; names not started) |
 | Story 3 — `BoardSpec` (Rust and YAML) | Planned |
@@ -190,8 +190,8 @@ Starts when EPIC-06 Phase 1 is green: the engine builds and passes its tests in 
 
 **Story S2: scoring folds out of `board.rs`** (decision 0g)
 
-- [ ] Move `fold_played_cards`, `fold_held_cards`, `fold_jokers` and their helpers (`board.rs:289-1001` area) into `src/types/board/scoring.rs` (or similar). No behavior change
-- [ ] Green check: the full suite passes with the same counts before and after
+- [x] Move `fold_played_cards`, `fold_held_cards`, `fold_jokers` and their helpers (`board.rs:289-1001` area) into `src/types/board/scoring.rs` (or similar). No behavior change. Done: `src/types/board/scoring.rs` holds phases 1–4, the three folds, the `score*` entry points, `joker_x_mult`, `counter_joker_op`, `gain_x_mult` and `LUCKY_MULT`, moved word for word (`board.rs` 8398 → 7577 lines). Four helpers the rest of `board.rs` also calls became `pub(super)`
+- [x] Green check: the full suite passes with the same counts before and after. Done: the same 485 tests by name (`cargo test --lib -- --list`, diffed), `buffoon` and `funky_tour` output byte-identical, `make ayce` green
 
 
 **Story 1: `ScoreTrace` in the fold pipeline**
