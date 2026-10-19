@@ -8,7 +8,7 @@ Oct 18, 2026 · @Christoph
 - **Why:** the engine is becoming the foundation of a solver (EPIC-05), with a WIT boundary and YAML configuration. Cardpack is a card *value* kernel with no game state, and it should not carry a game engine.
 - **Shape:** move `src/funky/` (18,120 lines) into a new repo that depends on cardpack. Cardpack deprecates its `funky` feature in 0.11.2 and removes it in 0.12.0.
 - **Proves it:** the engine's 477 lib tests and 3 doctests pass in `buffoonery` against published cardpack, and cardpack's gates pass with no `funky` feature.
-- **Status:** In progress. Phases 0–1 done (`buffoonery` 0.0.1 on crates.io); Phase 2 done in the working tree on branch `epic-05`, not yet released (2026-10-18).
+- **Status:** In progress. Phases 0–2 done: `buffoonery` 0.0.1 and cardpack 0.11.2 (the deprecation) are on crates.io (2026-10-19). Next: Phase 3, removal in 0.12.0.
 
 ---
 
@@ -35,7 +35,7 @@ Decided on 2026-10-18 while scoping EPIC-05 (its open question 2 / item 0h). The
 |---|---|
 | Phase 0 — name, scaffold, copy | **Complete** except 0d (2026-10-18; scaffold in `buffoonery` `538cee4`, copy in its working tree) |
 | Phase 1 — engine builds and passes in `buffoonery` | **Complete** (2026-10-18; CI green at `buffoonery` `ce9fd8a`; 0.0.1 on crates.io, tag `v0.0.1` at `b7c16bf`) |
-| Phase 2 — cardpack 0.11.2 deprecation | 2a–2f **Complete** on branch `epic-05` (2026-10-18), not yet released; removing `buffoonery`'s deny skips waits for the 0.11.2 release |
+| Phase 2 — cardpack 0.11.2 deprecation | **Complete**: 0.11.2 on crates.io (tag `v0.11.2`, merge `25ff170`, 2026-10-19); `buffoonery`'s deny skips removed |
 | Phase 3 — cardpack 0.12.0 removal | Planned |
 | Phase 4 — docs and `.okf/` | Planned |
 
@@ -126,7 +126,7 @@ pub mod funky;
 - [x] **2c.** `#![allow(deprecated)]` where cardpack's own funky tests and examples would otherwise fail `-D warnings`. Done: in `src/funky/mod.rs`, `src/preludes/mod.rs`, both examples, and `#![cfg_attr(all(test, feature = "funky"), allow(deprecated))]` in `src/lib.rs`, because the test harness names every test from the crate root. `make ayce` green.
 - [x] **2d.** README: the Funky section (`README.md:236-269`) and the feature-table row (`README.md:108`) point to the new crate.
 - [x] **2e.** `CHANGELOG.md` 0.11.2: a `### Deprecated` entry with the migration line from Compatibility below.
-- [x] **2f. Drop the stale `getrandom` 0.3 pin** (`Cargo.toml`, `[target.'cfg(target_arch = "wasm32")'.dependencies]`). Its comment says `rand_core` 0.9 pulls 0.3 in through dev-dependencies, but that comes from `proptest`, which is gated off wasm32, so on wasm nothing else uses 0.3 (`cargo tree -i getrandom@0.3.4 --target wasm32-unknown-unknown` shows only cardpack). Every consumer gets a duplicate `getrandom` from it; `buffoonery` has to skip it in `deny.toml`. Green check: the CI wasm-build and wasm-test commands still pass. Then remove the skips from `buffoonery/deny.toml`. Done in cardpack: all four CI wasm commands pass (3 builds, 5 wasm tests). A scratch copy of `buffoonery` patched to this cardpack has no `getrandom` 0.3 at all, and `cargo deny check bans` passes with the skips removed. The real skip removal waits for the 0.11.2 release.
+- [x] **2f. Drop the stale `getrandom` 0.3 pin** (`Cargo.toml`, `[target.'cfg(target_arch = "wasm32")'.dependencies]`). Its comment says `rand_core` 0.9 pulls 0.3 in through dev-dependencies, but that comes from `proptest`, which is gated off wasm32, so on wasm nothing else uses 0.3 (`cargo tree -i getrandom@0.3.4 --target wasm32-unknown-unknown` shows only cardpack). Every consumer gets a duplicate `getrandom` from it; `buffoonery` has to skip it in `deny.toml`. Green check: the CI wasm-build and wasm-test commands still pass. Then remove the skips from `buffoonery/deny.toml`. Done in cardpack: all four CI wasm commands pass (3 builds, 5 wasm tests). A scratch copy of `buffoonery` patched to this cardpack has no `getrandom` 0.3 at all, and `cargo deny check bans` passes with the skips removed. After 0.11.2 shipped (2026-10-19), `buffoonery` requires `cardpack = "0.11.2"` and its `deny.toml` has `skip = []`; `cargo deny check` passes.
 
 ### Phase 3 — cardpack 0.12.0 removal
 
