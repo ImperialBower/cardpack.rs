@@ -97,7 +97,7 @@ getrandom_v4 = { package = "getrandom", version = "0.4", features = ["wasm_js"] 
 ckc-rs = "0.2.0"
 clap = { version = "4.5", features = ["derive", "unicode"] }
 env_logger = "0.11"
-rstest = "0.27"
+rstest = "0.28"
 serde_json = "1"
 term-table = "1.4.0"
 
